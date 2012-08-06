@@ -1,0 +1,63 @@
+# Go Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+Config.java.test
+
+# Folders
+_obj
+_test
+target
+
+# Architecture specific extensions/prefixes
+*.[568vq]
+[568vq].out
+
+*.out
+*.pyc
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.*
+
+_testmain.go
+
+*.exe
+*.class
+python/qbox/config.weico.py
+fopext/go/demo/fopext_demo
+2_output_s.jpg
+2_thumb_s.jpg
+2.jpg
+
+# rcov generated
+coverage
+
+# rdoc generated
+rdoc
+
+# bundler
+.bundle
+
+# jeweler generated
+pkg
+
+# Have editor/IDE/OS specific files you need to ignore? Consider using a global gitignore:
+#
+# * Create a file at ~/.gitignore
+# * Include files you want ignored
+# * Run: git config --global core.excludesfile ~/.gitignore
+#
+# After doing this, these files will be ignored in all your git projects,
+# saving you from having to 'pollute' every project you touch with them
+#
+# Not sure what to needs to be ignored for particular editors/OSes? Here's some ideas to get you started. (Remember, remove the leading # of the line)
+#
+# For MacOS:
+#
+.DS_Store
+
+# For vim:
+*.swp
+
