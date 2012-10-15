@@ -143,6 +143,9 @@ public class UpService {
 						
 							break; // Break to while loop.
 						}
+					} else if (ret.getStatusCode() == 701) {
+						progress.context = "" ;
+						notifier.notify(blockIndex, progress) ;
 					}
 				} catch (IOException e) {
 					e.printStackTrace();
