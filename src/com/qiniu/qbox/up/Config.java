@@ -11,11 +11,11 @@ public class Config {
 
 	public static String IO_HOST = "http://iovip.qbox.me";
 	public static String FS_HOST = "https://fs.qbox.me";
-	public static String RS_HOST = "http://rs.qbox.me:10100";
+	public static String RS_HOST = "http://rs.qbox.me";
 	public static String UP_HOST = "http://up.qbox.me";
 
-	public static int BLOCK_SIZE = 1024 * 1024 * 4;
-	public static int PUT_CHUNK_SIZE = 1024 * 256;
+	public static int BLOCK_SIZE = 1024 * 1024 * 4;	 // 4M
+	public static int PUT_CHUNK_SIZE = 1024 * 256;	 // 256K
 	public static int PUT_RETRY_TIMES = 3;
-	public static int PUT_TIMEOUT = 300000; // 300s = 5m
+	public static int PUT_TIMEOUT = 300000; 		 // 300s = 5m
 }

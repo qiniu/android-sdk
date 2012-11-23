@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.zip.CRC32;
 
-import android.util.Base64;
-
 import com.qiniu.qbox.auth.CallRet;
 import com.qiniu.qbox.auth.Client;
 
@@ -32,7 +30,7 @@ public class UpService {
 	public CallRet makeFile(String cmd, String entry, long fsize, String params, String callbackParams, String[] checksums) {
 		
 		if (callbackParams != null && callbackParams.length() != 0) {
-			params += "/params/" + Base64.encodeToString(callbackParams.getBytes(), Base64.URL_SAFE);
+			params += "/params/" + Client.urlsafeEncodeString(callbackParams.getBytes()) ;
 		}
 		
 		String url = Config.UP_HOST + cmd + Client.urlsafeEncodeString(entry.getBytes()) + "/fsize/" + String.valueOf(fsize) + params;
@@ -40,7 +38,8 @@ public class UpService {
 		byte[] body = new byte[20 * checksums.length];
 		
 		for (int i = 0; i < checksums.length; i++) {
-			byte[] buf = Base64.decode(checksums[i], Base64.DEFAULT);
+			byte[] buf = Client.urlsafeDecode(checksums[i]) ;
+			
 			System.arraycopy(buf,  0, body, i * 20, buf.length);
 		}
 		
@@ -200,4 +199,6 @@ public class UpService {
 		
 		return new ResumablePutRet(new CallRet(200, (String)null));
 	}
+	
+	
 }
