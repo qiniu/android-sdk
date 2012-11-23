@@ -166,9 +166,9 @@ key :	必须，唯一标识
 localFile : 必须，字符串类型，上传文件的全路径名
 
 optParams ： 可选参数，键值对形式的Map，目前支持的可选参数如下
->  mimeType :  缺省值为"application/octet-stream" 
-customeMeta :  缺省值为空  
-progressFile :  SDK用保存上传进度的文件 
+>  mimeType :  缺省值为"application/octet-stream"  
+customeMeta :  缺省值为空   
+progressFile :  SDK用保存上传进度的文件  
 callbackParams :  缺省值为null  
 
 客户端在上传文件的时候也可以根据需求选择断点续上传的方式，此处所说的断点上传是指用户在某次上传过程中出现错误，再重新上传的时候只需要从上次上传失败处上传即可。用户可以根据通过修改配置文件改变上传块（Config文件中的PUT_CHUNK_SIZE对应的值）的大小来适应用户所处的网络环境。为了提供一个简单的接口，我们将上传进度持久化的相关工作内置在了 SDK 中，当然用户也可以根据需要自己实现文件上传进度的持久化工作。
