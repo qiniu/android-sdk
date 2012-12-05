@@ -17,13 +17,11 @@ public class UpService {
 	
 	public ResumablePutRet makeBlock(long blockSize, byte[] body, long bodyLength) {
 		CallRet ret = this.conn.callWithBinary(Config.UP_HOST + "/mkblk/" + String.valueOf(blockSize), "application/octet-stream", body, bodyLength);
-		
 		return new ResumablePutRet(ret);
 	}
 
 	public ResumablePutRet putBlock(long blockSize, String ctx, long offset, byte[] body, long bodyLength) {
 		CallRet ret = this.conn.callWithBinary(Config.UP_HOST + "/bput/" + ctx + "/" + String.valueOf(offset), "application/octet-stream", body, bodyLength);
-		
 		return new ResumablePutRet(ret);
 	}
 	
@@ -83,6 +81,7 @@ public class UpService {
 				}
 				
 				ret = makeBlock((int)blockSize, body, bodyLength);
+				Config.UP_HOST = ret.getHost() ;
 				if (!ret.ok()) {
 					// Error handling
 					return ret;
