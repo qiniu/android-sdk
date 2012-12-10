@@ -10,9 +10,6 @@ import com.qiniu.qbox.auth.CallRet;
 import com.qiniu.qbox.auth.Client;
 
 public class RSService {
-	private static final String DEFAULT_MIME_TYPE = "application/octet-stream" ;
-	private static final String APPLICATION_OCTET_STREAM = "application/octet-stream" ;
-	private static final String DEFAULT_ROTATE = "0" ;
 	private Client conn ;
 	private String bucketName ;
 	
@@ -37,7 +34,7 @@ public class RSService {
 	private PutFileRet put(String key, String mimeType, AbstractHttpEntity entity, String customMeta, String rotate) throws Exception {
 		String entryURI = this.bucketName + ":" + key ;
 		if (mimeType == null || mimeType.length() == 0) {
-			mimeType = DEFAULT_MIME_TYPE ;
+			mimeType = "application/octet-stream" ;
 		}
 
 		String url = Config.IO_HOST + "/rs-put/" + Client.urlsafeEncode(entryURI) + 
@@ -46,19 +43,17 @@ public class RSService {
 			url += "/meta/" + Client.urlsafeEncode(customMeta);
 		}
 
-		if (rotate == null || rotate.length() == 0) {
-			rotate = DEFAULT_ROTATE;
+		if (rotate != null && rotate.length() != 0) {
+			url += "/rotate/" + Client.urlsafeEncode(rotate);
 		}
 
-		url += "/rotate/" + Client.urlsafeEncode(rotate);
-		
 		CallRet ret = conn.callWithBinary(url, entity) ;
 		return new PutFileRet(ret) ;
 	}
 	
 	public PutFileRet putFile(String key, String localFile, Map<String, Object> optParams) throws Exception {
 		File f = new File(localFile) ;
-		FileEntity entity = new FileEntity(f, APPLICATION_OCTET_STREAM) ;
+		FileEntity entity = new FileEntity(f, "application/octet-stream") ;
 		
 		String mimeType = "" ;
 		String customMeta = "" ;
@@ -67,7 +62,7 @@ public class RSService {
 		if (optParams != null) {
 			mimeType = (String)optParams.get("MIME_TYPE") ;
 			customMeta = (String)optParams.get("CUSTOM_META") ;
-			rotate = (String)optParams.get("rotate") ;
+			rotate = (String)optParams.get("ROTATE") ;
 		}
 		
 		return  put(key, mimeType, entity, customMeta, rotate);

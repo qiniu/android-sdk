@@ -14,8 +14,8 @@ public class Config {
 	public static String RS_HOST = "http://rs.qbox.me";
 	public static String UP_HOST = "http://up.qbox.me";
 
-	public static int BLOCK_SIZE = 1024 * 1024 * 4;	 // 4M
-	public static int PUT_CHUNK_SIZE = 1024 * 256;	 // 256K
+	public static int BLOCK_SIZE = 4 * 1024 * 1024;	 // 4M
+	public static int PUT_CHUNK_SIZE = 20 * 1024;	 // 256K
 	public static int PUT_RETRY_TIMES = 3;
 	public static int PUT_TIMEOUT = 300000; 		 // 300s = 5m
 }

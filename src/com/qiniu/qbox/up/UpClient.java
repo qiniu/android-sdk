@@ -21,6 +21,7 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.qiniu.qbox.auth.CallRet;
@@ -122,12 +123,8 @@ public class UpClient {
 					throw new Exception("Fail to remove the progress file : " + progressFile) ;
 				}
 			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
 		} catch (Exception e) {
-			e.printStackTrace();
+			return new PutFileRet(new CallRet(400, e)) ;
 		}
 		
 		return putFileRet;
@@ -180,59 +177,68 @@ public class UpClient {
 	}
 	
 	private static void readProgress(String file, String[] checksums,
-			BlockProgress[] progresses, int blockCount) throws Exception {
+			BlockProgress[] progresses, int blockCount) {
 		File fi = new File(file);
 		if (!fi.exists()) {
 			return;
 		}
-		FileReader f = new FileReader(file);
-		BufferedReader is = new BufferedReader(f);
+		BufferedReader reader = null ;
+		try {
+			FileReader f = new FileReader(file);
+			reader = new BufferedReader(f);
 
-		for (;;) {
-			String line = is.readLine();
-			if (line == null) // has no content any more
-				break;
+			for (;;) {
+				String line = reader.readLine();
+				if (line == null) // has no content any more
+					break;
 
-			JSONObject o = new JSONObject(line);
-			Object block = o.get("block");
-			if (block == null) { // invalid content
-				break;
+				JSONObject o = new JSONObject(line);
+				Object block = o.get("block");
+				if (block == null) { // invalid content
+					break;
+				}
+				int blockIdx = (Integer) block;
+				if (blockIdx < 0 || blockIdx >= blockCount) { // invalid blockIndex
+					break;
+				}
+
+				String checksum = null;
+				if (o.has("checksum")) {
+					checksum = o.getString("checksum");
+				}
+
+				// each block has a checksum value
+				if (checksum != null) {
+					checksums[blockIdx] = checksum;
+					continue;
+				}
+
+				JSONObject progress = null;
+				if (o.has("progress")) {
+					progress = (JSONObject) o.get("progress");
+				}
+
+				if (progress != null) {
+					BlockProgress bp = new BlockProgress();
+					bp.context = progress.getString("context");
+					bp.offset = progress.getInt("offset");
+					bp.restSize = progress.getInt("restSize");
+					progresses[blockIdx] = bp;
+					continue;
+				}
+				break; // error ...
 			}
-			int blockIdx = (Integer) block;
-			if (blockIdx < 0 || blockIdx >= blockCount) { // invalid blockIndex
-				break;
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			if (reader != null) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				reader = null;
 			}
-
-			Object checksum = null;
-			if (o.has("checksum")) {
-				checksum = o.get("checksum");
-			}
-
-			// each block has a checksum value
-			if (checksum != null) {
-				checksums[blockIdx] = (String) checksum;
-				continue;
-			}
-
-			JSONObject progress = null;
-			if (o.has("progress")) {
-				progress = (JSONObject) o.get("progress");
-			}
-
-			if (progress != null) {
-				BlockProgress bp = new BlockProgress();
-				bp.context = progress.getString("context");
-				bp.offset = progress.getInt("offset");
-				bp.restSize = progress.getInt("restSize");
-				progresses[blockIdx] = bp;
-				continue;
-			}
-			break; // error ...
-		}
-
-		if (is != null) {
-			is.close();
-			is = null;
 		}
 	}
 	
@@ -241,7 +247,7 @@ public class UpClient {
 				String localFile, Map<String, Object> optParams) throws Exception {
 		String mimeType = "";
 		String customMeta = "";
-		Object callbackParam = "";
+		Object callbackParam = null;
 		String rotate = "";
 		
 		if (optParams != null) {

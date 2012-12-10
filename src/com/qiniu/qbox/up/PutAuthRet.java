@@ -27,10 +27,10 @@ public class PutAuthRet extends CallRet {
 		JSONObject jsonObject = new JSONObject(json);
 
 		if (jsonObject.has("expiresIn")) {
-			this.expires = (Integer) jsonObject.get("expiresIn");
+			this.expires = jsonObject.getInt("expiresIn");
 		}
 		if (jsonObject.has("url")) {
-			this.url = (String) jsonObject.get("url");
+			this.url = jsonObject.getString("url");
 		}
 	}
 

@@ -26,7 +26,7 @@ public class PutFileRet extends CallRet {
 		JSONObject jsonObject = new JSONObject(json);
 		
 		if (jsonObject.has("hash")) {
-			this.hash = (String)jsonObject.get("hash");
+			this.hash = jsonObject.getString("hash");
 		}
 	}
 

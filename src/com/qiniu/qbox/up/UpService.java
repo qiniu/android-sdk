@@ -10,18 +10,20 @@ import com.qiniu.qbox.auth.Client;
 public class UpService {
 	
 	private Client conn;
+	private String upHost ;
 	
 	public UpService(Client conn) {
 		this.conn = conn;
+		this.upHost = Config.UP_HOST ;
 	}
 	
 	public ResumablePutRet makeBlock(long blockSize, byte[] body, long bodyLength) {
-		CallRet ret = this.conn.callWithBinary(Config.UP_HOST + "/mkblk/" + String.valueOf(blockSize), "application/octet-stream", body, bodyLength);
+		CallRet ret = this.conn.callWithBinary(this.upHost + "/mkblk/" + String.valueOf(blockSize), "application/octet-stream", body, bodyLength);
 		return new ResumablePutRet(ret);
 	}
 
 	public ResumablePutRet putBlock(long blockSize, String ctx, long offset, byte[] body, long bodyLength) {
-		CallRet ret = this.conn.callWithBinary(Config.UP_HOST + "/bput/" + ctx + "/" + String.valueOf(offset), "application/octet-stream", body, bodyLength);
+		CallRet ret = this.conn.callWithBinary(this.upHost + "/bput/" + ctx + "/" + String.valueOf(offset), "application/octet-stream", body, bodyLength);
 		return new ResumablePutRet(ret);
 	}
 	
@@ -31,7 +33,7 @@ public class UpService {
 			params += "/params/" + Client.urlsafeEncodeString(callbackParams.getBytes()) ;
 		}
 		
-		String url = Config.UP_HOST + cmd + Client.urlsafeEncodeString(entry.getBytes()) + "/fsize/" + String.valueOf(fsize) + params;
+		String url = this.upHost + cmd + Client.urlsafeEncodeString(entry.getBytes()) + "/fsize/" + String.valueOf(fsize) + params;
 		
 		byte[] body = new byte[20 * checksums.length];
 		
@@ -64,7 +66,7 @@ public class UpService {
 	public ResumablePutRet resumablePutBlock(RandomAccessFile file, 
 			int blockIndex, long blockSize, long chunkSize, 
 			int retryTimes,
-			BlockProgress progress, BlockProgressNotifier notifier) {
+			BlockProgress progress, BlockProgressNotifier notifier){
 		
 		ResumablePutRet ret = null;
 
@@ -81,7 +83,7 @@ public class UpService {
 				}
 				
 				ret = makeBlock((int)blockSize, body, bodyLength);
-				Config.UP_HOST = ret.getHost() ;
+				this.upHost = ret.getHost() ;
 				if (!ret.ok()) {
 					// Error handling
 					return ret;

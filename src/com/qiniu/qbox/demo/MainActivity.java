@@ -88,14 +88,14 @@ public class MainActivity extends Activity {
 					public void run() {
 						try {
 							String bucketName = "bucket";
-							String key = "localread20120709-2.txt";
+							String key = "localread20120709-3.jpg";
 
 							AuthPolicy policy = new AuthPolicy("bucket", 3600);
 							String token = policy.makeAuthTokenString();
 							UpTokenClient upTokenClient = new UpTokenClient(token);
 							UpService upClient = new UpService(upTokenClient);
 
-							RandomAccessFile f = new RandomAccessFile("/mnt/sdcard/rpc.go", "r");
+							RandomAccessFile f = new RandomAccessFile("/mnt/sdcard/mm.jpg", "r");
 							fsize = f.length();
 							progressBar.setMax((int) fsize);
 
@@ -115,11 +115,21 @@ public class MainActivity extends Activity {
 							} else {
 								System.out.println("Failed to put file resumably: "+ putFileRet);
 							}
+							
+							DigestAuthClient conn = new DigestAuthClient() ;
+							RSService rs = new RSService(conn, bucketName) ;
+							GetRet getRet = rs.get(key, key) ;
+							System.out.println("  GetRet : " + getRet);
+							System.out.println("  url : " + getRet.getUrl());
 						} catch (FileNotFoundException e1) {
 							e1.printStackTrace();
 						} catch (IOException e) {
 							e.printStackTrace();
+						} catch (Exception e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
+						
 					};
 				}).start();
 			}
@@ -129,11 +139,11 @@ public class MainActivity extends Activity {
 	@SuppressWarnings("unused")
 	// upload a file to qiniu cloud server directly. Demo
 	private void uploadWithToken() {
-		String localFile = "/mnt/sdcard/test.jpg" ;
+		String localFile = "/mnt/sdcard/mm.jpg" ;
 		Config.ACCESS_KEY = "AB4dwG3RXyN9aaxQImbhUGK482uHFaTe2IgDszsX";
 		Config.SECRET_KEY = "F3PC1FvnspkjgcRI73fTZKx8ijyOEg4WsGt04KEi";
 		String bucketName = "bucketName";
-		String key = "localread20120709-2.jpg";
+		String key = "wjl.test";
 
 		AuthPolicy policy = new AuthPolicy(bucketName, 3600);
 		String token = policy.makeAuthTokenString();
@@ -163,17 +173,16 @@ public class MainActivity extends Activity {
 		} catch (Exception e) {
 			e.printStackTrace() ;
 		}
-		
 	}
 	
 	// another way to upload a file in resumable way . Demo
 	@SuppressWarnings("unused")
 	private void resumablePutFile() {
-		String localFile = "/mnt/sdcard/rpc.go" ;
+		String localFile = "/mnt/sdcard/mm.jpg" ;
 		Config.ACCESS_KEY = "AB4dwG3RXyN9aaxQImbhUGK482uHFaTe2IgDszsX";
 		Config.SECRET_KEY = "F3PC1FvnspkjgcRI73fTZKx8ijyOEg4WsGt04KEi";
 		String bucketName = "bucket";
-		String key = "localread20120709-2.txt";
+		String key = "localread2012070.txt";
 
 		AuthPolicy policy = new AuthPolicy("bucket", 3600);
 		String token = policy.makeAuthTokenString();
@@ -187,9 +196,9 @@ public class MainActivity extends Activity {
 		optParams.put("customMeta", "") ;
 		PutFileRet putFileRet = UpClient.resumablePutFile(upClient, bucketName, key, localFile, optParams) ;
 		if (putFileRet.ok()) {
-			System.out.println("successfully upload a file : " + putFileRet.getHash());
+			System.out.println("|--> successfully upload a file : " + putFileRet.getHash());
 		} else {
-			System.out.println("Fail to upload a file : " + putFileRet);
+			System.out.println("|--> Fail to upload a file : " + putFileRet);
 		}
 	}
 

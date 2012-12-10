@@ -47,15 +47,15 @@ public class GetRet extends CallRet {
 
 		if (jsonObject.has("hash") && jsonObject.has("fsize")
 				&& jsonObject.has("mimeType") && jsonObject.has("url")) {
-			this.hash = (String) jsonObject.get("hash");
+			this.hash = jsonObject.getString("hash");
 			Object fsizeObject = jsonObject.get("fsize");
 			if (fsizeObject instanceof Long) {
 				this.fsize = (Long) fsizeObject;
 			} else if (fsizeObject instanceof Integer) {
 				this.fsize = new Long((int) (Integer) fsizeObject);
 			}
-			this.mimeType = (String) jsonObject.get("mimeType");
-			this.url = (String) jsonObject.get("url");
+			this.mimeType = jsonObject.getString("mimeType");
+			this.url = jsonObject.getString("url");
 		}
 	}
 

@@ -59,9 +59,9 @@ public class ResumablePutRet extends CallRet {
 	protected void unmarshal(String json) throws JSONException {
 		JSONObject jsonObject = new JSONObject(json);
 		
-		this.setCtx((String)jsonObject.get("ctx"));
-		this.setChecksum((String)jsonObject.get("checksum"));
-		this.setHost((String)jsonObject.get("host")) ;
+		this.setCtx(jsonObject.getString("ctx"));
+		this.setChecksum(jsonObject.getString("checksum"));
+		this.setHost(jsonObject.getString("host")) ;
 		
 		Object crc32Object = jsonObject.get("crc32");
 		if (crc32Object instanceof Long) {
