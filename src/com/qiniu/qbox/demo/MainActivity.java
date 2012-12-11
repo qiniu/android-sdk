@@ -78,8 +78,8 @@ public class MainActivity extends Activity {
 		progressBar.setVisibility(View.VISIBLE);
 		progressBar.setProgress(0);
 		
-		Config.ACCESS_KEY = "AB4dwG3RXyN9aaxQImbhUGK482uHFaTe2IgDszsX";
-		Config.SECRET_KEY = "F3PC1FvnspkjgcRI73fTZKx8ijyOEg4WsGt04KEi";
+		Config.ACCESS_KEY = "";
+		Config.SECRET_KEY = "";
 		// 处理事件
 		this.chooseButton.setOnClickListener(new Button.OnClickListener() {
 			@Override
@@ -140,8 +140,8 @@ public class MainActivity extends Activity {
 	// upload a file to qiniu cloud server directly. Demo
 	private void uploadWithToken() {
 		String localFile = "/mnt/sdcard/mm.jpg" ;
-		Config.ACCESS_KEY = "AB4dwG3RXyN9aaxQImbhUGK482uHFaTe2IgDszsX";
-		Config.SECRET_KEY = "F3PC1FvnspkjgcRI73fTZKx8ijyOEg4WsGt04KEi";
+		Config.ACCESS_KEY = "";
+		Config.SECRET_KEY = "";
 		String bucketName = "bucketName";
 		String key = "wjl.test";
 
@@ -179,8 +179,8 @@ public class MainActivity extends Activity {
 	@SuppressWarnings("unused")
 	private void resumablePutFile() {
 		String localFile = "/mnt/sdcard/mm.jpg" ;
-		Config.ACCESS_KEY = "AB4dwG3RXyN9aaxQImbhUGK482uHFaTe2IgDszsX";
-		Config.SECRET_KEY = "F3PC1FvnspkjgcRI73fTZKx8ijyOEg4WsGt04KEi";
+		Config.ACCESS_KEY = "";
+		Config.SECRET_KEY = "";
 		String bucketName = "bucket";
 		String key = "localread2012070.txt";
 
