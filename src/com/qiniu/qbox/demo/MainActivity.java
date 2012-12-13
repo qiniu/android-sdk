@@ -85,17 +85,18 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				new Thread(new Runnable() { 
+					RandomAccessFile f = null ;
 					public void run() {
 						try {
 							String bucketName = "bucket";
-							String key = "localread20120709-3.jpg";
+							String key = "localredad2012070-3.jpg";
 
 							AuthPolicy policy = new AuthPolicy("bucket", 3600);
 							String token = policy.makeAuthTokenString();
 							UpTokenClient upTokenClient = new UpTokenClient(token);
 							UpService upClient = new UpService(upTokenClient);
 
-							RandomAccessFile f = new RandomAccessFile("/mnt/sdcard/mm.jpg", "r");
+							f = new RandomAccessFile("/mnt/sdcard/mm.jpg", "r");
 							fsize = f.length();
 							progressBar.setMax((int) fsize);
 
@@ -121,13 +122,25 @@ public class MainActivity extends Activity {
 							GetRet getRet = rs.get(key, key) ;
 							System.out.println("  GetRet : " + getRet);
 							System.out.println("  url : " + getRet.getUrl());
+							
+							uploadWithToken() ;
+							resumablePutFile() ;
+							
 						} catch (FileNotFoundException e1) {
 							e1.printStackTrace();
 						} catch (IOException e) {
 							e.printStackTrace();
 						} catch (Exception e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
+						} finally {
+							if (f != null) {
+								try {
+									f.close() ;
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								f = null ;
+							}
 						}
 						
 					};
@@ -143,7 +156,7 @@ public class MainActivity extends Activity {
 		Config.ACCESS_KEY = "";
 		Config.SECRET_KEY = "";
 		String bucketName = "bucketName";
-		String key = "wjl.test";
+		String key = "wj0ld.test";
 
 		AuthPolicy policy = new AuthPolicy(bucketName, 3600);
 		String token = policy.makeAuthTokenString();
@@ -182,7 +195,7 @@ public class MainActivity extends Activity {
 		Config.ACCESS_KEY = "";
 		Config.SECRET_KEY = "";
 		String bucketName = "bucket";
-		String key = "localread2012070.txt";
+		String key = "localreacd70.txt";
 
 		AuthPolicy policy = new AuthPolicy("bucket", 3600);
 		String token = policy.makeAuthTokenString();

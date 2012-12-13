@@ -115,7 +115,7 @@ public class UpClient {
 			putFileRet = resumablePutFile(c, checksums, progresses,
 					(ProgressNotifier) notif, (BlockProgressNotifier) notif,
 					bucketName, key, mimeType, f, fsize, customMeta, callbackParams);
-			
+			notif.close() ;
 			// upload file successfully, remove the progress file.
 			if (putFileRet.ok()) { 
 				File del = new File(progressFile) ;
@@ -125,6 +125,15 @@ public class UpClient {
 			}
 		} catch (Exception e) {
 			return new PutFileRet(new CallRet(400, e)) ;
+		} finally {
+			try {
+				if (f != null) {
+					f.close() ;
+				}
+				f = null ;
+			} catch (IOException e) {
+				return new PutFileRet(new CallRet(400, e)) ;
+			}
 		}
 		
 		return putFileRet;
@@ -174,6 +183,10 @@ public class UpClient {
 				e.printStackTrace();
 			}
 		}
+		
+		public void close() {
+			this.os.close();
+		}
 	}
 	
 	private static void readProgress(String file, String[] checksums,
@@ -184,9 +197,8 @@ public class UpClient {
 		}
 		BufferedReader reader = null ;
 		try {
-			FileReader f = new FileReader(file);
-			reader = new BufferedReader(f);
-
+			reader = new BufferedReader(new FileReader(file));
+			
 			for (;;) {
 				String line = reader.readLine();
 				if (line == null) // has no content any more
