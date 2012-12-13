@@ -4,43 +4,42 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.zip.CRC32;
 
-import android.util.Base64;
-
 import com.qiniu.qbox.auth.CallRet;
 import com.qiniu.qbox.auth.Client;
 
 public class UpService {
 	
 	private Client conn;
+	private String upHost ;
 	
 	public UpService(Client conn) {
 		this.conn = conn;
+		this.upHost = Config.UP_HOST ;
 	}
 	
 	public ResumablePutRet makeBlock(long blockSize, byte[] body, long bodyLength) {
-		CallRet ret = this.conn.callWithBinary(Config.UP_HOST + "/mkblk/" + String.valueOf(blockSize), "application/octet-stream", body, bodyLength);
-		
+		CallRet ret = this.conn.callWithBinary(this.upHost + "/mkblk/" + String.valueOf(blockSize), "application/octet-stream", body, bodyLength);
 		return new ResumablePutRet(ret);
 	}
 
 	public ResumablePutRet putBlock(long blockSize, String ctx, long offset, byte[] body, long bodyLength) {
-		CallRet ret = this.conn.callWithBinary(Config.UP_HOST + "/bput/" + ctx + "/" + String.valueOf(offset), "application/octet-stream", body, bodyLength);
-		
+		CallRet ret = this.conn.callWithBinary(this.upHost + "/bput/" + ctx + "/" + String.valueOf(offset), "application/octet-stream", body, bodyLength);
 		return new ResumablePutRet(ret);
 	}
 	
 	public CallRet makeFile(String cmd, String entry, long fsize, String params, String callbackParams, String[] checksums) {
 		
 		if (callbackParams != null && callbackParams.length() != 0) {
-			params += "/params/" + Base64.encodeToString(callbackParams.getBytes(), Base64.URL_SAFE);
+			params += "/params/" + Client.urlsafeEncodeString(callbackParams.getBytes()) ;
 		}
 		
-		String url = Config.UP_HOST + cmd + Client.urlsafeEncodeString(entry.getBytes()) + "/fsize/" + String.valueOf(fsize) + params;
+		String url = this.upHost + cmd + Client.urlsafeEncodeString(entry.getBytes()) + "/fsize/" + String.valueOf(fsize) + params;
 		
 		byte[] body = new byte[20 * checksums.length];
 		
 		for (int i = 0; i < checksums.length; i++) {
-			byte[] buf = Base64.decode(checksums[i], Base64.DEFAULT);
+			byte[] buf = Client.urlsafeDecode(checksums[i]) ;
+			
 			System.arraycopy(buf,  0, body, i * 20, buf.length);
 		}
 		
@@ -67,7 +66,7 @@ public class UpService {
 	public ResumablePutRet resumablePutBlock(RandomAccessFile file, 
 			int blockIndex, long blockSize, long chunkSize, 
 			int retryTimes,
-			BlockProgress progress, BlockProgressNotifier notifier) {
+			BlockProgress progress, BlockProgressNotifier notifier){
 		
 		ResumablePutRet ret = null;
 
@@ -84,6 +83,7 @@ public class UpService {
 				}
 				
 				ret = makeBlock((int)blockSize, body, bodyLength);
+				this.upHost = ret.getHost() ;
 				if (!ret.ok()) {
 					// Error handling
 					return ret;
@@ -200,4 +200,6 @@ public class UpService {
 		
 		return new ResumablePutRet(new CallRet(200, (String)null));
 	}
+	
+	
 }

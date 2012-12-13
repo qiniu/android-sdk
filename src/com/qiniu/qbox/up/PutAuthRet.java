@@ -5,13 +5,14 @@ import org.json.JSONObject;
 
 import com.qiniu.qbox.auth.CallRet;
 
-public class PutFileRet extends CallRet {
+public class PutAuthRet extends CallRet {
 
-	private String hash;
-	
-	public PutFileRet(CallRet ret) {
+	private int expires;
+	private String url;
+
+	public PutAuthRet(CallRet ret) {
 		super(ret);
-		
+
 		if (this.response != null) {
 			try {
 				unmarshal(ret.getResponse());
@@ -20,17 +21,24 @@ public class PutFileRet extends CallRet {
 			}
 		}
 	}
-	
+
 	public void unmarshal(String json) throws JSONException {
-		
+
 		JSONObject jsonObject = new JSONObject(json);
-		
-		if (jsonObject.has("hash")) {
-			this.hash = jsonObject.getString("hash");
+
+		if (jsonObject.has("expiresIn")) {
+			this.expires = jsonObject.getInt("expiresIn");
+		}
+		if (jsonObject.has("url")) {
+			this.url = jsonObject.getString("url");
 		}
 	}
 
-	public String getHash() {
-		return this.hash;
+	public int getExpiresIn() {
+		return this.expires;
+	}
+
+	public String getUrl() {
+		return this.url;
 	}
 }
