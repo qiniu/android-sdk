@@ -26,10 +26,10 @@ public class AuthRet extends CallRet {
 		JSONObject jsonObject = new JSONObject(json);
 		
 		if (jsonObject.has("access_token")) {
-			this.accessToken = (String) jsonObject.get("access_token");
+			this.accessToken = jsonObject.getString("access_token");
 		}
 		if (jsonObject.has("refresh_token")) {
-			this.refreshToken = (String) jsonObject.get("refresh_token");
+			this.refreshToken = jsonObject.getString("refresh_token");
 		}
 	}
 	

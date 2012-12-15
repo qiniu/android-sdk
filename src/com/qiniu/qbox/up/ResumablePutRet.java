@@ -9,7 +9,16 @@ public class ResumablePutRet extends CallRet {
 	private String ctx;
 	private String checksum;
 	private long crc32;
+	private String host ;
 	
+	public String getHost() {
+		return host;
+	}
+
+	public void setHost(String host) {
+		this.host = host;
+	}
+
 	public long getCrc32() {
 		return crc32;
 	}
@@ -50,8 +59,9 @@ public class ResumablePutRet extends CallRet {
 	protected void unmarshal(String json) throws JSONException {
 		JSONObject jsonObject = new JSONObject(json);
 		
-		this.setCtx((String)jsonObject.get("ctx"));
-		this.setChecksum((String)jsonObject.get("checksum"));
+		this.setCtx(jsonObject.getString("ctx"));
+		this.setChecksum(jsonObject.getString("checksum"));
+		this.setHost(jsonObject.getString("host")) ;
 		
 		Object crc32Object = jsonObject.get("crc32");
 		if (crc32Object instanceof Long) {

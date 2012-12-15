@@ -1,6 +1,10 @@
 package com.qiniu.qbox.auth;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -8,9 +12,12 @@ import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.entity.AbstractHttpEntity;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
 import android.util.Base64;
@@ -103,10 +110,10 @@ public abstract class Client {
 	
 	public static byte[] urlsafeEncodeBytes(byte[] src) {
 		if (src.length % 3 == 0) {
-			return Base64.encode(src, Base64.URL_SAFE);
+			return Base64.encode(src, Base64.URL_SAFE | Base64.NO_WRAP);
 		}
 		
-		byte[] b = Base64.encode(src, Base64.URL_SAFE);
+		byte[] b = Base64.encode(src, Base64.URL_SAFE | Base64.NO_WRAP);
 		if (b.length % 4 == 0) {
 			return b;
 		}
@@ -127,5 +134,43 @@ public abstract class Client {
 
 	public static String urlsafeEncode(String text) {
 		return new String(urlsafeEncodeBytes(text.getBytes()));
+	}
+	
+	public static byte[] urlsafeDecode(String text) {
+		byte[] buf = Base64.decode(text, Base64.URL_SAFE | Base64.NO_WRAP);
+		return buf ;
+	}
+	
+	public CallRet callWithBinary(String url, AbstractHttpEntity entity) {
+		HttpPost postMethod = new HttpPost(url);
+		postMethod.setEntity(entity);
+		DefaultHttpClient client = new DefaultHttpClient();
+
+		try {
+			setAuth(postMethod);
+			HttpResponse response = client.execute(postMethod);
+			return handleResult(response);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new CallRet(400, e);
+		} finally {
+			client.getConnectionManager().shutdown();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static String encodeParams(Object params1) {
+		if (params1 instanceof String) {
+			return (String)params1;
+		}
+		if (params1 instanceof HashMap<?, ?>) {
+			Map<String, String> params = (HashMap<String, String>)params1;
+			ArrayList<NameValuePair> list = new ArrayList<NameValuePair>();
+			for (Entry<String, String> entry : params.entrySet()) {
+				list.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+			}
+			return URLEncodedUtils.format(list, "UTF-8");
+		}
+		return null;
 	}
 }
