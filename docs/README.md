@@ -126,14 +126,12 @@ localFile
 optParams
 : 可选，可选参数，键值对形式的Map，目前支持的可选参数如下
 
-> mimeType
-: 缺省值为"application/octet-stream"  
-customeMeta
-: 缺省值为空  
-callbackParams
-: 缺省值为空  
-rotate
-: 缺省值为"0"，上传图片时专用，可针对图片上传后进行旋转。该参数值为 0 ：表示根据图像EXIF信息自动旋转；值为 1 : 右转90度；值为 2 :右转180度；值为 3 : 右转270度。
+字段名称   | 类型 | 说明 | 缺省值
+---------|---------|---------|-------
+mimeType | string | 资源类型 | application/octet-stream
+customeMeta | string | 自定义说明 | 空
+callbackParams | string | 文件上传成功后七牛云存储回调业务服务器所发送的数据 | 空
+rotate | int | 上传图片时专用，可针对图片上传后进行旋转。该参数值为 0 ：表示根据图像EXIF信息自动旋转；值为 1 : 右转90度；值为 2 :右转180度；值为 3 : 右转270度。| 0
 
 如果上传成功，得到的 putFileRet 会包含对应的 hash 值，否则返回对应的错误。
 
@@ -185,14 +183,13 @@ localFile
 optParams
 : 可选参数，键值对形式的Map，目前支持的可选参数如下
 
-> mimeType
-: 缺省值为"application/octet-stream"  
-customeMeta
-: 缺省值为空   
-progressFile
-: SDK用保存上传进度的文件  
-callbackParams
-:缺省值为null  
+字段名称   | 类型 | 说明 | 缺省值
+---------|---------|---------|-------
+mimeType | string | 资源类型 | application/octet-stream
+customeMeta | string | 自定义说明 | 空
+callbackParams | string | 文件上传成功后七牛云存储回调业务服务器所发送的数据 | 空
+progressFile | string | SDK用保存上传进度的文件 | 0
+
 
 客户端在上传文件的时候也可以根据需求选择断点续上传的方式，此处所说的断点上传是指用户在某次上传过程中出现错误，再重新上传的时候只需要从上次上传失败处上传即可。用户可以根据通过修改配置文件改变上传块（Config文件中的`PUT_CHUNK_SIZE` 对应的值）的大小来适应用户所处的网络环境。为了提供一个简单的接口，我们将上传进度持久化的相关工作内置在了 SDK 中，当然用户也可以根据需要自己实现文件上传进度的持久化工作。
 
