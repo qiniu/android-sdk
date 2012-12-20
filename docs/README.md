@@ -60,8 +60,8 @@
 
 然后，将SDK导入到您的 Eclipse 项目中，并编辑当前工程目录下Config.java文件，确保其包含您从七牛开发者平台所获取的 [Access Key 和 Secret Key](#acc-appkey)：
 
-    ACCESS_KEY	= "<Please apply your access key>";
-	SECRET_KEY	= "<Dont send your secret key to anyone>";
+    ACCESS_KEY = "<Please apply your access key>";
+    SECRET_KEY = "<Dont send your secret key to anyone>";
 
 
 <a name="uploadfile"></a>
@@ -76,8 +76,8 @@ Android SDK 目前支持从本地上传某个文件，上传方式分为直传�
 
 在完成 Access Key 和 Secret Key 配置后，为了正常使用该 SDK 提供的功能需要根据配置文件进行初始化，您还需要使用你获得的 Access Key 和 Secret Key 向七牛云存储服务器发出认证请求：
 
-    AuthPolicy policy = new AuthPolicy(bucketName, 3600);    
-    String token = policy.makeAuthTokenString();  
+    AuthPolicy policy = new AuthPolicy(bucketName, 3600);
+    String token = policy.makeAuthTokenString();
     UpTokenClient upTokenClient = new UpTokenClient(token);
 
 请求成功后得到的 upTokenClien 即可用于您正常使用七牛云存储的一系列功能，接下来将一一介绍。
@@ -86,36 +86,36 @@ Android SDK 目前支持从本地上传某个文件，上传方式分为直传�
 
 #### 2.1 普通上传方式
 
-示例代码 ：    
-  
-    Config.ACCESS_KEY = "YOUR ACCESS_KEY";  
-    Config.SECRET_KEY = "YOUR SECRET_KEY, Dont send to anyone";   
+示例代码 ：
+
+    Config.ACCESS_KEY = "YOUR ACCESS_KEY";
+    Config.SECRET_KEY = "YOUR SECRET_KEY, Dont send to anyone";
     String localFile = "YOUR LOCAL FILE TO UPLOAD";
-    
-	// get uptoken
-    String bucketName = "bucketName";   
-    String key = "knuth.jpg";   
-    AuthPolicy policy = new AuthPolicy(bucketName, 3600);  
-    String token = policy.makeAuthTokenString();  
+
+    // get uptoken
+    String bucketName = "bucketName";
+    String key = "knuth.jpg";
+    AuthPolicy policy = new AuthPolicy(bucketName, 3600);
+    String token = policy.makeAuthTokenString();
 
     // your optional parameters here
-    Map<String, Object> optParams = new HashMap<String, Object>() ;  
-    optParams.put("mimeType", "YOUR MIME_TYPE HERE") ;  
-    optParams.put("customMeta", "YOUR CUSTOM_META HERE") ;  
-    optParams.put("callbackParms", "YOUR CALLBACK_PARAM HERE") ;  
-    optParams.put("rotate", "YOUR ROTATE HERE") ;   
+    Map<String, Object> optParams = new HashMap<String, Object>() ;
+    optParams.put("mimeType", "YOUR MIME_TYPE HERE") ;
+    optParams.put("customMeta", "YOUR CUSTOM_META HERE") ;
+    optParams.put("callbackParms", "YOUR CALLBACK_PARAM HERE") ;
+    optParams.put("rotate", "YOUR ROTATE HERE") ;
 
-	// upload the local to the qiniu cloud server
-    putFileRet = UpClient.putFile(token, bucketName, key, localFile, optParams);  
+    // upload the local to the qiniu cloud server
+    putFileRet = UpClient.putFile(token, bucketName, key, localFile, optParams);
 
 
-参数详解：　
+参数详解：
 
 token
 : 必须，字符串类型，上传授权凭证。
 
 bucketName
-: 必须，字符串类型。 
+: 必须，字符串类型。
 
 key
 : 必须，字符串类型。
@@ -136,35 +136,34 @@ rotate | int | 上传图片时专用，可针对图片上传后进行旋转。�
 如果上传成功，得到的 putFileRet 会包含对应的 hash 值，否则返回对应的错误。
 
 <a name="resumable1"></a>
-	
+
 #### 2.2 断点续上传方式（一）：
 
 为了方便用户使用，我们将断点续上传的API进行了友好的封装。在此用户不必对保存文件上传进度而费心，因为我们已经帮您做了。如果您想自己实现上传文件的持久化方式请参考 [断点续上传方式（一）](#resumable1)。
 
-示例代码：  
+示例代码：
 
-		Config.ACCESS_KEY = "YOUR ACCESS KEY HERE";
-		Config.SECRET_KEY = "YOUR SECRET KEY HERE, Dont send to others";
-		String bucketName = "bucket";
-		
-		String key = "golang.key";
-		String localFile = "/mnt/sdcard/rpc.go" ;
+    Config.ACCESS_KEY = "YOUR ACCESS KEY HERE";
+    Config.SECRET_KEY = "YOUR SECRET KEY HERE, Dont send to others";
+    String bucketName = "bucket";
 
-		// get the auth conn
-		AuthPolicy policy = new AuthPolicy("bucket", 3600);
-		String token = policy.makeAuthTokenString();
-		UpTokenClient upTokenClient = new UpTokenClient(token);
-		UpService upClient = new UpService(upTokenClient);
-		
-		// your optional parameters
-		Map<String, Object> optParams = new HashMap<String, Object>() ;
-		optParams.put("mimeType", "") ;
-		optParams.put("callbakParam", "") ;
-		optParams.put("progressFile", "") ;
-		optParams.put("customMeta", "") ;
+    String key = "golang.key";
+    String localFile = "/mnt/sdcard/rpc.go" ;
 
-		PutFileRet putFileRet = UpClient.resumablePutFile(upClient, bucketName, key, localFile, optParams) ;
+    // get the auth conn
+    AuthPolicy policy = new AuthPolicy("bucket", 3600);
+    String token = policy.makeAuthTokenString();
+    UpTokenClient upTokenClient = new UpTokenClient(token);
+    UpService upClient = new UpService(upTokenClient);
 
+    // your optional parameters
+    Map<String, Object> optParams = new HashMap<String, Object>() ;
+    optParams.put("mimeType", "") ;
+    optParams.put("callbakParam", "") ;
+    optParams.put("progressFile", "") ;
+    optParams.put("customMeta", "") ;
+
+    PutFileRet putFileRet = UpClient.resumablePutFile(upClient, bucketName, key, localFile, optParams) ;
 
 `UpClient.resumablePutFile()` 参数详解：
 
