@@ -9,12 +9,11 @@ public abstract class PutFileRet extends CallRet {
 	public final void onSuccess(byte[] body) {
 		try {
 			JSONObject obj = new JSONObject(new String(body));
-			String hash = obj.getString("hash");
-			onSuccess(hash);
+			onSuccess(obj);
 		} catch (JSONException e) {
 			onFailure(new Exception(new String(body)));
 		}
 	}
 
-	public abstract void onSuccess(String hash);
+	public abstract void onSuccess(JSONObject hash);
 }
