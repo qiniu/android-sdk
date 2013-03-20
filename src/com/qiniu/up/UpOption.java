@@ -8,6 +8,7 @@ public class UpOption {
     public String CustomMeta;
     public int Crc32;
     public int Rotate;
+	public String Params;
 
     public String toUri() {
 		if ( ! Utils.IsStringValid(EntryUri)) {

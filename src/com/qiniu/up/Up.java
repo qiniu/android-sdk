@@ -49,6 +49,10 @@ public class Up {
 		}
 		m.addFile("file", fileName, mimeType, binary);
 
+		if (Utils.IsStringValid(opts.Params)) {
+			m.addField("params", opts.Params);
+		}
+
 		mUpAuth.Call(url, m.getContentType(), m.getEntity(), ret);
 	}
 
