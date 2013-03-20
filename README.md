@@ -79,7 +79,7 @@ opts.MimeType = "image/png";            // 必须项，资源类型
 opts.CustomMeta = "自定义文本";          // 可选项
 
 Up up = new Up(UpToken);
-up.PutFile(context, uri, filename, opts, new PutFileRet() {
+up.PutFile(context, uri, filename, opts, new JSONObjectRet() {
 	@Override
 	public void onSuccess(JSONObject resp) {
 		// 成功

@@ -1,25 +1,18 @@
 package com.qiniu.demo;
 
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 import com.qiniu.R;
-import com.qiniu.up.PutFileRet;
+import com.qiniu.auth.JSONObjectRet;
 import com.qiniu.up.Up;
 import com.qiniu.up.UpOption;
-import com.qiniu.utils.Utils;
 import org.json.JSONObject;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 
 public class MyActivity extends Activity implements View.OnClickListener{
 
@@ -65,7 +58,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		opts.EntryUri = BucketName + ":" + key;
 		opts.MimeType = "image/png";
 		opts.Rotate = 2;
-		up.PutFile(this, uri, null, opts, new PutFileRet() {
+		up.PutFile(this, uri, null, opts, new JSONObjectRet() {
 			@Override
 			public void onSuccess(JSONObject resp) {
 				String hash;

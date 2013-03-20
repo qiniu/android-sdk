@@ -1,10 +1,10 @@
-package com.qiniu.up;
+package com.qiniu.auth;
 
 import com.qiniu.auth.CallRet;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public abstract class PutFileRet extends CallRet {
+public abstract class JSONObjectRet extends CallRet {
 	@Override
 	public final void onSuccess(byte[] body) {
 		try {

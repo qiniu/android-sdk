@@ -2,6 +2,7 @@ package com.qiniu.up;
 
 import android.content.Context;
 import android.net.Uri;
+import com.qiniu.auth.JSONObjectRet;
 import com.qiniu.auth.UpAuth;
 import com.qiniu.conf.Conf;
 import com.qiniu.utils.MultipartFormData;
@@ -30,7 +31,7 @@ public class Up {
 	 * @param binary 二进制数据
 	 * @param ret 回调函数
 	 */
-	public void Put(String fileName, UpOption opts, byte[] binary, PutFileRet ret) {
+	public void Put(String fileName, UpOption opts, byte[] binary, JSONObjectRet ret) {
 		if ( ! Utils.IsStringValid(fileName)) {
 			fileName = Utils.GetRandomString(6);
 		}
@@ -60,7 +61,7 @@ public class Up {
 	 * @param opts 上传参数
 	 * @param ret 结果回调函数
 	 */
-	public void PutFile(Context mContext, Uri uri, String fileName, UpOption opts, PutFileRet ret) {
+	public void PutFile(Context mContext, Uri uri, String fileName, UpOption opts, JSONObjectRet ret) {
 		byte[] binaryData = Utils.ReadBinaryFromUri(mContext, uri);
 		if (binaryData == null) {
 			ret.onFailure(new Exception("URI有误, 无法读取制定数据"));
