@@ -25,11 +25,11 @@ public class MyActivity extends Activity implements View.OnClickListener{
 	public static final int PICK_PICTURE = 0;
 
 	// 在七牛绑定的对应bucket的域名. 可以到这里绑定 https://dev.qiniutek.com/buckets
-	public static String Domain = "http://cheneya.qiniudn.com/";
-	public static String BucketName = "a";
+	public static String Domain = "";
+	public static String BucketName = "";
 
 	// upToken 这里需要自行获取. SDK 将不实现获取过程.
-	public static final String UP_TOKEN = "tGf47MBl1LyT9uaNv-NZV4XZe7sKxOIa9RE2Lp8B:Zn0uzHfVosbE7duq0VcNTyCy3-M=:eyJzY29wZSI6ImEiLCJkZWFkbGluZSI6MTM2Mzc2MzY4MCwiZGV0ZWN0TWltZSI6MH0=";
+	public static final String UP_TOKEN = "";
 
 	private Button btnUpload;
 	private EditText editKey;
