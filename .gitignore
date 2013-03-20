@@ -1,0 +1,5 @@
+# mac
+.DS_Store
+
+# ignore output
+out/*
