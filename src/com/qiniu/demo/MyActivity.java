@@ -15,6 +15,7 @@ import com.qiniu.up.PutFileRet;
 import com.qiniu.up.Up;
 import com.qiniu.up.UpOption;
 import com.qiniu.utils.Utils;
+import org.json.JSONObject;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -66,7 +67,14 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		opts.Rotate = 2;
 		up.PutFile(this, uri, null, opts, new PutFileRet() {
 			@Override
-			public void onSuccess(String hash) {
+			public void onSuccess(JSONObject resp) {
+				String hash;
+				try {
+					hash = resp.getString("hash");
+				} catch (Exception ex) {
+					toast(ex.getMessage());
+					return;
+				}
 				toast("上传成功! 正在跳转到浏览器查看效果 \nhash:" + hash);
 				String redirect = Domain + key;
 				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));

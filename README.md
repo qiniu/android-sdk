@@ -81,7 +81,7 @@ opts.CustomMeta = "自定义文本";          // 可选项
 Up up = new Up(UpToken);
 up.PutFile(context, uri, filename, opts, new PutFileRet() {
 	@Override
-	public void onSuccess(String hash) {
+	public void onSuccess(JSONObject hash) {
 		// 成功
 	}
 	
