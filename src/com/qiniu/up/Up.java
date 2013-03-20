@@ -9,18 +9,18 @@ import com.qiniu.utils.Utils;
 
 public class Up {
 	private String mUpToken;
-    private UpAuth mUpAuth;
-    private String mHost;
+	private UpAuth mUpAuth;
+	private String mHost;
 
-    public Up(String upToken, String host) {
-        mUpAuth = new UpAuth(upToken);
-        mHost = host;
+	public Up(String upToken, String host) {
+		mUpAuth = new UpAuth(upToken);
+		mHost = host;
 		mUpToken = upToken;
-    }
+	}
 
-    public Up(String upToken) {
-        this(upToken, Conf.UP_HOST);
-    }
+	public Up(String upToken) {
+		this(upToken, Conf.UP_HOST);
+	}
 
 	/**
 	 * 上传二进制
@@ -30,11 +30,11 @@ public class Up {
 	 * @param binary 二进制数据
 	 * @param ret 回调函数
 	 */
-    public void Put(String fileName, UpOption opts, byte[] binary, PutFileRet ret) {
+	public void Put(String fileName, UpOption opts, byte[] binary, PutFileRet ret) {
 		if ( ! Utils.IsStringValid(fileName)) {
 			fileName = Utils.GetRandomString(6);
 		}
-        String url = mHost + "/upload";
+		String url = mHost + "/upload";
 
 		MultipartFormData m = new MultipartFormData(binary.length + 1000);
 		m.addField("auth", mUpToken);
@@ -48,8 +48,8 @@ public class Up {
 		}
 		m.addFile("file", fileName, mimeType, binary);
 
-        mUpAuth.Call(url, m.getContentType(), m.getEntity(), ret);
-    }
+		mUpAuth.Call(url, m.getContentType(), m.getEntity(), ret);
+	}
 
 	/**
 	 * 通过提供URI来上传指定的文件

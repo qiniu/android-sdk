@@ -3,3 +3,6 @@
 
 # ignore output
 out/*
+
+# intellij idea
+.idea/*
