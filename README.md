@@ -35,7 +35,7 @@
 注意事项：
 
 - 此 Android SDK 当前只提供上传方法，即负责上述流程中的第2个步骤。
-- 业务服务器响应回调请求后输出 JSON，HTTP Headers 必须输出 `Content-Type` 为 `"application/json"`。
+- 业务服务器响应回调请求后输出 JSON，HTTP Headers 必须输出 `Content-Type` 为 `application/json`。
 - 文件上传成功后，业务服务器输出的 JSON 数据，可从所调用SDK上传代码的返回值中获取到。
 
 
@@ -53,7 +53,7 @@
 
     http://<绑定域名>/<key>?token=<downloadToken>
 
-出于安全考虑，此 SDK 不提供 `downloadToken` 的生成。除 Android / iOS SDK 以外，七牛云存储其他编程语言的 SDK 都有提供签发私有资源下载授权凭证（downloadToken）的方法。
+出于安全考虑，此 SDK 不提供 `downloadToken` 的生成。除 Android / iOS SDK 以外，七牛云存储其他编程语言的 SDK 都有提供签发私有资源下载授权凭证（downloadToken）的实现。
 
 <a name="load"></a>
 
@@ -72,51 +72,64 @@
 
 ```java
 
+// 实例化文件上传选项对象
 UpOption opts = new UpOption();
 
-opts.EntryUri = bucketName + ":" + key; // 必须项，key 是 bucket 里边的唯一索引
-opts.MimeType = "image/png";            // 必须项，资源类型
-opts.CustomMeta = "自定义文本";          // 可选项
+// 必须项，key 是 bucket 里边的唯一索引，bucket 是空间名称
+opts.EntryUri = bucket + ":" + key;
 
+// 必须项，文件上传成功后，七牛云存储 POST 回调业务服务器
+opts.Params = "key=" + FileUniqId + "&uid=" + EndUserId;
+
+// 可选项，资源类型，缺省为 application/octet-stream
+opts.MimeType = "image/png";
+
+// 可选项，没啥用处
+opts.CustomMeta = "自定义文本备注";
+
+// 可选项，文件的 crc32 校验值，十进制整数，用于校验完整性
+opts.Crc32 = FileCrc32Val;
+
+/**
+ * 可选项，传图片时可针对图片上传后进行旋转
+ * - 值为 0: 表示根据图像EXIF信息自动旋转
+ * - 值为 1: 右转90度
+ * - 值为 2: 右转180度
+ * - 值为 3: 右转270度
+ */
+opts.Rotate = 0;
+
+
+/**
+ * 实例化上传执行体对象
+ * UpToken 为业务服务器颁发的上传授权凭证，参考上述上传流程说明
+ */
 Up up = new Up(UpToken);
+
+/**
+ * uri 相当于文件的路径
+ * filename 为上传的文件命名, 如果填 `null` 将会生成一个6位随机字符串
+ */
 up.PutFile(context, uri, filename, opts, new JSONObjectRet() {
-	@Override
-	public void onSuccess(JSONObject resp) {
-		// 成功
-	}
-	
-	@Override
-	public void onFailure(Exception ex) {
-		// 失败
-	}
+    @Override
+    public void onSuccess(JSONObject resp) {
+        // 成功
+    }
+
+    @Override
+    public void onFailure(Exception ex) {
+        // 失败
+    }
 });
 
 ```
 
-- `UpToken`: 上传授权凭证，由业务服务端使用七牛云存储相关服务端SDK生成，Android 端将此 upToken 作为参数传递给具体负责上传文件的执行对象，即可向七牛云存储直传文件。
-- `filename`: 是指上传的文件命名, 如果填null将会生成一个6位随机字符串.
-- `UpOption`: 这个是上传数据相关参数
-	- `EntryUri`: *必填*, bucketName + ":" + key, 用于表示要上传对应文件的路径.
-	- `MimeType`: 上传文件的类型, 如果不指定, 默认是 `application/octet-stream`. 七牛服务器在接收到该资源的HTTP请求时将使用这个字段作为 `Content-Type` 的值.
-	- `CustomMeta`: 自定义说明.
-	- `Crc32`: 文件的 crc32 校验值，十进制整数，可选项。若不传此参数则不执行数据校验。
-	- `Rotate`: 上传图片时专用，可针对图片上传后进行旋转。该参数值为:
-		- 值为 0: 表示根据图像EXIF信息自动旋转;
-		- 值为 1: 右转90度;
-		- 值为 2: 右转180度;
-		- 值为 3: 右转270度。
-- BucketName: 填写bucket的名字, 如果还没有 bucket，可以登录[七牛云存储开发者自助网站](https://dev.qiniutek.com/buckets/new)创建
-- Key: 该文件的标识, 如果绑定对应的域名, 然后就可以通过 `http://<domain>/<key>` 访问对应的资源.
-
-> 相关API文档可以参考[这里](http://docs.qiniutek.com/v3/api/io/#apimultipartform-data)
 
 <a name="demo"></a>
 
 ## SDK 内置 demo 说明
 
-demo无法直接使用, 需要配置`UpToken`, `BucketName`, `Domain`信息, 将其填写到 MyActivity 之中.
-`key`值可以在操作界面修改.   
-当文件上传成功时, 会试图跳转到浏览器访问已经上传的资源. 如果失败, 会toast提示.
+注意：demo 程序无法直接运行，需要配置 `UpToken`, `BucketName`, `Domain`信息, 将其填写到 MyActivity 之中。`key`值可以在操作界面修改。当文件上传成功时，会试图跳转到浏览器访问已经上传的资源。如果失败，会toast提示。
 
 
 <a name="contributing"></a>
@@ -128,6 +141,7 @@ demo无法直接使用, 需要配置`UpToken`, `BucketName`, `Domain`信息, 将
 3. 提交您的改动 (`git commit -am 'Added some feature'`)
 4. 将您的修改记录提交到远程 `git` 仓库 (`git push origin my-new-feature`)
 5. 然后到 github 网站的该 `git` 远程仓库的 `my-new-feature` 分支下发起 Pull Request
+
 
 <a name="license"></a>
 
