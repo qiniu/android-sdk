@@ -78,9 +78,6 @@ UpOption opts = new UpOption();
 // 必须项，key 是 bucket 里边的唯一索引，bucket 是空间名称
 opts.EntryUri = bucket + ":" + key;
 
-// 必须项，文件上传成功后，七牛云存储 POST 回调业务服务器
-opts.Params = "key=" + FileUniqId + "&uid=" + EndUserId;
-
 // 可选项，资源类型，缺省为 application/octet-stream
 opts.MimeType = "image/png";
 
@@ -99,7 +96,6 @@ opts.Crc32 = FileCrc32Val;
  */
 opts.Rotate = 0;
 
-
 /**
  * 实例化上传执行体对象
  * UpToken 为业务服务器颁发的上传授权凭证，参考上述上传流程说明
@@ -107,10 +103,13 @@ opts.Rotate = 0;
 Up up = new Up(UpToken);
 
 /**
- * uri 相当于文件的路径
- * filename 为上传的文件命名, 如果填 `null` 将会生成一个6位随机字符串
+ * Uri uri 相当于文件的路径
+ * String filename 为上传的文件命名, 如果填 `null` 将会生成一个6位随机字符串
+ * String params 文件上传成功后，七牛云存储 POST 回调业务服务器, 
+ * 
+ * 例: String params = "key=" + FileUniqId + "&uid=" + EndUserId;
  */
-up.PutFile(context, uri, filename, opts, new JSONObjectRet() {
+up.PutFile(context, uri, filename, opts, params, new JSONObjectRet() {
     @Override
     public void onSuccess(JSONObject resp) {
         // 成功

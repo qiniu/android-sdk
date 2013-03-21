@@ -31,7 +31,7 @@ public class Up {
 	 * @param binary 二进制数据
 	 * @param ret 回调函数
 	 */
-	public void Put(String fileName, UpOption opts, byte[] binary, JSONObjectRet ret) {
+	public void Put(String fileName, UpOption opts, byte[] binary, String params, JSONObjectRet ret) {
 		if ( ! Utils.IsStringValid(fileName)) {
 			fileName = Utils.GetRandomString(6);
 		}
@@ -49,8 +49,8 @@ public class Up {
 		}
 		m.addFile("file", fileName, mimeType, binary);
 
-		if (Utils.IsStringValid(opts.Params)) {
-			m.addField("params", opts.Params);
+		if (Utils.IsStringValid(params)) {
+			m.addField("params", params);
 		}
 
 		mUpAuth.Call(url, m.getContentType(), m.getEntity(), ret);
@@ -65,14 +65,14 @@ public class Up {
 	 * @param opts 上传参数
 	 * @param ret 结果回调函数
 	 */
-	public void PutFile(Context mContext, Uri uri, String fileName, UpOption opts, JSONObjectRet ret) {
+	public void PutFile(Context mContext, Uri uri, String fileName, UpOption opts, String params, JSONObjectRet ret) {
 		byte[] binaryData = Utils.ReadBinaryFromUri(mContext, uri);
 		if (binaryData == null) {
 			ret.onFailure(new Exception("URI有误, 无法读取制定数据"));
 			return;
 		}
 
-		Put(fileName, opts, binaryData, ret);
+		Put(fileName, opts, binaryData, params, ret);
 	}
 
 }
