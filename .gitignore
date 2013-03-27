@@ -61,3 +61,8 @@ pkg
 # For vim:
 *.swp
 
+# for intellij
+.idea/*
+out/*
+
+local.properties
