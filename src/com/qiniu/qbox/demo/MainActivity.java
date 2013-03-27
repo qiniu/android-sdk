@@ -3,8 +3,6 @@ package com.qiniu.qbox.demo;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.HashMap;
-import java.util.Map;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -78,16 +76,20 @@ public class MainActivity extends Activity {
 		progressBar.setVisibility(View.VISIBLE);
 		progressBar.setProgress(0);
 		
-		Config.ACCESS_KEY = "";
-		Config.SECRET_KEY = "";
+		// Notice here : Please apply your access/secret keys here.
+		Config.ACCESS_KEY = "ttXNqIvhrYu04B_dWM6GwSpcXOZJvGoYFdznAWnz";
+		Config.SECRET_KEY = "rX-7Omdag0BIBEtOyuGQXzx4pmTUTeLxoPEw6G8d";
 		// 处理事件
 		this.chooseButton.setOnClickListener(new Button.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				new Thread(new Runnable() { 
 					RandomAccessFile f = null ;
+					@SuppressLint("SdCardPath")
 					public void run() {
 						try {
+							// Notice here : make sure you have a bucket called "bucket"
+							// you can change it.
 							String bucketName = "bucket";
 							String key = "localredad2012070-3.jpg";
 
@@ -95,7 +97,9 @@ public class MainActivity extends Activity {
 							String token = policy.makeAuthTokenString();
 							UpTokenClient upTokenClient = new UpTokenClient(token);
 							UpService upClient = new UpService(upTokenClient);
-
+							
+							// Notice here : the upload file. 
+							// you should make sure that the file is exist!
 							f = new RandomAccessFile("/mnt/sdcard/mm.jpg", "r");
 							fsize = f.length();
 							progressBar.setMax((int) fsize);
@@ -121,10 +125,8 @@ public class MainActivity extends Activity {
 							RSService rs = new RSService(conn, bucketName) ;
 							GetRet getRet = rs.get(key, key) ;
 							System.out.println("  GetRet : " + getRet);
+							// The download url.
 							System.out.println("  url : " + getRet.getUrl());
-							
-							uploadWithToken() ;
-							resumablePutFile() ;
 							
 						} catch (FileNotFoundException e1) {
 							e1.printStackTrace();
@@ -149,72 +151,6 @@ public class MainActivity extends Activity {
 		});
 	}
 	
-	@SuppressWarnings("unused")
-	// upload a file to qiniu cloud server directly. Demo
-	private void uploadWithToken() {
-		String localFile = "/mnt/sdcard/mm.jpg" ;
-		Config.ACCESS_KEY = "";
-		Config.SECRET_KEY = "";
-		String bucketName = "bucketName";
-		String key = "wj0ld.test";
-
-		AuthPolicy policy = new AuthPolicy(bucketName, 3600);
-		String token = policy.makeAuthTokenString();
-		// 可选参数
-		Map<String, Object> optParams = new HashMap<String, Object>() ;
-		optParams.put("mimeType", "") ;
-		optParams.put("customMeta", "") ;
-		optParams.put("callbackParms", "") ;
-		optParams.put("rotate", "2") ;
-		try {
-			putFileRet = UpClient.putFile(token, bucketName, key, localFile, optParams);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		if (putFileRet.ok()) {
-			System.out.println("Token successfully upload a file : " + putFileRet.getHash());
-		} else {
-			System.out.println("Token Fail to upload a file : " + putFileRet);
-		}
-
-		try {
-			DigestAuthClient conn = new DigestAuthClient() ;
-			RSService rs = new RSService(conn, bucketName) ;
-			GetRet getRet = rs.get(key, key) ;
-			System.out.println(" ** GetRet : " + getRet);
-			System.out.println(" ** url : " + getRet.getUrl());
-		} catch (Exception e) {
-			e.printStackTrace() ;
-		}
-	}
-	
-	// another way to upload a file in resumable way . Demo
-	@SuppressWarnings("unused")
-	private void resumablePutFile() {
-		String localFile = "/mnt/sdcard/mm.jpg" ;
-		Config.ACCESS_KEY = "";
-		Config.SECRET_KEY = "";
-		String bucketName = "bucket";
-		String key = "localreacd70.txt";
-
-		AuthPolicy policy = new AuthPolicy("bucket", 3600);
-		String token = policy.makeAuthTokenString();
-		UpTokenClient upTokenClient = new UpTokenClient(token);
-		UpService upClient = new UpService(upTokenClient);
-		
-		Map<String, Object> optParams = new HashMap<String, Object>() ;
-		optParams.put("mimeType", "") ;
-		optParams.put("callbakParam", "") ;
-		optParams.put("progressFile", "") ;
-		optParams.put("customMeta", "") ;
-		PutFileRet putFileRet = UpClient.resumablePutFile(upClient, bucketName, key, localFile, optParams) ;
-		if (putFileRet.ok()) {
-			System.out.println("|--> successfully upload a file : " + putFileRet.getHash());
-		} else {
-			System.out.println("|--> Fail to upload a file : " + putFileRet);
-		}
-	}
-
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.activity_main, menu);

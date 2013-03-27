@@ -10,30 +10,28 @@ import com.qiniu.qbox.auth.Client;
 public class UpService {
 	
 	private Client conn;
-	private String upHost ;
 	
 	public UpService(Client conn) {
 		this.conn = conn;
-		this.upHost = Config.UP_HOST ;
 	}
 	
-	public ResumablePutRet makeBlock(long blockSize, byte[] body, long bodyLength) {
-		CallRet ret = this.conn.callWithBinary(this.upHost + "/mkblk/" + String.valueOf(blockSize), "application/octet-stream", body, bodyLength);
+	public ResumablePutRet makeBlock(String upHost, long blockSize, byte[] body, long bodyLength) {
+		CallRet ret = this.conn.callWithBinary(upHost + "/mkblk/" + String.valueOf(blockSize), "application/octet-stream", body, bodyLength);
 		return new ResumablePutRet(ret);
 	}
 
-	public ResumablePutRet putBlock(long blockSize, String ctx, long offset, byte[] body, long bodyLength) {
-		CallRet ret = this.conn.callWithBinary(this.upHost + "/bput/" + ctx + "/" + String.valueOf(offset), "application/octet-stream", body, bodyLength);
+	public ResumablePutRet putBlock(String upHost, long blockSize, String ctx, long offset, byte[] body, long bodyLength) {
+		CallRet ret = this.conn.callWithBinary(upHost + "/bput/" + ctx + "/" + String.valueOf(offset), "application/octet-stream", body, bodyLength);
 		return new ResumablePutRet(ret);
 	}
 	
-	public CallRet makeFile(String cmd, String entry, long fsize, String params, String callbackParams, String[] checksums) {
+	public CallRet makeFile(String upHost, String cmd, String entry, long fsize, String params, String callbackParams, String[] checksums) {
 		
 		if (callbackParams != null && callbackParams.length() != 0) {
 			params += "/params/" + Client.urlsafeEncodeString(callbackParams.getBytes()) ;
 		}
 		
-		String url = this.upHost + cmd + Client.urlsafeEncodeString(entry.getBytes()) + "/fsize/" + String.valueOf(fsize) + params;
+		String url = upHost + cmd + Client.urlsafeEncodeString(entry.getBytes()) + "/fsize/" + String.valueOf(fsize) + params;
 		
 		byte[] body = new byte[20 * checksums.length];
 		
@@ -63,7 +61,7 @@ public class UpService {
 	 * @param progress
 	 * @param notifier
 	 */
-	public ResumablePutRet resumablePutBlock(RandomAccessFile file, 
+	public ResumablePutRet resumablePutBlock(String upHost, RandomAccessFile file, 
 			int blockIndex, long blockSize, long chunkSize, 
 			int retryTimes,
 			BlockProgress progress, BlockProgressNotifier notifier){
@@ -82,8 +80,8 @@ public class UpService {
 					return new ResumablePutRet(new CallRet(400, "Read nothing"));
 				}
 				
-				ret = makeBlock((int)blockSize, body, bodyLength);
-				this.upHost = ret.getHost() ;
+				ret = makeBlock(upHost, (int)blockSize, body, bodyLength);
+				upHost = ret.getHost() ;
 				if (!ret.ok()) {
 					// Error handling
 					return ret;
@@ -127,7 +125,7 @@ public class UpService {
 						return new ResumablePutRet(new CallRet(400, "Read nothing"));
 					}
 					
-					ret = putBlock(blockSize, progress.context, progress.offset, body, bodyLength);
+					ret = putBlock(upHost, blockSize, progress.context, progress.offset, body, bodyLength);
 					if (ret.ok()) {
 						
 						CRC32 crc32 = new CRC32();
@@ -164,6 +162,8 @@ public class UpService {
 			String[] checksums, BlockProgress[] progresses, 
 			ProgressNotifier progressNotifier, BlockProgressNotifier blockProgressNotifier) {
 		
+		String upHost = Config.UP_HOST ;
+		ResumablePutRet ret = null ;
 		int blockCount = blockCount(fsize);
 		
 		if (checksums.length != blockCount || progresses.length != blockCount) {
@@ -182,11 +182,15 @@ public class UpService {
 					progresses[i] = new BlockProgress();
 				}
 				
-				ResumablePutRet ret = resumablePutBlock(file, 
+				ret = resumablePutBlock(upHost, file, 
 						blockIndex, blockSize, Config.PUT_CHUNK_SIZE, 
 						Config.PUT_RETRY_TIMES, 
 						progresses[i], 
 						blockProgressNotifier);
+				
+				if (i == 0) {
+					upHost = ret.getHost() ;
+				}
 				
 				if (!ret.ok()) {
 					return ret;
@@ -198,7 +202,8 @@ public class UpService {
 			}
 		}
 		
-		return new ResumablePutRet(new CallRet(200, (String)null));
+		ret.setHost(upHost) ;
+		return ret ;
 	}
 	
 	
