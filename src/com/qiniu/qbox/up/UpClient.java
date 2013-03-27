@@ -12,14 +12,9 @@ import java.io.RandomAccessFile;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
 import com.qiniu.qbox.auth.CallRet;
@@ -301,35 +296,10 @@ public class UpClient {
 				requestEntity.addPart("params", new StringBody(callbackParam1));
 			}
 		}
-		HttpPost postMethod = new HttpPost(Config.UP_HOST + "/upload");
-		postMethod.setEntity(requestEntity);
-
-		DefaultHttpClient client = new DefaultHttpClient();
-		try {
-			HttpResponse response = client.execute(postMethod);
-			return handleResult(response);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new PutFileRet(new CallRet(400, e));
-		} finally {
-			client.getConnectionManager().shutdown();
-		}
+		
+		String url = Config.UP_HOST + "/upload";
+		CallRet ret = new Client().callWithMultiPart(url, requestEntity);
+		return new PutFileRet(ret);
 	}	
-	
-	private static PutFileRet handleResult(HttpResponse response) {
-		if (response == null || response.getStatusLine() == null) {
-			return new PutFileRet(new CallRet(400, "No response"));
-		}
-
-		try {
-			String responseBody = EntityUtils.toString(response.getEntity());
-			StatusLine status = response.getStatusLine();
-			int statusCode = (status == null) ? 400 : status.getStatusCode();
-			return new PutFileRet(new CallRet(statusCode, responseBody));
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new PutFileRet(new CallRet(400, e));
-		}
-	}
 
 }
