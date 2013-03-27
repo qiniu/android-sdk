@@ -10,8 +10,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 import com.qiniu.R;
 import com.qiniu.auth.JSONObjectRet;
-import com.qiniu.up.Up;
-import com.qiniu.up.UpOption;
+import com.qiniu.io.IO;
+import com.qiniu.io.PutExtra;
 import org.json.JSONObject;
 
 public class MyActivity extends Activity implements View.OnClickListener{
@@ -19,11 +19,11 @@ public class MyActivity extends Activity implements View.OnClickListener{
 	public static final int PICK_PICTURE = 0;
 
 	// 在七牛绑定的对应bucket的域名. 可以到这里绑定 https://dev.qiniutek.com/buckets
-	public static String Domain = "";
-	public static String BucketName = "";
+	public static String Domain = "http://cheneya.qiniudn.com";
+	public static String BucketName = "a";
 
 	// upToken 这里需要自行获取. SDK 将不实现获取过程.
-	public static final String UP_TOKEN = "";
+	public static final String UP_TOKEN = "tGf47MBl1LyT9uaNv-NZV4XZe7sKxOIa9RE2Lp8B:PR8nUs85nf9l1ZS1xuop100LgdY=:eyJjdXN0b21lciI6ImhlbGxvISIsInNjb3BlIjoiYSIsImRlYWRsaW5lIjoxMzY0NDA2NzA2fQ==";
 
 	private Button btnUpload;
 	private EditText editKey;
@@ -53,12 +53,10 @@ public class MyActivity extends Activity implements View.OnClickListener{
 	 */
 	private void doUpload(Uri uri) {
 		final String key = editKey.getText().toString();
-		Up up = new Up(UP_TOKEN);
-		UpOption opts = new UpOption();
-		opts.EntryUri = BucketName + ":" + key;
-		opts.MimeType = "image/png";
-		opts.Rotate = 2;
-		up.PutFile(this, uri, null, opts, new JSONObjectRet() {
+		PutExtra extra = new PutExtra();
+		extra.MimeType = "image/png";
+
+		IO.PutFile(this, UP_TOKEN, BucketName, key, uri, extra, new JSONObjectRet() {
 			@Override
 			public void onSuccess(JSONObject resp) {
 				String hash;
@@ -69,7 +67,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 					return;
 				}
 				toast("上传成功! 正在跳转到浏览器查看效果 \nhash:" + hash);
-				String redirect = Domain + key;
+				String redirect = Domain + "/" + key;
 				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
 				startActivity(intent);
 			}

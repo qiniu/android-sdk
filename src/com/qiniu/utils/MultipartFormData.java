@@ -33,7 +33,7 @@ public class MultipartFormData {
 		mBuf.put(sb.toString().getBytes());
 	}
 
-	public void addFile(String field, String fileName, String fileContentType, byte[] fileData) {
+	public void addFile(String field, String fileName, byte[] fileData) {
 		StringBuffer sb = new StringBuffer("--");
 		sb.append(mBounary);
 		sb.append("\r\n");
@@ -42,7 +42,7 @@ public class MultipartFormData {
 		sb.append("name=\"" + field + "\";");
 		sb.append("filename=\"" + fileName + "\"");
 		sb.append("\r\n");
-		sb.append("Content-Type: " + fileContentType + "\r\n\r\n");
+		sb.append("Content-Type: application/octet-stream\r\n\r\n");
 
 		mBuf.put(sb.toString().getBytes());
 		mBuf.put(fileData);
