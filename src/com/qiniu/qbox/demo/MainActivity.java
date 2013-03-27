@@ -77,8 +77,8 @@ public class MainActivity extends Activity {
 		progressBar.setProgress(0);
 		
 		// Notice here : Please apply your access/secret keys here.
-		Config.ACCESS_KEY = "ttXNqIvhrYu04B_dWM6GwSpcXOZJvGoYFdznAWnz";
-		Config.SECRET_KEY = "rX-7Omdag0BIBEtOyuGQXzx4pmTUTeLxoPEw6G8d";
+		Config.ACCESS_KEY = "Apply your accesskey here.";
+		Config.SECRET_KEY = "Apply your secretkey here.";
 		// 处理事件
 		this.chooseButton.setOnClickListener(new Button.OnClickListener() {
 			@Override
