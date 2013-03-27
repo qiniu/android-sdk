@@ -1,9 +1,8 @@
-package com.qiniu.qbox.demo;
+package com.qiniu.qbox.auth;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.qiniu.qbox.auth.CallRet;
 
 public class AuthRet extends CallRet {
 	private String accessToken;

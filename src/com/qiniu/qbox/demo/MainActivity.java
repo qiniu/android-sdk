@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 
 import com.qiniu.qbox.R;
+import com.qiniu.qbox.auth.AuthPolicy;
 import com.qiniu.qbox.auth.DigestAuthClient;
 import com.qiniu.qbox.auth.UpTokenClient;
 import com.qiniu.qbox.up.BlockProgress;
@@ -77,8 +78,8 @@ public class MainActivity extends Activity {
 		progressBar.setProgress(0);
 		
 		// Notice here : Please apply your access/secret keys here.
-		Config.ACCESS_KEY = "apply your accesskey here.";
-		Config.SECRET_KEY = "apply your secretkey here.";
+		 Config.ACCESS_KEY = "ttXNqIvhrYu04B_dWM6GwSpcXOZJvGoYFdznAWnz";
+	        Config.SECRET_KEY = "rX-7Omdag0BIBEtOyuGQXzx4pmTUTeLxoPEw6G8d";
 		// 处理事件
 		this.chooseButton.setOnClickListener(new Button.OnClickListener() {
 			@Override

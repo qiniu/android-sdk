@@ -1,4 +1,4 @@
-package com.qiniu.qbox.demo;
+package com.qiniu.qbox.auth;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -9,7 +9,6 @@ import javax.crypto.spec.SecretKeySpec;
 import org.json.JSONException;
 import org.json.JSONStringer;
 
-import com.qiniu.qbox.auth.Client;
 import com.qiniu.qbox.up.Config;
 
 public class AuthPolicy {
