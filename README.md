@@ -71,45 +71,28 @@
 在 Android 中选择文件一般是通过 uri 作为路径, 一般调用以下代码
 
 ```java
-
-// 实例化文件上传选项对象
-UpOption opts = new UpOption();
-
-// 必须项，key 是 bucket 里边的唯一索引，bucket 是空间名称
-opts.EntryUri = bucket + ":" + key;
-
-// 可选项，资源类型，缺省为 application/octet-stream
-opts.MimeType = "image/png";
-
-// 可选项，没啥用处
-opts.CustomMeta = "自定义文本备注";
-
-// 可选项，文件的 crc32 校验值，十进制整数，用于校验完整性
-opts.Crc32 = FileCrc32Val;
-
-/**
- * 可选项，传图片时可针对图片上传后进行旋转
- * - 值为 0: 表示根据图像EXIF信息自动旋转
- * - 值为 1: 右转90度
- * - 值为 2: 右转180度
- * - 值为 3: 右转270度
- */
-opts.Rotate = 0;
-
 /**
  * 实例化上传执行体对象
  * UpToken 为业务服务器颁发的上传授权凭证，参考上述上传流程说明
  */
-Up up = new Up(UpToken);
+PutExtra extra = new PutExtra();
+
+// 可选项，资源类型，缺省为 application/octet-stream
+extra.mimeType = "image/png";
+
+// 可选项，没啥用处
+extra.CustomMeta = "自定义文本备注";
+
+// 文件上传成功后，七牛云存储 POST 回调业务服务器
+extra.CallbackParams = "key=" + FileUniqId + "&uid=" + EndUserId;
 
 /**
+ * String UP_TOKEN 上传授权凭证
+ * String BucketName 是空间名称
+ * String key 是 bucket 里边的唯一索引
  * Uri uri 相当于文件的路径
- * String filename 为上传的文件命名, 如果填 `null` 将会生成一个6位随机字符串
- * String params 文件上传成功后，七牛云存储 POST 回调业务服务器, 
- * 
- * 例: String params = "key=" + FileUniqId + "&uid=" + EndUserId;
  */
-up.PutFile(context, uri, filename, opts, params, new JSONObjectRet() {
+IO.PutFile(this, UP_TOKEN, BucketName, key, uri, extra, new JSONObjectRet() {
     @Override
     public void onSuccess(JSONObject resp) {
         // 成功
