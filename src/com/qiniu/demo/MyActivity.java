@@ -54,9 +54,9 @@ public class MyActivity extends Activity implements View.OnClickListener{
 	private void doUpload(Uri uri) {
 		final String key = editKey.getText().toString();
 		PutExtra extra = new PutExtra();
-		extra.MimeType = "image/png";
+		extra.mimeType = "image/png";
 
-		IO.PutFile(this, UP_TOKEN, BucketName, key, uri, extra, new JSONObjectRet() {
+		IO.putFile(this, UP_TOKEN, BucketName, key, uri, extra, new JSONObjectRet() {
 			@Override
 			public void onSuccess(JSONObject resp) {
 				String hash;

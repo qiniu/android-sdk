@@ -13,7 +13,9 @@ import org.json.JSONObject;
 import java.io.IOException;
 
 public class Client {
+	
 	private HttpClient mClient;
+	
 	public Client(HttpClient client) {
 		mClient = client;
 	}
@@ -38,6 +40,7 @@ public class Client {
 	class ClientExecuter extends AsyncTask<Object, Object, Object> {
 		HttpPost httpPost;
 		CallRet ret;
+		
 		@Override
 		protected Object doInBackground(Object... objects) {
 			httpPost = (HttpPost) objects[0];
