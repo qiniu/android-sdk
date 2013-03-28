@@ -11,7 +11,8 @@ import java.io.InputStream;
 import java.util.Random;
 
 public class Utils {
-	public static String GetRandomString(int length) {
+	
+	public static String getRandomString(int length) {
 		String base = "abcdefghijklmnopqrstuvwxyz0123456789";
 		Random random = new Random();
 		StringBuffer sb = new StringBuffer();
@@ -22,18 +23,18 @@ public class Utils {
 		return sb.toString();
 	}
 
-	public static boolean IsStringValid(String str) {
+	public static boolean isStringValid(String str) {
 		return str != null && str.length() > 0;
 	}
 
-	public static String EncodeUri(String uri) {
+	public static String encodeUri(String uri) {
 		return new String(Base64.encode(uri.getBytes(), Base64.URL_SAFE)).trim();
 	}
 
-	public static byte[] ReadBinaryFromUri(Context mContext, Uri uri) {
+	public static byte[] readBinaryFromUri(Context mContext, Uri uri) {
 		ContentResolver cr = mContext.getContentResolver();
 		try {
-			InputStream imgIS = imgIS = cr.openInputStream(uri);
+			InputStream imgIS  = cr.openInputStream(uri);
 			byte[] dataBinary = new byte[imgIS.available()];
 			int readed = imgIS.read(dataBinary);
 			while (readed < dataBinary.length) {
