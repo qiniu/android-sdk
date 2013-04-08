@@ -153,17 +153,18 @@ public class ResumableIO {
 		if (chunkSize > size) {
 			chunkSize = size;
 		}
-		final byte[] firstChunk = is.read(index*blockSize, chunkSize);
+		byte[] firstChunk = is.read(index*blockSize, chunkSize);
 		if (firstChunk == null) {
 			ret.onFailure(errPutFailed);
 			return;
 		}
+		final int firstChunkSize = firstChunk.length;
 		mkblock(client, size, firstChunk, new JSONObjectRet() {
 
 			@Override
 			public void onSuccess(JSONObject obj) {
 				extra.progresses[index] = BlkputRet.parse(obj);
-				extra.notify.onNotify(index, firstChunk.length, extra.progresses[index]);
+				extra.notify.onNotify(index, firstChunkSize, extra.progresses[index]);
 				resumablePutBlock(client, is, index, size, extra, ret);
 			}
 
@@ -188,12 +189,13 @@ public class ResumableIO {
 		if (chunkSize > index*blockSize+size-offset) {
 			chunkSize = index*blockSize+size-offset;
 		}
-		final byte[] chunk = is.read(offset, chunkSize);
+		byte[] chunk = is.read(offset, chunkSize);
+		final int chunkLength = chunk.length;
 		putblock(client, extra.progresses[index], chunk, new JSONObjectRet() {
 			@Override
 			public void onSuccess(JSONObject obj) {
 				extra.progresses[index] = BlkputRet.parse(obj);
-				extra.notify.onNotify(index, chunk.length, extra.progresses[index]);
+				extra.notify.onNotify(index, chunkLength, extra.progresses[index]);
 				resumablePutBlock(client, is, index, size, extra, ret);
 			}
 
