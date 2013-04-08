@@ -26,12 +26,12 @@ public class MyActivity extends Activity implements View.OnClickListener{
 	public static final int PICK_PICTURE_RESUMABLE = 1;
 
 	// 在七牛绑定的对应bucket的域名. 可以到这里绑定 https://dev.qiniutek.com/buckets
-	public static String domain = "http://cheneya.qiniudn.com/";
-	public static String bucketName = "a";
+	public static String domain = "";
+	public static String bucketName = "";
 
 	// upToken 这里需要自行获取. SDK 将不实现获取过程.
 
-	public static final String UP_TOKEN = "tGf47MBl1LyT9uaNv-NZV4XZe7sKxOIa9RE2Lp8B:oXG8ft4J2FbIJMw7rsP_TCY92-U=:eyJjdXN0b21lciI6ImhlbGxvISIsInNjb3BlIjoiYSIsImRlYWRsaW5lIjoxMzY1NDE3MTk0fQ==";
+	public static final String UP_TOKEN = "";
 
 	private Button btnUpload;
 	private Button btnResumableUpload;
@@ -44,7 +44,6 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		setContentView(R.layout.main);
 
 		initWidget();
-
 	}
 
 	/**
@@ -55,7 +54,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		btnUpload.setOnClickListener(this);
 
 		editKey = (EditText) findViewById(R.id.editText);
-		editKey.setText("anddd3");
+		editKey.setText("android_sdk_demo");
 
 		btnResumableUpload = (Button) findViewById(R.id.button1);
 		btnResumableUpload.setOnClickListener(this);
@@ -102,10 +101,19 @@ public class MyActivity extends Activity implements View.OnClickListener{
 	private void doResumableUpload(Uri uri) {
 		final String key = editKey.getText().toString();
 		RputExtra extra = new RputExtra(bucketName);
-		extra.mimeType = "application/pdf";
+		extra.mimeType = "application/png";
 		final long fsize = Utils.getSizeFromUri(this, uri);
 		progressBar.setMax(100);
 		progressBar.setProgress(0);
+		extra.notify = new RputNotify() {
+			long uploaded = 0;
+			@Override
+			public synchronized void onNotify(int blkIdx, int blkSize, BlkputRet ret) {
+				uploaded += blkSize;
+				int progress = (int) (uploaded * 100 / fsize);
+				progressBar.setProgress(progress);
+			}
+		};
 
 
 		ResumableIO.putFile(this, UP_TOKEN, key, uri, extra, new JSONObjectRet() {

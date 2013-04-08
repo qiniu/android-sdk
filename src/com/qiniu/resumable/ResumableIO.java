@@ -144,7 +144,11 @@ public class ResumableIO {
 			return;
 		}
 
-		byte[] firstChunk = is.read(index*blockSize, extra.chunkSize);
+		int chunkSize = extra.chunkSize;
+		if (chunkSize > size) {
+			chunkSize = size;
+		}
+		final byte[] firstChunk = is.read(index*blockSize, chunkSize);
 		if (firstChunk == null) {
 			ret.onFailure(errPutFailed);
 			return;
@@ -154,7 +158,7 @@ public class ResumableIO {
 			@Override
 			public void onSuccess(JSONObject obj) {
 				extra.progresses[index] = BlkputRet.parse(obj);
-				extra.notify.onNotify(index, size, extra.progresses[index]);
+				extra.notify.onNotify(index, firstChunk.length, extra.progresses[index]);
 				resumablePutBlock(client, is, index, size, extra, ret);
 			}
 
@@ -184,7 +188,7 @@ public class ResumableIO {
 			@Override
 			public void onSuccess(JSONObject obj) {
 				extra.progresses[index] = BlkputRet.parse(obj);
-				extra.notify.onNotify(index, size, extra.progresses[index]);
+				extra.notify.onNotify(index, chunk.length, extra.progresses[index]);
 				resumablePutBlock(client, is, index, size, extra, ret);
 			}
 

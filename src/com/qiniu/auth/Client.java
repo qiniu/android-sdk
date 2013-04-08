@@ -27,11 +27,11 @@ public class Client {
 
 	public void call(String url, String contentType, HttpEntity entity, CallRet ret) {
 		HttpPost httppost = new HttpPost(url);
+		httppost.setEntity(entity);
+
 		if (contentType != null) {
 			httppost.setHeader("Content-Type", contentType);
 		}
-
-		httppost.setEntity(entity);
 		execute(httppost, ret);
 	}
 
