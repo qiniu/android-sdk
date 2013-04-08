@@ -20,5 +20,17 @@
             android:text="New EditText"
             android:id="@+id/editText"
             android:layout_alignLeft="@+id/textView" android:layout_below="@+id/textView"/>
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="断点续上传"
+            android:id="@+id/button1"
+            android:layout_alignLeft="@+id/button" android:layout_below="@+id/button"/>
+    <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/progressBar" android:layout_alignParentLeft="true" android:layout_below="@+id/editText"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:indeterminate="false" android:layout_alignRight="@+id/textView"/>
 </RelativeLayout>
 

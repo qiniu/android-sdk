@@ -19,7 +19,7 @@ public class IO {
 
 	private static Client defaultClient() {
 		if (mClient == null) {
-			mClient = Client.DefaultClient();
+			mClient = Client.defaultClient();
 		}
 		return mClient;
 	}
@@ -29,8 +29,6 @@ public class IO {
 	 * 
 	 * @param uptoken
 	 *            用于上传的验证信息
-	 * @param bucket
-	 *            仓库名称
 	 * @param key
 	 *            键值名
 	 * @param binary
@@ -40,9 +38,9 @@ public class IO {
 	 * @param ret
 	 *            回调函数
 	 */
-	public static void put(String uptoken, String bucket, String key,
+	public static void put(String uptoken, String key,
 			byte[] binary, PutExtra extra, JSONObjectRet ret) {
-		String entryURI = bucket + ":" + key;
+		String entryURI = extra.bucket + ":" + key;
 		String url = Conf.UP_HOST + "/upload";
 
 		MultipartFormData m = new MultipartFormData(binary.length + 1000);
@@ -74,7 +72,6 @@ public class IO {
 	 * @param mContext
 	 * @param uptoken
 	 *            用于上传的验证信息
-	 * @param bucket
 	 * @param key
 	 * @param uri
 	 *            通过图库或其他拿到的URI
@@ -83,7 +80,7 @@ public class IO {
 	 * @param ret
 	 *            结果回调函数
 	 */
-	public static void putFile(Context mContext, String uptoken, String bucket,
+	public static void putFile(Context mContext, String uptoken,
 			String key, Uri uri, PutExtra extra, JSONObjectRet ret) {
 
 		byte[] binaryData = Utils.readBinaryFromUri(mContext, uri);
@@ -92,7 +89,7 @@ public class IO {
 			return;
 		}
 
-		put(uptoken, bucket, key, binaryData, extra, ret);
+		put(uptoken, key, binaryData, extra, ret);
 	}
 
 }

@@ -3,6 +3,7 @@ package com.qiniu.utils;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.util.Base64;
 
 import java.io.FileNotFoundException;
@@ -47,5 +48,19 @@ public class Utils {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public static long getSizeFromUri(Context mContext, Uri uri) {
+		try {
+			ParcelFileDescriptor a = mContext.getContentResolver().openFileDescriptor(uri, "r");
+			long size = a.getStatSize();
+			a.close();
+			return size;
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return 0;
 	}
 }

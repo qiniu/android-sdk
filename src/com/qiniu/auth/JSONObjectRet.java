@@ -1,12 +1,14 @@
 package com.qiniu.auth;
 
-import com.qiniu.auth.CallRet;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public abstract class JSONObjectRet extends CallRet {
 	@Override
-	public final void onSuccess(byte[] body) {
+	public void onSuccess(byte[] body) {
+		if (body == null) {
+			onSuccess(new JSONObject());
+		}
 		try {
 			JSONObject obj = new JSONObject(new String(body));
 			onSuccess(obj);
@@ -15,5 +17,5 @@ public abstract class JSONObjectRet extends CallRet {
 		}
 	}
 
-	public abstract void onSuccess(JSONObject hash);
+	public abstract void onSuccess(JSONObject obj);
 }

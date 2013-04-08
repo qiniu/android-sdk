@@ -7,26 +7,36 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 import com.qiniu.R;
 import com.qiniu.auth.JSONObjectRet;
 import com.qiniu.io.IO;
 import com.qiniu.io.PutExtra;
+import com.qiniu.resumable.BlkputRet;
+import com.qiniu.resumable.ResumableIO;
+import com.qiniu.resumable.RputExtra;
+import com.qiniu.resumable.RputNotify;
+import com.qiniu.utils.Utils;
 import org.json.JSONObject;
 
 public class MyActivity extends Activity implements View.OnClickListener{
 
 	public static final int PICK_PICTURE = 0;
+	public static final int PICK_PICTURE_RESUMABLE = 1;
 
 	// 在七牛绑定的对应bucket的域名. 可以到这里绑定 https://dev.qiniutek.com/buckets
-	public static String Domain = "";
-	public static String BucketName = "";
+	public static String domain = "http://cheneya.qiniudn.com/";
+	public static String bucketName = "a";
 
 	// upToken 这里需要自行获取. SDK 将不实现获取过程.
-	public static final String UP_TOKEN = "";
+
+	public static final String UP_TOKEN = "tGf47MBl1LyT9uaNv-NZV4XZe7sKxOIa9RE2Lp8B:oXG8ft4J2FbIJMw7rsP_TCY92-U=:eyJjdXN0b21lciI6ImhlbGxvISIsInNjb3BlIjoiYSIsImRlYWRsaW5lIjoxMzY1NDE3MTk0fQ==";
 
 	private Button btnUpload;
+	private Button btnResumableUpload;
 	private EditText editKey;
+	private ProgressBar progressBar;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -34,6 +44,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		setContentView(R.layout.main);
 
 		initWidget();
+
 	}
 
 	/**
@@ -44,7 +55,12 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		btnUpload.setOnClickListener(this);
 
 		editKey = (EditText) findViewById(R.id.editText);
-		editKey.setText("mykey1");
+		editKey.setText("anddd3");
+
+		btnResumableUpload = (Button) findViewById(R.id.button1);
+		btnResumableUpload.setOnClickListener(this);
+
+		progressBar = (ProgressBar) findViewById(R.id.progressBar);
 	}
 
 	/**
@@ -53,10 +69,10 @@ public class MyActivity extends Activity implements View.OnClickListener{
 	 */
 	private void doUpload(Uri uri) {
 		final String key = editKey.getText().toString();
-		PutExtra extra = new PutExtra();
+		PutExtra extra = new PutExtra(bucketName);
 		extra.mimeType = "image/png";
 
-		IO.putFile(this, UP_TOKEN, BucketName, key, uri, extra, new JSONObjectRet() {
+		IO.putFile(this, UP_TOKEN, key, uri, extra, new JSONObjectRet() {
 			@Override
 			public void onSuccess(JSONObject resp) {
 				String hash;
@@ -67,7 +83,43 @@ public class MyActivity extends Activity implements View.OnClickListener{
 					return;
 				}
 				toast("上传成功! 正在跳转到浏览器查看效果 \nhash:" + hash);
-				String redirect = Domain + "/" + key;
+				String redirect = domain + "/" + key;
+				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
+				startActivity(intent);
+			}
+
+			@Override
+			public void onFailure(Exception ex) {
+				toast("错误: " + ex.getMessage());
+			}
+		});
+	}
+
+	/**
+	 * 断点许上传
+	 * @param uri
+	 */
+	private void doResumableUpload(Uri uri) {
+		final String key = editKey.getText().toString();
+		RputExtra extra = new RputExtra(bucketName);
+		extra.mimeType = "application/pdf";
+		final long fsize = Utils.getSizeFromUri(this, uri);
+		progressBar.setMax(100);
+		progressBar.setProgress(0);
+
+
+		ResumableIO.putFile(this, UP_TOKEN, key, uri, extra, new JSONObjectRet() {
+			@Override
+			public void onSuccess(JSONObject resp) {
+				String hash;
+				try {
+					hash = resp.getString("hash");
+				} catch (Exception ex) {
+					toast(ex.getMessage());
+					return;
+				}
+				toast("上传成功! 正在跳转到浏览器查看效果 \nhash:" + hash);
+				String redirect = domain + "/" + key;
 				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
 				startActivity(intent);
 			}
@@ -86,17 +138,27 @@ public class MyActivity extends Activity implements View.OnClickListener{
 			startActivityForResult(i, PICK_PICTURE);
 			return;
 		}
+
+		if (view.equals(btnResumableUpload)) {
+			Intent i = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+			startActivityForResult(i, PICK_PICTURE_RESUMABLE);
+			return;
+		}
 	}
 
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (requestCode == PICK_PICTURE) {
-			if (resultCode != RESULT_OK) return;
+		if (resultCode != RESULT_OK) return;
 
+		if (requestCode == PICK_PICTURE) {
 			doUpload(data.getData());
 			return;
 		}
 
+		if (requestCode == PICK_PICTURE_RESUMABLE) {
+			doResumableUpload(data.getData());
+			return;
+		}
 	}
 
 	private void toast(String str) {
