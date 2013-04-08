@@ -5,10 +5,15 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -92,6 +97,16 @@ public class Client {
 	};
 
 	public static Client defaultClient() {
-		return new Client(new DefaultHttpClient());
+		return new Client(getMultithreadClient());
+	}
+
+
+	public static HttpClient getMultithreadClient() {
+		HttpParams params = new BasicHttpParams();
+		SchemeRegistry registry = new SchemeRegistry();
+		registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+		ClientConnectionManager cm = new ThreadSafeClientConnManager(params, registry);
+		HttpClient client = new DefaultHttpClient(cm, params);
+		return client;
 	}
 }
