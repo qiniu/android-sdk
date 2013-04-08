@@ -134,6 +134,11 @@ public class ResumableIO {
 		}
 	}
 
+	public static void setSettings(int perChunkSize, int maxTryTime) {
+		chunkSize = perChunkSize;
+		tryTimes = maxTryTime;
+	}
+
 	// ---------------------------------------------------
 
 	private static void resumableMkBlock(final Client client, final ThreadSafeInputStream is,
