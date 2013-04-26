@@ -9,11 +9,6 @@
             android:layout_height="wrap_content"
             android:text="key:"
             android:id="@+id/textView"/>
-    <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="选择图片上传"
-            android:id="@+id/button" android:layout_centerHorizontal="true" android:layout_centerVertical="true"/>
     <EditText
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -25,7 +20,7 @@
             android:layout_height="wrap_content"
             android:text="断点续上传"
             android:id="@+id/button1"
-            android:layout_alignLeft="@+id/button" android:layout_below="@+id/button"/>
+            android:layout_centerHorizontal="true" android:layout_centerVertical="true"/>
     <ProgressBar
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
