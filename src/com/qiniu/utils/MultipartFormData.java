@@ -66,6 +66,6 @@ public class MultipartFormData {
 	}
 
 	private void generateBounary() {
-		mBounary = Utils.GetRandomString(BOUNARY_LENGTH);
+		mBounary = Utils.getRandomString(BOUNARY_LENGTH);
 	}
 }
