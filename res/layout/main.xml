@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="fill_parent"
+              android:layout_height="fill_parent"
+        >
+    <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="key:"
+            android:id="@+id/textView"/>
+    <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New EditText"
+            android:id="@+id/editText"
+            android:layout_alignLeft="@+id/textView" android:layout_below="@+id/textView"/>
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="断点续上传"
+            android:id="@+id/button1"
+            android:layout_centerHorizontal="true" android:layout_centerVertical="true"/>
+    <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/progressBar" android:layout_alignParentLeft="true" android:layout_below="@+id/editText"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:indeterminate="false" android:layout_alignRight="@+id/textView"/>
+</RelativeLayout>
+
