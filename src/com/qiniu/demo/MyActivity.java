@@ -24,11 +24,13 @@ public class MyActivity extends Activity implements View.OnClickListener{
 
 	public static final int PICK_PICTURE_RESUMABLE = 0;
 
+	// @gist upload
 	// 在七牛绑定的对应bucket的域名. 可以到这里绑定 https://dev.qiniutek.com/buckets
 	public static String domain = "";
 	public static String bucketName = "";
 	// upToken 这里需要自行获取. SDK 将不实现获取过程.
 	public static final String UP_TOKEN = "";
+	// @endgist
 
 	private Button btnResumableUpload;
 	private EditText editKey;
@@ -61,6 +63,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 	 * 断点续上传
 	 * @param uri
 	 */
+	// @gist upload
 	private void doResumableUpload(Uri uri) {
 		final String key = editKey.getText().toString();
 
@@ -103,6 +106,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		};
 		return extra;
 	}
+	// @endgist
 
 	@Override
 	public void onClick(View view) {
