@@ -71,56 +71,7 @@
 在 Android 中选择文件一般是通过 uri 作为路径, 一般调用以下代码
 
 ```java
-// 在七牛绑定的对应bucket的域名. 可以到这里绑定 https://dev.qiniutek.com/buckets
-public static String domain = "";
-public static String bucketName = "";
-// upToken 这里需要自行获取. SDK 将不实现获取过程.
-public static final String UP_TOKEN = "";
-
-...
-
-private void doResumableUpload(Uri uri) {
-	final String key = editKey.getText().toString();
-
-	ResumableIO.putFile(this, UP_TOKEN, key, uri, getPutExtra(uri), new JSONObjectRet() {
-		@Override
-		public void onSuccess(JSONObject resp) {
-			String hash;
-			try {
-				hash = resp.getString("hash");
-			} catch (Exception ex) {
-				toast(ex.getMessage());
-				return;
-			}
-			toast("上传成功! 正在跳转到浏览器查看效果 \nhash:" + hash);
-			String redirect = domain + "/" + key;
-			Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
-			startActivity(intent);
-		}
-
-		@Override
-		public void onFailure(Exception ex) {
-			toast("错误: " + ex.getMessage());
-		}
-	});
-}
-
-private RputExtra getPutExtra(Uri uri) {
-	final long fsize = Utils.getSizeFromUri(this, uri);
-
-	RputExtra extra = new RputExtra(bucketName);
-	extra.mimeType = "image/png";
-	extra.notify = new RputNotify() {
-		long uploaded = 0;
-		@Override
-		public synchronized void onNotify(int blkIdx, int blkSize, BlkputRet ret) {
-			uploaded += blkSize;
-			int progress = (int) (uploaded * 100 / fsize);
-			progressBar.setProgress(progress);
-		}
-	};
-	return extra;
-}
+@gist(../src/com/qiniu/demo/MyActivity.java#upload)
 ```
 
 
@@ -151,4 +102,3 @@ Copyright (c) 2013 www.qiniu.com
 基于 MIT 协议发布:
 
 * [www.opensource.org/licenses/MIT](http://www.opensource.org/licenses/MIT)
-
