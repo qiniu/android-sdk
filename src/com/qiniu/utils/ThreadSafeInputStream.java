@@ -4,6 +4,7 @@ import android.content.Context;
 import com.qiniu.resumable.ResumableIO;
 
 import java.io.*;
+import java.util.Arrays;
 
 public class ThreadSafeInputStream implements Closeable{
 	private InputStream mInputStream;
@@ -85,7 +86,17 @@ public class ThreadSafeInputStream implements Closeable{
 		byte[] data = new byte[length];
 
 		mFileStream.seek(offset);
-		mFileStream.read(data);
+		int readed;
+		int totalReaded = 0;
+		do {
+			readed = mFileStream.read(data, totalReaded, length);
+			if (readed <= 0) break;
+			totalReaded += readed;
+		} while (readed > 0 && length > totalReaded);
+
+		if (totalReaded != data.length) {
+			data = Arrays.copyOfRange(data, 0, totalReaded);
+		}
 		return data;
 	}
 
@@ -93,7 +104,18 @@ public class ThreadSafeInputStream implements Closeable{
 		byte[] data = new byte[length];
 		mInputStream.reset();
 		mInputStream.skip(offset);
-		mInputStream.read(data);
+
+		int readed;
+		int totalReaded = 0;
+		do {
+			readed = mInputStream.read(data, totalReaded, length);
+			if (readed <= 0) break;
+			totalReaded += readed;
+		} while (readed > 0 && length > totalReaded);
+
+		if (totalReaded != data.length) {
+			data = Arrays.copyOfRange(data, 0, totalReaded);
+		}
 		return data;
 	}
 
