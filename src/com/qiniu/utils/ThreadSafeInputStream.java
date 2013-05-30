@@ -28,7 +28,7 @@ public class ThreadSafeInputStream implements Closeable{
 		storeToFile(context, is);
 	}
 
-	private void storeToFile(Context context, InputStream is) {
+	protected void storeToFile(Context context, InputStream is) {
 		File outputDir = context.getCacheDir(); // context being the Activity pointer
 		try {
 			tmpFile = File.createTempFile("qiniu-", "", outputDir);
@@ -47,7 +47,7 @@ public class ThreadSafeInputStream implements Closeable{
 		}
 	}
 
-	private boolean isLargeStream(InputStream is) {
+	protected boolean isLargeStream(InputStream is) {
 		int remain;
 		try {
 			remain = is.available();
@@ -73,7 +73,7 @@ public class ThreadSafeInputStream implements Closeable{
 		return null;
 	}
 
-	public byte[] fileStreamRead(int offset, int length) throws IOException {
+	protected byte[] fileStreamRead(int offset, int length) throws IOException {
 		byte[] data = new byte[length];
 
 		mFileStream.seek(offset);
@@ -81,7 +81,7 @@ public class ThreadSafeInputStream implements Closeable{
 		return data;
 	}
 
-	public byte[] inputStreamRead(int offset, int length) throws IOException {
+	protected byte[] inputStreamRead(int offset, int length) throws IOException {
 		byte[] data = new byte[length];
 
 		if (mInputStream.markSupported()) {
