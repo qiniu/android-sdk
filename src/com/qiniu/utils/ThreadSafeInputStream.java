@@ -30,7 +30,7 @@ public class ThreadSafeInputStream implements Closeable{
 			return;
 		}
 
-		// if stream size large than BLOCK_SIZE, may store to file for seek
+		// if stream size large than maxMemory, may store to file for seek
 		storeToFile(context, is);
 	}
 
