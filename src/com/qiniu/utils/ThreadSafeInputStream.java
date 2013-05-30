@@ -49,6 +49,7 @@ public class ThreadSafeInputStream implements Closeable{
 			os.close();
 			mFileStream = new RandomAccessFile(tmpFile, "r");
 		} catch (IOException e) {
+			e.printStackTrace();
 			return;
 		}
 	}
@@ -74,7 +75,7 @@ public class ThreadSafeInputStream implements Closeable{
 				return fileStreamRead(offset, length);
 			}
 		} catch (IOException e) {
-
+			e.printStackTrace();
 		}
 
 		return null;
