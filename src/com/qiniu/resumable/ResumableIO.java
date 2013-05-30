@@ -89,6 +89,8 @@ public class ResumableIO {
 
 		final Client c = getClient(uptoken);
 		final QueueTask tq = new QueueTask(blockCnt);
+		final ThreadSafeInputStream stream = new ThreadSafeInputStream(m, is, BLOCK_SIZE);
+
 		for (int i=0; i<blockCnt; i++) {
 			final int readLength;
 			if ((i+1)* BLOCK_SIZE > fsize) {
@@ -97,7 +99,6 @@ public class ResumableIO {
 				readLength = BLOCK_SIZE;
 			}
 
-			final ThreadSafeInputStream stream = new ThreadSafeInputStream(m, is, BLOCK_SIZE);
 			final int index = i;
 			resumableMkBlock(c, stream, index, readLength, extra, new CallRet() {
 				int tryTime = extra.tryTimes;
