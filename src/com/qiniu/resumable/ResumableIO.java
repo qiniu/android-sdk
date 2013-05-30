@@ -97,7 +97,7 @@ public class ResumableIO {
 				readLength = BLOCK_SIZE;
 			}
 
-			final ThreadSafeInputStream stream = new ThreadSafeInputStream(m, is);
+			final ThreadSafeInputStream stream = new ThreadSafeInputStream(m, is, BLOCK_SIZE);
 			final int index = i;
 			resumableMkBlock(c, stream, index, readLength, extra, new CallRet() {
 				int tryTime = extra.tryTimes;

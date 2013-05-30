@@ -8,10 +8,11 @@ import java.io.*;
 public class ThreadSafeInputStream implements Closeable{
 	private InputStream mInputStream;
 	private RandomAccessFile mFileStream;
-	private static int maxMenory = ResumableIO.BLOCK_SIZE;
+	private static int maxMenory;
 	private File tmpFile;
 
-	public ThreadSafeInputStream(Context context, InputStream is) {
+	public ThreadSafeInputStream(Context context, InputStream is, int maxMenory) {
+		this.maxMenory = maxMenory;
 		if (is.markSupported()) {
 			mInputStream = is;
 			mInputStream.mark(maxMenory);
