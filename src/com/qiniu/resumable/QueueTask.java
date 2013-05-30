@@ -9,7 +9,7 @@ public class QueueTask {
 		finished = 0;
 	}
 
-	public synchronized void setFinish() {
+	public synchronized void addFinish() {
 		finished++;
 	}
 
@@ -17,8 +17,8 @@ public class QueueTask {
 		return finished == taskCount;
 	}
 
-	public synchronized boolean setFinishAndCheckIsFinishAll() {
-		setFinish();
+	public synchronized boolean addFinishAndCheckIsFinishAll() {
+		addFinish();
 		return isFinishAll();
 	}
 

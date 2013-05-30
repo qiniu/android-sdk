@@ -106,7 +106,7 @@ public class ResumableIO {
 				@Override
 				public void onSuccess(byte[] obj) {
 					if (tq.isFailure()) return;
-					if ( ! tq.setFinishAndCheckIsFinishAll()) return;
+					if ( ! tq.addFinishAndCheckIsFinishAll()) return;
 					stream.close();
 					mkfile(c, key, fsize, extra, ret);
 				}
@@ -117,14 +117,16 @@ public class ResumableIO {
 						// unauthorized
 						tryTime = 0;
 					}
-					if (tryTime <= 0) {
-						tq.setFailure();
-						stream.close();
-						ret.onFailure(ex);
+
+					if (tryTime > 0) {
+						tryTime--;
+						resumableMkBlock(c, stream, index, readLength, extra, this);
 						return;
 					}
-					tryTime--;
-					resumableMkBlock(c, stream, index, readLength, extra, this);
+
+					tq.setFailure();
+					stream.close();
+					ret.onFailure(ex);
 				}
 			});
 		}
