@@ -2,7 +2,6 @@ package com.qiniu.resumable;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.ParcelFileDescriptor;
 import com.qiniu.auth.CallRet;
 import com.qiniu.auth.Client;
 import com.qiniu.auth.JSONObjectRet;
@@ -14,7 +13,10 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.json.JSONObject;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 
 /**
  * =====================================================
@@ -42,7 +44,7 @@ public class ResumableIO {
 	private static RputNotify notify = new RputNotify();
 	private static int tryTimes = 3;
 	private static int chunkSize = 256 * 1024;
-	private static int blockSize = 4 * 1024 * 1024;
+	public static int BLOCK_SIZE = 4 * 1024 * 1024;
 
 	public static void setClient(UpClient client) {
 		mClient = client;
@@ -64,7 +66,7 @@ public class ResumableIO {
 	 * @param extra 附加参数
 	 * @param ret 回调函数
 	 */
-	public static void put(String uptoken, final String key, InputStream is,
+	public static void put(Context m, String uptoken, final String key, InputStream is,
 			final long fsize, final RputExtra extra, final JSONObjectRet ret) {
 
 		int blockCnt = blockCount(fsize);
@@ -89,19 +91,20 @@ public class ResumableIO {
 		final QueueTask tq = new QueueTask(blockCnt);
 		for (int i=0; i<blockCnt; i++) {
 			final int readLength;
-			if ((i+1)*blockSize > fsize) {
-				readLength = (int) fsize - i*blockSize;
+			if ((i+1)* BLOCK_SIZE > fsize) {
+				readLength = (int) fsize - i* BLOCK_SIZE;
 			} else {
-				readLength = blockSize;
+				readLength = BLOCK_SIZE;
 			}
 
-			final ThreadSafeInputStream stream = new ThreadSafeInputStream(is);
+			final ThreadSafeInputStream stream = new ThreadSafeInputStream(m, is);
 			final int index = i;
 			resumableMkBlock(c, stream, index, readLength, extra, new CallRet() {
 				int tryTime = extra.tryTimes;
 
 				@Override
 				public void onSuccess(byte[] obj) {
+					stream.close();
 					if ( ! tq.isFinishAll()) return;
 					mkfile(c, key, fsize, extra, ret);
 				}
@@ -109,6 +112,7 @@ public class ResumableIO {
 				@Override
 				public void onFailure(Exception ex) {
 					if (tryTime <= 0) {
+						stream.close();
 						ret.onFailure(ex);
 						return;
 					}
@@ -126,7 +130,7 @@ public class ResumableIO {
 		try {
 			long size = Utils.getSizeFromUri(mContext, localfile);
 			InputStream is = mContext.getContentResolver().openInputStream(localfile);
-			put(uptoken, key, is, size, extra, ret);
+			put(mContext, uptoken, key, is, size, extra, ret);
 		} catch (FileNotFoundException e) {
 			ret.onFailure(e);
 		} catch (IOException e) {
@@ -153,7 +157,7 @@ public class ResumableIO {
 		if (chunkSize > size) {
 			chunkSize = size;
 		}
-		byte[] firstChunk = is.read(index*blockSize, chunkSize);
+		byte[] firstChunk = is.read(index* BLOCK_SIZE, chunkSize);
 		if (firstChunk == null) {
 			ret.onFailure(errPutFailed);
 			return;
@@ -184,10 +188,10 @@ public class ResumableIO {
 			return;
 		}
 
-		int offset = index * blockSize + extra.progresses[index].offset;
+		int offset = index * BLOCK_SIZE + extra.progresses[index].offset;
 		int chunkSize = extra.chunkSize;
-		if (chunkSize > index*blockSize+size-offset) {
-			chunkSize = index*blockSize+size-offset;
+		if (chunkSize > index* BLOCK_SIZE +size-offset) {
+			chunkSize = index* BLOCK_SIZE +size-offset;
 		}
 		byte[] chunk = is.read(offset, chunkSize);
 		final int chunkLength = chunk.length;
@@ -208,7 +212,7 @@ public class ResumableIO {
 	}
 
 	private static int blockCount(long fsize) {
-		return (int) (fsize / blockSize) + 1;
+		return (int) (fsize / BLOCK_SIZE) + 1;
 	}
 
 	public static void mkblock(Client client, long blkSize, byte[] firstChunk, JSONObjectRet ret) {
