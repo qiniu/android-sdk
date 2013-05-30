@@ -8,20 +8,25 @@ import java.io.*;
 public class ThreadSafeInputStream implements Closeable{
 	private InputStream mInputStream;
 	private RandomAccessFile mFileStream;
-	private static int maxMenory;
+	private static int maxMemory;
 	private File tmpFile;
+	private boolean closed;
 
-	public ThreadSafeInputStream(Context context, InputStream is, int maxMenory) {
-		this.maxMenory = maxMenory;
-		if (is.markSupported()) {
-			mInputStream = is;
-			mInputStream.mark(maxMenory);
-			return;
-		}
+	/**
+	 * @param context
+	 * @param is InputStream
+	 * @param maxMemory if stream length large than maxMemory, will store data to disk
+	 */
+	public ThreadSafeInputStream(Context context, InputStream is, int maxMemory) {
+		this.maxMemory = maxMemory;
 
 		if ( ! isLargeStream(is)) {
-			// not need to support `mark` if stream size less than BLOCK_SIZE
+			// not need to support `seek` if stream size less than maxMemory
 			mInputStream = is;
+			if ( ! mInputStream.markSupported()) {
+				mInputStream = new BufferedInputStream(mInputStream, maxMemory);
+			}
+			mInputStream.mark(maxMemory);
 			return;
 		}
 
@@ -55,10 +60,11 @@ public class ThreadSafeInputStream implements Closeable{
 		} catch (IOException e) {
 			return false;
 		}
-		return remain > maxMenory;
+		return remain > maxMemory;
 	}
 
 	public synchronized byte[] read(int offset, int length) {
+		if (closed) return null;
 		try {
 			if (mInputStream != null) {
 				return inputStreamRead(offset, length);
@@ -84,20 +90,17 @@ public class ThreadSafeInputStream implements Closeable{
 
 	protected byte[] inputStreamRead(int offset, int length) throws IOException {
 		byte[] data = new byte[length];
-
-		if (mInputStream.markSupported()) {
-			mInputStream.reset();
-			mInputStream.skip(offset);
-		}
-
+		mInputStream.reset();
+		mInputStream.skip(offset);
 		mInputStream.read(data);
 		return data;
 	}
 
 
 	@Override
-	public void close(){
-
+	public synchronized void close(){
+		if (closed) return;
+		closed = true;
 		if (mInputStream != null) {
 			try {
 				mInputStream.close();

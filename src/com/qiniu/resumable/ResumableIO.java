@@ -105,14 +105,20 @@ public class ResumableIO {
 
 				@Override
 				public void onSuccess(byte[] obj) {
+					if (tq.isFailure()) return;
+					if ( ! tq.setFinishAndCheckIsFinishAll()) return;
 					stream.close();
-					if ( ! tq.isFinishAll()) return;
 					mkfile(c, key, fsize, extra, ret);
 				}
 
 				@Override
 				public void onFailure(Exception ex) {
+					if (ex.getMessage().endsWith("401")) {
+						// unauthorized
+						tryTime = 0;
+					}
 					if (tryTime <= 0) {
+						tq.setFailure();
 						stream.close();
 						ret.onFailure(ex);
 						return;
