@@ -14,6 +14,10 @@ public class UpClient extends Client {
         mUpToken = upToken;
     }
 
+	public void updateToken(String token) {
+		mUpToken = token;
+	}
+
 	@Override
 	protected HttpResponse roundtrip(HttpPost httpPost) throws IOException {
 		httpPost.setHeader("Authorization", "UpToken " + mUpToken);

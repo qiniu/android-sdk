@@ -53,6 +53,8 @@ public class ResumableIO {
 	private static UpClient getClient(String token) {
 		if (mClient == null) {
 			mClient = UpClient.defaultClient(token);
+		} else {
+			mClient.updateToken(token);
 		}
 		return mClient;
 	}
