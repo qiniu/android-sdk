@@ -6,18 +6,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 import com.qiniu.R;
 import com.qiniu.auth.JSONObjectRet;
-import com.qiniu.io.IO;
-import com.qiniu.io.PutExtra;
-import com.qiniu.resumable.BlkputRet;
 import com.qiniu.resumable.ResumableIO;
 import com.qiniu.resumable.RputExtra;
 import com.qiniu.resumable.RputNotify;
-import com.qiniu.utils.Utils;
 import org.json.JSONObject;
 
 public class MyActivity extends Activity implements View.OnClickListener{
@@ -26,14 +21,13 @@ public class MyActivity extends Activity implements View.OnClickListener{
 
 	// @gist upload
 	// 在七牛绑定的对应bucket的域名. 可以到这里绑定 https://dev.qiniutek.com/buckets
-	public static String domain = "";
-	public static String bucketName = "";
+	public static String domain = "http://api-demo.qiniudn.com";
+	public static String bucketName = "demo";
 	// upToken 这里需要自行获取. SDK 将不实现获取过程.
-	public static final String UP_TOKEN = "";
+	public static final String UP_TOKEN = "tGf47MBl1LyT9uaNv-NZV4XZe7sKxOIa9RE2Lp8B:m15Ai4JIqdOpvLWiZp_emRGN-9s=:eyJzY29wZSI6ImRlbW8iLCJkZWFkbGluZSI6MTM3MjQxMjEzOX0=";
 	// @endgist
 
 	private Button btnResumableUpload;
-	private EditText editKey;
 	private ProgressBar progressBar;
 
 	@Override
@@ -42,14 +36,12 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		setContentView(R.layout.main);
 
 		initWidget();
-	}
+    }
 
 	/**
 	 * 初始化控件
 	 */
 	private void initWidget() {
-		editKey = (EditText) findViewById(R.id.editText);
-		editKey.setText("android_sdk_demo");
 
 		btnResumableUpload = (Button) findViewById(R.id.button1);
 		btnResumableUpload.setOnClickListener(this);
@@ -65,44 +57,39 @@ public class MyActivity extends Activity implements View.OnClickListener{
 	 */
 	// @gist upload
 	private void doResumableUpload(Uri uri) {
-		final String key = editKey.getText().toString();
+        RputExtra extra = getPutExtra();
 
-		ResumableIO.putFile(this, UP_TOKEN, key, uri, getPutExtra(uri), new JSONObjectRet() {
-			@Override
-			public void onSuccess(JSONObject resp) {
-				String hash;
-				try {
-					hash = resp.getString("hash");
-				} catch (Exception ex) {
-					toast(ex.getMessage());
-					return;
-				}
-				toast("上传成功! 正在跳转到浏览器查看效果 \nhash:" + hash);
-				String redirect = domain + "/" + key;
-				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
-				startActivity(intent);
-			}
+		ResumableIO.putFile(this, UP_TOKEN, null, uri, extra, new JSONObjectRet() {
+            @Override
+            public void onSuccess(JSONObject resp) {
+                String hash;
+                try {
+                    hash = resp.getString("hash");
+                } catch (Exception ex) {
+                    toast(ex.getMessage());
+                    return;
+                }
+                toast("上传成功! 正在跳转到浏览器查看效果");
+                String redirect = domain + "/" + hash;
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
+                startActivity(intent);
+            }
 
-			@Override
-			public void onFailure(Exception ex) {
-				toast("错误: " + ex.getMessage());
-			}
-		});
+            @Override
+            public void onFailure(Exception ex) {
+                toast("错误: " + ex.getMessage());
+            }
+        });
 	}
 
-	private RputExtra getPutExtra(Uri uri) {
-		final long fsize = Utils.getSizeFromUri(this, uri);
-
+	private RputExtra getPutExtra() {
 		RputExtra extra = new RputExtra(bucketName);
 		extra.mimeType = "image/png";
 		extra.notify = new RputNotify() {
-			long uploaded = 0;
-			@Override
-			public synchronized void onNotify(int blkIdx, int blkSize, BlkputRet ret) {
-				uploaded += blkSize;
-				int progress = (int) (uploaded * 100 / fsize);
-				progressBar.setProgress(progress);
-			}
+            @Override
+            public synchronized void onProcess(long uploaded, long total) {
+                progressBar.setProgress((int) (uploaded * 100 / total));
+            }
 		};
 		return extra;
 	}

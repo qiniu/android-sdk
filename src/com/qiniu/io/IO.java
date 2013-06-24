@@ -2,14 +2,19 @@ package com.qiniu.io;
 
 import android.content.Context;
 import android.net.Uri;
-
 import com.qiniu.auth.Client;
 import com.qiniu.auth.JSONObjectRet;
 import com.qiniu.conf.Conf;
-import com.qiniu.utils.MultipartFormData;
-import com.qiniu.utils.Utils;
+import com.qiniu.utils.InputStreamAt;
+import com.qiniu.utils.MultipartEntity;
+import org.json.JSONObject;
+
+import java.io.FileNotFoundException;
+import java.util.Map;
 
 public class IO {
+
+    public static String UNDEFINED_KEY = "?";
 	
 	private static Client mClient;
 
@@ -27,69 +32,82 @@ public class IO {
 	/**
 	 * 上传二进制
 	 * 
-	 * @param uptoken
-	 *            用于上传的验证信息
-	 * @param key
-	 *            键值名
-	 * @param binary
-	 *            二进制数据
-	 * @param extra
-	 *            上传参数
-	 * @param ret
-	 *            回调函数
+	 * @param uptoken 用于上传的验证信息
+	 * @param key     键值名, UNDEFINED_KEY 表示自动生成key
+	 * @param isa     二进制数据
+	 * @param extra   上传参数
+	 * @param ret     回调函数
 	 */
-	public static void put(String uptoken, String key,
-			byte[] binary, PutExtra extra, JSONObjectRet ret) {
-		String entryURI = extra.bucket + ":" + key;
-		String url = Conf.UP_HOST + "/upload";
+	public static void put(String uptoken, String key, InputStreamAt isa, PutExtra extra, JSONObjectRet ret) {
 
-		MultipartFormData m = new MultipartFormData(binary.length + 1000);
-		m.addField("auth", uptoken);
+        MultipartEntity m = new MultipartEntity();
+        if (key == null) {
+            key = UNDEFINED_KEY;
+        }
+        if ( ! key.equals(UNDEFINED_KEY)) {
+            m.addField("key", key);
+        }
 
-		StringBuffer action = new StringBuffer("/rs-put/"
-				+ Utils.encodeUri(entryURI));
-		if (Utils.isStringValid(extra.mimeType)) {
-			action.append("/mimeType/" + Utils.encodeUri(extra.mimeType));
-		}
+        if ( ! isStringValid(uptoken)) {
+            ret.onFailure(new Exception("uptoken未提供"));
+            return;
+        }
 
-		if (Utils.isStringValid(extra.customMeta)) {
-			action.append("/meta/" + Utils.encodeUri(extra.customMeta));
-		}
-		m.addField("action", action.toString());
+        if (extra.checkCrc == PutExtra.AUTO_CRC32) {
+            extra.crc32 = isa.crc32();
+        }
+        if (extra.checkCrc != PutExtra.UNUSE_CRC32) {
+            m.addField("crc32", extra.crc32 + "");
+        }
 
-		m.addFile("file", key, binary);
+        for (Map.Entry<String, String> i: extra.params.entrySet()) {
+            if ( ! i.getKey().startsWith("x:")) continue;
+            m.addField(i.getKey(), i.getValue());
+        }
 
-		if (Utils.isStringValid(extra.callbackParams)) {
-			m.addField("params", extra.callbackParams);
-		}
+		m.addField("token", uptoken);
+		m.addFile("file", extra.mimeType, key, isa);
 
-		defaultClient().call(url, m.getContentType(), m.getEntity(), ret);
+
+		defaultClient().call(Conf.UP_HOST, m, ret);
 	}
 
 	/**
 	 * 通过提供URI来上传指定的文件
 	 * 
 	 * @param mContext
-	 * @param uptoken
-	 *            用于上传的验证信息
+	 * @param uptoken 用于上传的验证信息
 	 * @param key
-	 * @param uri
-	 *            通过图库或其他拿到的URI
-	 * @param extra
-	 *            上传参数
-	 * @param ret
-	 *            结果回调函数
+	 * @param uri 通过图库或其他拿到的URI
+	 * @param extra 上传参数
+	 * @param ret 结果回调函数
 	 */
-	public static void putFile(Context mContext, String uptoken,
-			String key, Uri uri, PutExtra extra, JSONObjectRet ret) {
+	public static void putFile(Context mContext, String uptoken, String key, Uri uri, PutExtra extra, final JSONObjectRet ret) {
 
-		byte[] binaryData = Utils.readBinaryFromUri(mContext, uri);
-		if (binaryData == null) {
-			ret.onFailure(new Exception("URI有误, 无法读取指定数据"));
-			return;
-		}
+        final InputStreamAt isa;
+        try {
+            isa = new InputStreamAt(mContext, mContext.getContentResolver().openInputStream(uri));
+        } catch (FileNotFoundException e) {
+            ret.onFailure(e);
+            return;
+        }
 
-		put(uptoken, key, binaryData, extra, ret);
+		put(uptoken, key, isa, extra, new JSONObjectRet() {
+            @Override
+            public void onSuccess(JSONObject obj) {
+                isa.close();
+                ret.onSuccess(obj);
+            }
+
+            @Override
+            public void onFailure(Exception ex) {
+                isa.close();
+                ret.onFailure(ex);
+            }
+        });
 	}
 
+    public static boolean isStringValid(String str) {
+        return str != null && str.length() != 0;
+    }
 }

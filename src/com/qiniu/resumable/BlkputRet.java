@@ -8,7 +8,7 @@ public class BlkputRet {
 		try {
 			String ctx = ret.getString("ctx");
 			String checksum = ret.getString("checksum");
-			int crc32 = ret.getInt("crc32");
+			long crc32 = ret.getLong("crc32");
 			int offset = ret.getInt("offset");
 			String host = ret.getString("host");
 			return new BlkputRet(ctx, checksum, crc32, offset, host);
@@ -19,15 +19,19 @@ public class BlkputRet {
 
 	public String ctx;
 	public String checksum;
-	public int crc32;
+	public long crc32;
 	public int offset;
 	public String host;
 
-	public BlkputRet(String ctx, String checksum, int crc32, int offset, String host) {
+	public BlkputRet(String ctx, String checksum, long crc32, int offset, String host) {
 		this.ctx = ctx;
 		this.checksum = checksum;
 		this.crc32 = crc32;
 		this.offset = offset;
 		this.host = host;
 	}
+
+    public boolean checkCrc32(long crc32) {
+        return crc32 == this.crc32;
+    }
 }
