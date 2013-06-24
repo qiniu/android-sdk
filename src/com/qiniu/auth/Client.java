@@ -1,6 +1,7 @@
 package com.qiniu.auth;
 
 import android.os.AsyncTask;
+import com.qiniu.conf.Conf;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -30,6 +31,10 @@ public class Client {
 		execute(httppost, ret);
 	}
 
+    public void call(String url, HttpEntity entity, CallRet ret) {
+        call(url, entity.getContentType().getValue(), entity, ret);
+    }
+
 	public void call(String url, String contentType, HttpEntity entity, CallRet ret) {
 		HttpPost httppost = new HttpPost(url);
 		httppost.setEntity(entity);
@@ -45,6 +50,7 @@ public class Client {
 	}
 
 	protected HttpResponse roundtrip(HttpPost httpPost) throws IOException {
+        httpPost.setHeader("User-Agent", Conf.USER_AGENT);
 		return mClient.execute(httpPost);
 	}
 
@@ -57,13 +63,13 @@ public class Client {
 			httpPost = (HttpPost) objects[0];
 			ret = (CallRet) objects[1];
 			String errMsg = "";
-			HttpResponse resp = null;
-			byte[] data = new byte[]{};
 
+            HttpResponse resp;
 			try {
 				resp = roundtrip(httpPost);
 			} catch (IOException e) {
-				e.printStackTrace();
+                e.printStackTrace();
+                return e;
 			}
 
 			if (resp.getHeaders("X-Log").length > 0) {
@@ -76,6 +82,7 @@ public class Client {
 				return new Exception(errMsg);
 			}
 
+            byte[] data = new byte[0];
 			try {
 				data = EntityUtils.toByteArray(resp.getEntity());
 			} catch (IOException e) {
@@ -91,7 +98,6 @@ public class Client {
 				ret.onFailure((Exception) o);
 				return;
 			}
-
 			ret.onSuccess((byte[]) o);
 		}
 	};
@@ -99,7 +105,6 @@ public class Client {
 	public static Client defaultClient() {
 		return new Client(getMultithreadClient());
 	}
-
 
 	public static HttpClient getMultithreadClient() {
 		HttpParams params = new BasicHttpParams();
