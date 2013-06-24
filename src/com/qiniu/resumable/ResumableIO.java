@@ -2,42 +2,40 @@ package com.qiniu.resumable;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Base64;
 import com.qiniu.auth.CallRet;
 import com.qiniu.auth.Client;
 import com.qiniu.auth.JSONObjectRet;
 import com.qiniu.auth.UpClient;
 import com.qiniu.conf.Conf;
-import com.qiniu.utils.ThreadSafeInputStream;
-import com.qiniu.utils.Utils;
+import com.qiniu.utils.InputStreamAt;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.json.JSONObject;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.zip.CRC32;
 
 /**
- * =====================================================
+ * ======================================================
  * 上传函数调用流程图
- * =====================================================
- *       put                                    mkfile
- *        |                                        ^
- *        |                                        |
- *        V     上传剩余chunk                       |
- * resumableMkBlock -->  resumablePutBlock -->     |
- *        |          ^      | ^      | ^     | 完成 |
- *        |          |      V |      V |     |----->
- *        |          |   mkblock  putblock   |     |
- *        V          <-----------------------V 完成 |
- * resumableMkBlock --> ... ----------------------->
- *
+ * ======================================================
+ *     put
+ *      |
+ *      V                               -------
+ * uploadBlock -> mkblock -> putblock ->| ctx |
+ *      |                               |     |
+ *      |                               |     |-> mkfile
+ *      V                               |     |
+ * uploadBlock -> mkblock -> putblock ->| ctx |
+ *                                      -------
  * (每4M一个block, 并发进行)
- * =====================================================
+ * ======================================================
  */
 public class ResumableIO {
+    public static String UNDEFINDED_KEY = "?";
 	private static UpClient mClient;
+
 	private static Exception errInvalidPutProgress = new Exception("invalid put progress");
 	private static Exception errPutFailed = new Exception("resumable put failed");
 
@@ -64,22 +62,62 @@ public class ResumableIO {
 	 * @param uptoken
 	 * @param key
 	 * @param is 二进制流
-	 * @param fsize 二进制流长度
 	 * @param extra 附加参数
 	 * @param ret 回调函数
 	 */
-	public static void put(Context m, String uptoken, final String key, InputStream is,
-			final long fsize, final RputExtra extra, final JSONObjectRet ret) {
+	public static void put(String uptoken, String key, final InputStreamAt is, final RputExtra extra, final JSONObjectRet ret) {
+        if (key == null) { key = UNDEFINDED_KEY; }
+        final String RKey = key;
 
-		int blockCnt = blockCount(fsize);
+		int blockCnt = blockCount(is.length());
+        if (extra.notify != null) {
+            extra.notify.setTotal(is.length());
+        }
 		if (extra.progresses == null) {
 			extra.progresses = new BlkputRet[blockCnt];
-		} else if (extra.progresses.length != blockCnt) {
+		}
+        if (extra.progresses.length != blockCnt) {
 			ret.onFailure(errInvalidPutProgress);
 			return;
 		}
+        initPutExtra(extra);
 
-		if (extra.chunkSize == 0) {
+		final Client c = getClient(uptoken);
+		final QueueTask tq = new QueueTask(blockCnt);
+
+		for (int i=0; i<blockCnt; i++) {
+			final int index = i;
+			uploadBlock(c, is, index, extra, new CallRet() {
+                int tryTime = extra.tryTimes;
+
+                @Override
+                public void onSuccess(byte[] obj) {
+                    if (!tq.addFinishAndCheckIsFinishAll()) return;
+                    mkfile(c, RKey, is.length(), extra, ret);
+                }
+
+                @Override
+                public void onFailure(Exception ex) {
+                    if (ex.getMessage().endsWith("401")) {
+                        // unauthorized
+                        tryTime = 0;
+                    }
+
+                    if (tryTime > 0) {
+                        tryTime--;
+                        uploadBlock(c, is, index, extra, this);
+                        return;
+                    }
+
+                    tq.setFailure();
+                    ret.onFailure(ex);
+                }
+            });
+		}
+	}
+
+    private static void initPutExtra(RputExtra extra) {
+        if (extra.chunkSize == 0) {
 			extra.chunkSize = chunkSize;
 		}
 		if (extra.tryTimes == 0) {
@@ -88,65 +126,31 @@ public class ResumableIO {
 		if (extra.notify == null) {
 			extra.notify = notify;
 		}
+    }
 
-		final Client c = getClient(uptoken);
-		final QueueTask tq = new QueueTask(blockCnt);
-		final ThreadSafeInputStream stream = new ThreadSafeInputStream(m, is, BLOCK_SIZE);
+    public static void putFile(
+            Context mContext, String uptoken, String key, Uri localfile, RputExtra extra, final JSONObjectRet ret) {
 
-		for (int i=0; i<blockCnt; i++) {
-			final int readLength;
-			if ((i+1)* BLOCK_SIZE > fsize) {
-				readLength = (int) fsize - i* BLOCK_SIZE;
-			} else {
-				readLength = BLOCK_SIZE;
-			}
-
-			final int index = i;
-			resumableMkBlock(c, stream, index, readLength, extra, new CallRet() {
-				int tryTime = extra.tryTimes;
-
-				@Override
-				public void onSuccess(byte[] obj) {
-					if (tq.isFailure()) return;
-					if ( ! tq.addFinishAndCheckIsFinishAll()) return;
-					stream.close();
-					mkfile(c, key, fsize, extra, ret);
-				}
-
-				@Override
-				public void onFailure(Exception ex) {
-					if (ex.getMessage().endsWith("401")) {
-						// unauthorized
-						tryTime = 0;
-					}
-
-					if (tryTime > 0) {
-						tryTime--;
-						resumableMkBlock(c, stream, index, readLength, extra, this);
-						return;
-					}
-
-					tq.setFailure();
-					stream.close();
-					ret.onFailure(ex);
-				}
-			});
-		}
-
-	}
-
-	public static void putFile(Context mContext,
-							   String uptoken, String key, Uri localfile, RputExtra extra, JSONObjectRet ret) {
-
+        final InputStreamAt isa;
 		try {
-			long size = Utils.getSizeFromUri(mContext, localfile);
-			InputStream is = mContext.getContentResolver().openInputStream(localfile);
-			put(mContext, uptoken, key, is, size, extra, ret);
-		} catch (FileNotFoundException e) {
+			isa = new InputStreamAt(mContext, mContext.getContentResolver().openInputStream(localfile));
+		} catch (Exception e) {
 			ret.onFailure(e);
-		} catch (IOException e) {
-			ret.onFailure(e);
-		}
+            return;
+        }
+        put(uptoken, key, isa, extra, new JSONObjectRet() {
+            @Override
+            public void onSuccess(JSONObject obj) {
+                ret.onSuccess(obj);
+                isa.close();
+            }
+
+            @Override
+            public void onFailure(Exception ex) {
+                ret.onFailure(ex);
+                isa.close();
+            }
+        });
 	}
 
 	public static void setSettings(int perChunkSize, int maxTryTime) {
@@ -156,71 +160,55 @@ public class ResumableIO {
 
 	// ---------------------------------------------------
 
-	private static void resumableMkBlock(final Client client, final ThreadSafeInputStream is,
-			final int index, final int size, final RputExtra extra, final CallRet ret) {
+	private static void uploadBlock(
+       final Client client, final InputStreamAt is, final int index, final RputExtra extra, final CallRet ret) {
 
-		if (extra.progresses[index] != null) {
-			resumablePutBlock(client, is, index, size, extra, ret);
-			return;
-		}
+        int realBlockSize = min((int)is.length()-index*BLOCK_SIZE, BLOCK_SIZE);
+        int offset = 0;
+        if (extra.progresses[index] != null) {
+            offset = extra.progresses[index].offset;
+        }
 
-		int chunkSize = extra.chunkSize;
-		if (chunkSize > size) {
-			chunkSize = size;
-		}
-		byte[] firstChunk = is.read(index* BLOCK_SIZE, chunkSize);
-		if (firstChunk == null) {
+        final int chunkSize = min(extra.chunkSize, realBlockSize-offset);
+        if (chunkSize <= 0) {
+            ret.onSuccess(null);
+            return;
+        }
+
+		byte[] chunk = is.read(index*BLOCK_SIZE+offset, chunkSize);
+        CRC32 crc32 = new CRC32();
+        crc32.update(chunk);
+        final long crc = crc32.getValue();
+		if (chunk == null) {
 			ret.onFailure(errPutFailed);
 			return;
 		}
-		final int firstChunkSize = firstChunk.length;
-		mkblock(client, size, firstChunk, new JSONObjectRet() {
 
-			@Override
-			public void onSuccess(JSONObject obj) {
-				extra.progresses[index] = BlkputRet.parse(obj);
-				extra.notify.onNotify(index, firstChunkSize, extra.progresses[index]);
-				resumablePutBlock(client, is, index, size, extra, ret);
-			}
+        JSONObjectRet callback = new JSONObjectRet() {
+		    @Override
+		    public void onSuccess(JSONObject obj) {
+		    	extra.progresses[index] = BlkputRet.parse(obj);
+                if ( ! extra.progresses[index].checkCrc32(crc)) {
+                    onFailure(new Exception("crc32 not matched"));
+                    return;
+                }
+		    	extra.notify.onNotify(index, chunkSize, extra.progresses[index]);
+		    	uploadBlock(client, is, index, extra, ret);
+		    }
 
-			@Override
-			public void onFailure(Exception ex) {
-				ret.onFailure(ex);
-			}
-		});
-	}
+		    @Override
+		    public void onFailure(Exception ex) {
+                extra.notify.onError(index, chunkSize, ex);
+		    	ret.onFailure(ex);
+		    }
+		};
 
-	private static void resumablePutBlock(final Client client, final ThreadSafeInputStream is,
-										  final int index, final int size, final RputExtra extra,
-										  final CallRet ret) {
-
-		if (extra.progresses[index].offset >= size) {
-			ret.onSuccess(null);
-			return;
-		}
-
-		int offset = index * BLOCK_SIZE + extra.progresses[index].offset;
-		int chunkSize = extra.chunkSize;
-		if (chunkSize > index* BLOCK_SIZE +size-offset) {
-			chunkSize = index* BLOCK_SIZE +size-offset;
-		}
-		byte[] chunk = is.read(offset, chunkSize);
-		final int chunkLength = chunk.length;
-		putblock(client, extra.progresses[index], chunk, new JSONObjectRet() {
-			@Override
-			public void onSuccess(JSONObject obj) {
-				extra.progresses[index] = BlkputRet.parse(obj);
-				extra.notify.onNotify(index, chunkLength, extra.progresses[index]);
-				resumablePutBlock(client, is, index, size, extra, ret);
-			}
-
-			@Override
-			public void onFailure(Exception ex) {
-				ret.onFailure(ex);
-				extra.notify.onError(index, size, ex);
-			}
-		});
-	}
+        if (offset == 0) {
+		    mkblock(client, realBlockSize, chunk, callback);
+        } else {
+            putblock(client, extra.progresses[index], chunk, callback);
+        }
+    }
 
 	private static int blockCount(long fsize) {
 		return (int) (fsize / BLOCK_SIZE) + 1;
@@ -237,17 +225,17 @@ public class ResumableIO {
 	}
 
 	public static void mkfile(Client client, String key, long fsize, RputExtra extra, JSONObjectRet ret) {
-		String entry = Utils.encodeUri(extra.bucket + ":" + key);
+		String entry = encodeUri(extra.bucket + ":" + key);
 		String url = String.format("%s/rs-mkfile/%s/fsize/%d", Conf.UP_HOST, entry, fsize);
 
 		if (extra.mimeType != null) {
-			url += "/mimeType/" + Utils.encodeUri(extra.mimeType);
+			url += "/mimeType/" + encodeUri(extra.mimeType);
 		}
 		if (extra.customMeta != null) {
-			url += "/meta/" + Utils.encodeUri(extra.customMeta);
+			url += "/meta/" + encodeUri(extra.customMeta);
 		}
 		if (extra.callbackParams != null) {
-			url += "/params/" + Utils.encodeUri(extra.callbackParams);
+			url += "/params/" + encodeUri(extra.callbackParams);
 		}
 
 		StringBuffer ctxes = new StringBuffer();
@@ -267,5 +255,15 @@ public class ResumableIO {
 			ret.onFailure(e);
 		}
 
+	}
+
+    public static int min(int a, int b) {
+        if (a > b) return b;
+        return a;
+    }
+
+
+    public static String encodeUri(String uri) {
+        return new String(Base64.encode(uri.getBytes(), Base64.URL_SAFE)).trim();
 	}
 }

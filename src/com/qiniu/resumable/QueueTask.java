@@ -18,6 +18,7 @@ public class QueueTask {
 	}
 
 	public synchronized boolean addFinishAndCheckIsFinishAll() {
+        if (isFailure()) return false;
 		addFinish();
 		return isFinishAll();
 	}
