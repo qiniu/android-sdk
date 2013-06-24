@@ -33,7 +33,7 @@ import java.util.zip.CRC32;
  * ======================================================
  */
 public class ResumableIO {
-    public static String UNDEFINDED_KEY = "?";
+	public static String UNDEFINDED_KEY = "?";
 	private static UpClient mClient;
 
 	private static Exception errInvalidPutProgress = new Exception("invalid put progress");
@@ -66,21 +66,21 @@ public class ResumableIO {
 	 * @param ret 回调函数
 	 */
 	public static void put(String uptoken, String key, final InputStreamAt is, final RputExtra extra, final JSONObjectRet ret) {
-        if (key == null) { key = UNDEFINDED_KEY; }
-        final String RKey = key;
+		if (key == null) { key = UNDEFINDED_KEY; }
+		final String RKey = key;
 
 		int blockCnt = blockCount(is.length());
-        if (extra.notify != null) {
-            extra.notify.setTotal(is.length());
-        }
+		if (extra.notify != null) {
+			extra.notify.setTotal(is.length());
+		}
 		if (extra.progresses == null) {
 			extra.progresses = new BlkputRet[blockCnt];
 		}
-        if (extra.progresses.length != blockCnt) {
+		if (extra.progresses.length != blockCnt) {
 			ret.onFailure(errInvalidPutProgress);
 			return;
 		}
-        initPutExtra(extra);
+		initPutExtra(extra);
 
 		final Client c = getClient(uptoken);
 		final QueueTask tq = new QueueTask(blockCnt);
@@ -88,36 +88,36 @@ public class ResumableIO {
 		for (int i=0; i<blockCnt; i++) {
 			final int index = i;
 			uploadBlock(c, is, index, extra, new CallRet() {
-                int tryTime = extra.tryTimes;
-
-                @Override
-                public void onSuccess(byte[] obj) {
-                    if (!tq.addFinishAndCheckIsFinishAll()) return;
-                    mkfile(c, RKey, is.length(), extra, ret);
-                }
-
-                @Override
-                public void onFailure(Exception ex) {
-                    if (ex.getMessage().endsWith("401")) {
-                        // unauthorized
-                        tryTime = 0;
-                    }
-
-                    if (tryTime > 0) {
-                        tryTime--;
-                        uploadBlock(c, is, index, extra, this);
-                        return;
-                    }
-
-                    tq.setFailure();
-                    ret.onFailure(ex);
-                }
-            });
+				int tryTime = extra.tryTimes;
+				
+				@Override
+				public void onSuccess(byte[] obj) {
+					if (!tq.addFinishAndCheckIsFinishAll()) return;
+					mkfile(c, RKey, is.length(), extra, ret);
+				}
+				
+				@Override
+				public void onFailure(Exception ex) {
+					if (ex.getMessage().endsWith("401")) {
+						// unauthorized
+						tryTime = 0;
+					}
+					
+					if (tryTime > 0) {
+						tryTime--;
+						uploadBlock(c, is, index, extra, this);
+						return;
+					}
+					
+					tq.setFailure();
+					ret.onFailure(ex);
+				}
+			});
 		}
 	}
 
-    private static void initPutExtra(RputExtra extra) {
-        if (extra.chunkSize == 0) {
+	private static void initPutExtra(RputExtra extra) {
+		if (extra.chunkSize == 0) {
 			extra.chunkSize = chunkSize;
 		}
 		if (extra.tryTimes == 0) {
@@ -126,90 +126,90 @@ public class ResumableIO {
 		if (extra.notify == null) {
 			extra.notify = notify;
 		}
-    }
+	}
 
-    public static void putFile(
-            Context mContext, String uptoken, String key, Uri localfile, RputExtra extra, final JSONObjectRet ret) {
+	public static void putFile(
+		Context mContext, String uptoken, String key, Uri localfile, RputExtra extra, final JSONObjectRet ret) {
 
-        final InputStreamAt isa;
+		final InputStreamAt isa;
 		try {
 			isa = new InputStreamAt(mContext, mContext.getContentResolver().openInputStream(localfile));
 		} catch (Exception e) {
 			ret.onFailure(e);
-            return;
-        }
-        put(uptoken, key, isa, extra, new JSONObjectRet() {
-            @Override
-            public void onSuccess(JSONObject obj) {
-                ret.onSuccess(obj);
-                isa.close();
-            }
-
-            @Override
-            public void onFailure(Exception ex) {
-                ret.onFailure(ex);
-                isa.close();
-            }
-        });
+			return;
+		}
+		put(uptoken, key, isa, extra, new JSONObjectRet() {
+			@Override
+			public void onSuccess(JSONObject obj) {
+				ret.onSuccess(obj);
+				isa.close();
+			}
+			
+			@Override
+			public void onFailure(Exception ex) {
+				ret.onFailure(ex);
+				isa.close();
+			}
+		});
 	}
 
 	public static void setSettings(int perChunkSize, int maxTryTime, RputNotify notify) {
 		chunkSize = perChunkSize;
 		tryTimes = maxTryTime;
-        ResumableIO.notify = notify;
+		ResumableIO.notify = notify;
 	}
 
-	// ---------------------------------------------------
+// ---------------------------------------------------
 
 	private static void uploadBlock(
-       final Client client, final InputStreamAt is, final int index, final RputExtra extra, final CallRet ret) {
+		final Client client, final InputStreamAt is, final int index, final RputExtra extra, final CallRet ret) {
 
-        int realBlockSize = min((int)is.length()-index*BLOCK_SIZE, BLOCK_SIZE);
-        int offset = 0;
-        if (extra.progresses[index] != null) {
-            offset = extra.progresses[index].offset;
-        }
-
-        final int chunkSize = min(extra.chunkSize, realBlockSize-offset);
-        if (chunkSize <= 0) {
-            ret.onSuccess(null);
-            return;
-        }
+		int realBlockSize = min((int)is.length()-index*BLOCK_SIZE, BLOCK_SIZE);
+		int offset = 0;
+		if (extra.progresses[index] != null) {
+			offset = extra.progresses[index].offset;
+		}
+		
+		final int chunkSize = min(extra.chunkSize, realBlockSize-offset);
+		if (chunkSize <= 0) {
+			ret.onSuccess(null);
+			return;
+		}
 
 		byte[] chunk = is.read(index*BLOCK_SIZE+offset, chunkSize);
-        CRC32 crc32 = new CRC32();
-        crc32.update(chunk);
-        final long crc = crc32.getValue();
+		CRC32 crc32 = new CRC32();
+		crc32.update(chunk);
+		final long crc = crc32.getValue();
 		if (chunk == null) {
 			ret.onFailure(errPutFailed);
 			return;
 		}
 
-        JSONObjectRet callback = new JSONObjectRet() {
-		    @Override
-		    public void onSuccess(JSONObject obj) {
-		    	extra.progresses[index] = BlkputRet.parse(obj);
-                if ( ! extra.progresses[index].checkCrc32(crc)) {
-                    onFailure(new Exception("crc32 not matched"));
-                    return;
-                }
-		    	extra.notify.onNotify(index, chunkSize, extra.progresses[index]);
-		    	uploadBlock(client, is, index, extra, ret);
-		    }
+		JSONObjectRet callback = new JSONObjectRet() {
+			@Override
+			public void onSuccess(JSONObject obj) {
+				extra.progresses[index] = BlkputRet.parse(obj);
+				if ( ! extra.progresses[index].checkCrc32(crc)) {
+					onFailure(new Exception("crc32 not matched"));
+					return;
+				}
+				extra.notify.onNotify(index, chunkSize, extra.progresses[index]);
+				uploadBlock(client, is, index, extra, ret);
+			}
 
-		    @Override
-		    public void onFailure(Exception ex) {
-                extra.notify.onError(index, chunkSize, ex);
-		    	ret.onFailure(ex);
-		    }
+			@Override
+			public void onFailure(Exception ex) {
+				extra.notify.onError(index, chunkSize, ex);
+				ret.onFailure(ex);
+			}
 		};
 
-        if (offset == 0) {
-		    mkblock(client, realBlockSize, chunk, callback);
-        } else {
-            putblock(client, extra.progresses[index], chunk, callback);
-        }
-    }
+		if (offset == 0) {
+			mkblock(client, realBlockSize, chunk, callback);
+		} else {
+			putblock(client, extra.progresses[index], chunk, callback);
+		}
+	}
 
 	private static int blockCount(long fsize) {
 		return (int) (fsize / BLOCK_SIZE) + 1;
@@ -227,9 +227,9 @@ public class ResumableIO {
 
 	public static void mkfile(Client client, String key, long fsize, RputExtra extra, JSONObjectRet ret) {
 		String entry = extra.bucket;
-        if (key != UNDEFINDED_KEY) {
-            entry += ":" + key;
-        }
+		if (key != UNDEFINDED_KEY) {
+			entry += ":" + key;
+		}
 		String url = String.format("%s/rs-mkfile/%s/fsize/%d", Conf.UP_HOST, encodeUri(entry), fsize);
 
 		if (extra.mimeType != null) {
@@ -258,15 +258,14 @@ public class ResumableIO {
 		} catch (UnsupportedEncodingException e) {
 			ret.onFailure(e);
 		}
-
 	}
 
-    public static int min(int a, int b) {
-        if (a > b) return b;
-        return a;
-    }
-
-    public static String encodeUri(String uri) {
-        return new String(Base64.encode(uri.getBytes(), Base64.URL_SAFE)).trim();
+	public static int min(int a, int b) {
+		if (a > b) return b;
+		return a;
+	}
+	
+	public static String encodeUri(String uri) {
+		return new String(Base64.encode(uri.getBytes(), Base64.URL_SAFE)).trim();
 	}
 }

@@ -50,7 +50,7 @@ public class Client {
 	}
 
 	protected HttpResponse roundtrip(HttpPost httpPost) throws IOException {
-        httpPost.setHeader("User-Agent", Conf.USER_AGENT);
+		httpPost.setHeader("User-Agent", Conf.USER_AGENT);
 		return mClient.execute(httpPost);
 	}
 
@@ -64,12 +64,12 @@ public class Client {
 			ret = (CallRet) objects[1];
 			String errMsg = "";
 
-            HttpResponse resp;
+			HttpResponse resp;
 			try {
 				resp = roundtrip(httpPost);
 			} catch (IOException e) {
-                e.printStackTrace();
-                return e;
+				e.printStackTrace();
+				return e;
 			}
 
 			if (resp.getHeaders("X-Log").length > 0) {

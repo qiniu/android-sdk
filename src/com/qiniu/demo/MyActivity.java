@@ -30,7 +30,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 
 	private Button btnResumableUpload;
 	private ProgressBar progressBar;
-    private TextView hint;
+	private TextView hint;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -38,13 +38,13 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		setContentView(R.layout.main);
 
 		initWidget();
-    }
+	}
 
 	/**
 	 * 初始化控件
 	 */
 	private void initWidget() {
-        hint = (TextView) findViewById(R.id.textView1);
+		hint = (TextView) findViewById(R.id.textView1);
 
 		btnResumableUpload = (Button) findViewById(R.id.button1);
 		btnResumableUpload.setOnClickListener(this);
@@ -60,40 +60,40 @@ public class MyActivity extends Activity implements View.OnClickListener{
 	 */
 	// @gist upload
 	private void doResumableUpload(Uri uri) {
-        RputExtra extra = getPutExtra();
+		RputExtra extra = getPutExtra();
 
-        progressBar.setProgress(0);
+		progressBar.setProgress(0);
 		ResumableIO.putFile(this, UP_TOKEN, null, uri, extra, new JSONObjectRet() {
-            @Override
-            public void onSuccess(JSONObject resp) {
-                String hash;
-                try {
-                    hash = resp.getString("hash");
-                } catch (Exception ex) {
-                    hint.setText(ex.getMessage());
-                    return;
-                }
-                String redirect = domain + "/" + hash;
-                hint.setText("上传成功! " + hash);
-                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
-                startActivity(intent);
-            }
-
-            @Override
-            public void onFailure(Exception ex) {
-                hint.setText("错误: " + ex.getMessage());
-            }
-        });
+			@Override
+			public void onSuccess(JSONObject resp) {
+				String hash;
+				try {
+					hash = resp.getString("hash");
+				} catch (Exception ex) {
+					hint.setText(ex.getMessage());
+					return;
+				}
+				String redirect = domain + "/" + hash;
+				hint.setText("上传成功! " + hash);
+				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
+				startActivity(intent);
+			}
+			
+			@Override
+			public void onFailure(Exception ex) {
+				hint.setText("错误: " + ex.getMessage());
+			}
+		});
 	}
 
 	private RputExtra getPutExtra() {
 		RputExtra extra = new RputExtra(bucketName);
 		extra.mimeType = "image/png";
 		extra.notify = new RputNotify() {
-            @Override
-            public synchronized void onProcess(long uploaded, long total) {
-                progressBar.setProgress((int) (uploaded * 100 / total));
-            }
+			@Override
+			public synchronized void onProcess(long uploaded, long total) {
+				progressBar.setProgress((int) (uploaded * 100 / total));
+			}
 		};
 		return extra;
 	}

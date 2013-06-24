@@ -7,11 +7,11 @@ import org.apache.http.client.methods.HttpPost;
 import java.io.IOException;
 
 public class UpClient extends Client {
-    private String mUpToken;
+	private String mUpToken;
 
-    public UpClient(HttpClient client) {
+	public UpClient(HttpClient client) {
 		super(client);
-    }
+	}
 
 	public void updateToken(String token) {
 		mUpToken = token;
@@ -19,9 +19,9 @@ public class UpClient extends Client {
 
 	@Override
 	protected HttpResponse roundtrip(HttpPost httpPost) throws IOException {
-        if (mUpToken != null) {
-		    httpPost.setHeader("Authorization", "UpToken " + mUpToken);
-        }
+		if (mUpToken != null) {
+			httpPost.setHeader("Authorization", "UpToken " + mUpToken);
+		}
 		return super.roundtrip(httpPost);
 	}
 

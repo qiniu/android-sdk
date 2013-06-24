@@ -8,9 +8,9 @@ import java.util.zip.CRC32;
 
 public class InputStreamAt implements Closeable{
 	private RandomAccessFile mFileStream;
-    private CRC32 crc32 = new CRC32();
+	private CRC32 crc32 = new CRC32();
 	private File tmpFile;
-    private long length;
+	private long length;
 	private boolean closed;
 
 	/**
@@ -21,27 +21,27 @@ public class InputStreamAt implements Closeable{
 		saveFile(storeToFile(context, is));
 	}
 
-    public InputStreamAt(File file) {
-        saveFile(file);
-    }
+	public InputStreamAt(File file) {
+		saveFile(file);
+	}
 
-    public long crc32() {
-        return crc32.getValue();
-    }
+	public long crc32() {
+		return crc32.getValue();
+	}
 
-    public void saveFile(File file) {
-        tmpFile = file;
-        try {
-            length = tmpFile.length();
-            mFileStream = new RandomAccessFile(tmpFile, "r");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
+	public void saveFile(File file) {
+		tmpFile = file;
+		try {
+			length = tmpFile.length();
+			mFileStream = new RandomAccessFile(tmpFile, "r");
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
 
-    public long length() {
-        return length;
-    }
+	public long length() {
+		return length;
+	}
 
 	protected File storeToFile(Context context, InputStream is) {
 		File outputDir = context.getCacheDir(); // context being the Activity pointer
@@ -52,12 +52,12 @@ public class InputStreamAt implements Closeable{
 			byte[] buffer = new byte[4096];
 			int bytesRead;
 			while ((bytesRead = is.read(buffer)) != -1) {
-                crc32.update(buffer, 0, bytesRead);
+				crc32.update(buffer, 0, bytesRead);
 				os.write(buffer, 0, bytesRead);
 			}
 			is.close();
 			os.close();
-            return e;
+			return e;
 		} catch (IOException e) {
 			e.printStackTrace();
 			return null;

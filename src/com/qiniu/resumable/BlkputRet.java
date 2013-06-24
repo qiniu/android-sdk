@@ -31,7 +31,7 @@ public class BlkputRet {
 		this.host = host;
 	}
 
-    public boolean checkCrc32(long crc32) {
-        return crc32 == this.crc32;
-    }
+	public boolean checkCrc32(long crc32) {
+		return crc32 == this.crc32;
+	}
 }
