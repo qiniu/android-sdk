@@ -50,10 +50,10 @@ public class ResumableIO {
 
 	private static UpClient getClient(String token) {
 		if (mClient == null) {
-			mClient = UpClient.defaultClient(token);
-		} else {
-			mClient.updateToken(token);
+			mClient = UpClient.defaultClient();
 		}
+
+		mClient.updateToken(token);
 		return mClient;
 	}
 
@@ -153,9 +153,10 @@ public class ResumableIO {
         });
 	}
 
-	public static void setSettings(int perChunkSize, int maxTryTime) {
+	public static void setSettings(int perChunkSize, int maxTryTime, RputNotify notify) {
 		chunkSize = perChunkSize;
 		tryTimes = maxTryTime;
+        ResumableIO.notify = notify;
 	}
 
 	// ---------------------------------------------------
@@ -225,8 +226,11 @@ public class ResumableIO {
 	}
 
 	public static void mkfile(Client client, String key, long fsize, RputExtra extra, JSONObjectRet ret) {
-		String entry = encodeUri(extra.bucket + ":" + key);
-		String url = String.format("%s/rs-mkfile/%s/fsize/%d", Conf.UP_HOST, entry, fsize);
+		String entry = extra.bucket;
+        if (key != UNDEFINDED_KEY) {
+            entry += ":" + key;
+        }
+		String url = String.format("%s/rs-mkfile/%s/fsize/%d", Conf.UP_HOST, encodeUri(entry), fsize);
 
 		if (extra.mimeType != null) {
 			url += "/mimeType/" + encodeUri(extra.mimeType);
@@ -261,7 +265,6 @@ public class ResumableIO {
         if (a > b) return b;
         return a;
     }
-
 
     public static String encodeUri(String uri) {
         return new String(Base64.encode(uri.getBytes(), Base64.URL_SAFE)).trim();

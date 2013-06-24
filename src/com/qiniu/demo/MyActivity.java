@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.qiniu.R;
 import com.qiniu.auth.JSONObjectRet;
@@ -24,11 +25,12 @@ public class MyActivity extends Activity implements View.OnClickListener{
 	public static String domain = "http://api-demo.qiniudn.com";
 	public static String bucketName = "demo";
 	// upToken 这里需要自行获取. SDK 将不实现获取过程.
-	public static final String UP_TOKEN = "tGf47MBl1LyT9uaNv-NZV4XZe7sKxOIa9RE2Lp8B:m15Ai4JIqdOpvLWiZp_emRGN-9s=:eyJzY29wZSI6ImRlbW8iLCJkZWFkbGluZSI6MTM3MjQxMjEzOX0=";
+	public static final String UP_TOKEN = "";
 	// @endgist
 
 	private Button btnResumableUpload;
 	private ProgressBar progressBar;
+    private TextView hint;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -42,6 +44,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 	 * 初始化控件
 	 */
 	private void initWidget() {
+        hint = (TextView) findViewById(R.id.textView1);
 
 		btnResumableUpload = (Button) findViewById(R.id.button1);
 		btnResumableUpload.setOnClickListener(this);
@@ -59,6 +62,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 	private void doResumableUpload(Uri uri) {
         RputExtra extra = getPutExtra();
 
+        progressBar.setProgress(0);
 		ResumableIO.putFile(this, UP_TOKEN, null, uri, extra, new JSONObjectRet() {
             @Override
             public void onSuccess(JSONObject resp) {
@@ -66,18 +70,18 @@ public class MyActivity extends Activity implements View.OnClickListener{
                 try {
                     hash = resp.getString("hash");
                 } catch (Exception ex) {
-                    toast(ex.getMessage());
+                    hint.setText(ex.getMessage());
                     return;
                 }
-                toast("上传成功! 正在跳转到浏览器查看效果");
                 String redirect = domain + "/" + hash;
+                hint.setText("上传成功! " + hash);
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
                 startActivity(intent);
             }
 
             @Override
             public void onFailure(Exception ex) {
-                toast("错误: " + ex.getMessage());
+                hint.setText("错误: " + ex.getMessage());
             }
         });
 	}
@@ -112,9 +116,5 @@ public class MyActivity extends Activity implements View.OnClickListener{
 			doResumableUpload(data.getData());
 			return;
 		}
-	}
-
-	private void toast(String str) {
-		Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
 	}
 }
