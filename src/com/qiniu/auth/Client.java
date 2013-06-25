@@ -31,9 +31,9 @@ public class Client {
 		execute(httppost, ret);
 	}
 
-    public void call(String url, HttpEntity entity, CallRet ret) {
-        call(url, entity.getContentType().getValue(), entity, ret);
-    }
+	public void call(String url, HttpEntity entity, CallRet ret) {
+		call(url, entity.getContentType().getValue(), entity, ret);
+	}
 
 	public void call(String url, String contentType, HttpEntity entity, CallRet ret) {
 		HttpPost httppost = new HttpPost(url);
@@ -82,7 +82,7 @@ public class Client {
 				return new Exception(errMsg);
 			}
 
-            byte[] data = new byte[0];
+			byte[] data = new byte[0];
 			try {
 				data = EntityUtils.toByteArray(resp.getEntity());
 			} catch (IOException e) {
