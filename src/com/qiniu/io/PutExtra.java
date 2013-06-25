@@ -8,7 +8,6 @@ public class PutExtra {
 	public static int SPECIFY_CRC32 = 2;
 	
 	public HashMap<String, String> params = new HashMap<String, String>(); // key要以x:开头
-	public String key;            // 文件名
 	public String mimeType;
 	public long crc32;
 	public int checkCrc = UNUSE_CRC32;

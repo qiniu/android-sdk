@@ -8,9 +8,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 import com.qiniu.R;
 import com.qiniu.auth.JSONObjectRet;
+import com.qiniu.io.IO;
+import com.qiniu.io.PutExtra;
 import com.qiniu.resumable.ResumableIO;
 import com.qiniu.resumable.RputExtra;
 import com.qiniu.resumable.RputNotify;
@@ -20,10 +21,10 @@ public class MyActivity extends Activity implements View.OnClickListener{
 
 	public static final int PICK_PICTURE_RESUMABLE = 0;
 
-	// @gist upload
+	// @gist upload_arg
 	// 在七牛绑定的对应bucket的域名. 可以到这里绑定 https://dev.qiniutek.com/buckets
-	public static String domain = "http://api-demo.qiniudn.com";
-	public static String bucketName = "demo";
+	public static String domain = "";
+	public static String bucketName = "";
 	// upToken 这里需要自行获取. SDK 将不实现获取过程.
 	public static final String UP_TOKEN = "";
 	// @endgist
@@ -54,16 +55,28 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		progressBar.setProgress(0);
 	}
 
+	// @gist resumable_upload
+
+	private RputExtra getPutExtra() {
+		RputExtra extra = new RputExtra(bucketName);
+		extra.mimeType = "image/png";
+		extra.notify = new RputNotify() {
+			@Override
+			public synchronized void onProcess(long uploaded, long total) {
+				progressBar.setProgress((int) (uploaded * 100 / total));
+			}
+		};
+		return extra;
+	}
+
 	/**
 	 * 断点续上传
 	 * @param uri
 	 */
-	// @gist upload
 	private void doResumableUpload(Uri uri) {
+		String key = null; // 自动生成key
 		RputExtra extra = getPutExtra();
-
-		progressBar.setProgress(0);
-		ResumableIO.putFile(this, UP_TOKEN, null, uri, extra, new JSONObjectRet() {
+		ResumableIO.putFile(this, UP_TOKEN, key, uri, extra, new JSONObjectRet() {
 			@Override
 			public void onSuccess(JSONObject resp) {
 				String hash;
@@ -78,24 +91,47 @@ public class MyActivity extends Activity implements View.OnClickListener{
 				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
 				startActivity(intent);
 			}
-			
+
 			@Override
 			public void onFailure(Exception ex) {
 				hint.setText("错误: " + ex.getMessage());
 			}
 		});
 	}
+	// @endgist
 
-	private RputExtra getPutExtra() {
-		RputExtra extra = new RputExtra(bucketName);
-		extra.mimeType = "image/png";
-		extra.notify = new RputNotify() {
-			@Override
-			public synchronized void onProcess(long uploaded, long total) {
-				progressBar.setProgress((int) (uploaded * 100 / total));
-			}
-		};
-		return extra;
+	// @gist upload
+	/**
+	 * 普通上传文件
+	 * @param uri
+	 */
+	private void doUpload(Uri uri) {
+		String key = null; // 自动生成key
+		PutExtra extra = new PutExtra();
+		extra.params.put("x:arg", "value");
+		IO.putFile(this, UP_TOKEN, key, uri, extra, new JSONObjectRet() {
+            @Override
+            public void onSuccess(JSONObject resp) {
+                String hash;
+                String value;
+                try {
+                    hash = resp.getString("hash");
+                    value = resp.getString("x:arg");
+                } catch (Exception ex) {
+                    hint.setText(ex.getMessage());
+                    return;
+                }
+                String redirect = domain + "/" + hash;
+                hint.setText("上传成功! " + hash);
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
+                startActivity(intent);
+            }
+
+            @Override
+            public void onFailure(Exception ex) {
+                hint.setText("错误: " + ex.getMessage());
+            }
+        });
 	}
 	// @endgist
 
@@ -113,6 +149,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		if (resultCode != RESULT_OK) return;
 
 		if (requestCode == PICK_PICTURE_RESUMABLE) {
+			progressBar.setProgress(0);
 			doResumableUpload(data.getData());
 			return;
 		}

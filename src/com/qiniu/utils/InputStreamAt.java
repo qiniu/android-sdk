@@ -8,6 +8,8 @@ import java.util.zip.CRC32;
 
 public class InputStreamAt implements Closeable{
 	private RandomAccessFile mFileStream;
+	private byte[] data;
+
 	private CRC32 crc32 = new CRC32();
 	private File tmpFile;
 	private long length;
@@ -23,6 +25,14 @@ public class InputStreamAt implements Closeable{
 
 	public InputStreamAt(File file) {
 		saveFile(file);
+	}
+
+	public InputStreamAt(byte[] data) {
+		this.data = data;
+	}
+
+	public InputStreamAt(String data) {
+		this.data = data.getBytes();
 	}
 
 	public long crc32() {
@@ -67,7 +77,14 @@ public class InputStreamAt implements Closeable{
 	public synchronized byte[] read(long offset, int length) {
 		if (closed) return null;
 		try {
-			return fileStreamRead(offset, length);
+			if (mFileStream != null) {
+				return fileStreamRead(offset, length);
+			}
+			if (data != null) {
+				byte[] ret = new byte[length];
+				System.arraycopy(data, (int) offset, ret, 0, length);
+				return ret;
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -76,6 +93,7 @@ public class InputStreamAt implements Closeable{
 	}
 
 	protected byte[] fileStreamRead(long offset, int length) throws IOException {
+		if (mFileStream == null) return null;
 		byte[] data = new byte[length];
 
 		mFileStream.seek(offset);
