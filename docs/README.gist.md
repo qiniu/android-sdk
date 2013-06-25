@@ -70,7 +70,15 @@
 
 在 Android 中选择文件一般是通过 uri 作为路径, 一般调用以下代码
 
-```java
+```{java}
+@gist(../src/com/qiniu/demo/MyActivity.java#upload_arg)
+
+@gist(../src/com/qiniu/demo/MyActivity.java#resumable_upload)
+```
+
+```{java}
+@gist(../src/com/qiniu/demo/MyActivity.java#upload_arg)
+
 @gist(../src/com/qiniu/demo/MyActivity.java#upload)
 ```
 
