@@ -71,9 +71,9 @@
 在 Android 中选择文件一般是通过 uri 作为路径, 一般调用以下代码
 
 ```{java}
-// 在七牛绑定的对应bucket的域名. 可以到这里绑定 https://dev.qiniutek.com/buckets
-public static String domain = "";
-public static String bucketName = "";
+// 在七牛绑定的对应bucket的域名. 默认是bucket.qiniudn.com
+   public static String bucketName = "";
+public static String domain = bucketName + ".qiniudn.com";
 // upToken 这里需要自行获取. SDK 将不实现获取过程.
 public static final String UP_TOKEN = "";
 
@@ -106,7 +106,7 @@ private void doResumableUpload(Uri uri) {
 				hint.setText(ex.getMessage());
 				return;
 			}
-			String redirect = domain + "/" + hash;
+			String redirect = "http://" + domain + "/" + hash;
 			hint.setText("上传成功! " + hash);
 			Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
 			startActivity(intent);
@@ -121,9 +121,9 @@ private void doResumableUpload(Uri uri) {
 ```
 
 ```{java}
-// 在七牛绑定的对应bucket的域名. 可以到这里绑定 https://dev.qiniutek.com/buckets
-public static String domain = "";
-public static String bucketName = "";
+// 在七牛绑定的对应bucket的域名. 默认是bucket.qiniudn.com
+   public static String bucketName = "";
+public static String domain = bucketName + ".qiniudn.com";
 // upToken 这里需要自行获取. SDK 将不实现获取过程.
 public static final String UP_TOKEN = "";
 
@@ -136,28 +136,28 @@ private void doUpload(Uri uri) {
 	PutExtra extra = new PutExtra();
 	extra.params.put("x:arg", "value");
 	IO.putFile(this, UP_TOKEN, key, uri, extra, new JSONObjectRet() {
-		@Override
-		public void onSuccess(JSONObject resp) {
-			String hash;
-			String value;
-			try {
-				hash = resp.getString("hash");
-				value = resp.getString("x:arg");
-			} catch (Exception ex) {
-				hint.setText(ex.getMessage());
-				return;
-			}
-			String redirect = domain + "/" + hash;
-			hint.setText("上传成功! " + hash);
-			Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
-			startActivity(intent);
-		}
+           @Override
+           public void onSuccess(JSONObject resp) {
+               String hash;
+               String value;
+               try {
+                   hash = resp.getString("hash");
+                   value = resp.getString("x:arg");
+               } catch (Exception ex) {
+                   hint.setText(ex.getMessage());
+                   return;
+               }
+               String redirect = "http://" + domain + "/" + hash;
+               hint.setText("上传成功! " + hash);
+               Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
+               startActivity(intent);
+           }
 
-		@Override
-		public void onFailure(Exception ex) {
-			hint.setText("错误: " + ex.getMessage());
-		}
-	});
+           @Override
+           public void onFailure(Exception ex) {
+               hint.setText("错误: " + ex.getMessage());
+           }
+       });
 }
 ```
 

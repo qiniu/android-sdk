@@ -22,9 +22,9 @@ public class MyActivity extends Activity implements View.OnClickListener{
 	public static final int PICK_PICTURE_RESUMABLE = 0;
 
 	// @gist upload_arg
-	// 在七牛绑定的对应bucket的域名. 可以到这里绑定 https://dev.qiniutek.com/buckets
-	public static String domain = "";
-	public static String bucketName = "";
+	// 在七牛绑定的对应bucket的域名. 默认是bucket.qiniudn.com
+    public static String bucketName = "";
+	public static String domain = bucketName + ".qiniudn.com";
 	// upToken 这里需要自行获取. SDK 将不实现获取过程.
 	public static final String UP_TOKEN = "";
 	// @endgist
@@ -86,7 +86,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 					hint.setText(ex.getMessage());
 					return;
 				}
-				String redirect = domain + "/" + hash;
+				String redirect = "http://" + domain + "/" + hash;
 				hint.setText("上传成功! " + hash);
 				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
 				startActivity(intent);
@@ -121,7 +121,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
                     hint.setText(ex.getMessage());
                     return;
                 }
-                String redirect = domain + "/" + hash;
+                String redirect = "http://" + domain + "/" + hash;
                 hint.setText("上传成功! " + hash);
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
                 startActivity(intent);
