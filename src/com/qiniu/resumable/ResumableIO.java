@@ -138,17 +138,18 @@ public class ResumableIO {
 			ret.onFailure(e);
 			return;
 		}
+
 		put(uptoken, key, isa, extra, new JSONObjectRet() {
 			@Override
 			public void onSuccess(JSONObject obj) {
-				ret.onSuccess(obj);
 				isa.close();
+				ret.onSuccess(obj);
 			}
 			
 			@Override
 			public void onFailure(Exception ex) {
-				ret.onFailure(ex);
 				isa.close();
+				ret.onFailure(ex);
 			}
 		});
 	}
