@@ -8,52 +8,73 @@ import java.util.zip.CRC32;
 
 public class InputStreamAt implements Closeable{
 	private RandomAccessFile mFileStream;
-	private byte[] data;
+	private byte[] mData;
 
-	private CRC32 crc32 = new CRC32();
-	private File tmpFile;
-	private long length;
-	private boolean closed;
+	private File mTmpFile;
+	private boolean mClosed;
+	private long mCrc32 = -1;
 
 	/**
 	 * @param context
 	 * @param is InputStream
 	 */
-	public InputStreamAt(Context context, InputStream is) {
-		saveFile(storeToFile(context, is));
+	public static InputStreamAt fromInputStream(Context context, InputStream is) {
+		File file = storeToFile(context, is);
+		InputStreamAt isa = new InputStreamAt(file);
+		return isa;
+	}
+
+	public static InputStreamAt fromString(String str) {
+		return new InputStreamAt(str.getBytes());
 	}
 
 	public InputStreamAt(File file) {
-		saveFile(file);
-	}
-
-	public InputStreamAt(byte[] data) {
-		this.data = data;
-	}
-
-	public InputStreamAt(String data) {
-		this.data = data.getBytes();
-	}
-
-	public long crc32() {
-		return crc32.getValue();
-	}
-
-	public void saveFile(File file) {
-		tmpFile = file;
+		mTmpFile = file;
 		try {
-			length = tmpFile.length();
-			mFileStream = new RandomAccessFile(tmpFile, "r");
+			mFileStream = new RandomAccessFile(mTmpFile, "r");
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public long length() {
-		return length;
+	public InputStreamAt(byte[] data) {
+		mData = data;
 	}
 
-	protected File storeToFile(Context context, InputStream is) {
+	public long crc32() {
+		if (mCrc32 >= 0) return mCrc32;
+		CRC32 crc32 = new CRC32();
+		long index = 0;
+		int blockSize = 128 * 1 << 10;
+		long length = length();
+		while (index < length) {
+			int size = length-index>=blockSize ? blockSize : (int) (length-index);
+
+			byte[] data = read(index, size);
+			if (data == null) return -1;
+			crc32.update(data);
+			index += size;
+		}
+		mCrc32 = crc32.getValue();
+		return mCrc32;
+	}
+
+	public long length() {
+		if (mData != null) {
+			return mData.length;
+		}
+
+		if (mFileStream != null) {
+			try {
+				return mFileStream.length();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return -1;
+	}
+
+	protected static File storeToFile(Context context, InputStream is) {
 		File outputDir = context.getCacheDir(); // context being the Activity pointer
 		try {
 			File e = File.createTempFile("qiniu-", "", outputDir);
@@ -62,7 +83,6 @@ public class InputStreamAt implements Closeable{
 			byte[] buffer = new byte[4096];
 			int bytesRead;
 			while ((bytesRead = is.read(buffer)) != -1) {
-				crc32.update(buffer, 0, bytesRead);
 				os.write(buffer, 0, bytesRead);
 			}
 			is.close();
@@ -74,15 +94,15 @@ public class InputStreamAt implements Closeable{
 		}
 	}
 
-	public synchronized byte[] read(long offset, int length) {
-		if (closed) return null;
+	public byte[] read(long offset, int length) {
+		if (mClosed) return null;
 		try {
 			if (mFileStream != null) {
 				return fileStreamRead(offset, length);
 			}
-			if (data != null) {
+			if (mData != null) {
 				byte[] ret = new byte[length];
-				System.arraycopy(data, (int) offset, ret, 0, length);
+				System.arraycopy(mData, (int) offset, ret, 0, length);
 				return ret;
 			}
 		} catch (IOException e) {
@@ -96,25 +116,27 @@ public class InputStreamAt implements Closeable{
 		if (mFileStream == null) return null;
 		byte[] data = new byte[length];
 
-		mFileStream.seek(offset);
-		int readed;
-		int totalReaded = 0;
-		do {
-			readed = mFileStream.read(data, totalReaded, length);
-			if (readed <= 0) break;
-			totalReaded += readed;
-		} while (readed > 0 && length > totalReaded);
+		int read;
+		int totalRead = 0;
+		synchronized (data) {
+			mFileStream.seek(offset);
+			do {
+				read = mFileStream.read(data, totalRead, length);
+				if (read <= 0) break;
+				totalRead += read;
+			} while (length > totalRead);
+		}
 
-		if (totalReaded != data.length) {
-			data = Arrays.copyOfRange(data, 0, totalReaded);
+		if (totalRead != data.length) {
+			data = Arrays.copyOfRange(data, 0, totalRead);
 		}
 		return data;
 	}
 
 	@Override
 	public synchronized void close(){
-		if (closed) return;
-		closed = true;
+		if (mClosed) return;
+		mClosed = true;
 
 		if (mFileStream != null) {
 			try {
@@ -124,8 +146,13 @@ public class InputStreamAt implements Closeable{
 			}
 		}
 
-		if (tmpFile != null) {
-			tmpFile.delete();
+		if (mTmpFile != null) {
+			mTmpFile.delete();
 		}
 	}
+
+	public int read(byte[] data) throws IOException {
+		return mFileStream.read(data);
+	}
+
 }

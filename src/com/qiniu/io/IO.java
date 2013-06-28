@@ -48,7 +48,7 @@ public class IO {
 			m.addField("key", key);
 		}
 		
-		if ( ! isStringValid(uptoken)) {
+		if (uptoken == null || uptoken.length() == 0) {
 			ret.onFailure(new Exception("uptoken未提供"));
 			return;
 		}
@@ -61,7 +61,6 @@ public class IO {
 		}
 		
 		for (Map.Entry<String, String> i: extra.params.entrySet()) {
-			if ( ! i.getKey().startsWith("x:")) continue;
 			m.addField(i.getKey(), i.getValue());
 		}
 
@@ -86,7 +85,7 @@ public class IO {
 
 		final InputStreamAt isa;
 		try {
-			isa = new InputStreamAt(mContext, mContext.getContentResolver().openInputStream(uri));
+			isa = InputStreamAt.fromInputStream(mContext, mContext.getContentResolver().openInputStream(uri));
 		} catch (FileNotFoundException e) {
 			ret.onFailure(e);
 			return;
@@ -105,9 +104,5 @@ public class IO {
 				ret.onFailure(ex);
 			}
 		});
-	}
-
-	public static boolean isStringValid(String str) {
-		return str != null && str.length() != 0;
 	}
 }

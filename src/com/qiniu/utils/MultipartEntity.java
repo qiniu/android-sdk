@@ -11,8 +11,8 @@ import java.util.Random;
 
 public class MultipartEntity extends AbstractHttpEntity  {
 	private String mBoundary;
-	private StringBuffer data = new StringBuffer();
-	private ArrayList<FileInfo> files = new ArrayList<FileInfo>();
+	private StringBuffer mData = new StringBuffer();
+	private ArrayList<FileInfo> mFiles = new ArrayList<FileInfo>();
 
 	public MultipartEntity() {
 		mBoundary = getRandomString(32);
@@ -21,11 +21,11 @@ public class MultipartEntity extends AbstractHttpEntity  {
 
 	public void addField(String key, String value) {
 		String tmp = "--%s\r\nContent-Disposition: form-data; name=\"%s\"\r\n\r\n%s\r\n";
-		data.append(String.format(tmp, mBoundary, key, value));
+		mData.append(String.format(tmp, mBoundary, key, value));
 	}
 
 	public void addFile(String field, String contentType, String fileName, InputStreamAt isa) {
-		files.add(new FileInfo(field, contentType, fileName, isa));
+		mFiles.add(new FileInfo(field, contentType, fileName, isa));
 	}
 
 	@Override
@@ -35,8 +35,8 @@ public class MultipartEntity extends AbstractHttpEntity  {
 
 	@Override
 	public long getContentLength() {
-		long len = data.length();
-		for (FileInfo fi: files) {
+		long len = mData.length();
+		for (FileInfo fi: mFiles) {
 			len += fi.length();
 		}
 		len += 6 + mBoundary.length();
@@ -50,19 +50,12 @@ public class MultipartEntity extends AbstractHttpEntity  {
 
 	@Override
 	public void writeTo(OutputStream outputStream) throws IOException {
-		int index = 0;
-		int blockSize = 256;
-		while (index < data.length()) {
-			int length = min(blockSize, data.length() - index);
-			byte[] send = data.substring(index, index+length).getBytes();
-			index += length;
-			outputStream.write(send);
-			outputStream.flush();
-		}
-		for (FileInfo i: files) {
+		outputStream.write(mData.toString().getBytes());
+		outputStream.flush();
+		for (FileInfo i: mFiles) {
 			i.writeTo(outputStream);
 		}
-		outputStream.write(("--"+mBoundary+"--\r\n").getBytes());
+		outputStream.write(("--" + mBoundary + "--\r\n").getBytes());
 		outputStream.flush();
 		outputStream.close();
 	}
@@ -72,60 +65,51 @@ public class MultipartEntity extends AbstractHttpEntity  {
 		return false;
 	}
 
-	public int min(int a, int b) {
-		if (a > b) return b;
-		return a;
-	}
-
-	public long min(long a, long b) {
-		if (a > b) return b;
-		return a;
-	}
-
-	private String fileTmp =  "--%s\r\nContent-Disposition: form-data;name=\"%s\";filename=\"%s\"\r\nContent-Type: %s\r\n\r\n";
+	private String fileTpl =  "--%s\r\nContent-Disposition: form-data;name=\"%s\";filename=\"%s\"\r\nContent-Type: %s\r\n\r\n";
 
 	class FileInfo {
 
-		public String field;
-		public String contentType;
-		public String filename;
-		public InputStreamAt isa;
+		public String mField;
+		public String mContentType;
+		public String mFilename;
+		public InputStreamAt mIsa;
+
 		public FileInfo(String field, String contentType, String filename, InputStreamAt isa) {
-			this.field = field;
-			this.contentType = contentType;
-			this.filename = filename;
-			this.isa = isa;
-			if (this.contentType == null || this.contentType.length() == 0) {
-				this.contentType = "application/octet-stream";
+			mField = field;
+			mContentType = contentType;
+			mFilename = filename;
+			mIsa = isa;
+			if (mContentType == null || mContentType.length() == 0) {
+				mContentType = "application/octet-stream";
 			}
 		}
 		
 		public long length() {
-			return fileTmp.length() - 2*4 + mBoundary.length() +
-				field.length() + contentType.length() + filename.length() + isa.length() + 2;
+			return fileTpl.length() - 2*4 + mBoundary.length() + mIsa.length() + 2 +
+				mField.getBytes().length + mContentType.length() + mFilename.getBytes().length;
 		}
 
-		public void writeTo(OutputStream is) throws IOException {
-			is.write(String.format(fileTmp, mBoundary, field, filename, contentType).getBytes());
-			is.flush();
+		public void writeTo(OutputStream outputStream) throws IOException {
+			outputStream.write(String.format(fileTpl, mBoundary, mField, mFilename, mContentType).getBytes());
+			outputStream.flush();
 
-			int blockSize = 256;
+			int blockSize = 256 * 1 << 10;
 			long index = 0;
-			while(index < isa.length()) {
-				int readLength = (int) min((long)blockSize, isa.length()-index);
-				is.write(isa.read(index, readLength));
+			while(index < mIsa.length()) {
+				int readLength = (int) StrictMath.min((long) blockSize, mIsa.length() - index);
+				outputStream.write(mIsa.read(index, readLength));
 				index += blockSize;
-				is.flush();
+				outputStream.flush();
 			}
-			is.write("\r\n".getBytes());
-			is.flush();
+			outputStream.write("\r\n".getBytes());
+			outputStream.flush();
 		}
 	}
 
 	private static String getRandomString(int length) {
 		String base = "abcdefghijklmnopqrstuvwxyz0123456789";
 		Random random = new Random();
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < length; i++) {
 			int number = random.nextInt(base.length());
 			sb.append(base.charAt(number));
