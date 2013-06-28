@@ -93,10 +93,10 @@ public class MultipartEntity extends AbstractHttpEntity  {
 			outputStream.write(String.format(fileTpl, mBoundary, mField, mFilename, mContentType).getBytes());
 			outputStream.flush();
 
-			int blockSize = 256 * 1 << 10;
+			int blockSize = 256 * 1024;
 			long index = 0;
 			long length = mIsa.length();
-			while(index < length) {
+			while (index < length) {
 				int readLength = (int) StrictMath.min((long) blockSize, mIsa.length() - index);
 				outputStream.write(mIsa.read(index, readLength));
 				index += blockSize;
