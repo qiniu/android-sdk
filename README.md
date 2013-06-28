@@ -5,7 +5,7 @@ Qiniu Resource Storage SDK for Android
 
 ## 使用
 
-参考文档：[七牛云存储 Go SDK 使用指南](https://github.com/qiniu/android-sdk/tree/develop/docs)
+参考文档：[七牛云存储 Android SDK 使用指南](https://github.com/qiniu/android-sdk/tree/develop/docs)
 
 ## 贡献代码
 
