@@ -45,7 +45,7 @@ public class InputStreamAt implements Closeable{
 		if (mCrc32 >= 0) return mCrc32;
 		CRC32 crc32 = new CRC32();
 		long index = 0;
-		int blockSize = 128 * 1 << 10;
+		int blockSize = 128 * 1024;
 		long length = length();
 		while (index < length) {
 			int size = length-index>=blockSize ? blockSize : (int) (length-index);
