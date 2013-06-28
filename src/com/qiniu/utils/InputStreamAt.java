@@ -76,22 +76,34 @@ public class InputStreamAt implements Closeable{
 
 	protected static File storeToFile(Context context, InputStream is) {
 		File outputDir = context.getCacheDir(); // context being the Activity pointer
+		File f = null;
+		OutputStream os = null;
 		try {
-			File e = File.createTempFile("qiniu-", "", outputDir);
-
-			OutputStream os = new FileOutputStream(e);
+			f = File.createTempFile("qiniu-", "", outputDir);
+			os = new FileOutputStream(f);
 			byte[] buffer = new byte[4096];
 			int bytesRead;
 			while ((bytesRead = is.read(buffer)) != -1) {
 				os.write(buffer, 0, bytesRead);
 			}
-			is.close();
-			os.close();
-			return e;
 		} catch (IOException e) {
 			e.printStackTrace();
-			return null;
 		}
+		if (os != null) {
+			try {
+				os.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		if (is != null) {
+			try {
+				is.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return f;
 	}
 
 	public byte[] read(long offset, int length) {
