@@ -75,7 +75,7 @@
 public static String bucketName = "bucketName";
 public static String domain = bucketName + ".qiniudn.com";
 // upToken 这里需要自行获取. SDK 将不实现获取过程. 当token过期后才再获取一遍
-public static String UP_TOKEN = "token";
+public String UP_TOKEN = "token";
 
 boolean uploading = false;
 /**
@@ -88,7 +88,7 @@ private void doUpload(Uri uri) {
 		return;
 	}
 	uploading = true;
-	String key = null; // 自动生成key
+	String key = IO.UNDEFINED_KEY; // 自动生成key
 	PutExtra extra = new PutExtra();
 	extra.checkCrc = PutExtra.AUTO_CRC32;
 	extra.params.put("x:arg", "value");
