@@ -8,17 +8,9 @@
     <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="断点续上传"
+            android:text="选择文件并上传"
             android:id="@+id/button1"
-            android:layout_centerHorizontal="true" android:layout_below="@+id/progressBar"/>
-    <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/progressBar"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:indeterminate="false" android:layout_alignParentLeft="true" android:layout_marginLeft="9dp"
-            android:layout_centerVertical="true" android:layout_alignParentRight="true"/>
+            android:layout_centerHorizontal="true" android:layout_centerVertical="true"/>
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -31,8 +23,9 @@
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
+            android:text=""
             android:id="@+id/textView1"
-            android:layout_above="@+id/progressBar"/>
+            android:layout_marginBottom="20dp"
+            android:layout_centerHorizontal="true" android:layout_above="@+id/button1"/>
 </RelativeLayout>
 

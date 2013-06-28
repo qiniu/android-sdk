@@ -72,23 +72,31 @@
 
 ```{java}
 // 在七牛绑定的对应bucket的域名. 默认是bucket.qiniudn.com
-public static String bucketName = "bucketname";
+public static String bucketName = "bucketName";
 public static String domain = bucketName + ".qiniudn.com";
 // upToken 这里需要自行获取. SDK 将不实现获取过程. 当token过期后才再获取一遍
 public static String UP_TOKEN = "token";
 
+boolean uploading = false;
 /**
  * 普通上传文件
  * @param uri
  */
 private void doUpload(Uri uri) {
+	if (uploading) {
+		hint.setText("上传中，请稍后");
+		return;
+	}
+	uploading = true;
 	String key = null; // 自动生成key
 	PutExtra extra = new PutExtra();
 	extra.checkCrc = PutExtra.AUTO_CRC32;
 	extra.params.put("x:arg", "value");
+	hint.setText("上传中");
 	IO.putFile(this, UP_TOKEN, key, uri, extra, new JSONObjectRet() {
 		@Override
 		public void onSuccess(JSONObject resp) {
+			uploading = false;
 			String hash;
 			String value;
 			try {
@@ -106,6 +114,7 @@ private void doUpload(Uri uri) {
 
 		@Override
 		public void onFailure(Exception ex) {
+			uploading = false;
 			hint.setText("错误: " + ex.getMessage());
 		}
 	});

@@ -6,7 +6,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import com.qiniu.R;
 import com.qiniu.auth.JSONObjectRet;
@@ -20,14 +19,13 @@ public class MyActivity extends Activity implements View.OnClickListener{
 
 	// @gist upload_arg
 	// 在七牛绑定的对应bucket的域名. 默认是bucket.qiniudn.com
-	public static String bucketName = "bucketname";
+	public static String bucketName = "bucketName";
 	public static String domain = bucketName + ".qiniudn.com";
 	// upToken 这里需要自行获取. SDK 将不实现获取过程. 当token过期后才再获取一遍
 	public static String UP_TOKEN = "token";
 	// @endgist
 
-	private Button btnResumableUpload;
-	private ProgressBar progressBar;
+	private Button btnUpload;
 	private TextView hint;
 
 	@Override
@@ -44,27 +42,32 @@ public class MyActivity extends Activity implements View.OnClickListener{
 	private void initWidget() {
 		hint = (TextView) findViewById(R.id.textView1);
 
-		btnResumableUpload = (Button) findViewById(R.id.button1);
-		btnResumableUpload.setOnClickListener(this);
+		btnUpload = (Button) findViewById(R.id.button1);
+		btnUpload.setOnClickListener(this);
 
-		progressBar = (ProgressBar) findViewById(R.id.progressBar);
-		progressBar.setMax(100);
-		progressBar.setProgress(0);
 	}
 
 	// @gist upload
+	boolean uploading = false;
 	/**
 	 * 普通上传文件
 	 * @param uri
 	 */
 	private void doUpload(Uri uri) {
+		if (uploading) {
+			hint.setText("上传中，请稍后");
+			return;
+		}
+		uploading = true;
 		String key = null; // 自动生成key
 		PutExtra extra = new PutExtra();
 		extra.checkCrc = PutExtra.AUTO_CRC32;
 		extra.params.put("x:arg", "value");
+		hint.setText("上传中");
 		IO.putFile(this, UP_TOKEN, key, uri, extra, new JSONObjectRet() {
 			@Override
 			public void onSuccess(JSONObject resp) {
+				uploading = false;
 				String hash;
 				String value;
 				try {
@@ -82,6 +85,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 
 			@Override
 			public void onFailure(Exception ex) {
+				uploading = false;
 				hint.setText("错误: " + ex.getMessage());
 			}
 		});
@@ -90,7 +94,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 
 	@Override
 	public void onClick(View view) {
-		if (view.equals(btnResumableUpload)) {
+		if (view.equals(btnUpload)) {
 			Intent i = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 			startActivityForResult(i, PICK_PICTURE_RESUMABLE);
 			return;
@@ -102,7 +106,6 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		if (resultCode != RESULT_OK) return;
 
 		if (requestCode == PICK_PICTURE_RESUMABLE) {
-			progressBar.setProgress(0);
 			doUpload(data.getData());
 			return;
 		}

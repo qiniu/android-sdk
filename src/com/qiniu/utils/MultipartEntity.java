@@ -95,7 +95,8 @@ public class MultipartEntity extends AbstractHttpEntity  {
 
 			int blockSize = 256 * 1 << 10;
 			long index = 0;
-			while(index < mIsa.length()) {
+			long length = mIsa.length();
+			while(index < length) {
 				int readLength = (int) StrictMath.min((long) blockSize, mIsa.length() - index);
 				outputStream.write(mIsa.read(index, readLength));
 				index += blockSize;
