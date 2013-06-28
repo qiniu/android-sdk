@@ -72,60 +72,10 @@
 
 ```{java}
 // 在七牛绑定的对应bucket的域名. 默认是bucket.qiniudn.com
-public static String bucketName = "";
+public static String bucketName = "bucketname";
 public static String domain = bucketName + ".qiniudn.com";
-// upToken 这里需要自行获取. SDK 将不实现获取过程.
-public static final String UP_TOKEN = "";
-
-private RputExtra getPutExtra() {
-	RputExtra extra = new RputExtra(bucketName);
-	extra.mimeType = "image/png";
-	extra.notify = new RputNotify() {
-		@Override
-		public synchronized void onProcess(long uploaded, long total) {
-			progressBar.setProgress((int) (uploaded * 100 / total));
-		}
-	};
-	return extra;
-}
-
-/**
- * 断点续上传
- * @param uri
- */
-private void doResumableUpload(Uri uri) {
-	String key = null; // 自动生成key
-	RputExtra extra = getPutExtra();
-	ResumableIO.putFile(this, UP_TOKEN, key, uri, extra, new JSONObjectRet() {
-		@Override
-		public void onSuccess(JSONObject resp) {
-			String hash;
-			try {
-				hash = resp.getString("hash");
-			} catch (Exception ex) {
-				hint.setText(ex.getMessage());
-				return;
-			}
-			String redirect = "http://" + domain + "/" + hash;
-			hint.setText("上传成功! " + hash);
-			Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
-			startActivity(intent);
-		}
-
-		@Override
-		public void onFailure(Exception ex) {
-			hint.setText("错误: " + ex.getMessage());
-		}
-	});
-}
-```
-
-```{java}
-// 在七牛绑定的对应bucket的域名. 默认是bucket.qiniudn.com
-public static String bucketName = "";
-public static String domain = bucketName + ".qiniudn.com";
-// upToken 这里需要自行获取. SDK 将不实现获取过程.
-public static final String UP_TOKEN = "";
+// upToken 这里需要自行获取. SDK 将不实现获取过程. 当token过期后才再获取一遍
+public static String UP_TOKEN = "token";
 
 /**
  * 普通上传文件
@@ -134,6 +84,7 @@ public static final String UP_TOKEN = "";
 private void doUpload(Uri uri) {
 	String key = null; // 自动生成key
 	PutExtra extra = new PutExtra();
+	extra.checkCrc = PutExtra.AUTO_CRC32;
 	extra.params.put("x:arg", "value");
 	IO.putFile(this, UP_TOKEN, key, uri, extra, new JSONObjectRet() {
 		@Override

@@ -73,12 +73,6 @@
 ```{java}
 @gist(../src/com/qiniu/demo/MyActivity.java#upload_arg)
 
-@gist(../src/com/qiniu/demo/MyActivity.java#resumable_upload)
-```
-
-```{java}
-@gist(../src/com/qiniu/demo/MyActivity.java#upload_arg)
-
 @gist(../src/com/qiniu/demo/MyActivity.java#upload)
 ```
 
