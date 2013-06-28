@@ -74,3 +74,4 @@ proguard-project.txt
 .project
 project.properties
 build.xml
+gen/*
