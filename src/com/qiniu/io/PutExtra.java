@@ -1,11 +1,14 @@
 package com.qiniu.io;
 
+import java.util.HashMap;
+
 public class PutExtra {
-    public String callbackParams; // 当 uptoken 指定了 CallbackUrl，则 CallbackParams 必须非空
-	public String bucket;         // 仓库名
-    public String mimeType;       // 可选。用户自定义 Meta，不能超过 256 字节
-    public String customMeta;     // 可选。在 uptoken 没有指定 DetectMime 时，用户客户端可自己指定 MimeType
-	public PutExtra(String bucket) {
-		this.bucket = bucket;
-	}
+	public final static int UNUSE_CRC32 = 0;
+	public final static int AUTO_CRC32 = 1;
+	public final static int SPECIFY_CRC32 = 2;
+	
+	public HashMap<String, String> params = new HashMap<String, String>(); // 用户自定义参数，key必须以 "x:" 开头
+	public String mimeType;
+	public long crc32;
+	public int checkCrc = UNUSE_CRC32;
 }
