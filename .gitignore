@@ -61,3 +61,17 @@ pkg
 # For vim:
 *.swp
 
+# for intellij
+.idea/*
+out/*
+
+# intellij idea
+local.properties
+android-sdk.iml
+ant.properties
+proguard-project.txt
+.classpath
+.project
+project.properties
+build.xml
+gen/*
