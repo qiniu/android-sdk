@@ -1,8 +1,6 @@
 ---
-title: Android SDK 使用指南 | 七牛云存储
+title: Android SDK 使用指南
 ---
-
-# 七牛云存储 Android SDK
 
 此 Android SDK 基于 [七牛云存储官方API](http://docs.qiniutek.com/v3/api/) 构建。在开发者的 Android App 工程项目中使用此 SDK 能够非常方便地将 Android 系统里边的文件快速直传到七牛云存储。
 
