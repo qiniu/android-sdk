@@ -35,7 +35,7 @@ public class MultipartEntity extends AbstractHttpEntity  {
 
 	@Override
 	public long getContentLength() {
-		long len = mData.length();
+		long len = mData.toString().getBytes().length;
 		for (FileInfo fi: mFiles) {
 			len += fi.length();
 		}

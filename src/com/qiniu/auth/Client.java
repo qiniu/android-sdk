@@ -78,15 +78,17 @@ public class Client {
 
 			int statusCode = resp.getStatusLine().getStatusCode();
 
-			if (statusCode / 100 != 2) {
-				return new Exception(errMsg);
-			}
 
 			byte[] data = new byte[0];
 			try {
 				data = EntityUtils.toByteArray(resp.getEntity());
 			} catch (IOException e) {
 				e.printStackTrace();
+			}
+
+			if (statusCode / 100 != 2) {
+				errMsg += new String(data);
+				return new Exception(errMsg);
 			}
 
 			return data;

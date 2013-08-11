@@ -13,6 +13,7 @@ public abstract class JSONObjectRet extends CallRet {
 			JSONObject obj = new JSONObject(new String(body));
 			onSuccess(obj);
 		} catch (JSONException e) {
+			e.printStackTrace();
 			onFailure(new Exception(new String(body)));
 		}
 	}
