@@ -62,36 +62,18 @@ public class Client {
 		protected Object doInBackground(Object... objects) {
 			httpPost = (HttpPost) objects[0];
 			ret = (CallRet) objects[1];
-			String errMsg = "";
-
-			HttpResponse resp;
 			try {
-				resp = roundtrip(httpPost);
+				HttpResponse resp = roundtrip(httpPost);
+				byte[] data = EntityUtils.toByteArray(resp.getEntity());
+				int statusCode = resp.getStatusLine().getStatusCode();
+				if (statusCode / 100 != 2) {
+					return new Exception(new String(data));
+				}
+				return data;
 			} catch (IOException e) {
 				e.printStackTrace();
 				return e;
 			}
-
-			if (resp.getHeaders("X-Log").length > 0) {
-				errMsg = resp.getHeaders("X-Log")[0].getValue();
-			}
-
-			int statusCode = resp.getStatusLine().getStatusCode();
-
-
-			byte[] data = new byte[0];
-			try {
-				data = EntityUtils.toByteArray(resp.getEntity());
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-			if (statusCode / 100 != 2) {
-				errMsg += new String(data);
-				return new Exception(errMsg);
-			}
-
-			return data;
 		}
 
 		@Override
