@@ -11,6 +11,9 @@ import java.util.Random;
 
 public class MultipartEntity extends AbstractHttpEntity  {
 	private String mBoundary;
+    private long mContentLength = -1;
+    private long writed = 0;
+    private IOnProcess mNotify;
 	private StringBuffer mData = new StringBuffer();
 	private ArrayList<FileInfo> mFiles = new ArrayList<FileInfo>();
 
@@ -35,11 +38,13 @@ public class MultipartEntity extends AbstractHttpEntity  {
 
 	@Override
 	public long getContentLength() {
+        if (mContentLength > 0) return mContentLength;
 		long len = mData.toString().getBytes().length;
 		for (FileInfo fi: mFiles) {
 			len += fi.length();
 		}
 		len += 6 + mBoundary.length();
+        mContentLength = len;
 		return len;
 	}
 
@@ -52,11 +57,16 @@ public class MultipartEntity extends AbstractHttpEntity  {
 	public void writeTo(OutputStream outputStream) throws IOException {
 		outputStream.write(mData.toString().getBytes());
 		outputStream.flush();
+        writed += mData.toString().getBytes().length;
+        if (mNotify != null) mNotify.onProcess(writed, getContentLength());
 		for (FileInfo i: mFiles) {
 			i.writeTo(outputStream);
 		}
-		outputStream.write(("--" + mBoundary + "--\r\n").getBytes());
+        byte[] data = ("--" + mBoundary + "--\r\n").getBytes();
+		outputStream.write(data);
 		outputStream.flush();
+        writed += data.length;
+        if (mNotify != null) mNotify.onProcess(writed, getContentLength());
 		outputStream.close();
 	}
 
@@ -67,7 +77,11 @@ public class MultipartEntity extends AbstractHttpEntity  {
 
 	private String fileTpl =  "--%s\r\nContent-Disposition: form-data;name=\"%s\";filename=\"%s\"\r\nContent-Type: %s\r\n\r\n";
 
-	class FileInfo {
+    public void setProcessNotify(IOnProcess ret) {
+        mNotify = ret;
+    }
+
+    class FileInfo {
 
 		public String mField;
 		public String mContentType;
@@ -90,8 +104,11 @@ public class MultipartEntity extends AbstractHttpEntity  {
 		}
 
 		public void writeTo(OutputStream outputStream) throws IOException {
-			outputStream.write(String.format(fileTpl, mBoundary, mField, mFilename, mContentType).getBytes());
+            byte[] data = String.format(fileTpl, mBoundary, mField, mFilename, mContentType).getBytes();
+			outputStream.write(data);
 			outputStream.flush();
+            writed += data.length;
+            if (mNotify != null) mNotify.onProcess(writed, getContentLength());
 
 			int blockSize = 256 * 1024;
 			long index = 0;
@@ -101,9 +118,13 @@ public class MultipartEntity extends AbstractHttpEntity  {
 				outputStream.write(mIsa.read(index, readLength));
 				index += blockSize;
 				outputStream.flush();
+                writed += readLength;
+                if (mNotify != null) mNotify.onProcess(writed, getContentLength());
 			}
 			outputStream.write("\r\n".getBytes());
 			outputStream.flush();
+            writed += 2;
+            if (mNotify != null) mNotify.onProcess(writed, getContentLength());
 		}
 	}
 

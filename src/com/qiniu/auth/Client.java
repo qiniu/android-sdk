@@ -2,6 +2,7 @@ package com.qiniu.auth;
 
 import android.os.AsyncTask;
 import com.qiniu.conf.Conf;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -32,7 +33,12 @@ public class Client {
 	}
 
 	public void call(String url, HttpEntity entity, CallRet ret) {
-		call(url, entity.getContentType().getValue(), entity, ret);
+        Header header = entity.getContentType();
+        String contentType = "application/octet-stream";
+        if (header != null) {
+            contentType = header.getValue();
+        }
+		call(url, contentType, entity, ret);
 	}
 
 	public void call(String url, String contentType, HttpEntity entity, CallRet ret) {
@@ -64,9 +70,20 @@ public class Client {
 			ret = (CallRet) objects[1];
 			try {
 				HttpResponse resp = roundtrip(httpPost);
+                int statusCode = resp.getStatusLine().getStatusCode();
+                if (statusCode == 401) { // android 2.3 will not response
+                    return new Exception(resp.getStatusLine().getReasonPhrase());
+                }
 				byte[] data = EntityUtils.toByteArray(resp.getEntity());
-				int statusCode = resp.getStatusLine().getStatusCode();
+
 				if (statusCode / 100 != 2) {
+                    if (data.length == 0) {
+                        String xlog = resp.getFirstHeader("X-Log").getValue();
+                        if (xlog.length() > 0) {
+                            return new Exception(xlog);
+                        }
+                        return new Exception(resp.getStatusLine().getReasonPhrase());
+                    }
 					return new Exception(new String(data));
 				}
 				return data;

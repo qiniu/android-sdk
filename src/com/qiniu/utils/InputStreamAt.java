@@ -1,12 +1,18 @@
 package com.qiniu.utils;
 
 import android.content.Context;
+import org.apache.http.Header;
+import org.apache.http.HeaderElement;
+import org.apache.http.HttpEntity;
+import org.apache.http.ParseException;
+import org.apache.http.client.methods.HttpHead;
+import org.apache.http.entity.AbstractHttpEntity;
 
 import java.io.*;
 import java.util.Arrays;
 import java.util.zip.CRC32;
 
-public class InputStreamAt implements Closeable{
+public class InputStreamAt implements Closeable {
 	private RandomAccessFile mFileStream;
 	private byte[] mData;
 
@@ -167,4 +173,41 @@ public class InputStreamAt implements Closeable{
 		return mFileStream.read(data);
 	}
 
+    public HttpEntity toHttpEntity(final long offset, final int length) {
+        final InputStreamAt input = this;
+        return new AbstractHttpEntity() {
+            @Override
+            public boolean isRepeatable() {
+                return false;
+            }
+
+            @Override
+            public long getContentLength() {
+                return length;
+            }
+
+            @Override
+            public InputStream getContent() throws IOException, IllegalStateException {
+                return null;
+            }
+
+            @Override
+            public void writeTo(OutputStream outputStream) throws IOException {
+                int blockSize = 128 * 1024;
+                long start = offset;
+                long end = offset + length;
+                while (start < end) {
+                    int readLength = (int) StrictMath.min((long) blockSize, end-start);
+                    outputStream.write(input.read(start, readLength));
+                    outputStream.flush();
+                    start += readLength;
+                }
+            }
+
+            @Override
+            public boolean isStreaming() {
+                return false;
+            }
+        };
+    }
 }

@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class IO {
 
-	public static String UNDEFINED_KEY = "?";
+	public static String UNDEFINED_KEY = null;
 
 	private static Client mClient;
 
@@ -49,7 +49,7 @@ public class IO {
 		}
 		
 		if (uptoken == null || uptoken.length() == 0) {
-			ret.onFailure(new Exception("uptoken未提供"));
+			ret.onFailure(new Exception("uptoken not specify"));
 			return;
 		}
 		
@@ -66,6 +66,7 @@ public class IO {
 
 		m.addField("token", uptoken);
 		m.addFile("file", extra.mimeType, key, isa);
+        m.setProcessNotify(ret);
 
 
 		defaultClient().call(Conf.UP_HOST, m, ret);
@@ -97,8 +98,13 @@ public class IO {
 				isa.close();
 				ret.onSuccess(obj);
 			}
-			
-			@Override
+
+            @Override
+            public void onProcess(long current, long total) {
+                ret.onProcess(current, total);
+            }
+
+            @Override
 			public void onFailure(Exception ex) {
 				isa.close();
 				ret.onFailure(ex);
