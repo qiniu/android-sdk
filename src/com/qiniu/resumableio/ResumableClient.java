@@ -5,8 +5,8 @@ import com.qiniu.auth.CallRet;
 import com.qiniu.auth.Client;
 import com.qiniu.auth.JSONObjectRet;
 import com.qiniu.conf.Conf;
+import com.qiniu.utils.ICancel;
 import com.qiniu.utils.InputStreamAt;
-import com.qiniu.utils.Slice;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
@@ -34,8 +34,9 @@ public class ResumableClient extends Client {
 		return super.roundtrip(httpPost);
 	}
 
-    public void putblock(final InputStreamAt input, final PutRet putRet, long offset, final JSONObjectRet callback) {
+    public ICancel[] putblock(final InputStreamAt input, final PutRet putRet, long offset, final JSONObjectRet callback) {
         final long writeNeed = Math.min(input.length()-offset, BLOCK_SIZE);
+        final ICancel[] canceler = new ICancel[] {null};
         JSONObjectRet ret = new JSONObjectRet() {
             @Override
             public void onSuccess(JSONObject obj) {
@@ -44,7 +45,12 @@ public class ResumableClient extends Client {
                     callback.onSuccess(obj);
                     return;
                 }
-                bput(putRet.host, input, putRet.ctx, putRet.offset, this);
+                canceler[0] = bput(putRet.host, input, putRet.ctx, putRet.offset, this);
+            }
+
+            @Override
+            public void onProcess(long current, long total) {
+                callback.onProcess(current, writeNeed);
             }
 
             @Override
@@ -53,26 +59,27 @@ public class ResumableClient extends Client {
             }
         };
         if (putRet.isInvalid()) {
-            mkblk(input, offset, ret);
+            canceler[0] = mkblk(input, offset, ret);
         } else {
-            bput(putRet.host, input, putRet.ctx, putRet.offset, ret);
+            canceler[0] = bput(putRet.host, input, putRet.ctx, putRet.offset, ret);
         }
+        return canceler;
     }
 
-    public void mkblk(InputStreamAt input, long offset, CallRet ret) {
+    public ICancel mkblk(InputStreamAt input, long offset, CallRet ret) {
         int remainLength = Math.min((int) (input.length() - offset), BLOCK_SIZE);
         String url = Conf.UP_HOST + "/mkblk/" + remainLength;
         remainLength = Math.min((int) (input.length()-offset), CHUNK_SIZE);
-        call(url, input.toHttpEntity(offset, remainLength), ret);
+        return call(url, input.toHttpEntity(offset, remainLength, ret), ret);
     }
 
-    public void bput(String host, InputStreamAt input, String ctx, long offset, CallRet ret) {
+    public ICancel bput(String host, InputStreamAt input, String ctx, long offset, CallRet ret) {
         int remainLength = Math.min((int) (input.length() - offset), CHUNK_SIZE);
         String url = host + "/bput/" + ctx + "/" + offset;
-        call(url, input.toHttpEntity(offset, remainLength), ret);
+        return call(url, input.toHttpEntity(offset, remainLength, ret), ret);
     }
 
-    public void mkfile(String key, long fsize, String mimeType, Map<String, String> params, String ctxs, CallRet ret) {
+    public ICancel mkfile(String key, long fsize, String mimeType, Map<String, String> params, String ctxs, CallRet ret) {
         String url = Conf.UP_HOST + "/mkfile/" + fsize;
         if (mimeType != null) {
             url += "/mimeType/" + encode(mimeType);
@@ -91,9 +98,9 @@ public class ResumableClient extends Client {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
             ret.onFailure(e);
-            return;
+            return null;
         }
-        call(url, se, ret);
+        return call(url, se, ret);
     }
 
     public String encode(String data) {

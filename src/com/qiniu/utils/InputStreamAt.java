@@ -173,7 +173,7 @@ public class InputStreamAt implements Closeable {
 		return mFileStream.read(data);
 	}
 
-    public HttpEntity toHttpEntity(final long offset, final int length) {
+    public HttpEntity toHttpEntity(final long offset, final int length, final IOnProcess onProcess) {
         final InputStreamAt input = this;
         return new AbstractHttpEntity() {
             @Override
@@ -195,11 +195,15 @@ public class InputStreamAt implements Closeable {
             public void writeTo(OutputStream outputStream) throws IOException {
                 int blockSize = 128 * 1024;
                 long start = offset;
+                long initStart = start;
                 long end = offset + length;
+                long total = end - start;
                 while (start < end) {
                     int readLength = (int) StrictMath.min((long) blockSize, end-start);
                     outputStream.write(input.read(start, readLength));
                     outputStream.flush();
+                    initStart += readLength;
+                    onProcess.onProcess(initStart, total);
                     start += readLength;
                 }
             }

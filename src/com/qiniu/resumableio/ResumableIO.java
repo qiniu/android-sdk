@@ -2,27 +2,32 @@ package com.qiniu.resumableio;
 
 import android.content.Context;
 import android.net.Uri;
-import com.qiniu.auth.CallRet;
 import com.qiniu.auth.Client;
 import com.qiniu.auth.JSONObjectRet;
-import com.qiniu.demo.MyActivity;
+import com.qiniu.utils.ICancel;
 import com.qiniu.utils.InputStreamAt;
-import com.qiniu.utils.Slice;
 import org.json.JSONObject;
 
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 
 public class ResumableIO {
-    String mUptoken = "";
     ResumableClient mClient;
     private int BLOCK_SIZE = 4 * 1024 * 1024;
     private int CHUNK_SIZE = 256 * 1024;
+    private static int atomicId = 0;
+    private static HashMap<Integer, ICancel[][]> idCancels = new HashMap<Integer, ICancel[][]>();
+
     public ResumableIO(String uptoken) {
-        mUptoken = uptoken;
+        mClient = new ResumableClient(Client.getMultithreadClient(), uptoken);
     }
-    public ResumableIO(ResumableClient client, String uptoken) {
+    public ResumableIO(ResumableClient client) {
         mClient = client;
-        mUptoken = uptoken;
+    }
+
+    private synchronized Integer newTask(ICancel[][] c) {
+        idCancels.put(atomicId, c);
+        return atomicId++;
     }
 
     public int put(final String key, final InputStreamAt input, final PutExtra extra, final JSONObjectRet ret) {
@@ -34,10 +39,13 @@ public class ResumableIO {
             }
         }
         final int[] success = new int[] {0};
+        final long[] uploaded = new long[blkCount];
+        final ICancel[][] cancelers = new ICancel[blkCount][1];
         for (int i=0; i<blkCount; i++) {
             final long startPos = i * BLOCK_SIZE;
             final PutRet process = extra.processes[i];
-            mClient.putblock(input, process, startPos, new JSONObjectRet() {
+            final int index = i;
+            cancelers[i] = mClient.putblock(input, process, startPos, new JSONObjectRet() {
                 int retryTime = 3;
                 @Override
                 public void onSuccess(JSONObject obj) {
@@ -53,7 +61,13 @@ public class ResumableIO {
                         mClient.mkfile(key, input.length(), extra.mimeType, extra.params, ctxes, ret);
                     }
                 }
-
+                @Override
+                public void onProcess(long current, long total) {
+                    uploaded[index] = current;
+                    current = 0;
+                    for (long c: uploaded) { current += c; }
+                    ret.onProcess(current, input.length());
+                }
                 @Override
                 public void onFailure(Exception ex) {
                     if (ex.getMessage().contains("Unauthorization")) {
@@ -69,11 +83,11 @@ public class ResumableIO {
                 }
             });
         }
-        return 0;
+
+        return newTask(cancelers);
     }
 
     public int putFile(Context mContext, String key, Uri uri, PutExtra extra, final JSONObjectRet ret) {
-
         final InputStreamAt isa;
         try {
             isa = InputStreamAt.fromInputStream(mContext, mContext.getContentResolver().openInputStream(uri));
@@ -82,7 +96,7 @@ public class ResumableIO {
             return -1;
         }
 
-        put(key, isa, extra, new JSONObjectRet() {
+        return put(key, isa, extra, new JSONObjectRet() {
             @Override
             public void onSuccess(JSONObject obj) {
                 isa.close();
@@ -100,19 +114,22 @@ public class ResumableIO {
                 ret.onFailure(ex);
             }
         });
-        return -1;
     }
 
-    public static void Stop(int id) {
-
+    public synchronized static void stop(int id) {
+        ICancel[][] c = idCancels.get(id);
+        for (ICancel[] cc: c) {
+            cc[0].cancel(true);
+        }
+        idCancels.remove(c);
     }
 
     public static int put(String uptoken, String key, InputStreamAt isa, PutExtra extra, JSONObjectRet ret) {
-        return new ResumableIO(new ResumableClient(Client.getMultithreadClient(), uptoken), uptoken).put(key, isa, extra, ret);
+        return new ResumableIO(new ResumableClient(Client.getMultithreadClient(), uptoken)).put(key, isa, extra, ret);
     }
 
     public static int putFile(Context mContext, String uptoken, String key, Uri uri, PutExtra extra, JSONObjectRet ret) {
-        return new ResumableIO(new ResumableClient(Client.getMultithreadClient(), uptoken), uptoken).putFile(mContext, key, uri, extra, ret);
+        return new ResumableIO(new ResumableClient(Client.getMultithreadClient(), uptoken)).putFile(mContext, key, uri, extra, ret);
     }
 
 }

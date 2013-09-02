@@ -2,6 +2,7 @@ package com.qiniu.auth;
 
 import android.os.AsyncTask;
 import com.qiniu.conf.Conf;
+import com.qiniu.utils.ICancel;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -27,32 +28,34 @@ public class Client {
 		mClient = client;
 	}
 
-	public void call(String url, CallRet ret) {
+	public ICancel call(String url, CallRet ret) {
 		HttpPost httppost = new HttpPost(url);
-		execute(httppost, ret);
+		return execute(httppost, ret);
 	}
 
-	public void call(String url, HttpEntity entity, CallRet ret) {
+	public ICancel call(String url, HttpEntity entity, CallRet ret) {
         Header header = entity.getContentType();
         String contentType = "application/octet-stream";
         if (header != null) {
             contentType = header.getValue();
         }
-		call(url, contentType, entity, ret);
+		return call(url, contentType, entity, ret);
 	}
 
-	public void call(String url, String contentType, HttpEntity entity, CallRet ret) {
+	public ICancel call(String url, String contentType, HttpEntity entity, CallRet ret) {
 		HttpPost httppost = new HttpPost(url);
 		httppost.setEntity(entity);
 
 		if (contentType != null) {
 			httppost.setHeader("Content-Type", contentType);
 		}
-		execute(httppost, ret);
+		return execute(httppost, ret);
 	}
 
-	protected void execute(HttpPost httpPost, CallRet ret) {
-		new ClientExecuter().execute(httpPost, ret);
+	protected ClientExecuter execute(HttpPost httpPost, CallRet ret) {
+        ClientExecuter client = new ClientExecuter();
+		client.execute(httpPost, ret);
+        return client;
 	}
 
 	protected HttpResponse roundtrip(HttpPost httpPost) throws IOException {
@@ -60,7 +63,7 @@ public class Client {
 		return mClient.execute(httpPost);
 	}
 
-	class ClientExecuter extends AsyncTask<Object, Object, Object> {
+	class ClientExecuter extends AsyncTask<Object, Object, Object> implements ICancel {
 		HttpPost httpPost;
 		CallRet ret;
 		
