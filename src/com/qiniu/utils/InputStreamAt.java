@@ -1,6 +1,8 @@
 package com.qiniu.utils;
 
 import android.content.Context;
+import android.os.Environment;
+import com.qiniu.auth.Client;
 import org.apache.http.Header;
 import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
@@ -18,7 +20,9 @@ public class InputStreamAt implements Closeable {
 
 	private File mTmpFile;
 	private boolean mClosed;
+	private boolean mDelWhenClose = false;
 	private long mCrc32 = -1;
+	private long mLength = -1;
 
 	/**
 	 * @param context
@@ -26,7 +30,13 @@ public class InputStreamAt implements Closeable {
 	 */
 	public static InputStreamAt fromInputStream(Context context, InputStream is) {
 		File file = storeToFile(context, is);
-		InputStreamAt isa = new InputStreamAt(file);
+		if (file == null) return null;
+		InputStreamAt isa = new InputStreamAt(file, true);
+		return isa;
+	}
+
+	public static InputStreamAt fromFile(File f) {
+		InputStreamAt isa = new InputStreamAt(f);
 		return isa;
 	}
 
@@ -35,7 +45,12 @@ public class InputStreamAt implements Closeable {
 	}
 
 	public InputStreamAt(File file) {
+		this(file, false);
+	}
+
+	public InputStreamAt(File file, boolean delWhenClose) {
 		mTmpFile = file;
+		mDelWhenClose = delWhenClose;
 		try {
 			mFileStream = new RandomAccessFile(mTmpFile, "r");
 		} catch (FileNotFoundException e) {
@@ -45,6 +60,13 @@ public class InputStreamAt implements Closeable {
 
 	public InputStreamAt(byte[] data) {
 		mData = data;
+	}
+
+	public long getCrc32(long offset, int length) {
+		CRC32 crc32 = new CRC32();
+		byte[] data = read(offset, length);
+		crc32.update(data);
+		return crc32.getValue();
 	}
 
 	public long crc32() {
@@ -66,13 +88,16 @@ public class InputStreamAt implements Closeable {
 	}
 
 	public long length() {
+		if (mLength >= 0) return mLength;
 		if (mData != null) {
-			return mData.length;
+			mLength = mData.length;
+			return mLength;
 		}
 
 		if (mFileStream != null) {
 			try {
-				return mFileStream.length();
+				mLength = mFileStream.length();
+				return mLength;
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -81,35 +106,22 @@ public class InputStreamAt implements Closeable {
 	}
 
 	protected static File storeToFile(Context context, InputStream is) {
-		File outputDir = context.getCacheDir(); // context being the Activity pointer
-		File f = null;
-		OutputStream os = null;
 		try {
-			f = File.createTempFile("qiniu-", "", outputDir);
-			os = new FileOutputStream(f);
-			byte[] buffer = new byte[4096];
+			File outputDir = getSDPath(context);
+			File f = File.createTempFile("qiniu-", "", outputDir);
+			OutputStream os = new FileOutputStream(f);
+			byte[] buffer = new byte[64 * 1024];
 			int bytesRead;
 			while ((bytesRead = is.read(buffer)) != -1) {
 				os.write(buffer, 0, bytesRead);
 			}
+			if (os != null) os.close();
+			if (is != null) is.close();
+			return f;
 		} catch (IOException e) {
 			e.printStackTrace();
+			return null;
 		}
-		if (os != null) {
-			try {
-				os.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		if (is != null) {
-			try {
-				is.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		return f;
 	}
 
 	public byte[] read(long offset, int length) {
@@ -164,7 +176,7 @@ public class InputStreamAt implements Closeable {
 			}
 		}
 
-		if (mTmpFile != null) {
+		if (mTmpFile != null && mDelWhenClose) {
 			mTmpFile.delete();
 		}
 	}
@@ -173,45 +185,60 @@ public class InputStreamAt implements Closeable {
 		return mFileStream.read(data);
 	}
 
-    public HttpEntity toHttpEntity(final long offset, final int length, final IOnProcess onProcess) {
-        final InputStreamAt input = this;
-        return new AbstractHttpEntity() {
-            @Override
-            public boolean isRepeatable() {
-                return false;
-            }
+	public HttpEntity toHttpEntity(final long offset, final int length, final Client.ClientExecuter client) {
+		final InputStreamAt input = this;
+		return new AbstractHttpEntity() {
+			@Override
+			public boolean isRepeatable() {
+				return false;
+			}
 
-            @Override
-            public long getContentLength() {
-                return length;
-            }
+			@Override
+			public long getContentLength() {
+				return length;
+			}
 
-            @Override
-            public InputStream getContent() throws IOException, IllegalStateException {
-                return null;
-            }
+			@Override
+			public InputStream getContent() throws IOException, IllegalStateException {
+				return null;
+			}
 
-            @Override
-            public void writeTo(OutputStream outputStream) throws IOException {
-                int blockSize = 128 * 1024;
-                long start = offset;
-                long initStart = start;
-                long end = offset + length;
-                long total = end - start;
-                while (start < end) {
-                    int readLength = (int) StrictMath.min((long) blockSize, end-start);
-                    outputStream.write(input.read(start, readLength));
-                    outputStream.flush();
-                    initStart += readLength;
-                    onProcess.onProcess(initStart, total);
-                    start += readLength;
-                }
-            }
+			@Override
+			public void writeTo(OutputStream outputStream) throws IOException {
+				int blockSize = 64 * 1024;
+				long start = offset;
+				long initStart = 0;
+				long end = offset + length;
+				long total = end - start;
+				while (start < end) {
+					if (mClosed) {
+						outputStream.close();
+						return;
+					}
+					int readLength = (int) StrictMath.min((long) blockSize, end-start);
+					byte[] data = input.read(start, readLength);
+					outputStream.write(data);
+					outputStream.flush();
+					initStart += readLength;
+					client.upload(initStart, total);
+					start += readLength;
+				}
+			}
 
-            @Override
-            public boolean isStreaming() {
-                return false;
-            }
-        };
-    }
+			@Override
+			public boolean isStreaming() {
+				return false;
+			}
+		};
+	}
+
+	public static File getSDPath(Context context){
+		File sdDir = context.getCacheDir();
+		boolean sdCardExist = Environment.getExternalStorageState()
+				.equals(android.os.Environment.MEDIA_MOUNTED);
+		if (sdCardExist) {
+			sdDir = Environment.getExternalStorageDirectory();
+		}
+		return sdDir;
+	}
 }
