@@ -37,38 +37,46 @@ public class ResumableClient extends Client {
 	public ICancel[] putblock(final InputStreamAt input, final PutRet putRet, final long offset, final JSONObjectRet callback) {
 		final int writeNeed = (int) Math.min(input.length()-offset, BLOCK_SIZE);
 		final ICancel[] canceler = new ICancel[] {null};
-		final long[] wrote = new long[] {0, 0};
-		final long[] crc32 = new long[] {0};
 		JSONObjectRet ret = new JSONObjectRet() {
-			@Override
-			public void onSuccess(JSONObject obj) {
-				if (writeNeed < BLOCK_SIZE) {
-					int c = 1;
-					c = 2;
-				}
-				PutRet pr = new PutRet();
-				pr.parse(obj);
-				if (crc32[0] != pr.crc32) {
-					putblock(input, putRet, offset, callback);
-//					  callback.onFailure(new Exception("not match"));
-					return;
-				}
-				putRet.parse(obj);
-				wrote[1] += wrote[0];
-				wrote[0] = 0;
-				if (putRet.offset == writeNeed) {
-					callback.onSuccess(obj);
-					return;
-				}
+			long crc32, wrote, writing = 0;
+			public void onInit(int flag) {
+				flag = putRet.isInvalid() ? 0 : 1;
+				if (flag == 0) putInit();
+				if (flag == 1) putNext();
+			}
+
+			public void putInit() {
+				int chunkSize = Math.min(writeNeed, CHUNK_SIZE);
+				crc32 = input.getCrc32(offset, chunkSize);
+				canceler[0] = mkblk(input, offset, writeNeed, chunkSize, this);
+			}
+
+			public void putNext() {
+				wrote = putRet.offset;
 				int remainLength = Math.min((int) (input.length() - offset - putRet.offset), CHUNK_SIZE);
-				crc32[0] = input.getCrc32(offset+putRet.offset, remainLength);
+				crc32 = input.getCrc32(offset+putRet.offset, remainLength);
 				canceler[0] = bput(putRet.host, input, putRet.ctx, offset, putRet.offset, remainLength, this);
 			}
 
 			@Override
+			public void onSuccess(JSONObject obj) {
+				if (crc32 != new PutRet(obj).crc32) {
+					onInit(-1);
+					return;
+				}
+				putRet.parse(obj);
+				wrote += writing;
+				if (putRet.offset == writeNeed) {
+					callback.onSuccess(obj);
+					return;
+				}
+				putNext();
+			}
+
+			@Override
 			public void onProcess(long current, long total) {
-				wrote[0] = current;
-				callback.onProcess(wrote[0]+wrote[1], writeNeed);
+				writing = current;
+				callback.onProcess(wrote+writing, writeNeed);
 			}
 
 			@Override
@@ -76,29 +84,20 @@ public class ResumableClient extends Client {
 				callback.onFailure(ex);
 			}
 		};
-		if (putRet.isInvalid()) {
-			int chunkSize = Math.min(writeNeed, CHUNK_SIZE);
-			crc32[0] = input.getCrc32(offset, chunkSize);
-			canceler[0] = mkblk(input, offset, writeNeed, chunkSize, ret);
-		} else {
-			int remainLength = Math.min((int) (input.length() - offset - putRet.offset), CHUNK_SIZE);
-			crc32[0] = input.getCrc32(offset+putRet.offset, remainLength);
-			canceler[0] = bput(putRet.host, input, putRet.ctx, offset, putRet.offset, remainLength, ret);
-		}
+		ret.onInit(-1);
 		return canceler;
 	}
 
-	public ICancel mkblk(InputStreamAt input, long offset, int blockSize, int chunkSize, CallRet ret) {
-		int remainLength = blockSize;
-		String url = Conf.UP_HOST + "/mkblk/" + remainLength;
-		ClientExecuter client = makeClientExecuter();
-		call(client, url, input.toHttpEntity(offset, chunkSize, client), ret);
+	public ICancel mkblk(InputStreamAt input, long offset, int blockSize, int writeSize, CallRet ret) {
+		String url = Conf.UP_HOST + "/mkblk/" + blockSize;
+		ClientExecutor client = makeClientExecutor();
+		call(client, url, input.toHttpEntity(offset, writeSize, client), ret);
 		return client;
 	}
 
 	public ICancel bput(String host, InputStreamAt input, String ctx, long blockOffset, long offset, int writeLength, CallRet ret) {
 		String url = host + "/bput/" + ctx + "/" + offset;
-		ClientExecuter client = makeClientExecuter();
+		ClientExecutor client = makeClientExecutor();
 		call(client, url, input.toHttpEntity(blockOffset+offset, writeLength, client), ret);
 		return client;
 	}
@@ -116,17 +115,13 @@ public class ResumableClient extends Client {
 				url += "/" + a.getKey() + "/" + encode(a.getValue());
 			}
 		}
-		StringEntity se;
 		try {
-			se = new StringEntity(ctxs);
+			return call(makeClientExecutor(), url, new StringEntity(ctxs), ret);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			ret.onFailure(e);
 			return null;
 		}
-		ClientExecuter client = makeClientExecuter();
-		call(client, url, se, ret);
-		return client;
 	}
 
 	public String encode(String data) {

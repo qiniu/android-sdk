@@ -16,7 +16,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
@@ -29,30 +28,30 @@ public class Client {
 		mClient = client;
 	}
 
-	public void call(ClientExecuter client, String url, HttpEntity entity, CallRet ret) {
+	public ClientExecutor call(ClientExecutor client, String url, HttpEntity entity, CallRet ret) {
 		Header header = entity.getContentType();
 		String contentType = "application/octet-stream";
 		if (header != null) {
 			contentType = header.getValue();
 		}
-		call(client, url, contentType, entity, ret);
+		return call(client, url, contentType, entity, ret);
 	}
 
-	public void call(ClientExecuter client, String url, String contentType, HttpEntity entity, CallRet ret) {
+	public ClientExecutor call(ClientExecutor client, String url, String contentType, HttpEntity entity, CallRet ret) {
 		HttpPost httppost = new HttpPost(url);
 		httppost.setEntity(entity);
 
 		if (contentType != null) {
 			httppost.setHeader("Content-Type", contentType);
 		}
-		execute(client, httppost, ret);
+		return execute(client, httppost, ret);
 	}
 
-	public ClientExecuter makeClientExecuter() {
-		return new ClientExecuter();
+	public ClientExecutor makeClientExecutor() {
+		return new ClientExecutor();
 	}
 
-	protected ClientExecuter execute(ClientExecuter client, HttpPost httpPost, final CallRet ret) {
+	protected ClientExecutor execute(ClientExecutor client, HttpPost httpPost, final CallRet ret) {
 		client.setup(httpPost, ret);
 		client.execute();
 		return client;
@@ -63,7 +62,7 @@ public class Client {
 		return mClient.execute(httpPost);
 	}
 
-	public class ClientExecuter extends AsyncTask<Object, Object, Object> implements ICancel {
+	public class ClientExecutor extends AsyncTask<Object, Object, Object> implements ICancel {
 		HttpPost mHttpPost;
 		CallRet mRet;
 		public void setup(HttpPost httpPost, CallRet ret) {
@@ -121,11 +120,10 @@ public class Client {
 	}
 
 	public static HttpClient getMultithreadClient() {
-		HttpParams params = new BasicHttpParams();
-		SchemeRegistry registry = new SchemeRegistry();
-		registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-		ClientConnectionManager cm = new ThreadSafeClientConnManager(params, registry);
-		HttpClient client = new DefaultHttpClient(cm, params);
+		HttpClient client = new DefaultHttpClient();
+		ClientConnectionManager mgr = client.getConnectionManager();
+		HttpParams params = client.getParams();
+		client = new DefaultHttpClient(new ThreadSafeClientConnManager(params, mgr.getSchemeRegistry()), params);
 		return client;
 	}
 }

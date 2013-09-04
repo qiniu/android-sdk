@@ -27,5 +27,11 @@
             android:id="@+id/textView1"
             android:layout_marginBottom="20dp"
             android:layout_centerHorizontal="true" android:layout_above="@+id/button1"/>
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="断点续上传"
+            android:id="@+id/button"
+            android:layout_alignParentRight="true" android:layout_alignParentBottom="true"/>
 </RelativeLayout>
 

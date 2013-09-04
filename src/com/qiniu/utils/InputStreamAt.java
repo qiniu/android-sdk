@@ -3,11 +3,7 @@ package com.qiniu.utils;
 import android.content.Context;
 import android.os.Environment;
 import com.qiniu.auth.Client;
-import org.apache.http.Header;
-import org.apache.http.HeaderElement;
 import org.apache.http.HttpEntity;
-import org.apache.http.ParseException;
-import org.apache.http.client.methods.HttpHead;
 import org.apache.http.entity.AbstractHttpEntity;
 
 import java.io.*;
@@ -185,7 +181,7 @@ public class InputStreamAt implements Closeable {
 		return mFileStream.read(data);
 	}
 
-	public HttpEntity toHttpEntity(final long offset, final int length, final Client.ClientExecuter client) {
+	public HttpEntity toHttpEntity(final long offset, final int length, final Client.ClientExecutor client) {
 		final InputStreamAt input = this;
 		return new AbstractHttpEntity() {
 			@Override

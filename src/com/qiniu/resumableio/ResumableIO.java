@@ -3,6 +3,7 @@ package com.qiniu.resumableio;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.text.TextUtils;
 import com.qiniu.auth.Client;
 import com.qiniu.auth.JSONObjectRet;
 import com.qiniu.utils.ICancel;
@@ -17,7 +18,6 @@ import java.util.HashMap;
 public class ResumableIO {
 	ResumableClient mClient;
 	private int BLOCK_SIZE = 4 * 1024 * 1024;
-	private int CHUNK_SIZE = 256 * 1024;
 	private static int atomicId = 0;
 	static HashMap<Integer, ICancel> idCancels = new HashMap<Integer, ICancel>();
 
@@ -65,15 +65,11 @@ public class ResumableIO {
 
 	public int put(final String key, final InputStreamAt input, final PutExtra extra, final JSONObjectRet ret) {
 		final int blkCount = (int) (input.length() / BLOCK_SIZE) + 1;
-		if (extra.processes == null) {
-			extra.processes = new PutRet[blkCount];
-			for (int i=0; i<extra.processes.length; i++) {
-				extra.processes[i] = new PutRet();
-			}
-		}
+		if (extra.processes == null)  extra.processes = new PutRet[blkCount];
 		final int[] success = new int[] {0};
 		final long[] uploaded = new long[blkCount];
 		final ICancel[][] cancelers = new ICancel[blkCount][1];
+		final boolean[] failure = new boolean[] {false};
 		final int taskId = newTask(new ICancel() {
 
 			@Override
@@ -82,56 +78,60 @@ public class ResumableIO {
 					if (cancel == null || cancel[0] == null) continue;
 					cancel[0].cancel(true);
 				}
+				failure[0] = true;
 				ret.onPause(extra);
 				return false;
 			}
 		});
-		final boolean[] failured = new boolean[] {false};
 		for (int i=0; i<blkCount; i++) {
-			final long startPos = i * BLOCK_SIZE;
-			final int index = i;
-			cancelers[i] = mClient.putblock(input, extra.processes[i], startPos, new JSONObjectRet() {
-				int retryTime = 5;
-				@Override
-				public void onSuccess(JSONObject obj) {
-					if (failured[0]) return;
+			if (extra.processes[i] != null) {
+				uploaded[i] = extra.processes[i].offset;
+				if (uploaded[i] == BLOCK_SIZE) {
 					success[0]++;
-					if (success[0] == blkCount) {
-						String ctxes = "";
-						for (PutRet ret: extra.processes) {
-							ctxes += "," + ret.ctx;
-						}
-						if (ctxes.length() > 0) {
-							ctxes = ctxes.substring(1);
-						}
-						removeTask(taskId);
-						mClient.mkfile(key, input.length(), extra.mimeType, extra.params, ctxes, ret);
-					}
+					continue;
+				}
+			}
+			if (extra.processes[i] == null) extra.processes[i] = new PutRet();
+			final long startPos = i * BLOCK_SIZE;
+			cancelers[i] = mClient.putblock(input, extra.processes[i], startPos, new JSONObjectRet(i) {
+				int retryTime = 5;
+
+				private void onAllSuccess() {
+					String ctx = "";
+					for (PutRet ret: extra.processes) ctx += "," + ret.ctx;
+					if (ctx.length() > 0) ctx = ctx.substring(1);
+					removeTask(taskId);
+					mClient.mkfile(key, input.length(), extra.mimeType, extra.params, ctx, ret);
 				}
 
 				@Override
-				public synchronized void onProcess(long current, long total) {
-					if (failured[0]) return;
-					uploaded[index] = current;
+				public void onSuccess(JSONObject obj) {
+					if (failure[0] || ++success[0] != blkCount) return;
+					onAllSuccess();
+				}
+
+				@Override
+				public void onProcess(long current, long total) {
+					if (failure[0]) return;
+					uploaded[mIdx] = current;
 					current = 0;
-					for (long c: uploaded) { current += c; }
+					for (long c: uploaded) current += c;
 					ret.onProcess(current, input.length());
 				}
 
 				@Override
 				public void onFailure(Exception ex) {
-					retryTime--;
-					if (retryTime <= 0 || (ex.getMessage() != null && ex.getMessage().contains("Unauthorized"))) {
+					if (--retryTime <= 0 || (ex.getMessage() != null && ex.getMessage().contains("Unauthorized"))) {
 						removeTask(taskId);
-						failured[0] = true;
+						failure[0] = true;
 						ret.onFailure(ex);
 						return;
 					}
 					if (ex.getMessage() != null && ex.getMessage().contains("invalid BlockCtx")) {
-						uploaded[index] = 0;
-						extra.processes[index] = new PutRet();
+						uploaded[mIdx] = 0;
+						extra.processes[mIdx] = new PutRet();
 					}
-					cancelers[index] = mClient.putblock(input, extra.processes[index], startPos, this);
+					cancelers[mIdx] = mClient.putblock(input, extra.processes[mIdx], startPos, this);
 				}
 			});
 		}
@@ -140,39 +140,30 @@ public class ResumableIO {
 	}
 
 	public int putFile(String key, File file, PutExtra extra, final JSONObjectRet ret) {
-		final InputStreamAt isa = InputStreamAt.fromFile(file);
-		return putAndClose(key, isa, extra, ret);
+		return putAndClose(key, InputStreamAt.fromFile(file), extra, ret);
 	}
 
 	public int putFile(Context mContext, String key, Uri uri, PutExtra extra, final JSONObjectRet ret) {
-		if (!uri.toString().startsWith("file")) {
-			uri = convertFileUri(mContext, uri);
-		}
-		File file = null;
+		if (!uri.toString().startsWith("file")) uri = convertFileUri(mContext, uri);
 		try {
-			file = new File(new URI(uri.toString()));
+			File file = new File(new URI(uri.toString()));
+			if (file.exists()) return putAndClose(key, InputStreamAt.fromFile(file), extra, ret);
+			ret.onFailure(new Exception("file not exist: " + uri.toString()));
 		} catch (URISyntaxException e) {
-			e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+			e.printStackTrace();
 			ret.onFailure(e);
-			return -1;
 		}
-		if (!file.exists()) {
-			ret.onFailure(new Exception("not exist"));
-			return -1;
-		}
-		InputStreamAt isa = InputStreamAt.fromFile(file);
-		return putAndClose(key, isa, extra, ret);
+		return -1;
 	}
 
 	public static Uri convertFileUri(Context mContext, Uri uri) {
-		String filePath = null;
+		String filePath;
 		if (uri != null && "content".equals(uri.getScheme())) {
 			Cursor cursor = mContext.getContentResolver().query(uri, new String[] { android.provider.MediaStore.Images.ImageColumns.DATA }, null, null, null);
 			cursor.moveToFirst();
 			filePath = cursor.getString(0);
 			cursor.close();
-		}
-		else {
+		} else {
 			filePath = uri.getPath();
 		}
 		return Uri.parse("file://" + filePath);

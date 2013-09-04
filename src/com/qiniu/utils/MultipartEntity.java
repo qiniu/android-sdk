@@ -83,9 +83,9 @@ public class MultipartEntity extends AbstractHttpEntity  {
 
 	class FileInfo {
 
-		public String mField;
-		public String mContentType;
-		public String mFilename;
+		public String mField = "";
+		public String mContentType = "";
+		public String mFilename = "";
 		public InputStreamAt mIsa;
 
 		public FileInfo(String field, String contentType, String filename, InputStreamAt isa) {

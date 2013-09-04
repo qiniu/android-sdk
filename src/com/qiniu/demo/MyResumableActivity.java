@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 import com.qiniu.R;
 import com.qiniu.auth.JSONObjectRet;
 import com.qiniu.resumableio.PutExtra;
@@ -24,13 +25,6 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.resumable);
 		initWidget();
-		// doResumableUpload(Uri.parse("content://media/external/images/media/13"));
-		doResumableUpload(Uri.parse("file:///sdcard/update.bin"));
-		// doResumableUpload(Uri.parse("file:///sdcard/googlechrome.dmg"));
-		// doResumableUpload(Uri.parse("file:///sdcard/py.pdf"));
-		// doResumableUpload(Uri.parse("file:///sdcard/mongo.pdf"));
-		// doResumableUpload(Uri.parse("file:///sdcard/cocoa.pdf"));
-		// doResumableUpload(Uri.parse("file:///sdcard/iPadHIG.pdf"));
 	}
 
 	public void initWidget() {
@@ -51,42 +45,53 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 			return;
 		}
 		if (view.equals(stop)) {
+			if (uploadUri == null) {
+				Toast.makeText(this, "还没开始任务", 20).show();
+				return;
+			}
+			if (taskId >= 0) {
+				ResumableIO.stop(taskId);
+				stop.setText("开始");
+				hint.setText("暂停");
+				taskId = -1;
+				return;
+			}
+			stop.setText("暂停");
+			hint.setText("连接中");
+			doResumableUpload(uploadUri, mExtra);
 			return;
 		}
 	}
+	int taskId = -1;
+	Uri uploadUri;
+	PutExtra mExtra;
 
-	public void doResumableUpload(Uri uri) {
+	public void doResumableUpload(final Uri uri, PutExtra extra) {
+		hint.setText("连接中");
 		String key = null;
-		String token = "tGf47MBl1LyT9uaNv-NZV4XZe7sKxOIa9RE2Lp8B:8xaK55po0nAkO3rADngxgPUi1XU=:eyJzY29wZSI6InNkayIsImRlYWRsaW5lIjoxMzc4NTM5MjgwfQ==";
-		PutExtra extra = new PutExtra();
-		ResumableIO.putFile(this, token, key, uri, extra, new JSONObjectRet() {
+		String token = "<token>";
+		taskId = ResumableIO.putFile(this, token, key, uri, extra, new JSONObjectRet() {
 			@Override
 			public void onSuccess(JSONObject obj) {
-				String a = "pQkrBWWH2bvFMZ-sj9_StPy-Qhf7";
-				String b = obj.optString("key", "");
-				if (b != a) {
-					String j = b;
-					j += "df";
-				}
-				hint.setText(b);
+				hint.setText("上传成功: " + obj.optString("key", ""));
 			}
 
 			@Override
 			public void onProcess(long current, long total) {
-				int percent = (int) (current*100/total);
-				hint.setText(percent + "");
-				pb.setProgress(percent);
+				float percent = (float) (current*10000/total) / 100;
+				hint.setText("上传中: " + percent + "%");
+				pb.setProgress((int) percent);
 			}
 
 			@Override
 			public void onPause(Object tag) {
-				super.onPause(tag);
+				uploadUri = uri;
+				mExtra = (PutExtra) tag;
 			}
 
 			@Override
 			public void onFailure(Exception ex) {
 				hint.setText(ex.getMessage());
-				ex = null;
 			}
 		});
 	}
@@ -94,7 +99,7 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (resultCode != RESULT_OK) return;
-		doResumableUpload(data.getData());
+		doResumableUpload(data.getData(), new PutExtra());
 	}
 
 	public void selectFile() {
