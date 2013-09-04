@@ -7,6 +7,7 @@ import com.qiniu.auth.JSONObjectRet;
 import com.qiniu.conf.Conf;
 import com.qiniu.utils.InputStreamAt;
 import com.qiniu.utils.MultipartEntity;
+import org.apache.http.client.HttpClient;
 import org.json.JSONObject;
 
 import java.io.FileNotFoundException;
@@ -28,15 +29,15 @@ public class IO {
 		}
 		return mClient;
 	}
-
+哈哈
 	/**
 	 * 上传二进制
 	 *
 	 * @param uptoken 用于上传的验证信息
-	 * @param key     键值名, UNDEFINED_KEY 表示自动生成key
-	 * @param isa     二进制数据
+	 * @param key	  键值名, UNDEFINED_KEY 表示自动生成key
+	 * @param isa	  二进制数据
 	 * @param extra   上传参数
-	 * @param ret     回调函数
+	 * @param ret	  回调函数
 	 */
 	public static void put(String uptoken, String key, InputStreamAt isa, PutExtra extra, JSONObjectRet ret) {
 
@@ -52,24 +53,25 @@ public class IO {
 			ret.onFailure(new Exception("uptoken not specify"));
 			return;
 		}
-		
+
 		if (extra.checkCrc == PutExtra.AUTO_CRC32) {
 			extra.crc32 = isa.crc32();
 		}
 		if (extra.checkCrc != PutExtra.UNUSE_CRC32) {
 			m.addField("crc32", extra.crc32 + "");
 		}
-		
+	
 		for (Map.Entry<String, String> i: extra.params.entrySet()) {
 			m.addField(i.getKey(), i.getValue());
 		}
 
 		m.addField("token", uptoken);
 		m.addFile("file", extra.mimeType, key, isa);
-        m.setProcessNotify(ret);
+		m.setProcessNotify(ret);
 
-
-		defaultClient().call(Conf.UP_HOST, m, ret);
+		Client client = defaultClient();
+		Client.ClientExecuter executer = client.makeClientExecuter();
+		client.call(executer, Conf.UP_HOST, m, ret);
 	}
 
 	/**
@@ -99,12 +101,12 @@ public class IO {
 				ret.onSuccess(obj);
 			}
 
-            @Override
-            public void onProcess(long current, long total) {
-                ret.onProcess(current, total);
-            }
+			@Override
+			public void onProcess(long current, long total) {
+				ret.onProcess(current, total);
+			}
 
-            @Override
+			@Override
 			public void onFailure(Exception ex) {
 				isa.close();
 				ret.onFailure(ex);
@@ -112,3 +114,4 @@ public class IO {
 		});
 	}
 }
+
