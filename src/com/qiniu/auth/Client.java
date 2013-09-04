@@ -16,46 +16,46 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 
 public class Client {
-	
+
 	protected HttpClient mClient;
-	
+
 	public Client(HttpClient client) {
 		mClient = client;
 	}
 
-	public ICancel call(String url, CallRet ret) {
-		HttpPost httppost = new HttpPost(url);
-		return execute(httppost, ret);
+	public void call(ClientExecuter client, String url, HttpEntity entity, CallRet ret) {
+		Header header = entity.getContentType();
+		String contentType = "application/octet-stream";
+		if (header != null) {
+			contentType = header.getValue();
+		}
+		call(client, url, contentType, entity, ret);
 	}
 
-	public ICancel call(String url, HttpEntity entity, CallRet ret) {
-        Header header = entity.getContentType();
-        String contentType = "application/octet-stream";
-        if (header != null) {
-            contentType = header.getValue();
-        }
-		return call(url, contentType, entity, ret);
-	}
-
-	public ICancel call(String url, String contentType, HttpEntity entity, CallRet ret) {
+	public void call(ClientExecuter client, String url, String contentType, HttpEntity entity, CallRet ret) {
 		HttpPost httppost = new HttpPost(url);
 		httppost.setEntity(entity);
 
 		if (contentType != null) {
 			httppost.setHeader("Content-Type", contentType);
 		}
-		return execute(httppost, ret);
+		execute(client, httppost, ret);
 	}
 
-	protected ClientExecuter execute(HttpPost httpPost, CallRet ret) {
-        ClientExecuter client = new ClientExecuter();
-		client.execute(httpPost, ret);
-        return client;
+	public ClientExecuter makeClientExecuter() {
+		return new ClientExecuter();
+	}
+
+	protected ClientExecuter execute(ClientExecuter client, HttpPost httpPost, final CallRet ret) {
+		client.setup(httpPost, ret);
+		client.execute();
+		return client;
 	}
 
 	protected HttpResponse roundtrip(HttpPost httpPost) throws IOException {
@@ -63,30 +63,35 @@ public class Client {
 		return mClient.execute(httpPost);
 	}
 
-	class ClientExecuter extends AsyncTask<Object, Object, Object> implements ICancel {
-		HttpPost httpPost;
-		CallRet ret;
+	public class ClientExecuter extends AsyncTask<Object, Object, Object> implements ICancel {
+		HttpPost mHttpPost;
+		CallRet mRet;
+		public void setup(HttpPost httpPost, CallRet ret) {
+			mHttpPost = httpPost;
+			mRet = ret;
+		}
+		public void upload(long current, long total) {
+			publishProgress(current, total);
+		}
 		
 		@Override
 		protected Object doInBackground(Object... objects) {
-			httpPost = (HttpPost) objects[0];
-			ret = (CallRet) objects[1];
 			try {
-				HttpResponse resp = roundtrip(httpPost);
-                int statusCode = resp.getStatusLine().getStatusCode();
-                if (statusCode == 401) { // android 2.3 will not response
-                    return new Exception(resp.getStatusLine().getReasonPhrase());
-                }
+				HttpResponse resp = roundtrip(mHttpPost);
+				int statusCode = resp.getStatusLine().getStatusCode();
+				if (statusCode == 401) { // android 2.3 will not response
+					return new Exception(resp.getStatusLine().getReasonPhrase());
+				}
 				byte[] data = EntityUtils.toByteArray(resp.getEntity());
 
 				if (statusCode / 100 != 2) {
-                    if (data.length == 0) {
-                        String xlog = resp.getFirstHeader("X-Log").getValue();
-                        if (xlog.length() > 0) {
-                            return new Exception(xlog);
-                        }
-                        return new Exception(resp.getStatusLine().getReasonPhrase());
-                    }
+					if (data.length == 0) {
+						String xlog = resp.getFirstHeader("X-Log").getValue();
+						if (xlog.length() > 0) {
+							return new Exception(xlog);
+						}
+						return new Exception(resp.getStatusLine().getReasonPhrase());
+					}
 					return new Exception(new String(data));
 				}
 				return data;
@@ -97,12 +102,17 @@ public class Client {
 		}
 
 		@Override
+		protected void onProgressUpdate(Object... values) {
+			mRet.onProcess((Long) values[0], (Long) values[1]);
+		}
+
+		@Override
 		protected void onPostExecute(Object o) {
 			if (o instanceof Exception) {
-				ret.onFailure((Exception) o);
+				mRet.onFailure((Exception) o);
 				return;
 			}
-			ret.onSuccess((byte[]) o);
+			mRet.onSuccess((byte[]) o);
 		}
 	};
 
