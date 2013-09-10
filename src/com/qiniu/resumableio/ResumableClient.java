@@ -34,7 +34,7 @@ public class ResumableClient extends Client {
 		return super.roundtrip(httpPost);
 	}
 
-	public ICancel[] putblock(final InputStreamAt input, final PutRet putRet, final long offset, final JSONObjectRet callback) {
+	public ICancel[] putblock(final InputStreamAt input, final PutExtra extra, final PutRet putRet, final long offset, final JSONObjectRet callback) {
 		final int writeNeed = (int) Math.min(input.length()-offset, BLOCK_SIZE);
 		final ICancel[] canceler = new ICancel[] {null};
 		JSONObjectRet ret = new JSONObjectRet() {
@@ -65,6 +65,7 @@ public class ResumableClient extends Client {
 					return;
 				}
 				putRet.parse(obj);
+				if (extra.notify != null) extra.notify.onSuccessUpload(extra);
 				wrote += writing;
 				if (putRet.offset == writeNeed) {
 					callback.onSuccess(obj);

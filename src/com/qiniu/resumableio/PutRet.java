@@ -1,5 +1,6 @@
 package com.qiniu.resumableio;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class PutRet {
@@ -20,5 +21,14 @@ public class PutRet {
 		checksum = obj.optString("checksum", "");
 		offset = obj.optInt("offset", 0);
 		return this;
+	}
+	public JSONObject toJSON() throws JSONException {
+		JSONObject json = new JSONObject();
+		json.put("crc32", crc32);
+		json.put("checksum", checksum);
+		json.put("offset", offset);
+		json.put("host", host);
+		json.put("ctx", ctx);
+		return json;
 	}
 }

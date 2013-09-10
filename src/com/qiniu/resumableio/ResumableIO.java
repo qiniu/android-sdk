@@ -3,7 +3,6 @@ package com.qiniu.resumableio;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.text.TextUtils;
 import com.qiniu.auth.Client;
 import com.qiniu.auth.JSONObjectRet;
 import com.qiniu.utils.ICancel;
@@ -66,6 +65,7 @@ public class ResumableIO {
 	public int put(final String key, final InputStreamAt input, final PutExtra extra, final JSONObjectRet ret) {
 		final int blkCount = (int) (input.length() / BLOCK_SIZE) + 1;
 		if (extra.processes == null)  extra.processes = new PutRet[blkCount];
+		extra.totalSize = input.length();
 		final int[] success = new int[] {0};
 		final long[] uploaded = new long[blkCount];
 		final ICancel[][] cancelers = new ICancel[blkCount][1];
@@ -93,7 +93,7 @@ public class ResumableIO {
 			}
 			if (extra.processes[i] == null) extra.processes[i] = new PutRet();
 			final long startPos = i * BLOCK_SIZE;
-			cancelers[i] = mClient.putblock(input, extra.processes[i], startPos, new JSONObjectRet(i) {
+			cancelers[i] = mClient.putblock(input, extra, extra.processes[i], startPos, new JSONObjectRet(i) {
 				int retryTime = 5;
 
 				private void onAllSuccess() {
@@ -131,7 +131,7 @@ public class ResumableIO {
 						uploaded[mIdx] = 0;
 						extra.processes[mIdx] = new PutRet();
 					}
-					cancelers[mIdx] = mClient.putblock(input, extra.processes[mIdx], startPos, this);
+					cancelers[mIdx] = mClient.putblock(input, extra, extra.processes[mIdx], startPos, this);
 				}
 			});
 		}

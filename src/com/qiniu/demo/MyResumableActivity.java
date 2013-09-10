@@ -13,7 +13,10 @@ import com.qiniu.R;
 import com.qiniu.auth.JSONObjectRet;
 import com.qiniu.resumableio.PutExtra;
 import com.qiniu.resumableio.ResumableIO;
+import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.HashMap;
 
 public class MyResumableActivity extends Activity implements View.OnClickListener {
 	private ProgressBar pb;
@@ -70,6 +73,8 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 		hint.setText("连接中");
 		String key = null;
 		String token = "<token>";
+		extra.params = new HashMap<String, String>();
+		extra.params.put("x:a", "bb");
 		taskId = ResumableIO.putFile(this, token, key, uri, extra, new JSONObjectRet() {
 			@Override
 			public void onSuccess(JSONObject obj) {
@@ -99,7 +104,23 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		if (resultCode != RESULT_OK) return;
-		doResumableUpload(data.getData(), new PutExtra());
+		PutExtra e = new PutExtra();
+		e.notify = new PutExtra.INotify() {
+			@Override
+			public void onSuccessUpload(PutExtra ex) {
+				if (ex.isFinishAll()) return;
+				JSONObject json;
+				try {
+					json = ex.toJSON();
+				} catch (JSONException e1) {
+					e1.printStackTrace();
+					return;
+				}
+				// store to disk
+				// restore PutExtra by new PutExtra(JSONObject);
+			}
+		};
+		doResumableUpload(data.getData(), e);
 	}
 
 	public void selectFile() {
