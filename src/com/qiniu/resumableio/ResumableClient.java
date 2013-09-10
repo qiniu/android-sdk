@@ -105,10 +105,10 @@ public class ResumableClient extends Client {
 
 	public ICancel mkfile(String key, long fsize, String mimeType, Map<String, String> params, String ctxs, CallRet ret) {
 		String url = Conf.UP_HOST + "/mkfile/" + fsize;
-		if (mimeType != null) {
+		if (mimeType != null && mimeType.length() > 0) {
 			url += "/mimeType/" + encode(mimeType);
 		}
-		if (key != null) {
+		if (key != null && key.length() > 0) {
 			url += "/key/" + encode(key);
 		}
 		if (params != null && params.size() > 0) {
