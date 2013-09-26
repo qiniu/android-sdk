@@ -110,7 +110,9 @@ public class MultipartEntity extends AbstractHttpEntity  {
 			writed += data.length;
 			if (mNotify != null) mNotify.onProcess(writed, getContentLength());
 
-			int blockSize = 256 * 1024;
+			int blockSize = (int) (getContentLength() / 100);
+			if (blockSize > 256 * 1024) blockSize = 256 * 1024;
+			if (blockSize < 16 * 1024) blockSize = 16 * 1024;
 			long index = 0;
 			long length = mIsa.length();
 			while (index < length) {

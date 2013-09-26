@@ -7,7 +7,10 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
@@ -26,6 +29,11 @@ public class Client {
 
 	public Client(HttpClient client) {
 		mClient = client;
+	}
+
+	public static ClientExecutor get(String url, CallRet ret) {
+		Client client = Client.defaultClient();
+		return client.get(client.makeClientExecutor(), url, ret);
 	}
 
 	public ClientExecutor call(ClientExecutor client, String url, HttpEntity entity, CallRet ret) {
@@ -47,26 +55,30 @@ public class Client {
 		return execute(client, httppost, ret);
 	}
 
+	public ClientExecutor get(ClientExecutor client, String url, CallRet ret) {
+		return execute(client, new HttpGet(url), ret);
+	}
+
 	public ClientExecutor makeClientExecutor() {
 		return new ClientExecutor();
 	}
 
-	protected ClientExecutor execute(ClientExecutor client, HttpPost httpPost, final CallRet ret) {
-		client.setup(httpPost, ret);
+	protected ClientExecutor execute(ClientExecutor client, HttpRequestBase httpRequest, final CallRet ret) {
+		client.setup(httpRequest, ret);
 		client.execute();
 		return client;
 	}
 
-	protected HttpResponse roundtrip(HttpPost httpPost) throws IOException {
-		httpPost.setHeader("User-Agent", Conf.USER_AGENT);
-		return mClient.execute(httpPost);
+	protected HttpResponse roundtrip(HttpRequestBase httpRequest) throws IOException {
+		httpRequest.setHeader("User-Agent", Conf.USER_AGENT);
+		return mClient.execute(httpRequest);
 	}
 
 	public class ClientExecutor extends AsyncTask<Object, Object, Object> implements ICancel {
-		HttpPost mHttpPost;
+		HttpRequestBase mHttpRequest;
 		CallRet mRet;
-		public void setup(HttpPost httpPost, CallRet ret) {
-			mHttpPost = httpPost;
+		public void setup(HttpRequestBase httpRequest, CallRet ret) {
+			mHttpRequest = httpRequest;
 			mRet = ret;
 		}
 		public void upload(long current, long total) {
@@ -76,10 +88,10 @@ public class Client {
 		@Override
 		protected Object doInBackground(Object... objects) {
 			try {
-				HttpResponse resp = roundtrip(mHttpPost);
+				HttpResponse resp = roundtrip(mHttpRequest);
 				int statusCode = resp.getStatusLine().getStatusCode();
 				if (statusCode == 401) { // android 2.3 will not response
-					return new Exception(resp.getStatusLine().getReasonPhrase());
+					return new Exception("unauthorized!");
 				}
 				byte[] data = EntityUtils.toByteArray(resp.getEntity());
 
