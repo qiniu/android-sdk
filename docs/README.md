@@ -15,6 +15,7 @@ title: Android SDK 使用指南
 - [接入SDK](#load)
 - [使用SDK上传文件](#upload)
 - [SDK 内置 demo 说明](#demo)
+- [并发特性](#concurrency)
 - [贡献代码](#contributing)
 - [许可证](#license)
 
@@ -130,6 +131,13 @@ private void doUpload(Uri uri) {
 ## SDK 内置 demo 说明
 
 注意：demo 程序无法直接运行，需要配置 `UpToken`, `BucketName`, `Domain`信息, 将其填写到 MyActivity 之中。`key`值可以在操作界面修改。当文件上传成功时，会试图跳转到浏览器访问已经上传的资源。如果失败，会toast提示。
+
+
+<a name="concurrency"></a>
+
+## 并发特性
+
+此 Android SDK 不是线程安全的，请勿在没有保护的情况下跨线程使用。
 
 
 <a name="contributing"></a>
