@@ -56,6 +56,8 @@ title: Android SDK 使用指南
 
 出于安全考虑，此 SDK 不提供 `downloadToken` 的生成。除 Android / iOS SDK 以外，七牛云存储其他编程语言的 SDK 都有提供签发私有资源下载授权凭证（downloadToken）的实现。
 
+**注意： key必须采用utf8编码，如使用非utf8编码访问七牛云存储将反馈错误**
+
 <a name="load"></a>
 
 ## 接入SDK
