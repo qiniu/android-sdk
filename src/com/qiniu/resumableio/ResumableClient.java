@@ -9,7 +9,7 @@ import com.qiniu.utils.ICancel;
 import com.qiniu.utils.InputStreamAt;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.StringEntity;
 import org.json.JSONObject;
 
@@ -27,11 +27,11 @@ public class ResumableClient extends Client {
 	}
 
 	@Override
-	protected HttpResponse roundtrip(HttpPost httpPost) throws IOException {
+	protected HttpResponse roundtrip(HttpRequestBase httpRequest) throws IOException {
 		if (mUpToken != null) {
-			httpPost.setHeader("Authorization", "UpToken " + mUpToken);
+			httpRequest.setHeader("Authorization", "UpToken " + mUpToken);
 		}
-		return super.roundtrip(httpPost);
+		return super.roundtrip(httpRequest);
 	}
 
 	public ICancel[] putblock(final InputStreamAt input, final PutExtra extra, final PutRet putRet, final long offset, final JSONObjectRet callback) {
