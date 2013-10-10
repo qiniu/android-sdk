@@ -2,6 +2,9 @@
 title: Android SDK 使用指南
 ---
 
+- Android SDK 下载地址：<https://github.com/qiniu/android-sdk/tags>
+- Android SDK 源码地址：<https://github.com/qiniu/android-sdk> (请注意非 master 分支的代码在规格上可能承受变更)
+
 此 Android SDK 基于 [七牛云存储官方API](http://docs.qiniu.com/api/index.html) 构建。在开发者的 Android App 工程项目中使用此 SDK 能够非常方便地将 Android 系统里边的文件快速直传到七牛云存储。
 
 出于安全考虑，使用此 SDK 无需设置密钥（AccessKey / SecretKey）。所有涉及到授权的操作，比如生成上传授权凭证（uploadToken）或下载授权凭证（downloadToken）均在业务服务器端进行。
