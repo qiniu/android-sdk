@@ -2,10 +2,15 @@ package com.qiniu.auth;
 
 import android.os.AsyncTask;
 import com.qiniu.conf.Conf;
+import com.qiniu.utils.ICancel;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
@@ -19,86 +24,106 @@ import org.apache.http.util.EntityUtils;
 import java.io.IOException;
 
 public class Client {
-	
+
 	protected HttpClient mClient;
-	
+
 	public Client(HttpClient client) {
 		mClient = client;
 	}
 
-	public void call(String url, CallRet ret) {
-		HttpPost httppost = new HttpPost(url);
-		execute(httppost, ret);
+	public static ClientExecutor get(String url, CallRet ret) {
+		Client client = Client.defaultClient();
+		return client.get(client.makeClientExecutor(), url, ret);
 	}
 
-	public void call(String url, HttpEntity entity, CallRet ret) {
-		call(url, entity.getContentType().getValue(), entity, ret);
+	public ClientExecutor call(ClientExecutor client, String url, HttpEntity entity, CallRet ret) {
+		Header header = entity.getContentType();
+		String contentType = "application/octet-stream";
+		if (header != null) {
+			contentType = header.getValue();
+		}
+		return call(client, url, contentType, entity, ret);
 	}
 
-	public void call(String url, String contentType, HttpEntity entity, CallRet ret) {
+	public ClientExecutor call(ClientExecutor client, String url, String contentType, HttpEntity entity, CallRet ret) {
 		HttpPost httppost = new HttpPost(url);
 		httppost.setEntity(entity);
 
 		if (contentType != null) {
 			httppost.setHeader("Content-Type", contentType);
 		}
-		execute(httppost, ret);
+		return execute(client, httppost, ret);
 	}
 
-	protected void execute(HttpPost httpPost, CallRet ret) {
-		new ClientExecuter().execute(httpPost, ret);
+	public ClientExecutor get(ClientExecutor client, String url, CallRet ret) {
+		return execute(client, new HttpGet(url), ret);
 	}
 
-	protected HttpResponse roundtrip(HttpPost httpPost) throws IOException {
-		httpPost.setHeader("User-Agent", Conf.USER_AGENT);
-		return mClient.execute(httpPost);
+	public ClientExecutor makeClientExecutor() {
+		return new ClientExecutor();
 	}
 
-	class ClientExecuter extends AsyncTask<Object, Object, Object> {
-		HttpPost httpPost;
-		CallRet ret;
+	protected ClientExecutor execute(ClientExecutor client, HttpRequestBase httpRequest, final CallRet ret) {
+		client.setup(httpRequest, ret);
+		client.execute();
+		return client;
+	}
+
+	protected HttpResponse roundtrip(HttpRequestBase httpRequest) throws IOException {
+		httpRequest.setHeader("User-Agent", Conf.USER_AGENT);
+		return mClient.execute(httpRequest);
+	}
+
+	public class ClientExecutor extends AsyncTask<Object, Object, Object> implements ICancel {
+		HttpRequestBase mHttpRequest;
+		CallRet mRet;
+		public void setup(HttpRequestBase httpRequest, CallRet ret) {
+			mHttpRequest = httpRequest;
+			mRet = ret;
+		}
+		public void upload(long current, long total) {
+			publishProgress(current, total);
+		}
 		
 		@Override
 		protected Object doInBackground(Object... objects) {
-			httpPost = (HttpPost) objects[0];
-			ret = (CallRet) objects[1];
-			String errMsg = "";
-
-			HttpResponse resp;
 			try {
-				resp = roundtrip(httpPost);
+				HttpResponse resp = roundtrip(mHttpRequest);
+				int statusCode = resp.getStatusLine().getStatusCode();
+				if (statusCode == 401) { // android 2.3 will not response
+					return new Exception("unauthorized!");
+				}
+				byte[] data = EntityUtils.toByteArray(resp.getEntity());
+
+				if (statusCode / 100 != 2) {
+					if (data.length == 0) {
+						String xlog = resp.getFirstHeader("X-Log").getValue();
+						if (xlog.length() > 0) {
+							return new Exception(xlog);
+						}
+						return new Exception(resp.getStatusLine().getReasonPhrase());
+					}
+					return new Exception(new String(data));
+				}
+				return data;
 			} catch (IOException e) {
 				e.printStackTrace();
 				return e;
 			}
+		}
 
-			if (resp.getHeaders("X-Log").length > 0) {
-				errMsg = resp.getHeaders("X-Log")[0].getValue();
-			}
-
-			int statusCode = resp.getStatusLine().getStatusCode();
-
-			if (statusCode / 100 != 2) {
-				return new Exception(errMsg);
-			}
-
-			byte[] data = new byte[0];
-			try {
-				data = EntityUtils.toByteArray(resp.getEntity());
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-			return data;
+		@Override
+		protected void onProgressUpdate(Object... values) {
+			mRet.onProcess((Long) values[0], (Long) values[1]);
 		}
 
 		@Override
 		protected void onPostExecute(Object o) {
 			if (o instanceof Exception) {
-				ret.onFailure((Exception) o);
+				mRet.onFailure((Exception) o);
 				return;
 			}
-			ret.onSuccess((byte[]) o);
+			mRet.onSuccess((byte[]) o);
 		}
 	};
 
@@ -107,11 +132,10 @@ public class Client {
 	}
 
 	public static HttpClient getMultithreadClient() {
-		HttpParams params = new BasicHttpParams();
-		SchemeRegistry registry = new SchemeRegistry();
-		registry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-		ClientConnectionManager cm = new ThreadSafeClientConnManager(params, registry);
-		HttpClient client = new DefaultHttpClient(cm, params);
+		HttpClient client = new DefaultHttpClient();
+		ClientConnectionManager mgr = client.getConnectionManager();
+		HttpParams params = client.getParams();
+		client = new DefaultHttpClient(new ThreadSafeClientConnManager(params, mgr.getSchemeRegistry()), params);
 		return client;
 	}
 }
