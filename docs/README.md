@@ -47,13 +47,15 @@ title: Android SDK 使用指南
 
 此 Android SDK 没有提供下载文件的方法。所有上传到七牛云存储的文件，都能以如下方式进行访问：
 
-公有资源：
+公开资源：
 
-    http://<绑定域名>/<key>
+    http://<domain>/<key>
 
 私有资源：
 
-    http://<绑定域名>/<key>?token=<downloadToken>
+    http://<domain>/<key>?token=<downloadToken>
+
+其中\<domain\>是bucket所对应的域名。七牛云存储为每一个bucket提供一个默认域名。默认域名可以到[七牛云存储开发者平台](https://portal.qiniu.com/)中，空间设置的域名设置一节查询。
 
 出于安全考虑，此 SDK 不提供 `downloadToken` 的生成。除 Android / iOS SDK 以外，七牛云存储其他编程语言的 SDK 都有提供签发私有资源下载授权凭证（downloadToken）的实现。
 
