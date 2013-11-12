@@ -58,14 +58,14 @@ public class InputStreamAt implements Closeable {
 		mData = data;
 	}
 
-	public long getCrc32(long offset, int length) {
+	public long getCrc32(long offset, int length) throws IOException {
 		CRC32 crc32 = new CRC32();
 		byte[] data = read(offset, length);
 		crc32.update(data);
 		return crc32.getValue();
 	}
 
-	public long crc32() {
+	public long crc32() throws IOException {
 		if (mCrc32 >= 0) return mCrc32;
 		CRC32 crc32 = new CRC32();
 		long index = 0;
@@ -120,22 +120,17 @@ public class InputStreamAt implements Closeable {
 		}
 	}
 
-	public byte[] read(long offset, int length) {
-		if (mClosed) return null;
-		try {
-			if (mFileStream != null) {
-				return fileStreamRead(offset, length);
-			}
-			if (mData != null) {
-				byte[] ret = new byte[length];
-				System.arraycopy(mData, (int) offset, ret, 0, length);
-				return ret;
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
+	public byte[] read(long offset, int length) throws IOException {
+		if (mClosed) throw new IOException("inputStreamAt closed");
+		if (mFileStream != null) {
+			return fileStreamRead(offset, length);
 		}
-
-		return null;
+		if (mData != null) {
+			byte[] ret = new byte[length];
+			System.arraycopy(mData, (int) offset, ret, 0, length);
+			return ret;
+		}
+		throw new IOException("inputStreamAt not init");
 	}
 
 	protected byte[] fileStreamRead(long offset, int length) throws IOException {

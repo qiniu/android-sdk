@@ -12,6 +12,7 @@ import com.qiniu.utils.MultipartEntity;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -44,7 +45,14 @@ public class IO {
 	public void put(String key, InputStreamAt isa, PutExtra extra, JSONObjectRet ret) {
 		MultipartEntity m = new MultipartEntity();
 		if (key != null) m.addField("key", key);
-		if (extra.checkCrc == PutExtra.AUTO_CRC32) extra.crc32 = isa.crc32();
+		if (extra.checkCrc == PutExtra.AUTO_CRC32) {
+			try {
+				extra.crc32 = isa.crc32();
+			} catch (IOException e) {
+				ret.onFailure(e);
+				return;
+			}
+		}
 		if (extra.checkCrc != PutExtra.UNUSE_CRC32) m.addField("crc32", extra.crc32 + "");
 		for (Map.Entry<String, String> i: extra.params.entrySet()) m.addField(i.getKey(), i.getValue());
 
