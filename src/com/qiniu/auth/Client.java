@@ -22,6 +22,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class Client {
 
@@ -119,6 +120,7 @@ public class Client {
 
 		@Override
 		protected void onPostExecute(Object o) {
+			mClient.getConnectionManager().closeIdleConnections(30, TimeUnit.SECONDS);
 			if (o instanceof Exception) {
 				mRet.onFailure((Exception) o);
 				return;

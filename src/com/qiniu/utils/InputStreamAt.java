@@ -135,6 +135,8 @@ public class InputStreamAt implements Closeable {
 
 	protected byte[] fileStreamRead(long offset, int length) throws IOException {
 		if (mFileStream == null) return null;
+		long fileLength = mFileStream.length();
+		if (length + offset > fileLength) length = (int) (fileLength - offset);
 		byte[] data = new byte[length];
 
 		int read;
