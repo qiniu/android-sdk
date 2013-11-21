@@ -144,7 +144,7 @@ public class InputStreamAt implements Closeable {
 		synchronized (data) {
 			mFileStream.seek(offset);
 			do {
-				read = mFileStream.read(data, totalRead, length);
+				read = mFileStream.read(data, totalRead, length - totalRead);
 				if (read <= 0) break;
 				totalRead += read;
 			} while (length > totalRead);
