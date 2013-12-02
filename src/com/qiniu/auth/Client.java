@@ -91,22 +91,16 @@ public class Client {
 			try {
 				HttpResponse resp = roundtrip(mHttpRequest);
 				int statusCode = resp.getStatusLine().getStatusCode();
-				if (statusCode == 401) { // android 2.3 will not response
-					return new Exception("unauthorized!");
-				}
-				byte[] data = EntityUtils.toByteArray(resp.getEntity());
+				String xl = resp.getFirstHeader("X-Log").getValue();
 
-				if (statusCode / 100 != 2) {
-					if (data.length == 0) {
-						String xlog = resp.getFirstHeader("X-Log").getValue();
-						if (xlog.length() > 0) {
-							return new Exception(xlog);
-						}
-						return new Exception(resp.getStatusLine().getReasonPhrase());
-					}
-					return new Exception(new String(data));
-				}
-				return data;
+				if (statusCode == 401) return new Exception("unauthorized!"); // android 2.3 will not response
+				if (xl.contains("invalid BlockCtx")) return new Exception(xl);
+
+				byte[] data = EntityUtils.toByteArray(resp.getEntity());
+				if (statusCode / 100 == 2) return data;
+				if (data.length > 0) return new Exception(new String(data));
+				if (xl.length() > 0) return new Exception(xl);
+				return new Exception(resp.getStatusLine().getStatusCode() + ":" + resp.getStatusLine().getReasonPhrase());
 			} catch (IOException e) {
 				e.printStackTrace();
 				return e;
