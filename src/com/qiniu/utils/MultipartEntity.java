@@ -33,7 +33,7 @@ public class MultipartEntity extends AbstractHttpEntity  {
 
 	@Override
 	public boolean isRepeatable() {
-		return false;
+		return true;
 	}
 
 	@Override
