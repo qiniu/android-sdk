@@ -57,6 +57,7 @@ public class MultipartEntity extends AbstractHttpEntity  {
 
 	@Override
 	public void writeTo(OutputStream outputStream) throws IOException {
+		writed = 0;
 		outputStream.write(mData.toString().getBytes());
 		outputStream.flush();
 		writed += mData.toString().getBytes().length;
