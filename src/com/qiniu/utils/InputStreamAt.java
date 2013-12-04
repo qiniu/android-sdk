@@ -7,7 +7,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.entity.AbstractHttpEntity;
 
 import java.io.*;
-import java.util.Arrays;
 import java.util.zip.CRC32;
 
 public class InputStreamAt implements Closeable {
