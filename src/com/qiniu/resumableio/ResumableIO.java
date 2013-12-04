@@ -36,7 +36,7 @@ public class ResumableIO {
 		idCancels.remove(id);
 	}
 
-	public int putAndClose(final String key, final InputStreamAt input, final PutExtra extra, final JSONObjectRet ret) {
+	private int putAndClose(final String key, final InputStreamAt input, final PutExtra extra, final JSONObjectRet ret) {
 		return put(key, input, extra, new JSONObjectRet() {
 			@Override
 			public void onSuccess(JSONObject obj) {
@@ -121,6 +121,10 @@ public class ResumableIO {
 
 				@Override
 				public void onFailure(Exception ex) {
+					if (failure[0]) {
+						ex.printStackTrace();
+						return;
+					}
 					if (--retryTime <= 0 || (ex.getMessage() != null && ex.getMessage().contains("Unauthorized"))) {
 						removeTask(taskId);
 						failure[0] = true;
