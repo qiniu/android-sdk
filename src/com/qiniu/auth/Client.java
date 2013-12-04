@@ -119,7 +119,7 @@ public class Client {
 
 		@Override
 		protected void onPostExecute(Object o) {
-			mClient.getConnectionManager().closeIdleConnections(30, TimeUnit.SECONDS);
+			mClient.getConnectionManager().closeExpiredConnections();
 			if (o instanceof Exception) {
 				mRet.onFailure((Exception) o);
 				return;
