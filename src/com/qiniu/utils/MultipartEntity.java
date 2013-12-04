@@ -115,13 +115,13 @@ public class MultipartEntity extends AbstractHttpEntity  {
 
 			int blockSize = (int) (getContentLength() / 100);
 			if (blockSize > 256 * 1024) blockSize = 256 * 1024;
-			if (blockSize < 16 * 1024) blockSize = 16 * 1024;
+			if (blockSize < 32 * 1024) blockSize = 32 * 1024;
 			long index = 0;
 			long length = mIsa.length();
 			while (index < length) {
 				int readLength = (int) StrictMath.min((long) blockSize, mIsa.length() - index);
 				try {
-					write(blockSize / 2, outputStream, mIsa.read(index, readLength));
+					write(outputStream, mIsa.read(index, readLength));
 				} catch (Exception e) {
 					e.printStackTrace();
 					throw new IOException(e.getMessage());
@@ -138,7 +138,7 @@ public class MultipartEntity extends AbstractHttpEntity  {
 		}
 	}
 
-	private void write(int blocksize, final OutputStream outputStream, final byte[] data) throws InterruptedException, ExecutionException, TimeoutException {
+	private void write(final OutputStream outputStream, final byte[] data) throws InterruptedException, ExecutionException, TimeoutException {
 		Callable<Object> readTask = new Callable<Object>() {
 			@Override
 			public Object call() throws Exception {
@@ -147,8 +147,7 @@ public class MultipartEntity extends AbstractHttpEntity  {
 			}
 		};
 		Future<Object> future = executor.submit(readTask);
-		if (blocksize > 20000) blocksize = 20000;
-		future.get(blocksize, TimeUnit.MILLISECONDS);
+		future.get(60*1000, TimeUnit.MILLISECONDS);
 	}
 
 	private static String getRandomString(int length) {
