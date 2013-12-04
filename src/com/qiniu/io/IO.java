@@ -29,7 +29,7 @@ public class IO {
 	}
 
 	private static Client defaultClient() {
-		if (mClient != null && System.currentTimeMillis() - mClientUseTime > 60 * 1000) { // 1 minute
+		if (mClient != null && System.currentTimeMillis() - mClientUseTime > 3 * 60 * 1000) { // 1 minute
 			mClient.close();
 			mClient = null;
 		}
