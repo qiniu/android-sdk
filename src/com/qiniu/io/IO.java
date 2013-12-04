@@ -54,7 +54,9 @@ public class IO {
 			}
 		}
 		if (extra.checkCrc != PutExtra.UNUSE_CRC32) m.addField("crc32", extra.crc32 + "");
-		for (Map.Entry<String, String> i: extra.params.entrySet()) m.addField(i.getKey(), i.getValue());
+		for (Map.Entry<String, String> i: extra.params.entrySet()) {
+			m.addField(i.getKey(), i.getValue());
+		}
 
 		m.addField("token", mUptoken);
 		m.addFile("file", extra.mimeType, key == null ? "?" : key, isa);
