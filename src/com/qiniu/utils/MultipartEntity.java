@@ -6,7 +6,6 @@ import org.apache.http.message.BasicHeader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.*;
