@@ -6,8 +6,10 @@ import org.apache.http.message.BasicHeader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.*;
 
 public class MultipartEntity extends AbstractHttpEntity  {
 	private String mBoundary;
@@ -80,6 +82,7 @@ public class MultipartEntity extends AbstractHttpEntity  {
 	public void setProcessNotify(IOnProcess ret) {
 		mNotify = ret;
 	}
+	ExecutorService executor = Executors.newFixedThreadPool(1);
 
 	class FileInfo {
 
@@ -117,7 +120,12 @@ public class MultipartEntity extends AbstractHttpEntity  {
 			long length = mIsa.length();
 			while (index < length) {
 				int readLength = (int) StrictMath.min((long) blockSize, mIsa.length() - index);
-				outputStream.write(mIsa.read(index, readLength));
+				try {
+					write(blockSize / 2, outputStream, mIsa.read(index, readLength));
+				} catch (Exception e) {
+					e.printStackTrace();
+					throw new IOException(e.getMessage());
+				}
 				index += blockSize;
 				outputStream.flush();
 				writed += readLength;
@@ -128,6 +136,19 @@ public class MultipartEntity extends AbstractHttpEntity  {
 			writed += 2;
 			if (mNotify != null) mNotify.onProcess(writed, getContentLength());
 		}
+	}
+
+	private void write(int blocksize, final OutputStream outputStream, final byte[] data) throws InterruptedException, ExecutionException, TimeoutException {
+		Callable<Object> readTask = new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
+				outputStream.write(data);
+				return null;
+			}
+		};
+		Future<Object> future = executor.submit(readTask);
+		if (blocksize > 20000) blocksize = 20000;
+		future.get(blocksize, TimeUnit.MILLISECONDS);
 	}
 
 	private static String getRandomString(int length) {
