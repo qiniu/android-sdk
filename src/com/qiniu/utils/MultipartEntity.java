@@ -123,8 +123,8 @@ public class MultipartEntity extends AbstractHttpEntity  {
 				try {
 					write(outputStream, mIsa.read(index, readLength));
 				} catch (Exception e) {
-					e.printStackTrace();
-					throw new IOException(e.getMessage());
+					mNotify.onFailure(e);
+					return;
 				}
 				index += blockSize;
 				outputStream.flush();

@@ -74,6 +74,11 @@ public class IO {
 			public void onProcess(long current, long total) {
 				executor.upload(current, total);
 			}
+
+			@Override
+			public void onFailure(Exception ex) {
+				executor.onFailure(ex);
+			}
 		});
 		client.call(executor, Conf.UP_HOST, m, ret);
 	}

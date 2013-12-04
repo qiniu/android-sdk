@@ -83,6 +83,7 @@ public class Client {
 	public class ClientExecutor extends AsyncTask<Object, Object, Object> implements ICancel {
 		HttpRequestBase mHttpRequest;
 		CallRet mRet;
+		boolean failed;
 		public void setup(HttpRequestBase httpRequest, CallRet ret) {
 			mHttpRequest = httpRequest;
 			mRet = ret;
@@ -114,17 +115,28 @@ public class Client {
 
 		@Override
 		protected void onProgressUpdate(Object... values) {
+			if (failed) return;
+			if (values.length == 1 && values[0] instanceof Exception) {
+				mRet.onFailure((Exception) values[0]);
+				failed = true;
+				return;
+			}
 			mRet.onProcess((Long) values[0], (Long) values[1]);
 		}
 
 		@Override
 		protected void onPostExecute(Object o) {
-			mClient.getConnectionManager().closeExpiredConnections();
+			if (failed) return;
 			if (o instanceof Exception) {
 				mRet.onFailure((Exception) o);
 				return;
 			}
 			mRet.onSuccess((byte[]) o);
+		}
+
+		public void onFailure(Exception ex) {
+			publishProgress(ex);
+			cancel(true);
 		}
 	};
 
