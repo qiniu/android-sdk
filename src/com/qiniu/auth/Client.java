@@ -32,6 +32,11 @@ public class Client {
 		mClient = client;
 	}
 
+	public void close() {
+		mClient.getConnectionManager().closeExpiredConnections();
+		mClient.getConnectionManager().shutdown();
+	}
+
 	public static ClientExecutor get(String url, CallRet ret) {
 		Client client = Client.defaultClient();
 		return client.get(client.makeClientExecutor(), url, ret);
