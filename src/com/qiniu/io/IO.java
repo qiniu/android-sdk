@@ -22,15 +22,21 @@ public class IO {
 	public static String UNDEFINED_KEY = null;
 	private static Client mClient;
 	private static String mUptoken;
+	private static long mClientUseTime;
 	public IO(Client client, String uptoken) {
 		mClient = client;
 		mUptoken = uptoken;
 	}
 
 	private static Client defaultClient() {
+		if (mClient != null && System.currentTimeMillis() - mClientUseTime > 3 * 60 * 1000) { // 1 minute
+			mClient.close();
+			mClient = null;
+		}
 		if (mClient == null) {
 			mClient = Client.defaultClient();
 		}
+		mClientUseTime = System.currentTimeMillis();
 		return mClient;
 	}
 
@@ -67,6 +73,11 @@ public class IO {
 			@Override
 			public void onProcess(long current, long total) {
 				executor.upload(current, total);
+			}
+
+			@Override
+			public void onFailure(Exception ex) {
+				executor.onFailure(ex);
 			}
 		});
 		client.call(executor, Conf.UP_HOST, m, ret);

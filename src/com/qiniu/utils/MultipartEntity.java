@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.*;
 
 public class MultipartEntity extends AbstractHttpEntity  {
 	private String mBoundary;
@@ -33,7 +34,7 @@ public class MultipartEntity extends AbstractHttpEntity  {
 
 	@Override
 	public boolean isRepeatable() {
-		return false;
+		return true;
 	}
 
 	@Override
@@ -55,6 +56,7 @@ public class MultipartEntity extends AbstractHttpEntity  {
 
 	@Override
 	public void writeTo(OutputStream outputStream) throws IOException {
+		writed = 0;
 		outputStream.write(mData.toString().getBytes());
 		outputStream.flush();
 		writed += mData.toString().getBytes().length;
@@ -80,6 +82,7 @@ public class MultipartEntity extends AbstractHttpEntity  {
 	public void setProcessNotify(IOnProcess ret) {
 		mNotify = ret;
 	}
+	ExecutorService executor = Executors.newFixedThreadPool(1);
 
 	class FileInfo {
 
@@ -112,12 +115,18 @@ public class MultipartEntity extends AbstractHttpEntity  {
 
 			int blockSize = (int) (getContentLength() / 100);
 			if (blockSize > 256 * 1024) blockSize = 256 * 1024;
-			if (blockSize < 16 * 1024) blockSize = 16 * 1024;
+			if (blockSize < 32 * 1024) blockSize = 32 * 1024;
 			long index = 0;
 			long length = mIsa.length();
 			while (index < length) {
 				int readLength = (int) StrictMath.min((long) blockSize, mIsa.length() - index);
-				outputStream.write(mIsa.read(index, readLength));
+				int timeout = readLength * 2;
+				try {
+					write(timeout, outputStream, mIsa.read(index, readLength));
+				} catch (Exception e) {
+					mNotify.onFailure(e);
+					return;
+				}
 				index += blockSize;
 				outputStream.flush();
 				writed += readLength;
@@ -128,6 +137,18 @@ public class MultipartEntity extends AbstractHttpEntity  {
 			writed += 2;
 			if (mNotify != null) mNotify.onProcess(writed, getContentLength());
 		}
+	}
+
+	private void write(int timeout, final OutputStream outputStream, final byte[] data) throws InterruptedException, ExecutionException, TimeoutException {
+		Callable<Object> readTask = new Callable<Object>() {
+			@Override
+			public Object call() throws Exception {
+				outputStream.write(data);
+				return null;
+			}
+		};
+		Future<Object> future = executor.submit(readTask);
+		future.get(timeout, TimeUnit.MILLISECONDS);
 	}
 
 	private static String getRandomString(int length) {
