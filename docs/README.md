@@ -1,170 +1,141 @@
 ---
-title: Android SDK 使用指南
+title: Android SDK使用文档
 ---
 
-# Android SDK 使用指南
-
-- Android SDK 下载地址：<https://github.com/qiniu/android-sdk/tags>
-- Android SDK 源码地址：<https://github.com/qiniu/android-sdk> (请注意非 master 分支的代码在规格上可能承受变更)
-
-此 Android SDK 基于 [七牛云存储官方API](http://docs.qiniu.com/api/index.html) 构建。在开发者的 Android App 工程项目中使用此 SDK 能够非常方便地将 Android 系统里边的文件快速直传到七牛云存储。
-
-出于安全考虑，使用此 SDK 无需设置密钥（AccessKey / SecretKey）。所有涉及到授权的操作，比如生成上传授权凭证（uploadToken）或下载授权凭证（downloadToken）均在业务服务器端进行。
-
-业务服务器负责生成和颁发授权，此 SDK 只负责实施具体的上传业务。
+# Android SDK使用文档
 
 ## 目录
 
-- [上传流程](#upload-flow)
-- [下载流程](#download-flow)
-- [接入SDK](#load)
-- [使用SDK上传文件](#upload)
-- [SDK 内置 demo 说明](#demo)
-- [并发特性](#concurrency)
-- [贡献代码](#contributing)
-- [许可证](#license)
+- [概述](#overview)
+- [使用场景](#use-scenario)
+- [接入SDK](#integration)
+- [上传文件](#simple-upload)
+- [分片上传（断点续上传）](#resumable-upload)
+- [线程安全性](#thread-safety)
 
-<a name="upload-flow"></a>
+<a name="overview"></a>
+## 概述
 
-## 上传流程
+Android SDK只包含了最终用户使用场景中的必要功能。相比服务端SDK而言，客户端SDK不会包含对云存储服务的管理和配置功能。
 
-1. 业务服务器使用七牛云存储服务端编程语言（如 PHP/Python/Ruby/Java）SDK 生成 uploadToken (上传授权凭证)
+该SDK支持不低于2.1的Android版本。
 
-2. 客户端 Android 使用该 uploadToken 调用此 Android 封装的上传方法直传文件到七牛云存储
+<a name="use-scenario"></a>
+## 使用场景
 
-3. 文件直传成功，七牛云存储向 uploadToken 生成之前所指定的业务服务器地址发起回调
+在使用Android SDK开发基于七牛云存储的应用之前，请注意理解合适的开发场景。客户端属于不可控的场景，非一般用户在拿到客户端后可能会对其进行反向工程，因此客户端程序中不可包含任何可能导致安全漏洞的业务逻辑和关键信息。
 
-4. 业务服务器接收来自七牛云存储回调的 POST 请求，处理相关 POST 参数，最后响应输出一段 JSON
+我们推荐的安全模型如下所示。
 
-5. 七牛云存储接收业务服务器响应输出的这段 JSON，原封不动地通过 HTTP 返回给 Android 客户端程序
+![安全模型](http://developer.qiniu.com/docs/v6/api/overview/img/token.png)
 
+开发者需要合理划分客户端程序和业务服务器的职责范围。分发给最终用户的客户端程序中不应有需要使用管理凭证及SecretKey的场景。这些可能导致安全风险的使用场景均应被设计为在业务服务器上进行。
 
-注意事项：
-
-- 此 Android SDK 当前只提供上传方法，即负责上述流程中的第2个步骤。
-- 业务服务器响应回调请求后输出 JSON，HTTP Headers 必须输出 `Content-Type` 为 `application/json`。
-- 文件上传成功后，业务服务器输出的 JSON 数据，可从所调用SDK上传代码的返回值中获取到。
-
-
-<a name="download-flow"></a>
-
-## 下载流程
-
-此 Android SDK 没有提供下载文件的方法。所有上传到七牛云存储的文件，都能以如下方式进行访问：
-
-公开资源：
-
-    http://<domain>/<key>
-
-私有资源：
-
-    http://<domain>/<key>?token=<downloadToken>
-
-其中\<domain\>是bucket所对应的域名。七牛云存储为每一个bucket提供一个默认域名。默认域名可以到[七牛云存储开发者平台](https://portal.qiniu.com/)中，空间设置的域名设置一节查询。
-
-出于安全考虑，此 SDK 不提供 `downloadToken` 的生成。除 Android / iOS SDK 以外，七牛云存储其他编程语言的 SDK 都有提供签发私有资源下载授权凭证（downloadToken）的实现。
-
-**注意： key必须采用utf8编码，如使用非utf8编码访问七牛云存储将反馈错误**
+更多的相关内容请查看[编程模型](http://developer.qiniu.com/docs/v6/api/overview/programming-model.html)和[安全机制](http://developer.qiniu.com/docs/v6/api/overview/security.html)。
 
 <a name="load"></a>
-
 ## 接入SDK
 
-本SDK的开发环境是 [Intellij IDEA](http://www.jetbrains.com/idea/)，如果开发者使用的编辑器同为 IDEA, 直接打开项目即可，对于使用 [Eclipse](http://www.eclipse.org/) 编辑器的开发者，可以尝试导入项目。
-
-导入后，填写相关必要参数即可运行SDK自带的 demo 程序，配置方法见 [SDK 内置 demo 说明](#demo) 。
-
+> TODO: 如何将该SDK整合到工作项目中？使用jar包？拷贝源文件？
 
 <a name="upload"></a>
+## 上传文件
 
-## 使用SDK上传文件
+开发者可以选择SDK提供的两种上传方式：表单上传和分片上传。表单上传使用一个HTTP POST请求完成文件的上传，因此比较适合较小的文件和较好的网络环境。相比而言，分片上传更能适应不稳定的网络环境，也比较适合上传比较大的文件（数百MB或更大）。
 
-在 Android 中选择文件一般是通过 uri 作为路径, 一般调用以下代码
+若需深入了解上传方式之间的区别，请查看[上传类型](http://developer.qiniu.com/docs/v6/api/overview/up/upload-models.html#upload-types)，[表单上传接口说明](http://developer.qiniu.com/docs/v6/api/overview/up/form-upload.html)，[分片上传接口说明（断点续上传）](http://developer.qiniu.com/docs/v6/api/overview/up/chunked-upload.html)。
 
-```{java}
-// 在七牛绑定的对应bucket的域名. 默认是bucket.qiniudn.com
-public static String bucketName = "bucketName";
-public static String domain = bucketName + ".qiniudn.com";
-// upToken 这里需要自行获取. SDK 将不实现获取过程. 当token过期后才再获取一遍
-public String UP_TOKEN = "token";
+<a name="form-upload"></a>
+### 表单上传
 
-boolean uploading = false;
-/**
- * 普通上传文件
- * @param uri
- */
-private void doUpload(Uri uri) {
-	if (uploading) {
-		hint.setText("上传中，请稍后");
-		return;
-	}
-	uploading = true;
-	String key = IO.UNDEFINED_KEY; // 自动生成key
-	PutExtra extra = new PutExtra();
-	extra.checkCrc = PutExtra.AUTO_CRC32;
-	extra.params.put("x:arg", "value");
-	hint.setText("上传中");
-	IO.putFile(this, UP_TOKEN, key, uri, extra, new JSONObjectRet() {
-		@Override
-		public void onSuccess(JSONObject resp) {
-			uploading = false;
-			String hash;
-			String value;
-			try {
-				hash = resp.getString("hash");
-				value = resp.getString("x:arg");
-			} catch (Exception ex) {
-				hint.setText(ex.getMessage());
-				return;
-			}
-			String redirect = "http://" + domain + "/" + hash;
-			hint.setText("上传成功! " + hash);
-			Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
-			startActivity(intent);
-		}
+开发者可以通过调用`IO.put()`方法来以表单形式上传一个文件。该方法的详细说明如下：
 
-		@Override
-		public void onFailure(Exception ex) {
-			uploading = false;
-			hint.setText("错误: " + ex.getMessage());
-		}
-	});
-}
+```
+public void put(String key, 
+				InputStreamAt isa, 
+				PutExtra extra, 
+				JSONObjectRet ret);
 ```
 
+参数说明：
 
-<a name="demo"></a>
+参数 | 类型 | 说明 
+:---: | :----: | :---
+key | String | 将保存为的资源唯一标识。请参见[关键概念：键值对](http://developer.qiniu.com/docs/v6/api/overview/concepts.html#key-value)。 
+isa | InputStreamAt | 待上传的本地文件。 
+extra | PutExtra | 额外配置项，用于精确控制上传行为。请参见[高级设置](#upload-config)。 
+ret | JSONObjectRet | 开发者需实现该接口以获取上传进度和上传结果。<br>若上传成功，该接口中的`onSuccess()`方法将被调用。否则`onFailure()`方法将被调用。
 
-## SDK 内置 demo 说明
+表单上传的示例代码请参见SDK示例中[MyActivity.doUpload()](https://github.com/qiniu/android-sdk/blob/develop/src/com/qiniu/demo/MyActivity.java)方法的实现。
 
-注意：demo 程序无法直接运行，需要配置 `UpToken`, `BucketName`, `Domain`信息, 将其填写到 MyActivity 之中。`key`值可以在操作界面修改。当文件上传成功时，会试图跳转到浏览器访问已经上传的资源。如果失败，会toast提示。
+<a name="chunked-upload"></a>
+### 分片上传
 
+顾名思义，分片上传会将一个文件划分为多个指定大小的数据块，分别上传。分片上传的关键价值在于可更好的适应不稳定的网络环境，以及成功上传超大的文件。分片上传功能也是实现断点续上传功能的基础。
 
-<a name="concurrency"></a>
+开发者可以通过调用`ResumableIO.put()`方法以分片形式上传一个文件。该方法签名和`IO.put()`一致。
 
-## 并发特性
+分片上传的示例代码请参见SDK示例中[MyResumableActivity.doResumableUpload()](https://github.com/qiniu/android-sdk/blob/develop/src/com/qiniu/demo/MyResumableActivity.java)方法的实现。
+
+<a name="resumable-upload"></a>
+### 断点续上传
+
+开发者可以基于分片上传机制实现断点续上传功能。
+
+> TODO: 该SDK是否已经支持断点续上传功能？基本的要求是可反馈完整的进度信息给开发者进行持久化，并且在上传时可以传入之前持久化的上传进度信息。
+
+<a name="upload-concurrency"></a>
+### 上传中的并发性
+
+分片上传机制也提供了对一个文件并发上传的能力。
+
+> TODO: 现在这个SDK可以设置并发数量吗？
+
+<a name="upload-config"></a>
+### 高级设置
+
+几种不同的上传类型都支持上传时的参数配置，使用一个统一的`PutExtra`类型来管理。除了需要指定几个最基本的上传参数（哪个文件以及上传到哪里等）外，开发者还可以通过制定一系列高级参数来灵活的控制上传的后续动作和通过变量来传递一些特定信息。
+
+设置方法请参见[`PutExtra`](https://github.com/qiniu/android-sdk/blob/develop/src/com/qiniu/resumableio/PutExtra.java)。开发者可以在调用`ResumableIO.put()`前往`PutExtra.params`中添加对应的参数即可，例如：
+
+```
+extra.params = new HashMap<String, String>();
+extra.params.put("x:a", "bb"); // 设置一个自定义变量
+```
+
+<a name="response"></a>
+#### 上传后续动作
+
+关于上传后可以进行哪些后续动作，请查看[上传后续动作](http://developer.qiniu.com/docs/v6/api/overview/up/response/)。上传的后续动作的设置通过在`PutExtra`中设置相应的参数来进行。对于Android开发者而言，这些后续动作都有各自的合适使用场景：[自定义响应内容](http://developer.qiniu.com/docs/v6/api/overview/up/response/response-body.html)，[变量](http://developer.qiniu.com/docs/v6/api/overview/up/response/vars.html)，[数据预处理](http://developer.qiniu.com/docs/v6/api/overview/up/response/persistent-op.html)，[回调](http://developer.qiniu.com/docs/v6/api/overview/up/response/callback.html)。
+
+对这些后续动作的合理组合使用可以大幅降低业务流程复杂度，并提升业务的健壮性。
+
+举例说明，如果用户上传的是一个xxx格式的视频文件，开发者可以设置让该视频文件上传完成后转码为设定的目标格式。对应的设置项如下所示：
+
+参数名称 | 参数内容 | 说明 
+:---: | :----: | :---
+persistentOp | TODO:xxxxx | 符合数据处理规范的指令。这个指令表示要将码率调整为xxx，分辨率调整为xxx。
+persistentNotifyUrl | TODO:xxxxx | 结果通知地址，通常是向业务服务器发送该指定的请求。
+
+> TODO：填写真实有效的一个示例。
+
+完整的可设置参数和规格请参见[上传策略规格](http://developer.qiniu.com/docs/v6/api/reference/security/put-policy.html)。
+
+<a name="var"></a>
+#### 变量
+
+变量分为魔法变量和自定义变量，可帮助开发者快速的在客户端、业务服务器、云存储服务之间传递资源元信息。关于变量的作用，请参见[变量](http://developer.qiniu.com/docs/v6/api/overview/up/response/vars.html)。
+
+如同上面已经给出的示例，如果开发者需要配置变量，只需在调用上传方法前在`PutExtra.params`中添加相应的参数即可。
+
+<a name="download"></a>
+## 下载文件
+
+该SDK并未提供下载文件相关的功能接口，因为文件下载是一个标准的HTTP GET过程。开发者只需理解资源URI的组成格式即可非常方便的构建资源URI，并在必要的时候加上下载凭证，即可使用HTTP GET请求获取相应资源。
+
+具体做法请参见[资源下载](http://developer.qiniu.com/docs/v6/api/overview/dn/download.html)和[资源下载的安全机制](http://developer.qiniu.com/docs/v6/api/overview/dn/security.html)。
+
+<a name="thread-safety"></a>
+## 线程安全性
 
 此 Android SDK 不是线程安全的，请勿在没有保护的情况下跨线程使用。
-
-
-<a name="contributing"></a>
-
-## 贡献代码
-
-1. Fork
-2. 创建您的特性分支 (`git checkout -b my-new-feature`)
-3. 提交您的改动 (`git commit -am 'Added some feature'`)
-4. 将您的修改记录提交到远程 `git` 仓库 (`git push origin my-new-feature`)
-5. 然后到 github 网站的该 `git` 远程仓库的 `my-new-feature` 分支下发起 Pull Request
-
-
-<a name="license"></a>
-
-## 许可证
-
-Copyright (c) 2013 www.qiniu.com
-
-基于 MIT 协议发布:
-
-* [www.opensource.org/licenses/MIT](http://www.opensource.org/licenses/MIT)
-
