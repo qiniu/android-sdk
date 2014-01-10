@@ -18,7 +18,7 @@ title: Android SDK使用文档
 
 Android SDK只包含了最终用户使用场景中的必要功能。相比服务端SDK而言，客户端SDK不会包含对云存储服务的管理和配置功能。
 
-该SDK支持不低于2.1的Android版本。
+该SDK支持不低于2.2的Android版本（api8）。
 
 <a name="use-scenario"></a>
 ## 使用场景
@@ -36,7 +36,7 @@ Android SDK只包含了最终用户使用场景中的必要功能。相比服务
 <a name="load"></a>
 ## 接入SDK
 
-> TODO: 如何将该SDK整合到工作项目中？使用jar包？拷贝源文件？
+该SDK没有包含工程文件，这时需要自己新建一个工程，然后将src里面的代码复制到代码目录里面。
 
 <a name="upload"></a>
 ## 上传文件
@@ -53,7 +53,7 @@ Android SDK只包含了最终用户使用场景中的必要功能。相比服务
 ```
 public void put(String key, 
 				InputStreamAt isa, 
-				PutExtra extra, 
+				com.qiniu.io.PutExtra extra, 
 				JSONObjectRet ret);
 ```
 
@@ -64,7 +64,7 @@ public void put(String key,
 key | String | 将保存为的资源唯一标识。请参见[关键概念：键值对](http://developer.qiniu.com/docs/v6/api/overview/concepts.html#key-value)。 
 isa | InputStreamAt | 待上传的本地文件。 
 extra | PutExtra | 额外配置项，用于精确控制上传行为。请参见[高级设置](#upload-config)。 
-ret | JSONObjectRet | 开发者需实现该接口以获取上传进度和上传结果。<br>若上传成功，该接口中的`onSuccess()`方法将被调用。否则`onFailure()`方法将被调用。
+ret | JSONObjectRet | 开发者需实现该接口以获取上传进度和上传结果。<br>若上传成功，该接口中的`onSuccess()`方法将被调用。否则`onFailure()`方法将被调用。 `onProgress()`会在文件上传量发生更改的时候被调用，而且处于MainThread环境之中，可以直接操作ProgressBar之类的进度提示控件。
 
 表单上传的示例代码请参见SDK示例中[MyActivity.doUpload()](https://github.com/qiniu/android-sdk/blob/develop/src/com/qiniu/demo/MyActivity.java)方法的实现。
 
@@ -82,14 +82,22 @@ ret | JSONObjectRet | 开发者需实现该接口以获取上传进度和上传�
 
 开发者可以基于分片上传机制实现断点续上传功能。
 
-> TODO: 该SDK是否已经支持断点续上传功能？基本的要求是可反馈完整的进度信息给开发者进行持久化，并且在上传时可以传入之前持久化的上传进度信息。
+```
+class ResumableIO {
+    public static void put(String key, 
+				InputStreamAt isa, 
+				com.qiniu.resumableio.PutExtra extra, 
+				JSONObjectRet ret);
+}
+```
+具体用法和`IO.put`的类似。
 
 <a name="upload-concurrency"></a>
 ### 上传中的并发性
 
 分片上传机制也提供了对一个文件并发上传的能力。
 
-> TODO: 现在这个SDK可以设置并发数量吗？
+> 目前底层采用AsyncTask来完成异步操作，系统底层默认是使用单线程来串行运行所有的AsyncTask，所以如果需要真正意义上的多线程上传，需要将AsyncTask放入线程池, 详细操作请参考[这里](http://developer.android.com/reference/android/os/AsyncTask.html)
 
 <a name="upload-config"></a>
 ### 高级设置
@@ -110,14 +118,6 @@ extra.params.put("x:a", "bb"); // 设置一个自定义变量
 
 对这些后续动作的合理组合使用可以大幅降低业务流程复杂度，并提升业务的健壮性。
 
-举例说明，如果用户上传的是一个xxx格式的视频文件，开发者可以设置让该视频文件上传完成后转码为设定的目标格式。对应的设置项如下所示：
-
-参数名称 | 参数内容 | 说明 
-:---: | :----: | :---
-persistentOp | TODO:xxxxx | 符合数据处理规范的指令。这个指令表示要将码率调整为xxx，分辨率调整为xxx。
-persistentNotifyUrl | TODO:xxxxx | 结果通知地址，通常是向业务服务器发送该指定的请求。
-
-> TODO：填写真实有效的一个示例。
 
 完整的可设置参数和规格请参见[上传策略规格](http://developer.qiniu.com/docs/v6/api/reference/security/put-policy.html)。
 
@@ -138,4 +138,6 @@ persistentNotifyUrl | TODO:xxxxx | 结果通知地址，通常是向业务服务
 <a name="thread-safety"></a>
 ## 线程安全性
 
-此 Android SDK 不是线程安全的，请勿在没有保护的情况下跨线程使用。
+Android 一般的情况下会使用一个主线程来控制UI，非主线程无法控制UI，在Android4.0+之后必须不能在主线程完成网络请求，
+该SDK是根据以上的使用场景设计，所有网络的操作均使用AsyncTask异步运行，所有回调函数又都回到了主线程（onSuccess, onFailure, onProgress）,在回调函数内可以直接操作UI控件。
+如果您没有额外使用`new Thread()`等命令，该SDK将不会发生线程安全性问题。
