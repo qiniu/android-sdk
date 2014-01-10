@@ -98,7 +98,7 @@ extra.params = new HashMap<String, String>();
 extra.params.put("x:a", "bb"); // 设置一个自定义变量
 ```
 
-表单上传的示例代码请参见SDK示例中[MyActivity.doUpload()](https://github.com/qiniu/android-sdk/blob/develop/src/com/qiniu/demo/MyActivity.java)方法的实现。
+表单上传的示例代码请参见SDK示例中[`MyActivity.doUpload()`](https://github.com/qiniu/android-sdk/blob/develop/src/com/qiniu/demo/MyActivity.java)方法的实现。
 
 <a name="chunked-upload"></a>
 ### 分片上传
@@ -107,7 +107,7 @@ extra.params.put("x:a", "bb"); // 设置一个自定义变量
 
 开发者可以通过调用`ResumableIO.put()`方法以分片形式上传一个文件。该方法签名和`IO.put()`一致。
 
-分片上传的示例代码请参见SDK示例中[MyResumableActivity.doResumableUpload()](https://github.com/qiniu/android-sdk/blob/develop/src/com/qiniu/demo/MyResumableActivity.java)方法的实现。
+分片上传的示例代码请参见SDK示例中[`MyResumableActivity.doResumableUpload()`](https://github.com/qiniu/android-sdk/blob/develop/src/com/qiniu/demo/MyResumableActivity.java)方法的实现。
 
 <a name="resumable-upload"></a>
 ### 断点续上传
@@ -147,5 +147,5 @@ class ResumableIO {
 ## 线程安全性
 
 Android 一般的情况下会使用一个主线程来控制UI，非主线程无法控制UI，在Android4.0+之后必须不能在主线程完成网络请求，
-该SDK是根据以上的使用场景设计，所有网络的操作均使用AsyncTask异步运行，所有回调函数又都回到了主线程（onSuccess, onFailure, onProgress）,在回调函数内可以直接操作UI控件。
+该SDK是根据以上的使用场景设计，所有网络的操作均使用AsyncTask异步运行，所有回调函数又都回到了主线程（`onSuccess()`, `onFailure()`, `onProgress()`）,在回调函数内可以直接操作UI控件。
 如果您没有额外使用`new Thread()`等命令，该SDK将不会发生线程安全性问题。
