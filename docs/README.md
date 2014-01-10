@@ -49,7 +49,7 @@ Android SDK只包含了最终用户使用场景中的必要功能。相比服务
 
 开发者可以在生成上传凭证前通过配置上传策略以控制上传的后续动作，比如在上传完成后通过回调机制通知业务服务器。该工作在业务服务器端进行，因此非本SDK的功能范畴。
 
-完整的内容请参见[上传策略规格](http://developer.qiniu.com/docs/v6/api/reference/security/put-policy.html)。关于上传后可以进行哪些后续动作，请查看[上传后续动作](http://developer.qiniu.com/docs/v6/api/overview/up/response/)。
+完整的内容请参考[上传策略规格](http://developer.qiniu.com/docs/v6/api/reference/security/put-policy.html)，[上传凭证规格](http://developer.qiniu.com/docs/v6/api/reference/security/upload-token.html)，[下载凭证规格](http://developer.qiniu.com/docs/v6/api/reference/security/download-token.html)。关于上传后可以进行哪些后续动作，请查看[上传后续动作](http://developer.qiniu.com/docs/v6/api/overview/up/response/)。
 
 <a name="upload"></a>
 ## 上传文件
@@ -61,7 +61,9 @@ Android SDK只包含了最终用户使用场景中的必要功能。相比服务
 <a name="form-upload"></a>
 ### 表单上传
 
-开发者可以通过调用`IO.put()`方法来以表单形式上传一个文件。该方法的详细说明如下：
+开发者可以通过调用`IO.put()`方法来以表单形式上传一个文件。使用该方式时应确认相应的资源大小合适于使用单一HTTP请求即可上传。过大的文件在使用该方式上传时比较容易出现超时失败的问题。该方式比较适合用于上传经压缩的小图片和短音频等，不适合用于上传较大的视频（比如尺寸超过100MB的）。
+
+该方法的详细说明如下：
 
 ```
 public void put(String key, 
@@ -74,18 +76,18 @@ public void put(String key,
 
 参数 | 类型 | 说明 
 :---: | :----: | :---
-key | String | 将保存为的资源唯一标识。请参见[关键概念：键值对](http://developer.qiniu.com/docs/v6/api/overview/concepts.html#key-value)。 
-isa | InputStreamAt | 待上传的本地文件。 
-extra | PutExtra | 上传参数。可以设置MIME类型等。 
-ret | JSONObjectRet | 开发者需实现该接口以获取上传进度和上传结果。<br>若上传成功，该接口中的`onSuccess()`方法将被调用。否则`onFailure()`方法将被调用。 `onProgress()`会在文件上传量发生更改的时候被调用，而且处于MainThread环境之中，可以直接操作ProgressBar之类的进度提示控件。
+`key` | `String` | 将保存为的资源唯一标识。请参见[关键概念：键值对](http://developer.qiniu.com/docs/v6/api/overview/concepts.html#key-value)。 
+`isa` | `InputStreamAt` | 待上传的本地文件。 
+`extra` | [`PutExtra`](https://github.com/qiniu/android-sdk/blob/develop/src/com/qiniu/resumableio/PutExtra.java) | 上传参数。可以设置MIME类型等。 
+`ret` | [`JSONObjectRet`](https://github.com/qiniu/android-sdk/blob/develop/src/com/qiniu/auth/JSONObjectRet.java)  | 开发者需实现该接口以获取上传进度和上传结果。<br>若上传成功，该接口中的`onSuccess()`方法将被调用。否则`onFailure()`方法将被调用。 `onProgress()`会在文件上传量发生更改的时候被调用，而且处于MainThread环境之中，可以直接操作ProgressBar之类的进度提示控件。
 
-开发者可以在调用方法前构造一个[`PutExtra`](https://github.com/qiniu/android-sdk/blob/develop/src/com/qiniu/resumableio/PutExtra.java)对象，往`PutExtra.params`中添加对应的上传参数以控制上传行为。可以设置的参数如下：
+开发者可以在调用方法前构造一个`PutExtra`对象，设置对应的上传参数以控制上传行为。可以设置的参数如下：
 
 参数 | 类型 | 说明 
 :---: | :----: | :---
-mimeType | String | 指定上传文件的MIME类型。如果未指定，服务端将做自动检测。一般情况下无需设置。 
-crc32 | long | 本文件的CRC校验码。服务端在上传完成后可以进行一次校验确认文件的完整性。
-params | HashMap<String, String> | 可设置魔法变量和自定义变量。变量可帮助开发者快速的在客户端、业务服务器、云存储服务之间传递资源元信息。详见[变量](http://developer.qiniu.com/docs/v6/api/overview/up/response/vars.html)。
+`mimeType` | `String` | 指定上传文件的MIME类型。如果未指定，服务端将做自动检测。一般情况下无需设置。 
+`crc32` | `long` | 本文件的CRC校验码。服务端在上传完成后可以进行一次校验确认文件的完整性。
+`params` | `HashMap<String, String>` | 可设置魔法变量和自定义变量。变量可帮助开发者快速的在客户端、业务服务器、云存储服务之间传递资源元信息。详见[变量](http://developer.qiniu.com/docs/v6/api/overview/up/response/vars.html)。
 
 以下是一个关于`PutExtra`使用的示例：
 
@@ -130,7 +132,7 @@ class ResumableIO {
 
 分片上传机制也提供了对一个文件并发上传的能力。
 
-目前本SDK的实现采用AsyncTask来进行异步操作，而Android系统底层默认是使用单线程来串行运行所有的AsyncTask，所以如果需要真正意义上的多线程上传，需要将AsyncTask放入线程池, 详细操作请参考[这里](http://developer.android.com/reference/android/os/AsyncTask.html)。
+目前本SDK的实现采用AsyncTask来进行异步操作，而Android系统底层默认是使用单线程来串行运行所有的AsyncTask。如果需要真正意义上的多线程上传，需要将AsyncTask放入线程池。详细操作请参考[这里](http://developer.android.com/reference/android/os/AsyncTask.html)。
 
 <a name="download"></a>
 ## 下载文件
@@ -138,6 +140,8 @@ class ResumableIO {
 该SDK并未提供下载文件相关的功能接口，因为文件下载是一个标准的HTTP GET过程。开发者只需理解资源URI的组成格式即可非常方便的构建资源URI，并在必要的时候加上下载凭证，即可使用HTTP GET请求获取相应资源。
 
 具体做法请参见[资源下载](http://developer.qiniu.com/docs/v6/api/overview/dn/download.html)和[资源下载的安全机制](http://developer.qiniu.com/docs/v6/api/overview/dn/security.html)。
+
+从安全性和代码可维护性的角度考虑，我们建议下载URL的拼装过程也在业务服务器进行，让客户端从业务服务器请求。
 
 <a name="thread-safety"></a>
 ## 线程安全性
