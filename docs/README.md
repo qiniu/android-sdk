@@ -65,7 +65,7 @@ Android SDK只包含了最终用户使用场景中的必要功能。相比服务
 
 该方法的详细说明如下：
 
-```
+```java
 public void put(String key, 
 				InputStreamAt isa, 
 				com.qiniu.io.PutExtra extra, 
@@ -91,7 +91,7 @@ public void put(String key,
 
 以下是一个关于`PutExtra`使用的示例：
 
-```
+```java
 extra.mimeType = "application/json"; // 强制设置MIME类型
 
 extra.params = new HashMap<String, String>();
@@ -114,7 +114,7 @@ extra.params.put("x:a", "bb"); // 设置一个自定义变量
 
 开发者可以基于分片上传机制实现断点续上传功能。
 
-```
+```java
 class ResumableIO {
     public static void put(String key, 
 				InputStreamAt isa, 
@@ -125,7 +125,35 @@ class ResumableIO {
 
 具体用法和`IO.put`的类似。
 
-> TODO: 这个没写完。这一节应该要告诉开发者，要断点续传的话应该持久化哪些东西，然后恢复上传时需要将之前持久化的东西设置到哪里去。
+#### 续上传
+续上传的进度信息都储存在com.qiniu.resumableio.PutExtra. 所以当上传失败的时候，可以将PutExtra持久化下来，等到下一次上传的时候，再使用这个PutExtra，具体代码实现如下
+
+失败状况
+```java
+final PutExtra extra = new PutExtra();
+final String key = "key";
+final String filepath = "xx/xx/xx";
+ResumableIO.put(key, InputStreamAt.fromFile(new File(filepath)), extra, new JSONObjectRet() {
+	int process;
+	public void onProcess(int current, int total) {
+		process = current/total;
+	}
+	// ...省略成功分支处理代码
+	public void onFailure(Exception ex) {
+		// 忽略处理exception,
+		db.execute("INSERT INTO `table_resumable_table` (`key`, `filepath`, `extraJson`, `process`) VALUES ('" + key + "', '" + filepath + "', '" + extra.toJSON() + "', " + process + ")");
+	}
+})
+```
+
+续传恢复
+```java
+JSONObject ret = db.GetOne("SELECT * FROM `table_resumable_table` LIMIT 0, 1");
+PutExtra extra = new PutExtra(ret.optString("extraJson", ""));
+String key = ret.optString("key", "");
+String filepath = ret.optString("filepath", "");
+ResumableIO.put(key, InputStreamAt.fromFile(new File(filepath)), extra, new JSONObjectRet() {...});
+```
 
 <a name="upload-concurrency"></a>
 ### 上传中的并发性
