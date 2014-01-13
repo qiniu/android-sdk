@@ -133,15 +133,28 @@ class ResumableIO {
 final PutExtra extra = new PutExtra();
 final String key = "key";
 final String filepath = "xx/xx/xx";
+// 准备上传
+db.execute("INSERT INTO `table_resumable_table` (`key`, `filepath`) VALUES ('" + key + "', '" + filepath + "')");
 ResumableIO.put(key, InputStreamAt.fromFile(new File(filepath)), extra, new JSONObjectRet() {
 	int process;
-	public void onProcess(int current, int total) {
-		process = current/total;
+	private void persist() {
+		// 持久化
+		db.execute("UPDATE `table_resumable_table` SET extra='" + extra.toJSON() + "', process=" + process + " WHERE `key`='" + key + "' and `filepath`='" + filepath + "'");
 	}
-	// ...省略成功分支处理代码
+	public void onSuccess(JSONObject obj) {
+		// 上传成功，删除记录
+		db.execute("DELETE FROM `table_resumable_table` WHERE `key`='" + key + "' and `filepath`='" + filepath + "'");
+	}
+	public void onProcess(int current, int total) {
+		process = current*100/total;
+		// 每5%持久化一次
+		if (process % 5 == 0) {
+			persist();
+		}
+	}
 	public void onFailure(Exception ex) {
 		// 忽略处理exception,
-		db.execute("INSERT INTO `table_resumable_table` (`key`, `filepath`, `extraJson`, `process`) VALUES ('" + key + "', '" + filepath + "', '" + extra.toJSON() + "', " + process + ")");
+		persist();
 	}
 })
 ```
