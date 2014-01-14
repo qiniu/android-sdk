@@ -130,6 +130,7 @@ class ResumableIO {
 
 失败状况
 ```java
+final int PERSIST_PACE = 5;
 final PutExtra extra = new PutExtra();
 final String key = "key";
 final String filepath = "xx/xx/xx";
@@ -137,6 +138,7 @@ final String filepath = "xx/xx/xx";
 db.execute("INSERT INTO `table_resumable_table` (`key`, `filepath`) VALUES ('" + key + "', '" + filepath + "')");
 ResumableIO.put(key, InputStreamAt.fromFile(new File(filepath)), extra, new JSONObjectRet() {
 	int process;
+	int lastPersistProcess = 0;
 	private void persist() {
 		// 持久化
 		db.execute("UPDATE `table_resumable_table` SET extra='" + extra.toJSON() + "', process=" + process + " WHERE `key`='" + key + "' and `filepath`='" + filepath + "'");
@@ -146,12 +148,12 @@ ResumableIO.put(key, InputStreamAt.fromFile(new File(filepath)), extra, new JSON
 		db.execute("DELETE FROM `table_resumable_table` WHERE `key`='" + key + "' and `filepath`='" + filepath + "'");
 	}
 	public void onProcess(int current, int total) {
-		int newProcess = current*100/total;
+		process = current*100/total;
 		// 每5%持久化一次
-		if (newProcess % 5 == 0 && newProcess - process > 1) {
+		if (process - lastPersistProcess > PERSIST_PACE) {
 			persist();
+			lastPersistProcess = process;
 		}
-		process = newProcess;
 	}
 	public void onFailure(Exception ex) {
 		// 忽略处理exception,
