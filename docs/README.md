@@ -146,11 +146,12 @@ ResumableIO.put(key, InputStreamAt.fromFile(new File(filepath)), extra, new JSON
 		db.execute("DELETE FROM `table_resumable_table` WHERE `key`='" + key + "' and `filepath`='" + filepath + "'");
 	}
 	public void onProcess(int current, int total) {
-		process = current*100/total;
+		int newProcess = current*100/total;
 		// 每5%持久化一次
-		if (process % 5 == 0) {
+		if (newProcess % 5 == 0 && newProcess - process > 1) {
 			persist();
 		}
+		process = newProcess;
 	}
 	public void onFailure(Exception ex) {
 		// 忽略处理exception,
