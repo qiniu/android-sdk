@@ -126,11 +126,12 @@ class ResumableIO {
 具体用法和`IO.put`的类似。
 
 #### 续上传
-续上传的进度信息都储存在com.qiniu.resumableio.PutExtra. 所以当上传失败的时候，可以将PutExtra持久化下来，等到下一次上传的时候，再使用这个PutExtra，具体代码实现如下
+续上传的进度信息都储存在com.qiniu.resumableio.PutExtra. 所以当上传失败的时候，可以将PutExtra持久化下来，等到下一次上传的时候，再使用这个PutExtra，具体代码实现如下。
 
-失败状况
+上传进度持久化：
+
 ```java
-final int PERSIST_PACE = 5;
+final int PERSIST_PACE = 5; // 每5%进度持久化一次
 final PutExtra extra = new PutExtra();
 final String key = "key";
 final String filepath = "xx/xx/xx";
@@ -149,7 +150,7 @@ ResumableIO.put(key, InputStreamAt.fromFile(new File(filepath)), extra, new JSON
 	}
 	public void onProcess(int current, int total) {
 		process = current*100/total;
-		// 每5%持久化一次
+		// 每特定进度持久化一次
 		if (process - lastPersistProcess > PERSIST_PACE) {
 			persist();
 			lastPersistProcess = process;
@@ -162,12 +163,16 @@ ResumableIO.put(key, InputStreamAt.fromFile(new File(filepath)), extra, new JSON
 })
 ```
 
-续传恢复
+恢复上传进度：
+
 ```java
 JSONObject ret = db.GetOne("SELECT * FROM `table_resumable_table` LIMIT 0, 1");
 PutExtra extra = new PutExtra(ret.optString("extraJson", ""));
 String key = ret.optString("key", "");
 String filepath = ret.optString("filepath", "");
+
+// 实际情况中，很可能出现本地文件在续传时已被删除或者修改的情况，开发者应在恢复上传前先做相应的校验。
+
 ResumableIO.put(key, InputStreamAt.fromFile(new File(filepath)), extra, new JSONObjectRet() {...});
 ```
 
