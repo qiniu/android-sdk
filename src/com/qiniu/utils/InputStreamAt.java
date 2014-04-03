@@ -7,7 +7,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.entity.AbstractHttpEntity;
 
 import java.io.*;
-import java.util.Arrays;
 import java.util.zip.CRC32;
 
 public class InputStreamAt implements Closeable {
@@ -58,14 +57,14 @@ public class InputStreamAt implements Closeable {
 		mData = data;
 	}
 
-	public long getCrc32(long offset, int length) {
+	public long getCrc32(long offset, int length) throws IOException {
 		CRC32 crc32 = new CRC32();
 		byte[] data = read(offset, length);
 		crc32.update(data);
 		return crc32.getValue();
 	}
 
-	public long crc32() {
+	public long crc32() throws IOException {
 		if (mCrc32 >= 0) return mCrc32;
 		CRC32 crc32 = new CRC32();
 		long index = 0;
@@ -120,26 +119,23 @@ public class InputStreamAt implements Closeable {
 		}
 	}
 
-	public byte[] read(long offset, int length) {
-		if (mClosed) return null;
-		try {
-			if (mFileStream != null) {
-				return fileStreamRead(offset, length);
-			}
-			if (mData != null) {
-				byte[] ret = new byte[length];
-				System.arraycopy(mData, (int) offset, ret, 0, length);
-				return ret;
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
+	public byte[] read(long offset, int length) throws IOException {
+		if (mClosed) throw new IOException("inputStreamAt closed");
+		if (mFileStream != null) {
+			return fileStreamRead(offset, length);
 		}
-
-		return null;
+		if (mData != null) {
+			byte[] ret = new byte[length];
+			System.arraycopy(mData, (int) offset, ret, 0, length);
+			return ret;
+		}
+		throw new IOException("inputStreamAt not init");
 	}
 
 	protected byte[] fileStreamRead(long offset, int length) throws IOException {
 		if (mFileStream == null) return null;
+		long fileLength = mFileStream.length();
+		if (length + offset > fileLength) length = (int) (fileLength - offset);
 		byte[] data = new byte[length];
 
 		int read;
@@ -147,16 +143,24 @@ public class InputStreamAt implements Closeable {
 		synchronized (data) {
 			mFileStream.seek(offset);
 			do {
-				read = mFileStream.read(data, totalRead, length);
+				read = mFileStream.read(data, totalRead, length - totalRead);
 				if (read <= 0) break;
 				totalRead += read;
 			} while (length > totalRead);
 		}
 
 		if (totalRead != data.length) {
-			data = Arrays.copyOfRange(data, 0, totalRead);
+			data = copyOfRange(data, 0, totalRead);
 		}
 		return data;
+	}
+
+	public static byte[] copyOfRange(byte[] original, int from, int to) {
+		int newLength = to - from;
+		if (newLength < 0) throw new IllegalArgumentException(from + " > " + to);
+		byte[] copy = new byte[newLength];
+		System.arraycopy(original, from, copy, 0, Math.min(original.length - from, newLength));
+	    return copy;
 	}
 
 	@Override

@@ -47,14 +47,24 @@ public class ResumableClient extends Client {
 
 			public void putInit() {
 				int chunkSize = Math.min(writeNeed, CHUNK_SIZE);
-				crc32 = input.getCrc32(offset, chunkSize);
+				try {
+					crc32 = input.getCrc32(offset, chunkSize);
+				} catch (IOException e) {
+					onFailure(e);
+					return;
+				}
 				canceler[0] = mkblk(input, offset, writeNeed, chunkSize, this);
 			}
 
 			public void putNext() {
 				wrote = putRet.offset;
 				int remainLength = Math.min((int) (input.length() - offset - putRet.offset), CHUNK_SIZE);
-				crc32 = input.getCrc32(offset+putRet.offset, remainLength);
+				try {
+					crc32 = input.getCrc32(offset+putRet.offset, remainLength);
+				} catch (IOException e) {
+					onFailure(e);
+					return;
+				}
 				canceler[0] = bput(putRet.host, input, putRet.ctx, offset, putRet.offset, remainLength, this);
 			}
 

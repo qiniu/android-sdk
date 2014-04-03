@@ -22,6 +22,7 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class Client {
 
@@ -29,6 +30,11 @@ public class Client {
 
 	public Client(HttpClient client) {
 		mClient = client;
+	}
+
+	public void close() {
+		mClient.getConnectionManager().closeExpiredConnections();
+		mClient.getConnectionManager().shutdown();
 	}
 
 	public static ClientExecutor get(String url, CallRet ret) {
@@ -77,6 +83,7 @@ public class Client {
 	public class ClientExecutor extends AsyncTask<Object, Object, Object> implements ICancel {
 		HttpRequestBase mHttpRequest;
 		CallRet mRet;
+		boolean failed;
 		public void setup(HttpRequestBase httpRequest, CallRet ret) {
 			mHttpRequest = httpRequest;
 			mRet = ret;
@@ -90,22 +97,16 @@ public class Client {
 			try {
 				HttpResponse resp = roundtrip(mHttpRequest);
 				int statusCode = resp.getStatusLine().getStatusCode();
-				if (statusCode == 401) { // android 2.3 will not response
-					return new Exception("unauthorized!");
-				}
-				byte[] data = EntityUtils.toByteArray(resp.getEntity());
+				String xl = resp.getFirstHeader("X-Log").getValue();
 
-				if (statusCode / 100 != 2) {
-					if (data.length == 0) {
-						String xlog = resp.getFirstHeader("X-Log").getValue();
-						if (xlog.length() > 0) {
-							return new Exception(xlog);
-						}
-						return new Exception(resp.getStatusLine().getReasonPhrase());
-					}
-					return new Exception(new String(data));
-				}
-				return data;
+				if (statusCode == 401) return new Exception("unauthorized!"); // android 2.3 will not response
+				if (xl.contains("invalid BlockCtx")) return new Exception(xl);
+
+				byte[] data = EntityUtils.toByteArray(resp.getEntity());
+				if (statusCode / 100 == 2) return data;
+				if (data.length > 0) return new Exception(new String(data));
+				if (xl.length() > 0) return new Exception(xl);
+				return new Exception(resp.getStatusLine().getStatusCode() + ":" + resp.getStatusLine().getReasonPhrase());
 			} catch (IOException e) {
 				e.printStackTrace();
 				return e;
@@ -114,16 +115,28 @@ public class Client {
 
 		@Override
 		protected void onProgressUpdate(Object... values) {
+			if (failed) return;
+			if (values.length == 1 && values[0] instanceof Exception) {
+				mRet.onFailure((Exception) values[0]);
+				failed = true;
+				return;
+			}
 			mRet.onProcess((Long) values[0], (Long) values[1]);
 		}
 
 		@Override
 		protected void onPostExecute(Object o) {
+			if (failed) return;
 			if (o instanceof Exception) {
 				mRet.onFailure((Exception) o);
 				return;
 			}
 			mRet.onSuccess((byte[]) o);
+		}
+
+		public void onFailure(Exception ex) {
+			publishProgress(ex);
+			cancel(true);
 		}
 	};
 

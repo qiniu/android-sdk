@@ -1,5 +1,12 @@
 ## CHANGE LOG
 
+### v6.0.1
+2014-04-03 issue [#40](https://github.com/qiniu/android-sdk/pull/40)
+
+- [#35] fix bugs and close idle connection
+- [#36] 增加连接超时处理
+
+
 ### v6.0.0
 
 增加 SDK 实现规范

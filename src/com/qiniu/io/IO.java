@@ -12,6 +12,7 @@ import com.qiniu.utils.MultipartEntity;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -21,15 +22,21 @@ public class IO {
 	public static String UNDEFINED_KEY = null;
 	private static Client mClient;
 	private static String mUptoken;
+	private static long mClientUseTime;
 	public IO(Client client, String uptoken) {
 		mClient = client;
 		mUptoken = uptoken;
 	}
 
 	private static Client defaultClient() {
+		if (mClient != null && System.currentTimeMillis() - mClientUseTime > 3 * 60 * 1000) { // 1 minute
+			mClient.close();
+			mClient = null;
+		}
 		if (mClient == null) {
 			mClient = Client.defaultClient();
 		}
+		mClientUseTime = System.currentTimeMillis();
 		return mClient;
 	}
 
@@ -44,9 +51,18 @@ public class IO {
 	public void put(String key, InputStreamAt isa, PutExtra extra, JSONObjectRet ret) {
 		MultipartEntity m = new MultipartEntity();
 		if (key != null) m.addField("key", key);
-		if (extra.checkCrc == PutExtra.AUTO_CRC32) extra.crc32 = isa.crc32();
+		if (extra.checkCrc == PutExtra.AUTO_CRC32) {
+			try {
+				extra.crc32 = isa.crc32();
+			} catch (IOException e) {
+				ret.onFailure(e);
+				return;
+			}
+		}
 		if (extra.checkCrc != PutExtra.UNUSE_CRC32) m.addField("crc32", extra.crc32 + "");
-		for (Map.Entry<String, String> i: extra.params.entrySet()) m.addField(i.getKey(), i.getValue());
+		for (Map.Entry<String, String> i: extra.params.entrySet()) {
+			m.addField(i.getKey(), i.getValue());
+		}
 
 		m.addField("token", mUptoken);
 		m.addFile("file", extra.mimeType, key == null ? "?" : key, isa);
@@ -57,6 +73,11 @@ public class IO {
 			@Override
 			public void onProcess(long current, long total) {
 				executor.upload(current, total);
+			}
+
+			@Override
+			public void onFailure(Exception ex) {
+				executor.onFailure(ex);
 			}
 		});
 		client.call(executor, Conf.UP_HOST, m, ret);
