@@ -1,7 +1,9 @@
 Qiniu Resource Storage SDK for Android
 ===
 
-[![Qiniu Logo](http://qiniutek.com/images/logo-2.png)](http://qiniu.com/)
+[![Build Status](https://api.travis-ci.org/qiniu/android-sdk.png?branch=master)](https://travis-ci.org/qiniu/android-sdk)
+
+[![Qiniu Logo](http://qiniu-brand.qiniudn.com/5/logo-white-195x105.png)](http://www.qiniu.com/)
 
 ## 下载
 

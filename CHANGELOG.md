@@ -1,5 +1,11 @@
 ## CHANGE LOG
 
+### v6.0.2
+2014-04-15 issue [#43](https://github.com/qiniu/android-sdk/pull/43)
+
+- [#41] gradle build, travis
+
+
 ### v6.0.1
 2014-04-03 issue [#40](https://github.com/qiniu/android-sdk/pull/40)
 
