@@ -63,7 +63,7 @@ public class ResumableIO {
 	}
 
 	public int put(final String key, final InputStreamAt input, final PutExtra extra, final JSONObjectRet ret) {
-		final int blkCount = (int) (input.length() / BLOCK_SIZE) + 1;
+		final int blkCount = (int) ((input.length() + BLOCK_SIZE - 1) / BLOCK_SIZE);
 		if (extra.processes == null)  extra.processes = new PutRet[blkCount];
 		extra.totalSize = input.length();
 		final int[] success = new int[] {0};
