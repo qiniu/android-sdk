@@ -94,18 +94,15 @@ public class IO {
 	 */
 	public void putFile(Context mContext, String key, Uri uri, PutExtra extra, final JSONObjectRet ret) {
 		if (!uri.toString().startsWith("file")) uri = convertFileUri(mContext, uri);
-		try {
-			File file = new File(new URI(uri.toString()));
-			if (file.exists()) {
-				putAndClose(key, InputStreamAt.fromFile(file), extra, ret);
-				return;
-			}
-			ret.onFailure(new Exception("file not exist: " + uri.toString()));
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-			ret.onFailure(e);
+
+		File file = new File(uri.getEncodedPath());
+		if (file.exists()) {
+			putAndClose(key, InputStreamAt.fromFile(file), extra, ret);
+			return;
 		}
+		ret.onFailure(new Exception("file not exist: " + uri.toString()));
 	}
+	
 	public void putFile(String key, File file, PutExtra extra, JSONObjectRet callback) {
 		putAndClose(key, InputStreamAt.fromFile(file), extra, callback);
 	}
