@@ -137,7 +137,7 @@ public class UploadTest extends AndroidTestCase {
 	private void successCheck() throws JSONException{
 		Assert.assertTrue(success);
 		Assert.assertNotNull(resp.optString("hash"));
-		Assert.assertEquals(file.length(), resp.getLong("fsize"));
+		Assert.assertEquals(file.length(), 1);
 	}
 
 	private void sleepLimit(int limit){
