@@ -26,11 +26,13 @@ android {
 
     instrumentTest.setRoot('tests')
     instrumentTest {
+      manifest.srcFile 'AndroidManifest.xml'
       java.srcDirs = ['tests/src']
       res.srcDirs = ['res']
       assets.srcDirs = ['assets']
       resources.srcDirs = ['tests/src']
     }
+
   }
 
   dependencies {

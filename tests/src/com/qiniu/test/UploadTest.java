@@ -57,7 +57,7 @@ public class UploadTest extends AndroidTestCase {
 		jsonRet = new JSONObjectRet() {
 			@Override
 			public void onProcess(long current, long total) {
-				Log.d("UploadTest", current + "/" + total);
+				//Log.d("UploadTest", current + "/" + total);
 				// Assert.assertEquals(file.length(), total); // 内部实现原因，可能不相等
 			}
 
