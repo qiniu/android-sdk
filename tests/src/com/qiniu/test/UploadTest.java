@@ -24,35 +24,35 @@ import android.util.Log;
 
 public class UploadTest extends AndroidTestCase {
 	private String uptoken = "acmKu7Hie1OQ3t31bAovR6JORFX72MMpTicc2xje:n6I4SuMAxBgZ6o3qh8z1bMWqKow=:eyJzY29wZSI6ImFhYTUiLCJyZXR1cm5Cb2R5Ijoie1wiaGFzaFwiOlwiJChldGFnKVwiLFwia2V5XCI6XCIkKGtleSlcIixcImZuYW1lXCI6XCIgJChmbmFtZSkgXCIsXCJmc2l6ZVwiOlwiJChmc2l6ZSlcIixcImF2aW5mb1wiOlwiJChhdmluZm8pXCIsXCJ4OnRlc3RfbmFtZVwiOlwiJCh4OnRlc3RfbmFtZSlcIixcIm5vbnh0ZXN05Lit5paHX25hbWVcIjpcIiQobm9ueHRlc3TkuK3mlodfbmFtZSlcIn0iLCJkZWFkbGluZSI6MTQzMjg2ODA3NH0=";
-	
+
 	private File file;
-	
+
 	private boolean uploading;
 	private boolean success;
 	private JSONObjectRet jsonRet;
 	private JSONObject resp;
 	private Exception e;
-	
+
 	private Context context;
 	private Uri uri;
 	private com.qiniu.io.PutExtra extra;
 	private String key = IO.UNDEFINED_KEY;
-	
+
 	private com.qiniu.resumableio.PutExtra rextra;
 
 	public void setUp() throws Exception {
 		key = UUID.randomUUID().toString();
 		uploading = true;
 		success = false;
-		
+
 		extra = new com.qiniu.io.PutExtra();
 		extra.params = new HashMap<String, String>();
 		extra.params.put("x:a", "测试中文信息");
-		
+
 		rextra = new com.qiniu.resumableio.PutExtra();
 		rextra.params = new HashMap<String, String>();
 		rextra.params.put("x:a", "测试中文信息");
-		
+
 		context = this.getContext();
 		jsonRet = new JSONObjectRet() {
 			@Override
@@ -94,16 +94,16 @@ public class UploadTest extends AndroidTestCase {
 		sleepLimit(60);
 		successCheck();
 	}
-	
+
 	@MediumTest
 	public void testM() throws IOException, JSONException {
-		file = createFile(4, ".test");
+		file = createFile(4, "--—— 地   方.test");
 		uri = Uri.fromFile(file);
 		IO.putFile(context, uptoken, key, uri, extra, jsonRet);
 		sleepLimit(60 * 5);
 		successCheck();
 	}
-	
+
 	@SmallTest
 	public void testRS() throws IOException, JSONException {
 		file = createFile(0.2, ".test");
@@ -112,7 +112,7 @@ public class UploadTest extends AndroidTestCase {
 		sleepLimit(60);
 		successCheck();
 	}
-	
+
 	@MediumTest
 	public void testRM() throws IOException, JSONException {
 		file = createFile(4, ".test");
@@ -121,7 +121,7 @@ public class UploadTest extends AndroidTestCase {
 		sleepLimit(60 * 5);
 		successCheck();
 	}
-	
+
 	@MediumTest
 	public void testRL() throws IOException, JSONException {
 		file = createFile(8.6, ".test");
@@ -130,14 +130,14 @@ public class UploadTest extends AndroidTestCase {
 		sleepLimit(60 * 5);
 		successCheck();
 	}
-	
+
 
 	private void successCheck() throws JSONException{
 		Assert.assertTrue(success);
 		Assert.assertNotNull(resp.optString("hash"));
 		Assert.assertEquals(file.length(), resp.getLong("fsize"));
 	}
-	
+
 	private void sleepLimit(int limit){
 		int t = 5;
 		while(uploading && t < limit){
@@ -149,7 +149,7 @@ public class UploadTest extends AndroidTestCase {
 			}
 		}
 	}
-	
+
 	private File createFile(double fileSize, String suf) throws IOException {
 		FileOutputStream fos = null;
 		try{
