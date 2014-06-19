@@ -23,7 +23,7 @@ import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
 public class UploadTest extends AndroidTestCase {
-	private String uptoken = "acmKu7Hie1OQ3t31bAovR6JORFX72MMpTicc2xje:n6I4SuMAxBgZ6o3qh8z1bMWqKow=:eyJzY29wZSI6ImFhYTUiLCJyZXR1cm5Cb2R5Ijoie1wiaGFzaFwiOlwiJChldGFnKVwiLFwia2V5XCI6XCIkKGtleSlcIixcImZuYW1lXCI6XCIgJChmbmFtZSkgXCIsXCJmc2l6ZVwiOlwiJChmc2l6ZSlcIixcImF2aW5mb1wiOlwiJChhdmluZm8pXCIsXCJ4OnRlc3RfbmFtZVwiOlwiJCh4OnRlc3RfbmFtZSlcIixcIm5vbnh0ZXN05Lit5paHX25hbWVcIjpcIiQobm9ueHRlc3TkuK3mlodfbmFtZSlcIn0iLCJkZWFkbGluZSI6MTQzMjg2ODA3NH0=";
+	private String uptoken = "anEC5u_72gw1kZPSy3Dsq1lo_DPXyvuPDaj4ePkN:zmaikrTu1lgLb8DTvKQbuFZ5ai0=:eyJzY29wZSI6ImFuZHJvaWRzZGsiLCJyZXR1cm5Cb2R5Ijoie1wiaGFzaFwiOlwiJChldGFnKVwiLFwia2V5XCI6XCIkKGtleSlcIixcImZuYW1lXCI6XCIgJChmbmFtZSkgXCIsXCJmc2l6ZVwiOlwiJChmc2l6ZSlcIixcIm1pbWVUeXBlXCI6XCIkKG1pbWVUeXBlKVwiLFwieDphXCI6XCIkKHg6YSlcIn0iLCJkZWFkbGluZSI6MTQ2NjIyMjcwMX0=";
 
 	private File file;
 
@@ -47,11 +47,11 @@ public class UploadTest extends AndroidTestCase {
 
 		extra = new com.qiniu.io.PutExtra();
 		extra.params = new HashMap<String, String>();
-		extra.params.put("x:a", "测试中文信息");
+		extra.params.put("x:a", "测试中文  信息");
 
 		rextra = new com.qiniu.resumableio.PutExtra();
 		rextra.params = new HashMap<String, String>();
-		rextra.params.put("x:a", "测试中文信息");
+		rextra.params.put("x:a", "测试中文  信息");
 
 		context = this.getContext();
 		jsonRet = new JSONObjectRet() {
