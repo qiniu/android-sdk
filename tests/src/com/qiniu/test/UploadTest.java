@@ -67,6 +67,7 @@ public class UploadTest extends AndroidTestCase {
 				success = true;
 				resp = res;
 				Log.d("UploadTest", "上传成功!  " + resp.toString());
+				System.out.println("上传成功!  " + resp.toString());
 			}
 
 			@Override
@@ -75,6 +76,7 @@ public class UploadTest extends AndroidTestCase {
 				success = false;
 				e = ex;
 				Log.d("UploadTest", "上传失败!  " + ex.getMessage());
+				System.out.println("上传失败!  " + ex.getMessage());
 			}
 		};
 	}
