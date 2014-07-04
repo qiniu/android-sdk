@@ -18,7 +18,13 @@
         <activity android:name=".demo.MyResumableActivity"
                   android:theme="@android:style/Theme.Light.NoTitleBar"
                   android:label="@string/app_name_resumable">
-
         </activity>
+        
+        <uses-library android:name="android.test.runner" />
     </application>
+    
+    <uses-permission android:name="android.permission.RUN_INSTRUMENTATION" />
+	<instrumentation android:name="android.test.InstrumentationTestRunner" 
+	    android:targetPackage="com.qiniu"
+		android:label="Test for sdk"/>
 </manifest>
