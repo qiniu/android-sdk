@@ -151,7 +151,9 @@ public class ResumableIO {
 		if (!uri.toString().startsWith("file")) uri = convertFileUri(mContext, uri);
 
 		File file = new File(uri.getEncodedPath());
-		if (file.exists()) return putAndClose(key, InputStreamAt.fromFile(file), extra, ret);
+		if (file.exists()) {
+			return putAndClose(key, InputStreamAt.fromFile(file), extra, ret);
+		}
 		ret.onFailure(new Exception("file not exist: " + uri.toString()));
 
 		return -1;
