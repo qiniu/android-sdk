@@ -76,7 +76,7 @@ public class Client {
 	}
 
 	protected HttpResponse roundtrip(HttpRequestBase httpRequest) throws IOException {
-		httpRequest.setHeader("User-Agent", Conf.GetUserAgent());
+		httpRequest.setHeader("User-Agent", Conf.getUserAgent());
 		return mClient.execute(httpRequest);
 	}
 
