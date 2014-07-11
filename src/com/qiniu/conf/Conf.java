@@ -6,6 +6,6 @@ public class Conf {
 	public static final String UP_HOST = "http://upload.qiniu.com";
 
     public static String getUserAgent() {
-        return  USER_AGENT_PREFIX + VERSION + "(" + android.os.Build.VERSION.RELEASE + ";" + android.os.Build.MODEL+ ")";
+        return  USER_AGENT_PREFIX + VERSION + " (" + android.os.Build.VERSION.RELEASE + "; " + android.os.Build.MODEL+ ")";
     }
 }
