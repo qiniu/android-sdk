@@ -1,5 +1,13 @@
 ## CHANGE LOG
 
+
+### v6.0.3
+2014-07-11 issue [#49](https://github.com/qiniu/android-sdk/pull/49)
+
+- [#45] block count 计数修正
+- [#47] file Uri 修正
+- [#48] 调整上传默认为upload.qiniu.com
+
 ### v6.0.2
 2014-04-15 issue [#43](https://github.com/qiniu/android-sdk/pull/43)
 
