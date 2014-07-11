@@ -76,7 +76,7 @@ public class Client {
 	}
 
 	protected HttpResponse roundtrip(HttpRequestBase httpRequest) throws IOException {
-		httpRequest.setHeader("User-Agent", Conf.USER_AGENT);
+		httpRequest.setHeader("User-Agent", Conf.GetUserAgent());
 		return mClient.execute(httpRequest);
 	}
 
@@ -91,7 +91,7 @@ public class Client {
 		public void upload(long current, long total) {
 			publishProgress(current, total);
 		}
-		
+
 		@Override
 		protected Object doInBackground(Object... objects) {
 			try {
