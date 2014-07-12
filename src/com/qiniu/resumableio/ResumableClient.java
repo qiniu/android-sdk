@@ -1,7 +1,5 @@
 package com.qiniu.resumableio;
 
-import android.util.Base64;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -18,6 +16,7 @@ import com.qiniu.auth.JSONObjectRet;
 import com.qiniu.conf.Conf;
 import com.qiniu.utils.ICancel;
 import com.qiniu.utils.InputStreamAt;
+import com.qiniu.utils.Base64;
 
 public class ResumableClient extends Client {
 	String mUpToken;
@@ -118,14 +117,14 @@ public class ResumableClient extends Client {
 	public ICancel mkfile(String key, long fsize, String mimeType, Map<String, String> params, String ctxs, CallRet ret) {
 		String url = Conf.UP_HOST + "/mkfile/" + fsize;
 		if (mimeType != null && mimeType.length() > 0) {
-			url += "/mimeType/" + encode(mimeType);
+			url += "/mimeType/" + Base64.encode(mimeType);
 		}
 		if (key != null && key.length() > 0) {
-			url += "/key/" + encode(key);
+			url += "/key/" + Base64.encode(key);
 		}
 		if (params != null && params.size() > 0) {
 			for (Map.Entry<String, String> a: params.entrySet()) {
-				url += "/" + a.getKey() + "/" + encode(a.getValue());
+				url += "/" + a.getKey() + "/" + Base64.encode(a.getValue());
 			}
 		}
 		try {
@@ -135,9 +134,5 @@ public class ResumableClient extends Client {
 			ret.onFailure(e);
 			return null;
 		}
-	}
-
-	public String encode(String data) {
-		return Base64.encodeToString(data.getBytes(), Base64.URL_SAFE | Base64.NO_WRAP);
 	}
 }
