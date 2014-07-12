@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import com.qiniu.auth.JSONObjectRet;
 import com.qiniu.io.IO;
 import com.qiniu.resumableio.ResumableIO;
+import com.qiniu.utils.QiniuException;
 
 import android.content.Context;
 import android.net.Uri;
@@ -71,7 +72,7 @@ public class UploadTest extends AndroidTestCase {
 			}
 
 			@Override
-			public void onFailure(Exception ex) {
+			public void onFailure(QiniuException ex) {
 				uploading = false;
 				success = false;
 				e = ex;

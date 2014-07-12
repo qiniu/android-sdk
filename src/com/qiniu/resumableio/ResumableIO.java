@@ -15,6 +15,7 @@ import com.qiniu.auth.JSONObjectRet;
 import com.qiniu.utils.ICancel;
 import com.qiniu.utils.InputStreamAt;
 import com.qiniu.utils.FileUri;
+import com.qiniu.utils.QiniuException;
 
 public class ResumableIO {
 	ResumableClient mClient;
@@ -57,7 +58,7 @@ public class ResumableIO {
 			}
 
 			@Override
-			public void onFailure(Exception ex) {
+			public void onFailure(QiniuException ex) {
 				input.close();
 				ret.onFailure(ex);
 			}
@@ -122,7 +123,7 @@ public class ResumableIO {
 				}
 
 				@Override
-				public void onFailure(Exception ex) {
+				public void onFailure(QiniuException ex) {
 					if (failure[0]) {
 						ex.printStackTrace();
 						return;
@@ -152,7 +153,7 @@ public class ResumableIO {
 	public int putFile(Context mContext, String key, Uri uri, PutExtra extra, final JSONObjectRet ret) {
 		File file = FileUri.getFile(mContext, uri);
 		if (!file.exists()) {
-			ret.onFailure(new Exception("file not exist: " + uri.toString()));
+			ret.onFailure(QiniuException.fileNotFound(uri.toString()));
 			return -1;
 		}
 

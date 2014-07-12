@@ -11,6 +11,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 
+
+import com.qiniu.auth.CallRet;
 import com.qiniu.auth.Client;
 import com.qiniu.auth.JSONObjectRet;
 import com.qiniu.conf.Conf;
@@ -18,6 +20,8 @@ import com.qiniu.utils.IOnProcess;
 import com.qiniu.utils.InputStreamAt;
 import com.qiniu.utils.MultipartEntity;
 import com.qiniu.utils.FileUri;
+import com.qiniu.utils.QiniuException;
+import com.qiniu.utils.RetryRet;
 
 public class IO {
 
@@ -70,16 +74,16 @@ public class IO {
 	 * @param extra   上传参数
 	 * @param ret	  回调函数
 	 */
-	public void put(String key, InputStreamAt isa, PutExtra extra, JSONObjectRet ret) {
-		MultipartEntity m;
+	public void put(String key, InputStreamAt isa, PutExtra extra, final JSONObjectRet ret) {
+		final MultipartEntity m;
 		try {
 			m = buildMultipartEntity(key, isa, extra);
 		} catch (IOException e) {
-			ret.onFailure(e);
+			ret.onFailure(new QiniuException(QiniuException.IO, "build multipart", e));
 			return;
 		}
 
-		Client client = defaultClient();
+		final Client client = defaultClient();
 		final Client.ClientExecutor executor = client.makeClientExecutor();
 		m.setProcessNotify(new IOnProcess() {
 			@Override
@@ -88,11 +92,22 @@ public class IO {
 			}
 
 			@Override
-			public void onFailure(Exception ex) {
+			public void onFailure(QiniuException ex) {
 				executor.onFailure(ex);
 			}
 		});
-		client.call(executor, Conf.UP_HOST, m, ret);
+
+		CallRet retryRet = new RetryRet(ret){
+			@Override
+			public void onFailure(QiniuException ex) {
+				if (ex.code/100  == 4 || ex.code == 579) {
+					ret.onFailure(ex);
+					return;
+				}
+				client.call(executor, Conf.UP_HOST2, m, ret);
+			}
+		};
+		client.call(executor, Conf.UP_HOST, m, retryRet);
 	}
 
 	/**
@@ -107,7 +122,7 @@ public class IO {
 	public void putFile(Context mContext, String key, Uri uri, PutExtra extra, JSONObjectRet ret) {
 		File file = FileUri.getFile(mContext, uri);
 		if (!file.exists()) {
-			ret.onFailure(new Exception("file not exist: " + uri.toString()));
+			ret.onFailure(QiniuException.fileNotFound(uri.toString()));
 			return;
 		}
 		putFile(key, file, extra, ret);
@@ -136,7 +151,7 @@ public class IO {
 			}
 
 			@Override
-			public void onFailure(Exception ex) {
+			public void onFailure(QiniuException ex) {
 				input.close();
 				ret.onFailure(ex);
 			}
