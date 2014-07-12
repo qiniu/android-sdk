@@ -7,4 +7,4 @@ android:
 
 script:
   #- ./gradlew build
-  - ./gradlew build connectedInstrumentTest
+  - ./gradlew connectedInstrumentTest
