@@ -1,0 +1,25 @@
+package com.qiniu.utils;
+
+import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+
+public class FileUri {
+    public static Uri convertFileUri(Context mContext, Uri uri) {
+        if (uri.toString().startsWith("file")){
+            return uri;
+        }
+        String filePath;
+        if (uri != null && "content".equals(uri.getScheme())) {
+            Cursor cursor = mContext.getContentResolver().query(uri,
+                new String[] { android.provider.MediaStore.Images.ImageColumns.DATA },
+                null, null, null);
+            cursor.moveToFirst();
+            filePath = cursor.getString(0);
+            cursor.close();
+        } else {
+            filePath = uri.getPath();
+        }
+        return Uri.parse("file://" + filePath);
+    }
+}

@@ -1,14 +1,8 @@
 package com.qiniu.io;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
-import com.qiniu.auth.Client;
-import com.qiniu.auth.JSONObjectRet;
-import com.qiniu.conf.Conf;
-import com.qiniu.utils.IOnProcess;
-import com.qiniu.utils.InputStreamAt;
-import com.qiniu.utils.MultipartEntity;
+
 import org.json.JSONObject;
 
 import java.io.File;
@@ -16,6 +10,14 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+
+import com.qiniu.auth.Client;
+import com.qiniu.auth.JSONObjectRet;
+import com.qiniu.conf.Conf;
+import com.qiniu.utils.IOnProcess;
+import com.qiniu.utils.InputStreamAt;
+import com.qiniu.utils.MultipartEntity;
+import com.qiniu.utils.FileUri;
 
 public class IO {
 
@@ -93,7 +95,7 @@ public class IO {
 	 * @param ret 结果回调函数
 	 */
 	public void putFile(Context mContext, String key, Uri uri, PutExtra extra, final JSONObjectRet ret) {
-		if (!uri.toString().startsWith("file")) uri = convertFileUri(mContext, uri);
+		uri = FileUri.convertFileUri(mContext, uri);
 
 		File file = new File(uri.getEncodedPath());
 		if (file.exists()) {
@@ -102,7 +104,7 @@ public class IO {
 		}
 		ret.onFailure(new Exception("file not exist: " + uri.toString()));
 	}
-	
+
 	public void putFile(String key, File file, PutExtra extra, JSONObjectRet callback) {
 		putAndClose(key, InputStreamAt.fromFile(file), extra, callback);
 	}
@@ -131,19 +133,6 @@ public class IO {
 				ret.onFailure(ex);
 			}
 		});
-	}
-
-	public static Uri convertFileUri(Context mContext, Uri uri) {
-		String filePath;
-		if (uri != null && "content".equals(uri.getScheme())) {
-			Cursor cursor = mContext.getContentResolver().query(uri, new String[] { android.provider.MediaStore.Images.ImageColumns.DATA }, null, null, null);
-			cursor.moveToFirst();
-			filePath = cursor.getString(0);
-			cursor.close();
-		} else {
-			filePath = uri.getPath();
-		}
-		return Uri.parse("file://" + filePath);
 	}
 
 	public static void put(String uptoken, String key, InputStreamAt input, PutExtra extra, JSONObjectRet callback) {

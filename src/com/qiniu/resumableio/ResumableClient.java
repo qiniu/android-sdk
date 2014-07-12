@@ -1,12 +1,7 @@
 package com.qiniu.resumableio;
 
 import android.util.Base64;
-import com.qiniu.auth.CallRet;
-import com.qiniu.auth.Client;
-import com.qiniu.auth.JSONObjectRet;
-import com.qiniu.conf.Conf;
-import com.qiniu.utils.ICancel;
-import com.qiniu.utils.InputStreamAt;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -16,6 +11,13 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
+
+import com.qiniu.auth.CallRet;
+import com.qiniu.auth.Client;
+import com.qiniu.auth.JSONObjectRet;
+import com.qiniu.conf.Conf;
+import com.qiniu.utils.ICancel;
+import com.qiniu.utils.InputStreamAt;
 
 public class ResumableClient extends Client {
 	String mUpToken;
