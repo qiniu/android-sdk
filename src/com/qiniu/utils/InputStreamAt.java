@@ -125,6 +125,19 @@ public class InputStreamAt implements Closeable {
 		return mFileStream.read(data);
 	}
 
+	public void reset(){
+		if (mClosed) {
+			return;
+		}
+		if (mFileStream != null) {
+			try{
+				mFileStream.seek(0);
+			}catch(IOException e){
+				e.printStackTrace();
+			}
+		}
+	}
+
 	public HttpEntity toHttpEntity(final long offset, final int length, final Client.ClientExecutor client) {
 		final InputStreamAt input = this;
 		return new AbstractHttpEntity() {

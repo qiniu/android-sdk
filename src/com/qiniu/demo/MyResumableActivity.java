@@ -9,14 +9,16 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.qiniu.R;
-import com.qiniu.auth.JSONObjectRet;
-import com.qiniu.resumableio.PutExtra;
-import com.qiniu.resumableio.ResumableIO;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+
+import com.qiniu.R;
+import com.qiniu.auth.JSONObjectRet;
+import com.qiniu.resumableio.PutExtra;
+import com.qiniu.resumableio.ResumableIO;
+import com.qiniu.utils.QiniuException;
 
 public class MyResumableActivity extends Activity implements View.OnClickListener {
 	private ProgressBar pb;
@@ -95,7 +97,7 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 			}
 
 			@Override
-			public void onFailure(Exception ex) {
+			public void onFailure(QiniuException ex) {
 				hint.setText(ex.getMessage());
 			}
 		});

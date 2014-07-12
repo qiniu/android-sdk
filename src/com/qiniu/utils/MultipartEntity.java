@@ -100,7 +100,7 @@ public class MultipartEntity extends AbstractHttpEntity  {
 				mContentType = "application/octet-stream";
 			}
 		}
-		
+
 		public long length() {
 			return fileTpl.length() - 2*4 + mBoundary.length() + mIsa.length() + 2 +
 				mField.getBytes().length + mContentType.length() + mFilename.getBytes().length;
@@ -124,7 +124,7 @@ public class MultipartEntity extends AbstractHttpEntity  {
 				try {
 					write(timeout, outputStream, mIsa.read(index, readLength));
 				} catch (Exception e) {
-					mNotify.onFailure(e);
+					mNotify.onFailure(QiniuException.common("multipart", e));
 					return;
 				}
 				index += blockSize;

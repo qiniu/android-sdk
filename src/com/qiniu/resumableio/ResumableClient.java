@@ -17,6 +17,7 @@ import com.qiniu.conf.Conf;
 import com.qiniu.utils.ICancel;
 import com.qiniu.utils.InputStreamAt;
 import com.qiniu.utils.Base64;
+import com.qiniu.utils.QiniuException;
 
 public class ResumableClient extends Client {
 	String mUpToken;
@@ -51,7 +52,7 @@ public class ResumableClient extends Client {
 				try {
 					crc32 = input.partCrc32(offset, chunkSize);
 				} catch (IOException e) {
-					onFailure(e);
+					onFailure(new QiniuException(QiniuException.IO, "crc IOException", e));
 					return;
 				}
 				canceler[0] = mkblk(input, offset, writeNeed, chunkSize, this);
@@ -63,7 +64,7 @@ public class ResumableClient extends Client {
 				try {
 					crc32 = input.partCrc32(offset+putRet.offset, remainLength);
 				} catch (IOException e) {
-					onFailure(e);
+					onFailure(new QiniuException(QiniuException.IO, "next crc IOException", e));
 					return;
 				}
 				canceler[0] = bput(putRet.host, input, putRet.ctx, offset, putRet.offset, remainLength, this);
@@ -92,7 +93,7 @@ public class ResumableClient extends Client {
 			}
 
 			@Override
-			public void onFailure(Exception ex) {
+			public void onFailure(QiniuException ex) {
 				callback.onFailure(ex);
 			}
 		};
@@ -131,7 +132,7 @@ public class ResumableClient extends Client {
 			return call(makeClientExecutor(), url, new StringEntity(ctxs), ret);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
-			ret.onFailure(e);
+			ret.onFailure(new QiniuException(QiniuException.InvalidEncode, "mkfile", e));
 			return null;
 		}
 	}
