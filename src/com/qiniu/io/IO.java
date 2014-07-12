@@ -110,11 +110,11 @@ public class IO {
 			ret.onFailure(new Exception("file not exist: " + uri.toString()));
 			return;
 		}
-		putAndClose(key, InputStreamAt.fromFile(file), extra, ret);
+		putFile(key, file, extra, ret);
 	}
 
-	public void putFile(String key, File file, PutExtra extra, JSONObjectRet callback) {
-		putAndClose(key, InputStreamAt.fromFile(file), extra, callback);
+	public void putFile(String key, File file, PutExtra extra, JSONObjectRet ret) {
+		putAndClose(key, InputStreamAt.fromFile(file), extra, ret);
 	}
 
 	private void putAndClose(final String key, final InputStreamAt input, final PutExtra extra, final JSONObjectRet ret) {
