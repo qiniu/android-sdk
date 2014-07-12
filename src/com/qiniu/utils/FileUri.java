@@ -5,6 +5,7 @@ import java.io.File;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Environment;
 
 public class FileUri {
     public static File getFile(Context mContext, Uri uri) {
@@ -28,5 +29,15 @@ public class FileUri {
             filePath = uri.getPath();
         }
         return Uri.parse("file://" + filePath);
+    }
+
+    public static File getSDPath(Context context){
+        File sdDir = context.getCacheDir();
+        boolean sdCardExist = Environment.getExternalStorageState()
+                .equals(Environment.MEDIA_MOUNTED);
+        if (sdCardExist) {
+            sdDir = Environment.getExternalStorageDirectory();
+        }
+        return sdDir;
     }
 }
