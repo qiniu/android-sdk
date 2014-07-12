@@ -44,11 +44,15 @@ public class IO {
 
 	private static MultipartEntity buildMultipartEntity(String key, InputStreamAt isa, PutExtra extra) throws IOException {
 		MultipartEntity m = new MultipartEntity();
-		if (key != null) m.addField("key", key);
+		if (key != null) {
+			m.addField("key", key);
+		}
 		if (extra.checkCrc == PutExtra.AUTO_CRC32) {
 			extra.crc32 = isa.crc32();
 		}
-		if (extra.checkCrc != PutExtra.UNUSE_CRC32) m.addField("crc32", extra.crc32 + "");
+		if (extra.checkCrc != PutExtra.UNUSE_CRC32) {
+			m.addField("crc32", extra.crc32 + "");
+		}
 		for (Map.Entry<String, String> i: extra.params.entrySet()) {
 			m.addField(i.getKey(), i.getValue());
 		}
@@ -100,23 +104,21 @@ public class IO {
 	 * @param extra 上传参数
 	 * @param ret 结果回调函数
 	 */
-	public void putFile(Context mContext, String key, Uri uri, PutExtra extra, final JSONObjectRet ret) {
-		uri = FileUri.convertFileUri(mContext, uri);
-
-		File file = new File(uri.getEncodedPath());
-		if (file.exists()) {
-			putAndClose(key, InputStreamAt.fromFile(file), extra, ret);
+	public void putFile(Context mContext, String key, Uri uri, PutExtra extra, JSONObjectRet ret) {
+		File file = FileUri.getFile(mContext, uri);
+		if (!file.exists()) {
+			ret.onFailure(new Exception("file not exist: " + uri.toString()));
 			return;
 		}
-		ret.onFailure(new Exception("file not exist: " + uri.toString()));
+		putAndClose(key, InputStreamAt.fromFile(file), extra, ret);
 	}
 
 	public void putFile(String key, File file, PutExtra extra, JSONObjectRet callback) {
 		putAndClose(key, InputStreamAt.fromFile(file), extra, callback);
 	}
 
-	public void putAndClose(final String key, final InputStreamAt input, final PutExtra extra, final JSONObjectRet ret) {
-		put(key, input, extra, new JSONObjectRet() {
+	private void putAndClose(final String key, final InputStreamAt input, final PutExtra extra, final JSONObjectRet ret) {
+		JSONObjectRet closer = new JSONObjectRet() {
 			@Override
 			public void onSuccess(JSONObject obj) {
 				input.close();
@@ -138,7 +140,8 @@ public class IO {
 				input.close();
 				ret.onFailure(ex);
 			}
-		});
+		};
+		put(key, input, extra, closer);
 	}
 
 	public static void put(String uptoken, String key, InputStreamAt input, PutExtra extra, JSONObjectRet callback) {

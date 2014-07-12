@@ -1,11 +1,18 @@
 package com.qiniu.utils;
 
+import java.io.File;
+
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 
 public class FileUri {
-    public static Uri convertFileUri(Context mContext, Uri uri) {
+    public static File getFile(Context mContext, Uri uri) {
+        uri = fileUri(mContext, uri);
+        return new File(uri.getEncodedPath());
+    }
+
+    private static Uri fileUri(Context mContext, Uri uri){
         if (uri.toString().startsWith("file")){
             return uri;
         }

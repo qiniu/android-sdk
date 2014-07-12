@@ -150,15 +150,13 @@ public class ResumableIO {
 	}
 
 	public int putFile(Context mContext, String key, Uri uri, PutExtra extra, final JSONObjectRet ret) {
-		 uri = FileUri.convertFileUri(mContext, uri);
-
-		File file = new File(uri.getEncodedPath());
-		if (file.exists()) {
-			return putAndClose(key, InputStreamAt.fromFile(file), extra, ret);
+		File file = FileUri.getFile(mContext, uri);
+		if (!file.exists()) {
+			ret.onFailure(new Exception("file not exist: " + uri.toString()));
+			return -1;
 		}
-		ret.onFailure(new Exception("file not exist: " + uri.toString()));
 
-		return -1;
+		return putAndClose(key, InputStreamAt.fromFile(file), extra, ret);
 	}
 
 	public synchronized static void stop(int id) {
