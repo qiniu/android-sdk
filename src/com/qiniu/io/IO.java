@@ -42,6 +42,22 @@ public class IO {
 		return mClient;
 	}
 
+	private static MultipartEntity buildMultipartEntity(String key, InputStreamAt isa, PutExtra extra) throws IOException {
+		MultipartEntity m = new MultipartEntity();
+		if (key != null) m.addField("key", key);
+		if (extra.checkCrc == PutExtra.AUTO_CRC32) {
+			extra.crc32 = isa.crc32();
+		}
+		if (extra.checkCrc != PutExtra.UNUSE_CRC32) m.addField("crc32", extra.crc32 + "");
+		for (Map.Entry<String, String> i: extra.params.entrySet()) {
+			m.addField(i.getKey(), i.getValue());
+		}
+
+		m.addField("token", mUptoken);
+		m.addFile("file", extra.mimeType, key == null ? "?" : key, isa);
+		return m;
+	}
+
 	/**
 	 * 上传二进制
 	 *
@@ -51,23 +67,13 @@ public class IO {
 	 * @param ret	  回调函数
 	 */
 	public void put(String key, InputStreamAt isa, PutExtra extra, JSONObjectRet ret) {
-		MultipartEntity m = new MultipartEntity();
-		if (key != null) m.addField("key", key);
-		if (extra.checkCrc == PutExtra.AUTO_CRC32) {
-			try {
-				extra.crc32 = isa.crc32();
-			} catch (IOException e) {
-				ret.onFailure(e);
-				return;
-			}
+		MultipartEntity m;
+		try {
+			m = buildMultipartEntity(key, isa, extra);
+		} catch (IOException e) {
+			ret.onFailure(e);
+			return;
 		}
-		if (extra.checkCrc != PutExtra.UNUSE_CRC32) m.addField("crc32", extra.crc32 + "");
-		for (Map.Entry<String, String> i: extra.params.entrySet()) {
-			m.addField(i.getKey(), i.getValue());
-		}
-
-		m.addField("token", mUptoken);
-		m.addFile("file", extra.mimeType, key == null ? "?" : key, isa);
 
 		Client client = defaultClient();
 		final Client.ClientExecutor executor = client.makeClientExecutor();
