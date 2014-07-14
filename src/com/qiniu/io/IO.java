@@ -83,7 +83,7 @@ public class IO {
 			return;
 		}
 
-		Client client = defaultClient();
+		final Client client = defaultClient();
 		final Client.ClientExecutor executor = client.makeClientExecutor();
 		m.setProcessNotify(new IOnProcess() {
 			@Override
@@ -100,35 +100,13 @@ public class IO {
 		CallRet retryRet = new RetryRet(ret){
 			@Override
 			public void onFailure(QiniuException ex) {
-				System.out.println("上传测试!  " + ex.getMessage());
-				// if (RetryRet.noRetry(ex)){
+				if (RetryRet.noRetry(ex)){
 					ret.onFailure(ex);
-				// 	return;
-				// }
-				// isa.reset();
-				// final MultipartEntity m;
-				// try {
-				// 	m = buildMultipartEntity(key, isa, extra);
-				// } catch (IOException e) {
-				// 	ret.onFailure(new QiniuException(QiniuException.IO, "build multipart", e));
-				// 	return;
-				// }
-
-				// Client client = defaultClient();
-				// final Client.ClientExecutor executor = client.makeClientExecutor();
-				// m.setProcessNotify(new IOnProcess() {
-				// 	@Override
-				// 	public void onProcess(long current, long total) {
-				// 		executor.upload(current, total);
-				// 	}
-
-				// 	@Override
-				// 	public void onFailure(QiniuException ex) {
-				// 		executor.onFailure(ex);
-				// 	}
-				// });
-
-				// client.call(executor, Conf.UP_HOST2, m, ret);
+					return;
+				}
+				isa.reset();
+				final Client.ClientExecutor executor2 = client.makeClientExecutor();
+				client.call(executor2, Conf.UP_HOST2, m, ret);
 			}
 		};
 		client.call(executor, Conf.UP_HOST, m, retryRet);

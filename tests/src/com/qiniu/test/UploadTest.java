@@ -69,7 +69,6 @@ public class UploadTest extends AndroidTestCase {
 				success = true;
 				resp = res;
 				Log.d("UploadTest", "上传成功!  " + resp.toString());
-				System.out.println("上传成功!  " + resp.toString());
 			}
 
 			@Override
@@ -78,7 +77,6 @@ public class UploadTest extends AndroidTestCase {
 				success = false;
 				e = ex;
 				Log.d("UploadTest", "上传失败!  " + ex.getMessage());
-				System.out.println("上传失败!  " + ex.getMessage());
 			}
 		};
 	}
@@ -102,23 +100,23 @@ public class UploadTest extends AndroidTestCase {
 	@SmallTest
 	public void testIOMultiHost() throws IOException, JSONException {
 		String old = Conf.UP_HOST;
-		// Conf.UP_HOST = "http://1.1.1.1";
-		file = createFile(0.1, "-m.test");
+		Conf.UP_HOST = "http://127.0.0.1:1";
+		file = createFile(0.1, "-mup.test");
 		uri = Uri.fromFile(file);
 		IO.putFile(context, uptoken, key, uri, extra, jsonRet);
-		sleepLimit(60);
+		sleepLimit(60*3);
 		Conf.UP_HOST = old;
 		successCheck();
 	}
 
-	// @MediumTest
-	// public void testM() throws IOException, JSONException {
-	// 	file = createFile(4, "--—— 地   方.test");
-	// 	uri = Uri.fromFile(file);
-	// 	IO.putFile(context, uptoken, key, uri, extra, jsonRet);
-	// 	sleepLimit(60 * 5);
-	// 	successCheck();
-	// }
+	 // @MediumTest
+	 // public void testM() throws IOException, JSONException {
+	 // 	file = createFile(0.1, "--—— 中   文   .test");
+	 // 	uri = Uri.fromFile(file);
+	 // 	IO.putFile(context, uptoken, key, uri, extra, jsonRet);
+	 // 	sleepLimit(60);
+	 // 	successCheck();
+	 // }
 
 	// @SmallTest
 	// public void testRS() throws IOException, JSONException {

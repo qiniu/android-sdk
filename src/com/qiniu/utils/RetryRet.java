@@ -24,7 +24,7 @@ public abstract class RetryRet extends CallRet{
     }
 
     public static boolean noRetry(QiniuException ex){
-        if (ex.code/100  == 4 || ex.code == 579 || ex.code == 614 || ex.code == 701) {
+        if (ex.code/100  == 4 || ex.code == 579 || ex.code/100 == 6 || ex.code/100 == 7) {
             return true;
         }
         if (ex.code > 500) {
