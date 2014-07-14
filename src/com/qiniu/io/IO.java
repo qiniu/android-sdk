@@ -21,7 +21,6 @@ import com.qiniu.utils.InputStreamAt;
 import com.qiniu.utils.MultipartEntity;
 import com.qiniu.utils.FileUri;
 import com.qiniu.utils.QiniuException;
-import com.qiniu.utils.RetryRet;
 
 public class IO {
 
@@ -97,17 +96,7 @@ public class IO {
 			}
 		});
 
-		CallRet retryRet = new RetryRet(ret){
-			@Override
-			public void onFailure(QiniuException ex) {
-				if (ex.code/100  == 4 || ex.code == 579) {
-					ret.onFailure(ex);
-					return;
-				}
-				client.call(executor, Conf.UP_HOST2, m, ret);
-			}
-		};
-		client.call(executor, Conf.UP_HOST, m, retryRet);
+		client.call(executor, Conf.UP_HOST, m, ret);
 	}
 
 	/**
