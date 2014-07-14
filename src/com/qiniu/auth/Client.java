@@ -123,7 +123,7 @@ public class Client {
 					return new QiniuException(statusCode, reqId, xl);
 				}
 				return new QiniuException(statusCode, reqId, phrase);
-			} catch (Exception e) {
+			} catch (IOException e) {
 				e.printStackTrace();
 				return new QiniuException(QiniuException.IO, "net IOException", e);
 			}
