@@ -10,7 +10,7 @@ import android.os.Environment;
 public class FileUri {
     public static File getFile(Context mContext, Uri uri) {
         uri = fileUri(mContext, uri);
-        return new File(uri.getEncodedPath());
+        return new File(uri.getPath());
     }
 
     private static Uri fileUri(Context mContext, Uri uri){
