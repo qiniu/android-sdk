@@ -74,7 +74,7 @@ public class IO {
 	 * @param extra   上传参数
 	 * @param ret	  回调函数
 	 */
-	public void put(final String key, final InputStreamAt isa, final PutExtra extra, final JSONObjectRet ret) {
+	public void put(String key, final InputStreamAt isa, PutExtra extra, final JSONObjectRet ret) {
 		final MultipartEntity m;
 		try {
 			m = buildMultipartEntity(key, isa, extra);
