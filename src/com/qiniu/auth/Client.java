@@ -48,10 +48,8 @@ public class Client {
 
 	public ClientExecutor call(ClientExecutor client, String url, HttpEntity entity, CallRet ret) {
 		Header header = entity.getContentType();
-		String contentType = "application/octet-stream";
-		if (header != null) {
-			contentType = header.getValue();
-		}
+		String contentType = header == null ? "application/octet-stream" :  header.getValue();
+
 		return call(client, url, contentType, entity, ret);
 	}
 
@@ -102,8 +100,12 @@ public class Client {
 				HttpResponse resp = roundtrip(mHttpRequest);
 				int statusCode = resp.getStatusLine().getStatusCode();
 				String phrase = resp.getStatusLine().getReasonPhrase();
-				String xl = resp.getFirstHeader("X-Log").getValue();
-				String reqId = resp.getFirstHeader("X-Reqid").getValue();
+
+				Header h = resp.getFirstHeader("X-Log");
+				String xl = h == null ? "":h.getValue();
+
+				h = resp.getFirstHeader("X-Reqid");
+				String reqId = h == null ? "":h.getValue();
 
 				if (statusCode == 401) {
 					return new QiniuException(401, reqId, phrase); // android 2.3 will not response
@@ -129,7 +131,9 @@ public class Client {
 
 		@Override
 		protected void onProgressUpdate(Object... values) {
-			if (failed) return;
+			if (failed){
+				return;
+			}
 			if (values.length == 1 && values[0] instanceof QiniuException) {
 				mRet.onFailure((QiniuException) values[0]);
 				failed = true;
@@ -140,7 +144,9 @@ public class Client {
 
 		@Override
 		protected void onPostExecute(Object o) {
-			if (failed) return;
+			if (failed) {
+				return;
+			}
 			if (o instanceof QiniuException) {
 				mRet.onFailure((QiniuException) o);
 				return;

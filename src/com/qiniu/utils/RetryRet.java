@@ -22,4 +22,19 @@ public abstract class RetryRet extends CallRet{
     public void onPause(Object tag){
         ret.onPause(tag);
     }
+
+    public static boolean noRetry(QiniuException ex){
+        if (ex.code/100  == 5 && ex.code != 579) {
+            return false;
+        }
+        if (ex.code == 996) {
+            return false;
+        }
+
+        if (ex.reason instanceof java.io.IOException && !(ex.reason instanceof java.io.FileNotFoundException)) {
+            return false;
+        }
+
+        return true;
+    }
 }

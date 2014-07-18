@@ -21,6 +21,7 @@ import com.qiniu.utils.InputStreamAt;
 import com.qiniu.utils.MultipartEntity;
 import com.qiniu.utils.FileUri;
 import com.qiniu.utils.QiniuException;
+import com.qiniu.utils.RetryRet;
 
 public class IO {
 
@@ -73,7 +74,7 @@ public class IO {
 	 * @param extra   上传参数
 	 * @param ret	  回调函数
 	 */
-	public void put(String key, InputStreamAt isa, PutExtra extra, final JSONObjectRet ret) {
+	public void put(String key, final InputStreamAt isa, PutExtra extra, final JSONObjectRet ret) {
 		final MultipartEntity m;
 		try {
 			m = buildMultipartEntity(key, isa, extra);
@@ -96,7 +97,19 @@ public class IO {
 			}
 		});
 
-		client.call(executor, Conf.UP_HOST, m, ret);
+		CallRet retryRet = new RetryRet(ret){
+			@Override
+			public void onFailure(QiniuException ex) {
+				if (RetryRet.noRetry(ex)){
+					ret.onFailure(ex);
+					return;
+				}
+				isa.reset();
+				final Client.ClientExecutor executor2 = client.makeClientExecutor();
+				client.call(executor2, Conf.UP_HOST2, m, ret);
+			}
+		};
+		client.call(executor, Conf.UP_HOST, m, retryRet);
 	}
 
 	/**
