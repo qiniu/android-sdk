@@ -3,6 +3,8 @@ package com.qiniu.auth;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.qiniu.utils.QiniuException;
+
 public abstract class JSONObjectRet extends CallRet {
 	public JSONObjectRet(){}
 	protected int mIdx;
@@ -17,7 +19,7 @@ public abstract class JSONObjectRet extends CallRet {
 			onSuccess(obj);
 		} catch (JSONException e) {
 			e.printStackTrace();
-			onFailure(new Exception(new String(body)));
+			onFailure(new QiniuException(QiniuException.JSON, new String(body), e));
 		}
 	}
 

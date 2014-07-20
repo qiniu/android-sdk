@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.Semaphore;
+
 
 import junit.framework.Assert;
 
@@ -14,6 +16,8 @@ import org.json.JSONObject;
 import com.qiniu.auth.JSONObjectRet;
 import com.qiniu.io.IO;
 import com.qiniu.resumableio.ResumableIO;
+import com.qiniu.utils.QiniuException;
+import com.qiniu.conf.Conf;
 
 import android.content.Context;
 import android.net.Uri;
@@ -39,6 +43,7 @@ public class UploadTest extends AndroidTestCase {
 	private String key = IO.UNDEFINED_KEY;
 
 	private com.qiniu.resumableio.PutExtra rextra;
+	private Semaphore sem = new Semaphore(0, true);
 
 	public void setUp() throws Exception {
 		key = UUID.randomUUID().toString();
@@ -57,8 +62,7 @@ public class UploadTest extends AndroidTestCase {
 		jsonRet = new JSONObjectRet() {
 			@Override
 			public void onProcess(long current, long total) {
-				//Log.d("UploadTest", current + "/" + total);
-				// Assert.assertEquals(file.length(), total); // 内部实现原因，可能不相等
+				Log.d("UploadTest", current + "/" + total);
 			}
 
 			@Override
@@ -67,16 +71,16 @@ public class UploadTest extends AndroidTestCase {
 				success = true;
 				resp = res;
 				Log.d("UploadTest", "上传成功!  " + resp.toString());
-				System.out.println("上传成功!  " + resp.toString());
+				sem.release();
 			}
 
 			@Override
-			public void onFailure(Exception ex) {
+			public void onFailure(QiniuException ex) {
 				uploading = false;
 				success = false;
 				e = ex;
 				Log.d("UploadTest", "上传失败!  " + ex.getMessage());
-				System.out.println("上传失败!  " + ex.getMessage());
+				sem.release();
 			}
 		};
 	}
@@ -89,67 +93,79 @@ public class UploadTest extends AndroidTestCase {
 	}
 
 	@SmallTest
-	public void testS() throws IOException, JSONException {
+	public void testIOkilo() throws IOException, JSONException, InterruptedException {
 		file = createFile(0.2, ".test");
 		uri = Uri.fromFile(file);
 		IO.putFile(context, uptoken, key, uri, extra, jsonRet);
-		sleepLimit(60);
-		successCheck();
-	}
-
-	@MediumTest
-	public void testM() throws IOException, JSONException {
-		file = createFile(4, "--—— 地   方.test");
-		uri = Uri.fromFile(file);
-		IO.putFile(context, uptoken, key, uri, extra, jsonRet);
-		sleepLimit(60 * 5);
+		sem.acquire();
 		successCheck();
 	}
 
 	@SmallTest
-	public void testRS() throws IOException, JSONException {
+	public void testIOMultiHost() throws IOException, JSONException, InterruptedException {
+		String old = Conf.UP_HOST;
+		Conf.UP_HOST = "http://127.0.0.1:1";
+		file = createFile(0.1, "-mup.test");
+		uri = Uri.fromFile(file);
+		IO.putFile(context, uptoken, key, uri, extra, jsonRet);
+		Conf.UP_HOST = old;
+		sem.acquire();
+		successCheck();
+	}
+
+	 @MediumTest
+	 public void testIOMega() throws IOException, JSONException, InterruptedException {
+	 	file = createFile(0.1, "--—— 中   文   .test");
+	 	uri = Uri.fromFile(file);
+	 	IO.putFile(context, uptoken, key, uri, extra, jsonRet);
+	 	sem.acquire();
+	 	successCheck();
+	 }
+
+	@SmallTest
+	public void testRIOkilo() throws IOException, JSONException, InterruptedException {
 		file = createFile(0.2, ".test");
 		uri = Uri.fromFile(file);
 		ResumableIO.putFile(context, uptoken, key, uri, rextra, jsonRet);
-		sleepLimit(60);
+		sem.acquire();
 		successCheck();
 	}
 
 	@MediumTest
-	public void testRM() throws IOException, JSONException {
+	public void testRIOMega() throws IOException, JSONException, InterruptedException {
 		file = createFile(4, ".test");
 		uri = Uri.fromFile(file);
 		ResumableIO.putFile(context, uptoken, key, uri, rextra, jsonRet);
-		sleepLimit(60 * 5);
+		sem.acquire();
 		successCheck();
 	}
 
 	@MediumTest
-	public void testRL() throws IOException, JSONException {
-		file = createFile(8.6, ".test");
+	public void testRIOMutiHost() throws IOException, JSONException, InterruptedException {
+		String old = Conf.UP_HOST;
+		Conf.UP_HOST = "http://127.0.0.1:1";
+		file = createFile(4, ".test");
 		uri = Uri.fromFile(file);
 		ResumableIO.putFile(context, uptoken, key, uri, rextra, jsonRet);
-		sleepLimit(60 * 5);
+		sem.acquire();
+		Conf.UP_HOST = old;
 		successCheck();
 	}
+
+	// @MediumTest
+	// public void testRL() throws IOException, JSONException, InterruptedException {
+	// 	file = createFile(8.6, ".test");
+	// 	uri = Uri.fromFile(file);
+	// 	ResumableIO.putFile(context, uptoken, key, uri, rextra, jsonRet);
+	// 	sem.acquire();
+	// 	successCheck();
+	// }
 
 
 	private void successCheck() throws JSONException{
 		Assert.assertTrue(success);
 		Assert.assertNotNull(resp.optString("hash"));
 		Assert.assertEquals(file.length(), resp.getLong("fsize"));
-	}
-
-	private void sleepLimit(int limit){
-		int t = 5;
-		while(uploading && t < limit){
-			try {
-				t += 5;
-				Thread.sleep(1000 * 5);
-			} catch (InterruptedException e) {
-
-			}
-		}
 	}
 
 	private File createFile(double fileSize, String suf) throws IOException {

@@ -1,18 +1,21 @@
 package com.qiniu.resumableio;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
-import com.qiniu.auth.Client;
-import com.qiniu.auth.JSONObjectRet;
-import com.qiniu.utils.ICancel;
-import com.qiniu.utils.InputStreamAt;
+
 import org.json.JSONObject;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+
+import com.qiniu.auth.Client;
+import com.qiniu.auth.JSONObjectRet;
+import com.qiniu.utils.ICancel;
+import com.qiniu.utils.InputStreamAt;
+import com.qiniu.utils.FileUri;
+import com.qiniu.utils.QiniuException;
 
 public class ResumableIO {
 	ResumableClient mClient;
@@ -55,7 +58,7 @@ public class ResumableIO {
 			}
 
 			@Override
-			public void onFailure(Exception ex) {
+			public void onFailure(QiniuException ex) {
 				input.close();
 				ret.onFailure(ex);
 			}
@@ -120,7 +123,7 @@ public class ResumableIO {
 				}
 
 				@Override
-				public void onFailure(Exception ex) {
+				public void onFailure(QiniuException ex) {
 					if (failure[0]) {
 						ex.printStackTrace();
 						return;
@@ -148,28 +151,13 @@ public class ResumableIO {
 	}
 
 	public int putFile(Context mContext, String key, Uri uri, PutExtra extra, final JSONObjectRet ret) {
-		if (!uri.toString().startsWith("file")) uri = convertFileUri(mContext, uri);
-
-		File file = new File(uri.getEncodedPath());
-		if (file.exists()) {
-			return putAndClose(key, InputStreamAt.fromFile(file), extra, ret);
+		File file = FileUri.getFile(mContext, uri);
+		if (!file.exists()) {
+			ret.onFailure(QiniuException.fileNotFound(uri.toString()));
+			return -1;
 		}
-		ret.onFailure(new Exception("file not exist: " + uri.toString()));
 
-		return -1;
-	}
-
-	public static Uri convertFileUri(Context mContext, Uri uri) {
-		String filePath;
-		if (uri != null && "content".equals(uri.getScheme())) {
-			Cursor cursor = mContext.getContentResolver().query(uri, new String[] { android.provider.MediaStore.Images.ImageColumns.DATA }, null, null, null);
-			cursor.moveToFirst();
-			filePath = cursor.getString(0);
-			cursor.close();
-		} else {
-			filePath = uri.getPath();
-		}
-		return Uri.parse("file://" + filePath);
+		return putAndClose(key, InputStreamAt.fromFile(file), extra, ret);
 	}
 
 	public synchronized static void stop(int id) {
