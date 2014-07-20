@@ -131,18 +131,7 @@ public class ResumableClient extends Client {
 	}
 
 	public ICancel mkfile(String key, long fsize, String mimeType, Map<String, String> params, String ctxs, CallRet ret) {
-		String url = Conf.UP_HOST + "/mkfile/" + fsize;
-		if (mimeType != null && mimeType.length() > 0) {
-			url += "/mimeType/" + Base64.encode(mimeType);
-		}
-		if (key != null && key.length() > 0) {
-			url += "/key/" + Base64.encode(key);
-		}
-		if (params != null && params.size() > 0) {
-			for (Map.Entry<String, String> a: params.entrySet()) {
-				url += "/" + a.getKey() + "/" + Base64.encode(a.getValue());
-			}
-		}
+		String url = Conf.UP_HOST + mkfilePath(key, fsize, mimeType, params);
 		StringEntity entity = null;
 		try {
 			entity = new StringEntity(ctxs);
@@ -152,5 +141,21 @@ public class ResumableClient extends Client {
 			return null;
 		}
 		return call(makeClientExecutor(), url, entity, ret);
+	}
+
+	private static String mkfilePath(String key, long fsize, String mimeType, Map<String, String> params){
+		String path = "/mkfile/" + fsize;
+		if (mimeType != null && mimeType.length() > 0) {
+			path += "/mimeType/" + Base64.encode(mimeType);
+		}
+		if (key != null && key.length() > 0) {
+			path += "/key/" + Base64.encode(key);
+		}
+		if (params != null && params.size() > 0) {
+			for (Map.Entry<String, String> a: params.entrySet()) {
+				path += "/" + a.getKey() + "/" + Base64.encode(a.getValue());
+			}
+		}
+		return path;
 	}
 }
