@@ -166,6 +166,7 @@ public class UploadTest extends AndroidTestCase {
 		Assert.assertTrue(success);
 		Assert.assertNotNull(resp.optString("hash"));
 		Assert.assertEquals(file.length(), resp.getLong("fsize"));
+		Assert.assertEquals(key, resp.getString("key"));
 	}
 
 	private File createFile(double fileSize, String suf) throws IOException {
