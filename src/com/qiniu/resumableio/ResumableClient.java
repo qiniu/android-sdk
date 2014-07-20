@@ -18,6 +18,7 @@ import com.qiniu.utils.ICancel;
 import com.qiniu.utils.InputStreamAt;
 import com.qiniu.utils.Base64;
 import com.qiniu.utils.QiniuException;
+import com.qiniu.utils.RetryRet;
 
 public class ResumableClient extends Client {
 	String mUpToken;
@@ -101,16 +102,30 @@ public class ResumableClient extends Client {
 		return canceler;
 	}
 
-	public ICancel mkblk(InputStreamAt input, long offset, int blockSize, int writeSize, CallRet ret) {
+	public ICancel mkblk(final InputStreamAt input, final long offset, final int blockSize, final int writeSize, final CallRet ret) {
 		String url = Conf.UP_HOST + "/mkblk/" + blockSize;
-		ClientExecutor client = makeClientExecutor();
-		call(client, url, input.toHttpEntity(offset, writeSize, client), ret);
-		return client;
+		ClientExecutor executor = makeClientExecutor();
+		CallRet retryRet = new RetryRet(ret){
+			@Override
+			public void onFailure(QiniuException ex) {
+				if (RetryRet.noRetry(ex)){
+					ret.onFailure(ex);
+					return;
+				}
+				ClientExecutor executor2 = makeClientExecutor();
+				String url2 = Conf.UP_HOST2 + "/mkblk/" + blockSize;
+				call(executor2, url2, input.toHttpEntity(offset, writeSize, executor2), ret);
+			}
+		};
+
+		call(executor, url, input.toHttpEntity(offset, writeSize, executor), retryRet);
+		return executor;
 	}
 
 	public ICancel bput(String host, InputStreamAt input, String ctx, long blockOffset, long offset, int writeLength, CallRet ret) {
 		String url = host + "/bput/" + ctx + "/" + offset;
 		ClientExecutor client = makeClientExecutor();
+
 		call(client, url, input.toHttpEntity(blockOffset+offset, writeLength, client), ret);
 		return client;
 	}
@@ -128,12 +143,14 @@ public class ResumableClient extends Client {
 				url += "/" + a.getKey() + "/" + Base64.encode(a.getValue());
 			}
 		}
+		StringEntity entity = null;
 		try {
-			return call(makeClientExecutor(), url, new StringEntity(ctxs), ret);
+			entity = new StringEntity(ctxs);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 			ret.onFailure(new QiniuException(QiniuException.InvalidEncode, "mkfile", e));
 			return null;
 		}
+		return call(makeClientExecutor(), url, entity, ret);
 	}
 }
