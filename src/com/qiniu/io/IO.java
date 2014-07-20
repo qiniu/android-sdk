@@ -105,7 +105,7 @@ public class IO {
 					return;
 				}
 				isa.reset();
-				final Client.ClientExecutor executor2 = client.makeClientExecutor();
+				Client.ClientExecutor executor2 = client.makeClientExecutor();
 				client.call(executor2, Conf.UP_HOST2, m, ret);
 			}
 		};
