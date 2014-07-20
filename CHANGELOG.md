@@ -1,5 +1,11 @@
 ## CHANGE LOG
 
+### v6.0.4
+2014-07-20 issue [#58](https://github.com/qiniu/android-sdk/pull/58)
+
+- [#50] 统一UA
+- [#53] 使用自定义的QiniuException
+- [#56] [#57] 多host上传重试
 
 ### v6.0.3
 2014-07-11 issue [#49](https://github.com/qiniu/android-sdk/pull/49)
