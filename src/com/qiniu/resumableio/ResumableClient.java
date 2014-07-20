@@ -130,7 +130,7 @@ public class ResumableClient extends Client {
 		return client;
 	}
 
-	public ICancel mkfile(String key, long fsize, String mimeType, Map<String, String> params, String ctxs, CallRet ret) {
+	public ICancel mkfile(final String key, final long fsize, final String mimeType, final Map<String, String> params, final String ctxs, final CallRet ret) {
 		String url = Conf.UP_HOST + mkfilePath(key, fsize, mimeType, params);
 		StringEntity entity = null;
 		try {
@@ -140,7 +140,24 @@ public class ResumableClient extends Client {
 			ret.onFailure(new QiniuException(QiniuException.InvalidEncode, "mkfile", e));
 			return null;
 		}
-		return call(makeClientExecutor(), url, entity, ret);
+
+		CallRet retryRet = new RetryRet(ret){
+			@Override
+			public void onFailure(QiniuException ex) {
+				if (RetryRet.noRetry(ex)){
+					ret.onFailure(ex);
+					return;
+				}
+				String url2 = Conf.UP_HOST2 + mkfilePath(key, fsize, mimeType, params);
+				StringEntity entity2 = null;
+				try {
+					entity2 = new StringEntity(ctxs);
+				} catch (UnsupportedEncodingException e) {
+				}
+				call(makeClientExecutor(), url2, entity2, ret);
+			}
+		};
+		return call(makeClientExecutor(), url, entity, retryRet);
 	}
 
 	private static String mkfilePath(String key, long fsize, String mimeType, Map<String, String> params){

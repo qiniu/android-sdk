@@ -93,7 +93,7 @@ public class UploadTest extends AndroidTestCase {
 	}
 
 	@SmallTest
-	public void testS() throws IOException, JSONException, InterruptedException {
+	public void testIOkilo() throws IOException, JSONException, InterruptedException {
 		file = createFile(0.2, ".test");
 		uri = Uri.fromFile(file);
 		IO.putFile(context, uptoken, key, uri, extra, jsonRet);
@@ -114,7 +114,7 @@ public class UploadTest extends AndroidTestCase {
 	}
 
 	 @MediumTest
-	 public void testM() throws IOException, JSONException, InterruptedException {
+	 public void testIOMega() throws IOException, JSONException, InterruptedException {
 	 	file = createFile(0.1, "--—— 中   文   .test");
 	 	uri = Uri.fromFile(file);
 	 	IO.putFile(context, uptoken, key, uri, extra, jsonRet);
@@ -123,7 +123,7 @@ public class UploadTest extends AndroidTestCase {
 	 }
 
 	@SmallTest
-	public void testRS() throws IOException, JSONException, InterruptedException {
+	public void testRIOkilo() throws IOException, JSONException, InterruptedException {
 		file = createFile(0.2, ".test");
 		uri = Uri.fromFile(file);
 		ResumableIO.putFile(context, uptoken, key, uri, rextra, jsonRet);
@@ -132,11 +132,23 @@ public class UploadTest extends AndroidTestCase {
 	}
 
 	@MediumTest
-	public void testRM() throws IOException, JSONException, InterruptedException {
+	public void testRIOMega() throws IOException, JSONException, InterruptedException {
 		file = createFile(4, ".test");
 		uri = Uri.fromFile(file);
 		ResumableIO.putFile(context, uptoken, key, uri, rextra, jsonRet);
 		sem.acquire();
+		successCheck();
+	}
+
+	@MediumTest
+	public void testRIOMutiHost() throws IOException, JSONException, InterruptedException {
+		String old = Conf.UP_HOST;
+		Conf.UP_HOST = "http://127.0.0.1:1";
+		file = createFile(4, ".test");
+		uri = Uri.fromFile(file);
+		ResumableIO.putFile(context, uptoken, key, uri, rextra, jsonRet);
+		sem.acquire();
+		Conf.UP_HOST = old;
 		successCheck();
 	}
 
