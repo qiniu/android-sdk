@@ -13,6 +13,7 @@ public abstract class JSONObjectRet extends CallRet {
 	public void onSuccess(byte[] body) {
 		if (body == null) {
 			onSuccess(new JSONObject());
+			return;
 		}
 		try {
 			JSONObject obj = new JSONObject(new String(body));
