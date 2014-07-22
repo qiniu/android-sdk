@@ -1,5 +1,10 @@
 ## CHANGE LOG
 
+### v6.0.5
+2014-07-20 issue [#61](https://github.com/qiniu/android-sdk/pull/61)
+
+- [#60] bug 成功返回时body 如果是null 会出错
+
 ### v6.0.4
 2014-07-20 issue [#58](https://github.com/qiniu/android-sdk/pull/58)
 
