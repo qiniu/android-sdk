@@ -233,7 +233,7 @@ public class UploadTest extends AndroidTestCase {
 
 	 @MediumTest
 	 public void testRL() throws IOException, JSONException, InterruptedException {
-	 	file = createFile(38.6, ".test");
+	 	file = createFile(8, ".test");
 	 	ResumableIO.putFile(auth, key, file, rextra, jsonRet);
 	 	sem.acquire();
 	 	successCheck();

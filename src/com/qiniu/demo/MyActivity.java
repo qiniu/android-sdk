@@ -79,6 +79,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		extra.params = new HashMap<String, String>();
 		extra.params.put("x:a", "测试中文信息");
 		hint.setText("上传中");
+		// 返回 UploadTaskExecutor ，可执行cancel，见 MyResumableActivity
 		IO.putFile(this, auth, key, uri, extra, new CallBack() {
 			@Override
 			public void onProcess(long current, long total) {
