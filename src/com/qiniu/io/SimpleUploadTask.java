@@ -25,7 +25,7 @@ public class SimpleUploadTask extends UploadTask {
 	}
 
 	@Override
-	protected CallRet doInBackground(Object... arg0) {
+	protected CallRet execDoInBackground(Object... arg0) {
 		CallRet ret = upload(Conf.UP_HOST);
 		if(Util.needChangeUpAdress(ret)){
 			try {

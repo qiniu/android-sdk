@@ -20,11 +20,11 @@ public abstract class UploadTask extends AsyncTask<Object, Object, CallRet>{
 	private volatile boolean upCancelled = false;
 	
 	protected final CallBack callback;
-	protected final Authorizer auth;
-	protected final InputStreamAt orginIsa;
+	protected Authorizer auth;
+	protected InputStreamAt orginIsa;
 	protected final long contentLength;
 	protected final String key;
-	protected final PutExtra extra;
+	protected PutExtra extra;
 	
 	public UploadTask(Authorizer auth, InputStreamAt isa, 
 			String key, PutExtra extra, CallBack ret) throws IOException{
@@ -40,6 +40,24 @@ public abstract class UploadTask extends AsyncTask<Object, Object, CallRet>{
 		return Http.getHttpClient();
 	}
 
+	@Override
+	protected final CallRet doInBackground(Object... arg0) {
+		try{
+			return execDoInBackground(arg0);
+		}finally{
+			clean();
+		}
+	}
+	
+	protected void clean() {
+		this.orginIsa.close();
+		this.orginIsa = null;
+		extra = null;
+		auth = null;
+		post = null;
+	}
+
+	protected abstract CallRet execDoInBackground(Object...values);
 
 	@Override
 	protected void onProgressUpdate(Object ...values){
@@ -54,6 +72,10 @@ public abstract class UploadTask extends AsyncTask<Object, Object, CallRet>{
 		}catch(Exception e){
 			e.printStackTrace();
 		}
+	}
+	
+	protected void onCancelled(CallRet ret){
+		
 	}
 
 	@Override

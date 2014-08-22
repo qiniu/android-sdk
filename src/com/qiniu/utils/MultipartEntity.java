@@ -321,7 +321,7 @@ public class MultipartEntity extends AbstractHttpEntity {
 			long idx = 0;
 			while(idx < total){
 				int read = (int)Math.min(len, total - idx);
-				byte[] bs = isa.readNext(read);
+				byte[] bs = isa.readNext(read).readAll();
 				out.write(bs, 0, read);
 				idx += read;
 				if (mNotify != null) {

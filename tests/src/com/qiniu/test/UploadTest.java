@@ -76,7 +76,9 @@ public class UploadTest extends AndroidTestCase {
 		jsonRet = new CallBack() {
 			@Override
 			public void onProcess(long current, long total) {
-				Log.d("UploadTest", current + "/" + total + "   " + current/1024 + "/" + total/1024);
+				int percent = (int)(current*100/total);
+				String msg = "上传中: " + current + "/" + total + "  " + current/1024 + "K/" + total/1024 + "K; " + percent + "%";
+				Log.d("UploadTest", msg);
 			}
 
 			@Override
@@ -231,7 +233,7 @@ public class UploadTest extends AndroidTestCase {
 
 	 @MediumTest
 	 public void testRL() throws IOException, JSONException, InterruptedException {
-	 	file = createFile(8.6, ".test");
+	 	file = createFile(38.6, ".test");
 	 	ResumableIO.putFile(auth, key, file, rextra, jsonRet);
 	 	sem.acquire();
 	 	successCheck();

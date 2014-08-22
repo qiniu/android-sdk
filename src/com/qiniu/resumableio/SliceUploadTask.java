@@ -19,6 +19,7 @@ import com.qiniu.rs.CallBack;
 import com.qiniu.rs.PutExtra;
 import com.qiniu.utils.Crc32;
 import com.qiniu.utils.InputStreamAt;
+import com.qiniu.utils.InputStreamAt.Input;
 import com.qiniu.utils.UploadTask;
 import com.qiniu.utils.Util;
 
@@ -39,8 +40,8 @@ public class SliceUploadTask extends UploadTask {
 	}
 	
 	@Override
-	protected CallRet doInBackground(Object... arg0) {
-		try {
+	protected CallRet execDoInBackground(Object... arg0) {
+		try{
 			List<Block> blks = new ArrayList<Block>();
 			CallRet ret = uploadBlocks(blks);
 			if(ret == null){
@@ -49,11 +50,13 @@ public class SliceUploadTask extends UploadTask {
 			return ret;
 		} catch (Exception e) {
 			return new CallRet(Conf.ERROR_CODE, "", e);
-		}finally{
-			this.orginIsa.close();
 		}
 	}
 	
+	protected void clean() {
+		super.clean();
+		lastUploadBlocks = null;
+	}
 	
 	private CallRet uploadBlocks(List<Block> blks) throws IOException{
 		final long len = orginIsa.length();
@@ -61,36 +64,38 @@ public class SliceUploadTask extends UploadTask {
 		
 		for(int i=0; i < blkCount; i++){
 			int l = (int)Math.min(Conf.BLOCK_SIZE, len - Conf.BLOCK_SIZE * i);
-			byte[] data = orginIsa.readNext(l);
 			Block blk = getFromLastUploadedBlocks(i);
+			Input data = orginIsa.readNext(l);
 			if(blk != null){
+				data = null;
 				blks.add(blk);
 				addUpLength(l);
 			}else{
-				int blkLen = data.length;
-				ChunkUploadCallRet chunkRet = upBlock(data, 2);
+				ChunkUploadCallRet chunkRet = upBlock(l, data, Conf.CHUNK_TRY_TIMES);
+				data = null;
 				if(!chunkRet.isOk()){
 					return chunkRet;
 				}
-				Block nblk = new Block(i, chunkRet.getCtx(), blkLen, chunkRet.getHost());
+				Block nblk = new Block(i, chunkRet.getCtx(), l, chunkRet.getHost());
 				blks.add(nblk);
 				this.publishProgress(nblk);
 			}
+			data = null;
 		}
 		
 		return null;
 	}
 
 
-	private ChunkUploadCallRet upBlock(byte[] data, int time) throws IOException {
-		UpBlock blkUp = new UpBlock(this, InputStreamAt.fromByte(data));
+	private ChunkUploadCallRet upBlock(int len, Input data, int time) throws IOException {
+		UpBlock blkUp = new UpBlock(this, len, data);
 		ChunkUploadCallRet chunkRet = blkUp.exec();
 		if(!chunkRet.isOk()){
 			addUpLength(-blkUp.getUpTotal());
 			if(chunkRet.getStatusCode() == 701 && time > 0){
 				blkUp = null;
 				chunkRet = null;
-				return upBlock(data, time - 1);
+				return upBlock(len, data, time - 1);
 			}
 		}
 		return chunkRet;
@@ -202,28 +207,35 @@ public class SliceUploadTask extends UploadTask {
 
 
 	static class UpBlock{
-		private final InputStreamAt blkData;
-		private final SliceUploadTask task;
+		private Input blkData;
+		private SliceUploadTask task;
 		private volatile String orginHost = Conf.UP_HOST;
 		private volatile int total = 0;
+		private final int length;
 		
 		public int getUpTotal(){
 			return total;
 		}
 		
-		UpBlock(SliceUploadTask task, InputStreamAt isa){
+		UpBlock(SliceUploadTask task, int len, Input isa){
 			this.task = task;
+			this.length = len;
 			this.blkData = isa;
 		}
 		
 		ChunkUploadCallRet exec() throws IOException{
-			return uploadChunk();
+			try{
+				return uploadChunk();
+			}finally{
+				blkData = null;
+				task = null;
+				orginHost = null;
+			}
 		}
 		
 		ChunkUploadCallRet uploadChunk() throws IOException{
 			final int FIRST_CHUNK = Conf.FIRST_CHUNK;
 			final int CHUNK_SIZE = Conf.CHUNK_SIZE;
-			final long length = blkData.length();
 			
 			int flen = (int)Math.min(length, FIRST_CHUNK);
 			ChunkUploadCallRet ret = uploadMkblk(length, blkData.readNext(flen));
@@ -234,8 +246,10 @@ public class SliceUploadTask extends UploadTask {
 			if (length > FIRST_CHUNK) {
 			    final int count = (int)((length - FIRST_CHUNK + CHUNK_SIZE - 1) / CHUNK_SIZE);
 			    for(int i = 0; i < count; i++) {
+			    	if(task.isCancelled()){
+		    			return new ChunkUploadCallRet(Conf.CANCEL_CODE, "", Conf.PROCESS_MSG);
+		    		}
 			    	int start = CHUNK_SIZE * i + FIRST_CHUNK;
-			    	
 			        int len = (int)Math.min(length - start, CHUNK_SIZE);
 			        ret = uploadChunk(ret, blkData.readNext(len));
 			        if(!ret.isOk()){
@@ -279,7 +293,7 @@ public class SliceUploadTask extends UploadTask {
 	    private ChunkUploadCallRet upload(String url, byte[] chunkData, int time)  {
 	    	try {
 	    		if(task.isCancelled()){
-	    			time -= Conf.CHUNK_TRY_TIMES;
+	    			time -= (Conf.CHUNK_TRY_TIMES * 2);
 	    			return new ChunkUploadCallRet(Conf.CANCEL_CODE, "", Conf.PROCESS_MSG);
 	    		}
 	    		task.post = Util.newPost(url);
@@ -292,10 +306,6 @@ public class SliceUploadTask extends UploadTask {
 			} catch (Exception e) {
 				int status = task.isCancelled() ? Conf.CANCEL_CODE : Conf.ERROR_CODE;
 	    		return new ChunkUploadCallRet(status, e);
-			} finally{
-				url = null;
-				chunkData = null;
-				task.post = null;
 			}
 	    }
 
@@ -306,7 +316,6 @@ public class SliceUploadTask extends UploadTask {
 	    
 		private ChunkUploadCallRet checkAndRetryUpload(String url, 
 				byte[] chunkData, int time, ChunkUploadCallRet ret) throws IOException {
-			try{
 			if(!ret.isOk()){
 				if(time > 0 && needPutRetry(ret)){
 					return upload(url, chunkData, time - 1);
@@ -328,11 +337,6 @@ public class SliceUploadTask extends UploadTask {
 				}else{
 				    return ret;
 				}
-			}
-			}finally{
-				url = null;
-				chunkData = null;
-				ret = null;
 			}
 		}
 	    
