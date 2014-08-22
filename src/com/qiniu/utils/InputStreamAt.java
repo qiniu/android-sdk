@@ -1,263 +1,336 @@
 package com.qiniu.utils;
 
+import android.content.ContentResolver;
 import android.content.Context;
-import android.os.Environment;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.entity.AbstractHttpEntity;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.MediaStore;
 
 import java.io.*;
+import java.util.ArrayList;
 
-import com.qiniu.auth.Client;
+public abstract class InputStreamAt implements Closeable {
 
-public class InputStreamAt implements Closeable {
-	private RandomAccessFile mFileStream;
-	private byte[] mData;
+	public static UriInput fromUri(Context context, Uri uri){
+		return new UriInput(context, uri);
+	}
+	
+	public static FileInput fromInputStream(Context context, InputStream is) throws IOException {
+		return fromInputStream(context, is, null);
+	}
 
-	private File mFile;
-	private boolean mClosed;
-	private boolean mDelWhenClose = false;
-	private long mCrc32 = -1;
-	private long mLength = -1;
-
-	/**
-	 * @param context
-	 * @param is InputStream
-	 */
-	public static InputStreamAt fromInputStream(Context context, InputStream is) {
-		File file = storeToFile(context, is);
+	public static FileInput fromInputStream(Context context, InputStream is, String filename) throws IOException {
+		final File file = Util.storeToFile(context, is);
 		if (file == null) {
 			return null;
 		}
-		InputStreamAt isa = new InputStreamAt(file, true);
+		
+		FileInput isa = null;
+		try{
+			isa = new FileInput(file, filename);
+			isa.cleans.add(new CleanCallBack(){
+
+				@Override
+				public void clean() {
+					file.delete();
+				}
+				
+			});
+		}catch(IOException e){
+			if(file != null){
+				file.delete();
+			}
+			throw e;
+		}
+
 		return isa;
 	}
 
-	public static InputStreamAt fromFile(File f) {
-		InputStreamAt isa = new InputStreamAt(f);
-		return isa;
+	public static FileInput fromFile(File f) throws FileNotFoundException {
+		return new FileInput(f);
 	}
-
-	public static InputStreamAt fromString(String str) {
-		return new InputStreamAt(str.getBytes());
+	
+	public static ByteInput fromByte(byte[] data){
+		return new ByteInput(data);
 	}
+	
+	protected ArrayList<CleanCallBack> cleans = new ArrayList<CleanCallBack>();
 
-	public InputStreamAt(File file) {
-		this(file, false);
+	public abstract long crc32() throws IOException;
+
+	public abstract long length();
+	
+	public String getFilename(){
+		return null;
 	}
+	
+	public abstract byte[] readNext(int length) throws IOException;
 
-	public InputStreamAt(File file, boolean delWhenClose) {
-		mFile = file;
-		mDelWhenClose = delWhenClose;
-		try {
-			mFileStream = new RandomAccessFile(mFile, "r");
-			mLength = mFileStream.length();
-		} catch (IOException e) {
-			e.printStackTrace();
+	public void close(){
+		try{doClose();}catch(Exception e){}
+		for(CleanCallBack clean : cleans){
+			try{clean.clean();}catch(Exception e){}
 		}
 	}
+	
+	protected abstract void doClose();
 
-	public InputStreamAt(byte[] data) {
-		mData = data;
-		mLength = mData.length;
+	public abstract void reset() throws IOException;
+
+	public static interface CleanCallBack{
+		void clean();
 	}
-
-	public long partCrc32(long offset, int length) throws IOException {
-		byte[] data = read(offset, length);
-		return Crc32.calc(data);
-	}
-
-	public long crc32() throws IOException {
-		if (mCrc32 >= 0) {
-			return mCrc32;
+	
+	public static class ByteInput extends InputStreamAt{
+		private final byte[] data;
+		private int offset = 0;
+		
+		public ByteInput(byte[] data){
+			this.data = data;
 		}
-		if (mData != null) {
-			mCrc32 = Crc32.calc(mData);
-			return mCrc32;
+		
+		public long length(){
+			return data.length;
 		}
-		if (mFile != null) {
-			mCrc32 = Crc32.calc(mFile);
-			return mCrc32;
+		
+		public long crc32() throws IOException {
+			return Crc32.calc(data);
 		}
-		return mCrc32;
-	}
-
-	public long length() {
-		return mLength;
-	}
-
-	public byte[] read(long offset, int length) throws IOException {
-		if (mClosed) {
-			throw new IOException("inputStreamAt closed");
+		
+		public void reset() throws IOException{
+			offset = 0;
 		}
-		if (mFileStream != null) {
-			return fileStreamRead(offset, length);
+		
+		public void doClose(){
+			
 		}
-		if (mData != null) {
-			byte[] ret = new byte[length];
-			System.arraycopy(mData, (int) offset, ret, 0, length);
-			return ret;
-		}
-		throw new IOException("inputStreamAt not init");
-	}
-
-	@Override
-	public synchronized void close(){
-		if (mClosed){
-			return;
-		}
-		mClosed = true;
-
-		if (mFileStream != null) {
-			try {
-				mFileStream.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		if (mFile != null && mDelWhenClose) {
-			mFile.delete();
-		}
-	}
-
-	public int read(byte[] data) throws IOException {
-		return mFileStream.read(data);
-	}
-
-	public void reset(){
-		if (mClosed) {
-			return;
-		}
-		if (mFileStream != null) {
-			try{
-				mFileStream.seek(0);
-			}catch(IOException e){
-				e.printStackTrace();
-			}
-		}
-	}
-
-	public HttpEntity toHttpEntity(final long offset, final int length, final Client.ClientExecutor client) {
-		final InputStreamAt input = this;
-		return new AbstractHttpEntity() {
-			@Override
-			public boolean isRepeatable() {
-				return false;
-			}
-
-			@Override
-			public long getContentLength() {
-				return length;
-			}
-
-			@Override
-			public InputStream getContent() throws IOException, IllegalStateException {
+		
+		public byte[] readNext(int l) throws IOException {
+			if(offset >= length()){
 				return null;
 			}
-
-			@Override
-			public void writeTo(OutputStream outputStream) throws IOException {
-				int blockSize = 64 * 1024;
-				long start = offset;
-				long initStart = 0;
-				long end = offset + length;
-				long total = end - start;
-				while (start < end) {
-					if (mClosed) {
-						outputStream.close();
-						return;
-					}
-					int readLength = (int) StrictMath.min((long) blockSize, end-start);
-					byte[] data = input.read(start, readLength);
-					outputStream.write(data);
-					outputStream.flush();
-					initStart += readLength;
-					client.upload(initStart, total);
-					start += readLength;
-				}
+			int len = l;
+			if(len + offset > length()){
+				len = (int)(length() - offset);
 			}
-
-			@Override
-			public boolean isStreaming() {
-				return false;
-			}
-		};
+			byte[] bs = new byte[len];
+			System.arraycopy(data, offset, bs, 0, len);
+			offset += len;
+			return bs;
+		}
 	}
-
-	private static byte[] copyOfRange(byte[] original, int from, int to) {
-		int newLength = to - from;
-		if (newLength < 0) {
-			throw new IllegalArgumentException(from + " > " + to);
+	
+	public static class FileInput extends InputStreamAt{
+		private final RandomAccessFile randomAccessFile;
+		private final File file;
+		private final String filename;
+		private long offset = 0;
+		
+		
+		public FileInput(File file) throws FileNotFoundException{
+			this(file, null);
 		}
-		byte[] copy = new byte[newLength];
-		System.arraycopy(original, from, copy, 0, Math.min(original.length - from, newLength));
-	    return copy;
-	}
-
-
-	private static File storeToFile(Context context, InputStream is) {
-		if (is == null) {
-			return null;
+		
+		public FileInput(File file, String aliasFilename) throws FileNotFoundException{
+			this.file = file;
+			this.randomAccessFile = new RandomAccessFile(file, "r");
+			this.filename = (aliasFilename != null && aliasFilename.trim().length() > 0) ? aliasFilename : file.getName();
 		}
-		OutputStream os = null;
-		File f = null;
-		boolean failed = false;
-		try {
-			File outputDir = FileUri.getSDPath(context);
-			f = File.createTempFile("qiniu-", "", outputDir);
-			os = new FileOutputStream(f);
-			byte[] buffer = new byte[64 * 1024];
-			int bytesRead;
-			while ((bytesRead = is.read(buffer)) != -1) {
-				os.write(buffer, 0, bytesRead);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			failed = true;
+		
+		
+		public long length(){
+			return file.length();
 		}
-		try {
-			is.close();
-		} catch (IOException e){
-			e.printStackTrace();
+		
+		public String getFilename(){
+			return filename;
 		}
-		if (os != null) {
-			try {
-				os.close();
-			} catch (IOException e){
-				e.printStackTrace();
+		
+		public long crc32() throws IOException {
+			return Crc32.calc(file);
+		}
+		
+		public void reset() throws IOException{
+			offset = 0;
+		}
+		
+		public void doClose(){
+			if(randomAccessFile !=null){
+				try {randomAccessFile.close();} catch (IOException e) {}
 			}
 		}
-
-
-		if (failed && f != null) {
-			f.delete();
-			f = null;
+		
+		public byte[] readNext(int l) throws IOException {
+			if(offset >= length()){
+				return null;
+			}
+			int len = l;
+			if(len + offset >= length()){
+				len = (int)(length() - offset);
+			}
+			byte[] bs = new byte[len];
+			randomAccessFile.seek(offset);
+			randomAccessFile.read(bs);
+			offset += len;
+			return bs;
 		}
-
-		return f;
 	}
+	
+	public static class UriInput extends InputStreamAt{
+		private final UriInfo uriInfo;
 
-	private byte[] fileStreamRead(long offset, int length) throws IOException {
-		if (mFileStream == null) return null;
-		long fileLength = mFileStream.length();
-		if (length + offset > fileLength) length = (int) (fileLength - offset);
-		byte[] data = new byte[length];
+		public UriInput(Context context, Uri uri) {
+			uriInfo = new UriInfo(context, uri);
+		}
+		
+		public long length(){
+			return uriInfo.length();
+		}
+		
+		public String getFilename(){
+			return uriInfo.getName();
+		}
+		
+		public long crc32() throws IOException {
+			UriInfo info = new UriInfo(uriInfo.getContext(), uriInfo.getUri());
+			return Crc32.calc(info.getIs());
+		}
+		
+		public void reset(){
+			if(uriInfo != null){
+				uriInfo.reset();
+			}
+		}
+		
+		public void doClose(){
+			if(uriInfo != null){
+				uriInfo.close();
+			}
+		}
+		
+		public byte[] readNext(int len) throws IOException {
+			return uriInfo.readNext(len);
+		}
+	}
+	
+	public static class UriInfo{
+		private final Context context;
+		private final Uri uri;
+		
+		private InputStream is = null;
+		private String name = null;
+		private String mimeType = null;
+		private String path = null;
+		private long length = -1;
+		
+    	private long offset = 0;
 
-		int read;
-		int totalRead = 0;
-		synchronized (data) {
-			mFileStream.seek(offset);
-			do {
-				read = mFileStream.read(data, totalRead, length - totalRead);
-				if (read <= 0) break;
-				totalRead += read;
-			} while (length > totalRead);
+		UriInfo(Context context, Uri uri){
+			this.context = context;
+			this.uri = uri;
+			reset();
+		}
+		
+		public byte[] readNext(int l) throws IOException {
+			if(offset >= length){
+				return null;
+			}
+			int len = l;
+			if(len + offset >= length){
+				len = (int)(length - offset);
+			}
+			byte[] bs = new byte[len];
+			is.read(bs);
+			offset += len;
+			return bs;
 		}
 
-		if (totalRead != data.length) {
-			data = copyOfRange(data, 0, totalRead);
+		public void close(){
+			if(is != null){
+				try {is.close();} catch (Exception e) {}
+			}
+			is = null;
 		}
-		return data;
+		
+		public void reset(){
+			close();
+	    	if ("content".equalsIgnoreCase(uri.getScheme())){
+	    		Cursor cursor = null;
+	            try{
+	            	ContentResolver resolver = context.getContentResolver();
+	            	String [] col = {MediaStore.MediaColumns.SIZE, MediaStore.MediaColumns.DISPLAY_NAME,
+	            			MediaStore.MediaColumns.MIME_TYPE, MediaStore.MediaColumns.DATA};
+	                cursor = resolver.query(uri, col, null, null, null);
+		            if(cursor != null && cursor.moveToFirst()){
+		                int cc = cursor.getColumnCount();
+		                for(int i=0; i < cc; i++){
+		                    String colName = cursor.getColumnName(i);
+		                    String colValue = cursor.getString(i);
+		                    if(MediaStore.MediaColumns.DISPLAY_NAME.equalsIgnoreCase(colName)){
+		                        name = colValue;
+		                    }else if(MediaStore.MediaColumns.SIZE.equalsIgnoreCase(colName)){
+		                    	length = cursor.getLong(i);
+		                    }else if(MediaStore.MediaColumns.MIME_TYPE.equalsIgnoreCase(colName)){
+		                        mimeType = colValue;
+		                    }else if(MediaStore.MediaColumns.DATA.equalsIgnoreCase(colName)){
+		                        path = colValue;
+		                    }
+		                }
+		            }
+	            }finally{
+	            	if(cursor != null){
+	            		try{cursor.close();}catch(Exception e){}
+	            	}
+	            }
+	        }
+	    	else{
+	        	String filePath = uri.getPath();
+	        	try{
+	        		File file = new File(filePath);
+	        		if(file != null && file.isFile()){
+		        		name = file.getName();
+		        		length = file.length();
+		                path = filePath;
+	        		}
+	        	}catch(Exception e){
+	        		
+	        	}
+	        }
+	       
+	        try {
+				is = context.getContentResolver().openInputStream(uri);
+			} catch (FileNotFoundException e) {
+				
+			}
+		}
+		
+		public Context getContext() {
+			return context;
+		}
+		
+		public Uri getUri() {
+			return uri;
+		}
+
+		public InputStream getIs() {
+			return is;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public String getMimeType() {
+			return mimeType;
+		}
+
+		public String getPath() {
+			return path;
+		}
+
+		public long length() {
+			return length;
+		}
+
 	}
 }
