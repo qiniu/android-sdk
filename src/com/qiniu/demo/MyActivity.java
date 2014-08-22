@@ -82,8 +82,8 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		IO.putFile(this, auth, key, uri, extra, new CallBack() {
 			@Override
 			public void onProcess(long current, long total) {
-				float percent = (float) current*100/total;
-				hint.setText("上传中: " + current + "/" + total + "  " + current/1024 + "K/" + total/1024 + "K; " + + percent + "%");
+				int percent = (int)(current*100/total);
+				hint.setText("上传中: " + current + "/" + total + "  " + current/1024 + "K/" + total/1024 + "K; " + percent + "%");
 			}
 
 			@Override
@@ -111,8 +111,10 @@ public class MyActivity extends Activity implements View.OnClickListener{
 	@Override
 	public void onClick(View view) {
 		if (view.equals(btnUpload)) {
-			Intent i = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-			startActivityForResult(i, PICK_PICTURE_RESUMABLE);
+			Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+			intent.setType("*/*");
+			intent.addCategory(Intent.CATEGORY_OPENABLE);
+			startActivityForResult(intent, PICK_PICTURE_RESUMABLE);
 			return;
 		}
 		if (view.equals(btnResumableUpload)) {

@@ -63,13 +63,18 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 			if(executor != null && uploading){
 				executor.cancel();
 				uploading = false;
+				clean();
+				stop.setText("PLAY");
+			}else{
+				stop.setText("STOP");
+				hint.setText("连接中");
+				doResumableUpload(uploadUri, mExtra);
 			}
-			stop.setText("PLAY");
-		}else{
-			stop.setText("STOP");
-			hint.setText("连接中");
-			doResumableUpload(uploadUri, mExtra);
 		}
+	}
+	
+	private void clean(){
+		executor = null;
 	}
 	
 	boolean uploading = false;
@@ -103,12 +108,13 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 				String redirect2 ="http://" + MyActivity.bucketName + ".u.qiniudn.com/" + key;
 				hint.setText(pre + "上传成功! ret: " + ret.toString() + "  \r\n可到" + redirect + " 或  " + redirect2 + " 访问");
 				record.removeBlocks();
+				clean();
 			}
 
 			@Override
 			public void onProcess(long current, long total) {
-				float percent = (float) current*100/total;
-				hint.setText(pre + "上传中: " + current + "/" + total + "  " + current/1024 + "K/" + total/1024 + "K; " + + percent + "%");
+				int percent = (int)(current*100/total);
+				hint.setText(pre + "上传中: " + current + "/" + total + "  " + current/1024 + "K/" + total/1024 + "K; " + percent + "%");
 				//int i = 3/0;
 				pb.setProgress((int) percent);
 			}
@@ -121,6 +127,7 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 			@Override
 			public void onFailure(CallRet ret, QiniuException ex) {
 				uploading = false;
+				clean();
 				hint.setText(pre + "错误: " + (ret != null ? ret.toString() : ex.toString()));
 				ex.printStackTrace();
 				if(ex.reason != null){
@@ -181,7 +188,7 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 		}
 		
 		public void removeBlocks(){
-			lastUploadBlocks = null;
+			records.remove(id);
 		}
 	}
 }
