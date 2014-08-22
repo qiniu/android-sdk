@@ -8,26 +8,36 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import org.json.JSONObject;
-
 import java.util.HashMap;
 
 import com.qiniu.R;
-import com.qiniu.auth.JSONObjectRet;
+import com.qiniu.auth.Authorizer;
 import com.qiniu.io.IO;
-import com.qiniu.io.PutExtra;
+import com.qiniu.rs.CallBack;
+import com.qiniu.rs.CallRet;
+import com.qiniu.rs.PutExtra;
+import com.qiniu.rs.UploadCallRet;
 import com.qiniu.utils.QiniuException;
 
+/**
+ * 也可参考 UploadTest
+ */
 public class MyActivity extends Activity implements View.OnClickListener{
 
 	public static final int PICK_PICTURE_RESUMABLE = 0;
+	
+	public static String uptoken = "anEC5u_72gw1kZPSy3Dsq1lo_DPXyvuPDaj4ePkN:zmaikrTu1lgLb8DTvKQbuFZ5ai0=:eyJzY29wZSI6ImFuZHJvaWRzZGsiLCJyZXR1cm5Cb2R5Ijoie1wiaGFzaFwiOlwiJChldGFnKVwiLFwia2V5XCI6XCIkKGtleSlcIixcImZuYW1lXCI6XCIgJChmbmFtZSkgXCIsXCJmc2l6ZVwiOlwiJChmc2l6ZSlcIixcIm1pbWVUeXBlXCI6XCIkKG1pbWVUeXBlKVwiLFwieDphXCI6XCIkKHg6YSlcIn0iLCJkZWFkbGluZSI6MTQ2NjIyMjcwMX0=";
+	// upToken 这里需要自行获取. SDK 将不实现获取过程. 隔一段时间到业务服务器重新获取一次
+	public static Authorizer auth = new Authorizer();
+	{
+		auth.setUploadToken(uptoken); 
+	}
 
 	// @gist upload_arg
 	// 在七牛绑定的对应bucket的域名. 默认是bucket.qiniudn.com
 	public static String bucketName = "<bucketName>";
-	public static String domain = bucketName + ".qiniudn.com";
-	// upToken 这里需要自行获取. SDK 将不实现获取过程. 当token过期后才再获取一遍
-	public String uptoken = "<token>";
+	// 当token过期后才再获取一遍
+
 	// @endgist
 
 	private Button btnUpload;
@@ -69,27 +79,30 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		extra.params = new HashMap<String, String>();
 		extra.params.put("x:a", "测试中文信息");
 		hint.setText("上传中");
-		IO.putFile(this, uptoken, key, uri, extra, new JSONObjectRet() {
+		IO.putFile(this, auth, key, uri, extra, new CallBack() {
 			@Override
 			public void onProcess(long current, long total) {
-				hint.setText(current + "/" + total);
+				float percent = (float) current*100/total;
+				hint.setText("上传中: " + current + "/" + total + "  " + current/1024 + "K/" + total/1024 + "K; " + + percent + "%");
 			}
 
 			@Override
-			public void onSuccess(JSONObject resp) {
+			public void onSuccess(UploadCallRet ret) {
 				uploading = false;
-				String hash = resp.optString("hash", "");
-				String value = resp.optString("x:a", "");
-				String redirect = "http://" + domain + "/" + hash;
-				hint.setText("上传成功! " + hash);
-				Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(redirect));
-				startActivity(intent);
+				String key = ret.getKey();
+				String redirect = "http://" + bucketName + ".qiniudn.com/" + key;
+				String redirect2 ="http://" + bucketName + ".u.qiniudn.com/" + key;
+				hint.setText("上传成功! ret: " + ret.toString() + "  \r\n可到" + redirect + " 或  " + redirect2 + " 访问");
 			}
 
 			@Override
-			public void onFailure(QiniuException ex) {
+			public void onFailure(CallRet ret, QiniuException ex) {
 				uploading = false;
-				hint.setText("错误: " + ex.getMessage());
+				hint.setText("错误: " + (ret != null ? ret.toString() : ex.toString()));
+				ex.printStackTrace();
+				if(ex.reason != null){
+					ex.reason.printStackTrace();
+				}
 			}
 		});
 	}
