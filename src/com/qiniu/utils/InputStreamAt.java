@@ -287,10 +287,10 @@ public abstract class InputStreamAt implements Closeable {
 
 		private void build(){
 			tryContentFile(uri.getPath());
+			tryContentField();
 			if(hasFile()){
 				return;
 			}
-			tryContentField();
 			
 			checkContent();
 			
