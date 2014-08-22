@@ -272,7 +272,7 @@ public class UploadTest extends AndroidTestCase {
 		t.setDaemon(true);
 		t.start();
 		 
-		 file = createFile(21, ".test");
+		 file = createFile(21.2, ".test");
 		 uri = Uri.fromFile(file);
 		 UploadTaskExecutor executor = null;
 		 int time = 0;
