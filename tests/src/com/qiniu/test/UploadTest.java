@@ -292,7 +292,7 @@ public class UploadTest extends AndroidTestCase {
 			 if(executor == null || executor.isUpCancelled()){
 				 executor = ResumableIO.putFile(context, auth, key, uri, rextra, blks, jsonRet);
 				 time++;
-				 sleepThenCancel(1000 * 17, executor);
+				 sleepThenCancel(100 * 175, executor);
 			 }
 			 
 			 doSleep(1000 * 3);
