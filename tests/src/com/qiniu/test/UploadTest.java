@@ -42,7 +42,7 @@ public class UploadTest extends AndroidTestCase {
 	
 	private File file;
 
-	private boolean uploading;
+	private volatile boolean uploading;
 	private boolean success;
 	private CallBack jsonRet;
 	private UploadCallRet resp;

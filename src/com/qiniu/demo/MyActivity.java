@@ -61,7 +61,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 
 	
 	// @gist upload
-	boolean uploading = false;
+	volatile boolean uploading = false;
 	/**
 	 * 普通上传文件
 	 * @param uri

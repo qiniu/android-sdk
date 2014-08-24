@@ -77,7 +77,7 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 		executor = null;
 	}
 	
-	boolean uploading = false;
+	volatile boolean uploading = false;
 	UploadTaskExecutor executor;
 	Uri uploadUri;
 	PutExtra mExtra = new PutExtra();
