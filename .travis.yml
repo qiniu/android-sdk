@@ -15,4 +15,4 @@ before_script:
   - ./ci/wait_for_emulator.sh
   - adb shell input keyevent 82 &
 
-script: ./gradlew connectedInstrumentTest  --info
+script: ./gradlew connectedInstrumentTest  --debug
