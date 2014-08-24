@@ -1,6 +1,7 @@
 package com.qiniu.demo;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -33,12 +34,8 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		auth.setUploadToken(uptoken); 
 	}
 
-	// @gist upload_arg
-	// 在七牛绑定的对应bucket的域名. 默认是bucket.qiniudn.com
-	public static String bucketName = "<bucketName>";
-	// 当token过期后才再获取一遍
-
-	// @endgist
+	// 在七牛绑定的对应bucket的域名. 请更换为 uptoken 对应的空间名，
+	public static String bucketName = "androidsdk";
 
 	private Button btnUpload;
 	private Button btnResumableUpload;
@@ -62,6 +59,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		btnResumableUpload.setOnClickListener(this);
 	}
 
+	
 	// @gist upload
 	boolean uploading = false;
 	/**
@@ -80,7 +78,9 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		extra.params.put("x:a", "测试中文信息");
 		hint.setText("上传中");
 		// 返回 UploadTaskExecutor ，可执行cancel，见 MyResumableActivity
-		IO.putFile(this, auth, key, uri, extra, new CallBack() {
+		Context context = this.getApplicationContext();
+
+		IO.putFile(context, auth, key, uri, extra, new CallBack() {
 			@Override
 			public void onProcess(long current, long total) {
 				int percent = (int)(current*100/total);

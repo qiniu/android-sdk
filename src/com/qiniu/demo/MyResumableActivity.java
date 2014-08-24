@@ -181,6 +181,9 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 			return lastUploadBlocks; 
 		}
 		
+		/**
+		 * @param blk 断点记录， 以4M为一个断点单元
+		 */
 		public void saveBlock(Block blk){
 			if(lastUploadBlocks != null){
 				lastUploadBlocks.add(blk);
