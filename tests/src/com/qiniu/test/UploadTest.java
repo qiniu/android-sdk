@@ -40,13 +40,13 @@ public class UploadTest extends AndroidTestCase {
 		auth.setUploadToken(uptoken);
 	}
 	
-	private File file;
+	private volatile File file;
 
 	private volatile boolean uploading;
-	private boolean success;
+	private volatile boolean success;
 	private CallBack jsonRet;
 	private UploadCallRet resp;
-	private QiniuException e;
+	private volatile QiniuException e;
 
 	private Context context;
 	private Uri uri;
