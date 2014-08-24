@@ -44,19 +44,19 @@ public class UploadTest extends AndroidTestCase {
 
 	private volatile boolean uploading;
 	private volatile boolean success;
-	private CallBack jsonRet;
-	private UploadCallRet resp;
+	private volatile CallBack jsonRet;
+	private volatile UploadCallRet resp;
 	private volatile QiniuException e;
 
 	private Context context;
-	private Uri uri;
-	private com.qiniu.rs.PutExtra extra;
+	private volatile Uri uri;
+	private volatile com.qiniu.rs.PutExtra extra;
 	private String key = IO.UNDEFINED_KEY;
 
 	private com.qiniu.rs.PutExtra rextra;
 	private Semaphore sem = new Semaphore(0, true);
 	
-	private List<Block> lastUploadBlocks;
+	private volatile List<Block> lastUploadBlocks;
 	
 	public void setUp() throws Exception {
 		key = UUID.randomUUID().toString();
@@ -310,6 +310,12 @@ public class UploadTest extends AndroidTestCase {
 	 
 
 	private void successCheck() throws JSONException{
+		if(e != null){
+			e.printStackTrace();
+			if(e.reason != null){
+				e.reason.printStackTrace();
+			}
+		}
 		Assert.assertTrue(success);
 		Assert.assertNotNull(resp.getHash());
 		Assert.assertEquals(key, resp.getKey());
