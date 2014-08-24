@@ -80,6 +80,7 @@ public class SliceUploadTask extends UploadTask {
 				blks.add(nblk);
 				this.publishProgress(nblk);
 			}
+			//data 最大为4M， 尽快回收。 
 			data = null;
 		}
 		

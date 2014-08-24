@@ -54,9 +54,9 @@ public abstract class InputStreamAt implements Closeable {
 		return new ByteInput(data);
 	}
 	
-	protected static Input buildInput(final InputStreamAt isa, final int len){
+	protected static Input buildNextInput(final InputStreamAt isa, final int len){
 		return new Input(){
-			private final long start = isa.offset;
+			private final long start = isa.getOffset();
 			private int innerOffset = 0;
 			@Override
 			public byte[] readAll() throws IOException {
@@ -79,7 +79,7 @@ public abstract class InputStreamAt implements Closeable {
 		};
 	}
 	
-	protected long offset;
+	protected long outterOffset;
 	
 	protected ArrayList<CleanCallBack> cleans = new ArrayList<CleanCallBack>();
 
@@ -91,8 +91,24 @@ public abstract class InputStreamAt implements Closeable {
 		return null;
 	}
 	
-	public Input readNext(int length) throws IOException{
-		return buildInput(this, length);
+	public Input readNext(int len) throws IOException{
+		if(len + outterOffset >= length()){
+			len = (int)(length() - outterOffset);
+		}
+
+		Input input =  buildNextInput(this, len);
+		outterOffset += len;
+		return input;
+	}
+	
+
+	public void reset() throws IOException{
+		outterOffset = 0;
+	}
+
+	
+	protected long getOffset(){
+		return outterOffset;
 	}
 	
 	protected abstract byte[] read(long offset, int length) throws IOException;
@@ -105,8 +121,6 @@ public abstract class InputStreamAt implements Closeable {
 	}
 	
 	protected abstract void doClose();
-
-	public abstract void reset() throws IOException;
 
 	public static interface CleanCallBack{
 		void clean();
@@ -132,28 +146,21 @@ public abstract class InputStreamAt implements Closeable {
 			return Crc32.calc(data);
 		}
 		
-		public void reset() throws IOException{
-			offset = 0;
-		}
-		
 		public void doClose(){
 			
 		}
 		
-		protected byte[] read(long off, int length) {
+		protected byte[] read(long off, int len) {
 			int offset = (int) off;
-			if(offset == 0 && length == length()){
+			if(offset == 0 && len == length()){
 				return data;
 			}
-			if(length + offset > length()){
-				length = (int)(length() - offset);
-			}
-			if(length <= 0){
+			if(len <= 0){
 				return new byte[0];
 			}
-			byte[] bs = new byte[length];
-			System.arraycopy(data, offset, bs, 0, length);
-			offset += length;
+			byte[] bs = new byte[len];
+			System.arraycopy(data, offset, bs, 0, len);
+			offset += len;
 			return bs;
 		}
 		
@@ -187,23 +194,15 @@ public abstract class InputStreamAt implements Closeable {
 			return Crc32.calc(file);
 		}
 		
-		public void reset() throws IOException{
-			offset = 0;
-		}
-		
 		public void doClose(){
 			if(randomAccessFile !=null){
 				try {randomAccessFile.close();} catch (IOException e) {}
 			}
 		}
 		
-		protected byte[] read(long offset, int l) throws IOException {
+		protected byte[] read(long offset, int len) throws IOException {
 			if(offset >= length()){
 				return null;
-			}
-			int len = l;
-			if(len + offset >= length()){
-				len = (int)(length() - offset);
 			}
 			byte[] bs = new byte[len];
 			randomAccessFile.seek(offset);
@@ -214,10 +213,22 @@ public abstract class InputStreamAt implements Closeable {
 	}
 	
 	public static class UriInput extends InputStreamAt{
-		private final UriInfo uriInfo;
+		private UriInfo uriInfo;
+		private FileInput fileInput;
+		private InputStream is;
 
 		public UriInput(Context context, Uri uri) {
 			uriInfo = new UriInfo(context, uri);
+			File f = uriInfo.getFile();
+			if(f != null && f.exists() && f.isFile()){
+				try {
+					fileInput = new FileInput(f);
+				} catch (FileNotFoundException e) {
+
+				}
+			}else{
+				is = uriInfo.getIs();
+			}
 		}
 		
 		public long length(){
@@ -229,25 +240,85 @@ public abstract class InputStreamAt implements Closeable {
 		}
 		
 		public long crc32() throws IOException {
-			return uriInfo.crc32();
+			if(fileInput != null){
+				return fileInput.crc32();
+			}else{
+				UriInfo info = new UriInfo(uriInfo.getContext(), uriInfo.getUri());
+				return Crc32.calc(info.getIs());
+			}
 		}
 		
 		public void reset() throws IOException{
-			if(uriInfo != null){
+			super.reset();
+			if(fileInput != null){
+				fileInput.reset();
+			}else if(uriInfo != null){
 				uriInfo.reset();
+				outterOffset = 0;
+				is = uriInfo.getIs();
 			}
 		}
 		
 		public void doClose(){
+			if(is != null){
+				try {is.close();} catch (IOException e) {}
+			}
 			if(uriInfo != null){
 				uriInfo.close();
 			}
+			if(fileInput != null){
+				fileInput.close();
+			}
+			
+			is = null;
+			uriInfo = null;
+			fileInput = null;
 		}
 		
 		
-		public Input readNext(int len) throws IOException {
-			return uriInfo.readNext(len);
+		public Input readNext(final int len) throws IOException {
+			if(fileInput != null){
+				return fileInput.readNext(len);
+			}else{
+				// 流不支持随机读取，先读取整块byte[]，再从其中读取部分
+				return new Input(){
+					private byte[] content;
+					private ByteInput bi;
+					
+					//保证 流 被正常消耗
+					{
+						content = readNextContent(len);
+						bi = new ByteInput(content);
+					}
+					
+					@Override
+					public byte[] readAll() throws IOException {
+						return content;
+					}
+
+					@Override
+					public byte[] readNext(int length) throws IOException {
+						return bi.readNext(length).readAll();
+					}
+					
+				};
+			}
 		}
+		
+		private byte[] readNextContent(int l) throws IOException {
+			if(outterOffset >= length()){
+				return null;
+			}
+			int len = l;
+			if(len + outterOffset >= length()){
+				len = (int)(length() - outterOffset);
+			}
+			byte[] bs = new byte[len];
+			is.read(bs);
+			outterOffset += len;
+			return bs;
+		}
+		
 		
 		protected byte[] read(long offset, int len) throws IOException {
 			throw new UnsupportedOperationException();
@@ -256,6 +327,7 @@ public abstract class InputStreamAt implements Closeable {
 	
 	public static class UriInfo{
 		private final Context context;
+		
 		private final Uri uri;
 		
 		private InputStream is;
@@ -264,9 +336,6 @@ public abstract class InputStreamAt implements Closeable {
 		private String mimeType;
 		private String path;
 		private long length = -1;
-		
-    	private long offset = 0;
-		private FileInput fileInput;
 
 		/**
 		 * 通过uri查找文件，若找到，构建基于文件的 InputStreamIsa ，委托七处理;
@@ -276,12 +345,6 @@ public abstract class InputStreamAt implements Closeable {
 			this.context = context;
 			this.uri = uri;
 			build();
-			if(hasFile()){
-				try {
-					fileInput = new FileInput(file);
-				} catch (FileNotFoundException e) {
-				}
-			}
 		}
 		
 
@@ -299,24 +362,18 @@ public abstract class InputStreamAt implements Closeable {
 				return;
 			}
 			
-			getContentIs();
+			genContentIs();
 		}
 		
 		
 		
 		public void reset() throws IOException{
-			if(fileInput != null){
-				fileInput.reset();
-				return;
-			}else{
 				close();
-				offset = 0;
-				getContentIs();
-			}
+				genContentIs();
 		}
 		
 		private boolean hasFile(){
-			return file != null && file.isFile();
+			return file != null && file.exists() && file.isFile();
 		}
 		
 		
@@ -345,7 +402,7 @@ public abstract class InputStreamAt implements Closeable {
 			}
 		}
 		
-		private void getContentIs(){
+		private void genContentIs(){
 			try {
 				is = context.getContentResolver().openInputStream(uri);
 			} catch (FileNotFoundException e) {
@@ -386,61 +443,29 @@ public abstract class InputStreamAt implements Closeable {
 
 		}
 		
-		public long crc32() throws IOException {
-			if(fileInput != null){
-				return fileInput.crc32();
-			}else{
-				UriInfo info = new UriInfo(context, uri);
-				return Crc32.calc(info.is);
-			}
-		}
-		
-		public Input readNext(final int len) throws IOException {
-			if(fileInput != null){
-				return fileInput.readNext(len);
-			}else{
-				// 流不支持随机读取，先读取整块byte[]，再从其中读取部分
-				return new Input(){
-					private byte[] content;
-					private ByteInput isa;
-					@Override
-					public byte[] readAll() throws IOException {
-						if(content == null){
-							content = readNextContent(len);
-							isa = new ByteInput(content);
-						}
-						return content;
-					}
-
-					@Override
-					public byte[] readNext(int length) throws IOException {
-						readAll();
-						return isa.readNext(length).readAll();
-					}
-					
-				};
-			}
-		}
-
-		public byte[] readNextContent(int l) throws IOException {
-			if(offset >= length){
-				return null;
-			}
-			int len = l;
-			if(len + offset >= length){
-				len = (int)(length - offset);
-			}
-			byte[] bs = new byte[len];
-			is.read(bs);
-			offset += len;
-			return bs;
-		}
-
 		public void close(){
 			if(is != null){
 				try {is.close();} catch (Exception e) {}
 			}
 			is = null;
+		}
+		
+		public Context getContext() {
+			return context;
+		}
+
+
+		public Uri getUri() {
+			return uri;
+		}
+
+		
+		public File getFile(){
+			return file;
+		}
+		
+		public InputStream getIs(){
+			return is;
 		}
 		
 		
