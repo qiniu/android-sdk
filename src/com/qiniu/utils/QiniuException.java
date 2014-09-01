@@ -29,4 +29,13 @@ public class QiniuException extends Exception{
     public static QiniuException common(String desc, Exception e){
         return new QiniuException(Common, desc, e);
     }
+
+    public String toString(){
+    	String s = "code: " + code + ", reqId: " + reqId;
+    	if(reason != null){
+    		s += ", reason: " + reason;
+    	}
+    	return s;
+    }
+    
 }
