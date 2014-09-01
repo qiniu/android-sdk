@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Random;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -13,7 +14,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.util.EntityUtils;
 
 import android.content.Context;
-import android.os.Build;
 import android.os.Environment;
 import android.util.Base64;
 
@@ -133,42 +133,25 @@ public class Util {
 	}
     
     private static String userAgent;
+    private static String id = genId();
+
     public static String getUserAgent(){
     	if(Conf.USER_AGENT != null){
     		return Conf.USER_AGENT;
     	}
     	if(userAgent == null){
-			String sdk = "QiniuAndroid/" + Conf.VERSION;
-			
-			StringBuilder buffer = new StringBuilder("Linux; U; Android ");
-	        final String version = Build.VERSION.RELEASE;
-			buffer.append(version);
-	        buffer.append(";");
-	        
-	        if ("REL".equals(Build.VERSION.CODENAME)) {
-	            final String model = Build.MODEL;
-	            final String brand = Build.BRAND;
-	            if (brand.length() > 0) {
-	                buffer.append(" ");
-	                buffer.append(brand);
-	            }
-	            
-	            if (model.length() > 0) {
-	                buffer.append(" ");
-	                buffer.append(model);
-	            }
-	        }
-	        final String id = Build.ID;
-	        if (id.length() > 0) {
-	            buffer.append(" Build/");
-	            buffer.append(id);
-	        }
-
-			userAgent = sdk + " (" + buffer + ")";
+    		 return  "QiniuAndroid/" + Conf.VERSION + " (" + android.os.Build.VERSION.RELEASE + "; "
+    		            + android.os.Build.MODEL+ "; " + id +")";
     	}
     	
 		return userAgent;
 	}
+    
+    private static String genId(){
+        Random r = new Random();
+        int rnum = r.nextInt(999);
+        return System.currentTimeMillis() + "" + rnum;
+    }
     
 	
 }
