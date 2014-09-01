@@ -115,6 +115,5 @@ public abstract class UploadTask extends AsyncTask<Object, Object, CallRet>{
 			try{post.abort();}catch(Exception e){}
 		}
 	}
-	
-	
+
 }

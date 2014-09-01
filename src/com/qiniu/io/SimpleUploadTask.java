@@ -52,7 +52,6 @@ public class SimpleUploadTask extends UploadTask {
 		}
 	}
 
-
 	private MultipartEntity buildHttpEntity() throws IOException {
 		MultipartEntity m = new MultipartEntity();
 		if (key != null) {

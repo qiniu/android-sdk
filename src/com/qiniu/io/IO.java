@@ -23,8 +23,8 @@ public class IO {
 		return put(auth, key, InputStreamAt.fromUri(mContext, uri), extra, callback);
 	}
 	
-	public static UploadTaskExecutor putFile(Authorizer auth, 
-			String key, File file, PutExtra extra, CallBack callback) throws FileNotFoundException {
+	public static UploadTaskExecutor putFile(Authorizer auth, String key, 
+			File file, PutExtra extra, CallBack callback) throws FileNotFoundException {
 		return put(auth, key, InputStreamAt.fromFile(file), extra, callback);
 	}
 

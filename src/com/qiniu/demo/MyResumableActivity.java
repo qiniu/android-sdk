@@ -26,6 +26,7 @@ import com.qiniu.rs.UploadTaskExecutor;
 import com.qiniu.utils.QiniuException;
 
 public class MyResumableActivity extends Activity implements View.OnClickListener {
+	
 	 private Authorizer auth = new Authorizer();
 	{
 			auth.setUploadToken(MyActivity.uptoken); 
@@ -194,4 +195,5 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 			records.remove(id);
 		}
 	}
+	
 }

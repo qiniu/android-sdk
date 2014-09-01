@@ -17,7 +17,7 @@ import com.qiniu.utils.InputStreamAt;
 import com.qiniu.utils.QiniuException;
 
 public class ResumableIO {
-
+	
 	public static UploadTaskExecutor putFile(Context mContext, 
 			Authorizer auth, String key, Uri uri, PutExtra extra, CallBack callback) {
 		return putFile(mContext, auth, key, uri, extra, null, callback);

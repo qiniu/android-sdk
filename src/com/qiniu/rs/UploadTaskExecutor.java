@@ -2,7 +2,6 @@ package com.qiniu.rs;
 
 import com.qiniu.utils.UploadTask;
 
-
 public class UploadTaskExecutor {
 	private volatile UploadTask task;
 	

@@ -16,6 +16,7 @@ public class Conf {
      * are bound to a particular local address.
      */
 	public static int CONNECTION_TIMEOUT = 30 * 1000;
+	
 	/**
 	 * 读取response超时的时间毫秒(ms)
      * Defines the socket timeout (<code>SO_TIMEOUT</code>) in milliseconds,
@@ -39,4 +40,5 @@ public class Conf {
 	public static final int ERROR_CODE = 0;
 	public static final int CANCEL_CODE = -1;
 	public static String PROCESS_MSG = "upload alread in process or procssed or canceled.";
+	
 }

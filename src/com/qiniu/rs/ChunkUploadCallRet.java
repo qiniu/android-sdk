@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import com.qiniu.rs.CallRet;
 
 public class ChunkUploadCallRet extends CallRet {
+	
 	protected String ctx;
 	protected String checksum;
 	protected int offset;

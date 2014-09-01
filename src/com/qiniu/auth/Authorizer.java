@@ -1,6 +1,7 @@
 package com.qiniu.auth;
 
 public class Authorizer {
+	
 	private String uploadToken;
 
 	public String getUploadToken() {

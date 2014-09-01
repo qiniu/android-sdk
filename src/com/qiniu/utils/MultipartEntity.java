@@ -72,7 +72,6 @@ public class MultipartEntity extends AbstractHttpEntity {
 		mpart.writeTo(out);
 	}
 	
-	
 	static class Multipart {
 		private final static char[] MULTIPART_CHARS = "-_1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 				.toCharArray();
@@ -290,8 +289,7 @@ public class MultipartEntity extends AbstractHttpEntity {
 				return fn;
 			}else{
 				return "_null_";
-			}
-			
+			}	
 		}
 
 		@Override

@@ -51,7 +51,6 @@ public class CallRet {
 				this.exception = new QiniuException(QiniuException.JSON, "", e);;
 			}
 		}
-
 	}
 
 	protected void unmarshal() throws Exception {

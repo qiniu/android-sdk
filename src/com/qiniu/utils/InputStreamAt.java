@@ -100,12 +100,10 @@ public abstract class InputStreamAt implements Closeable {
 		outterOffset += len;
 		return input;
 	}
-	
 
 	public void reset() throws IOException{
 		outterOffset = 0;
 	}
-
 	
 	protected long getOffset(){
 		return outterOffset;

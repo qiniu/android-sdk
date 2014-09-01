@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class Crc32 {
+	
     public static long calc(byte[] data, int offset, int length) {
         CRC32 crc32 = new CRC32();
         crc32.update(data, offset, length);

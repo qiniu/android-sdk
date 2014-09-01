@@ -263,7 +263,7 @@ public class UploadTest extends AndroidTestCase {
 	 
 	 @MediumTest
 	 public void testRLRecord() throws IOException, JSONException{
-		 //doRLRecord();// 很可能失败，可调整参数测试。断点记录最小单元： 4M
+		 //doRLRecord();//    很可能失败，可调整参数测试。断点记录最小单元： 4M
 	 }
 	 
 	 private void doRLRecord() throws IOException, JSONException{

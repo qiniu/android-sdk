@@ -23,7 +23,6 @@ import com.qiniu.utils.InputStreamAt.Input;
 import com.qiniu.utils.UploadTask;
 import com.qiniu.utils.Util;
 
-
 public class SliceUploadTask extends UploadTask {
 	private List<Block> lastUploadBlocks;
 	
