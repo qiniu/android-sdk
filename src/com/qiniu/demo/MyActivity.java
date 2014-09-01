@@ -34,7 +34,7 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		auth.setUploadToken(uptoken); 
 	}
 
-	// 在七牛绑定的对应bucket的域名. 请更换为 uptoken 对应的空间名，
+	// 在七牛绑定的对应bucket的域名. 更换 uptoken 时同时更换为对应的空间名，
 	public static String bucketName = "androidsdk";
 
 	private Button btnUpload;
@@ -79,7 +79,6 @@ public class MyActivity extends Activity implements View.OnClickListener{
 		hint.setText("上传中");
 		// 返回 UploadTaskExecutor ，可执行cancel，见 MyResumableActivity
 		Context context = this.getApplicationContext();
-
 		IO.putFile(context, auth, key, uri, extra, new CallBack() {
 			@Override
 			public void onProcess(long current, long total) {
