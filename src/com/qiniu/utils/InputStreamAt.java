@@ -215,7 +215,7 @@ public abstract class InputStreamAt implements Closeable {
 		private FileInput fileInput;
 		private InputStream is;
 
-		public UriInput(Context context, Uri uri) {
+		public UriInput(Context context, Uri uri){
 			uriInfo = new UriInfo(context, uri);
 			File f = uriInfo.getFile();
 			if(f != null && f.exists() && f.isFile()){
@@ -224,7 +224,11 @@ public abstract class InputStreamAt implements Closeable {
 				} catch (FileNotFoundException e) {
 
 				}
-			}else{
+			}
+		}
+		
+		private void genIs() throws FileNotFoundException{
+			if(fileInput == null && is == null){
 				is = uriInfo.getIs();
 			}
 		}
@@ -307,6 +311,7 @@ public abstract class InputStreamAt implements Closeable {
 			if(outterOffset >= length()){
 				return null;
 			}
+			genIs();
 			int len = l;
 			if(len + outterOffset >= length()){
 				len = (int)(length() - outterOffset);
@@ -338,6 +343,7 @@ public abstract class InputStreamAt implements Closeable {
 		/**
 		 * 通过uri查找文件，若找到，构建基于文件的 InputStreamIsa ，委托七处理;
 		 * 否则获取流
+		 * @throws FileNotFoundException 
 		 */
 		UriInfo(Context context, Uri uri){
 			this.context = context;
@@ -346,7 +352,7 @@ public abstract class InputStreamAt implements Closeable {
 		}
 		
 
-		private void build(){
+		private void build() {
 			tryContentFile(uri.getPath());
 			tryContentField();
 			if(hasFile()){
@@ -359,8 +365,6 @@ public abstract class InputStreamAt implements Closeable {
 			if(hasFile()){
 				return;
 			}
-			
-			genContentIs();
 		}
 		
 		
@@ -400,12 +404,8 @@ public abstract class InputStreamAt implements Closeable {
 			}
 		}
 		
-		private void genContentIs(){
-			try {
-				is = context.getContentResolver().openInputStream(uri);
-			} catch (FileNotFoundException e) {
-				
-			}
+		private void genContentIs() throws FileNotFoundException{
+			is = context.getContentResolver().openInputStream(uri);
 		}
 		
 		private void checkContent(){
@@ -462,7 +462,10 @@ public abstract class InputStreamAt implements Closeable {
 			return file;
 		}
 		
-		public InputStream getIs(){
+		public InputStream getIs() throws FileNotFoundException{
+			if(is == null){
+				genContentIs();
+			}
 			return is;
 		}
 		
