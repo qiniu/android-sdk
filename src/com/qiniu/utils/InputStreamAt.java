@@ -228,7 +228,7 @@ public abstract class InputStreamAt implements Closeable {
 		}
 		
 		private void genIs() throws FileNotFoundException{
-			if(fileInput == null && is == null){
+			if(fileInput == null && is == null && uriInfo != null){
 				is = uriInfo.getIs();
 			}
 		}
