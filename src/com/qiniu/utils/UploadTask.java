@@ -82,15 +82,15 @@ public abstract class UploadTask extends AsyncTask<Object, Object, CallRet>{
 	protected void onPostExecute(CallRet ret){
 		try{
 			if(ret == null){
-				callback.onFailure(ret, new QiniuException(Conf.ERROR_CODE, "", "result is null"));
+				callback.onFailure(new CallRet(Conf.ERROR_CODE, "", "result is null"));
 				return;
 			}
 			if(ret.getException() != null){
-				callback.onFailure(ret, ret.getException());
+				callback.onFailure(ret);
 			}else if(ret.isOk()){
 					callback.onSuccess(new UploadCallRet(ret));
 			}else{
-				callback.onFailure(ret, new QiniuException(ret.getStatusCode(), ret.getReqId(), ret.getResponse()));
+				callback.onFailure(ret);
 			}
 		}catch(Exception e){
 			e.printStackTrace();
