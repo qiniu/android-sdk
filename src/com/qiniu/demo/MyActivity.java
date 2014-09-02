@@ -18,7 +18,6 @@ import com.qiniu.rs.CallBack;
 import com.qiniu.rs.CallRet;
 import com.qiniu.rs.PutExtra;
 import com.qiniu.rs.UploadCallRet;
-import com.qiniu.utils.QiniuException;
 
 /**
  * 也可参考 UploadTest
@@ -96,13 +95,9 @@ public class MyActivity extends Activity implements View.OnClickListener{
 			}
 
 			@Override
-			public void onFailure(CallRet ret, QiniuException ex) {
+			public void onFailure(CallRet ret) {
 				uploading = false;
-				hint.setText("错误: " + (ret != null ? ret.toString() : ex.toString()));
-				ex.printStackTrace();
-				if(ex.reason != null){
-					ex.reason.printStackTrace();
-				}
+				hint.setText("错误: " + ret.toString());
 			}
 		});
 	}

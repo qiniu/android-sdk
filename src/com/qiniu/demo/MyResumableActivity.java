@@ -23,7 +23,6 @@ import com.qiniu.rs.CallRet;
 import com.qiniu.rs.PutExtra;
 import com.qiniu.rs.UploadCallRet;
 import com.qiniu.rs.UploadTaskExecutor;
-import com.qiniu.utils.QiniuException;
 
 public class MyResumableActivity extends Activity implements View.OnClickListener {
 	
@@ -126,14 +125,10 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 			}
 
 			@Override
-			public void onFailure(CallRet ret, QiniuException ex) {
+			public void onFailure(CallRet ret) {
 				uploading = false;
 				clean();
-				hint.setText(pre + "错误: " + (ret != null ? ret.toString() : ex.toString()));
-				ex.printStackTrace();
-				if(ex.reason != null){
-					ex.reason.printStackTrace();
-				}
+				hint.setText(pre + "错误: " + ret.toString());
 			}
 		});
 	}
