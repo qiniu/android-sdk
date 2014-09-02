@@ -1,8 +1,6 @@
 package com.qiniu.resumableio;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.List;
 
 import android.content.Context;
@@ -26,17 +24,27 @@ public class ResumableIO {
 	public static UploadTaskExecutor putFile(Context mContext, 
 			Authorizer auth, String key, Uri uri, PutExtra extra,
 			List<Block> blocks, CallBack callback) {
-		return put(auth, key, InputStreamAt.fromUri(mContext, uri), extra, blocks, callback);
+		try {
+			return put(auth, key, InputStreamAt.fromUri(mContext, uri), extra, blocks, callback);
+		} catch (Exception e) {
+			callback.onFailure(null, new QiniuException(QiniuException.IO, "build multipart", e));
+			return null;
+		}
 	}
 	
 	public static UploadTaskExecutor putFile(Authorizer auth, String key, 
-			File file, PutExtra extra, CallBack callback) throws FileNotFoundException {
+			File file, PutExtra extra, CallBack callback) {
 		return putFile(auth, key, file, extra, null, callback);
 	}
 	
-	public static UploadTaskExecutor putFile(Authorizer auth, String key, File file, 
-			PutExtra extra, List<Block> blocks, CallBack callback) throws FileNotFoundException {
-		return put(auth, key, InputStreamAt.fromFile(file), extra, blocks, callback);
+	public static UploadTaskExecutor putFile(Authorizer auth, String key, 
+			File file, PutExtra extra, List<Block> blocks, CallBack callback) {
+		try{
+			return put(auth, key, InputStreamAt.fromFile(file), extra, blocks, callback);
+		} catch (Exception e) {
+			callback.onFailure(null, new QiniuException(QiniuException.IO, "build multipart", e));
+			return null;
+		}
 	}
 
 	public static UploadTaskExecutor put(Authorizer auth, String key, 
@@ -51,7 +59,7 @@ public class ResumableIO {
 			task.setLastUploadBlocks(blocks);
 			task.execute();
 			return new UploadTaskExecutor(task);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			callback.onFailure(null, new QiniuException(QiniuException.IO, "build multipart", e));
 			return null;
 		}
