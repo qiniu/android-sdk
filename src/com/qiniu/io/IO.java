@@ -6,11 +6,12 @@ import android.content.Context;
 import android.net.Uri;
 
 import com.qiniu.auth.Authorizer;
+import com.qiniu.conf.Conf;
 import com.qiniu.rs.CallBack;
+import com.qiniu.rs.CallRet;
 import com.qiniu.rs.PutExtra;
 import com.qiniu.rs.UploadTaskExecutor;
 import com.qiniu.utils.InputStreamAt;
-import com.qiniu.utils.QiniuException;
 
 public class IO {
 
@@ -21,7 +22,7 @@ public class IO {
 		try {
 			return put(auth, key, InputStreamAt.fromUri(mContext, uri), extra, callback);
 		} catch (Exception e) {
-			callback.onFailure(null, new QiniuException(QiniuException.IO, "build multipart", e));
+			callback.onFailure(new CallRet(Conf.ERROR_CODE, "", e));
 			return null;
 		}
 	}
@@ -31,7 +32,7 @@ public class IO {
 		try {
 			return put(auth, key, InputStreamAt.fromFile(file), extra, callback);
 		} catch (Exception e) {
-			callback.onFailure(null, new QiniuException(QiniuException.IO, "build multipart", e));
+			callback.onFailure(new CallRet(Conf.ERROR_CODE, "", e));
 			return null;
 		}
 	}
@@ -43,7 +44,7 @@ public class IO {
 			task.execute();
 			return new UploadTaskExecutor(task);
 		} catch (Exception e) {
-			callback.onFailure(null, new QiniuException(QiniuException.IO, "build multipart", e));
+			callback.onFailure(new CallRet(Conf.ERROR_CODE, "", e));
 			return null;
 		}
 	}

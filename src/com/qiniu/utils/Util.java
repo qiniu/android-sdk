@@ -61,9 +61,9 @@ public class Util {
 	}
     
     public static boolean needChangeUpAdress(CallRet ret){
-		if(ret.getException() != null && ret.getException().reason != null){
+		if(ret.getException() != null){
 			try {
-				throw ret.getException().reason;
+				throw ret.getException();
 			} catch (java.net.UnknownHostException e) {
 
 			} catch (java.net.NoRouteToHostException e) {

@@ -381,17 +381,12 @@ public abstract class InputStreamAt implements Closeable {
 		
 		private void tryContentFile(String path){
 			if(path != null){
-				try{file = new File(path);}catch(Exception e){}
-				if(hasFile()){
-					return;
-				}
-				try{file = new File("/mnt" + path);}catch(Exception e){}
-				if(hasFile()){
-					return;
-				}
-				try{file = new File("/mnt/" + path);}catch(Exception e){}
-				if(hasFile()){
-					return;
+				String[] ps = {"", "/mnt", "/mnt/"};
+				for(String p : ps){
+					try{file = new File(p + path);}catch(Exception e){}
+					if(hasFile()){
+						return;
+					}
 				}
 			}
 		}

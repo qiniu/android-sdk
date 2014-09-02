@@ -7,12 +7,13 @@ import android.content.Context;
 import android.net.Uri;
 
 import com.qiniu.auth.Authorizer;
+import com.qiniu.conf.Conf;
 import com.qiniu.resumableio.SliceUploadTask.Block;
 import com.qiniu.rs.CallBack;
+import com.qiniu.rs.CallRet;
 import com.qiniu.rs.PutExtra;
 import com.qiniu.rs.UploadTaskExecutor;
 import com.qiniu.utils.InputStreamAt;
-import com.qiniu.utils.QiniuException;
 
 public class ResumableIO {
 	
@@ -27,7 +28,7 @@ public class ResumableIO {
 		try {
 			return put(auth, key, InputStreamAt.fromUri(mContext, uri), extra, blocks, callback);
 		} catch (Exception e) {
-			callback.onFailure(null, new QiniuException(QiniuException.IO, "", e));
+			callback.onFailure(new CallRet(Conf.ERROR_CODE, "", e));
 			return null;
 		}
 	}
@@ -42,7 +43,7 @@ public class ResumableIO {
 		try{
 			return put(auth, key, InputStreamAt.fromFile(file), extra, blocks, callback);
 		} catch (Exception e) {
-			callback.onFailure(null, new QiniuException(QiniuException.IO, "", e));
+			callback.onFailure(new CallRet(Conf.ERROR_CODE, "", e));
 			return null;
 		}
 	}
@@ -60,7 +61,7 @@ public class ResumableIO {
 			task.execute();
 			return new UploadTaskExecutor(task);
 		} catch (Exception e) {
-			callback.onFailure(null, new QiniuException(QiniuException.IO, "", e));
+			callback.onFailure(new CallRet(Conf.ERROR_CODE, "", e));
 			return null;
 		}
 	}

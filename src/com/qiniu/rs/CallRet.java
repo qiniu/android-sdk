@@ -1,12 +1,11 @@
 package com.qiniu.rs;
 
-import com.qiniu.utils.QiniuException;
 
 public class CallRet {
 	private final int statusCode;
 	private final String reqId;
 	private final String response;
-	private QiniuException exception;
+	private Exception exception;
 	
 	/**
 	 * 子类必须实现此构造函数
@@ -31,11 +30,7 @@ public class CallRet {
 		this.statusCode = errorCode;
 		this.reqId = reqId;
 		this.response = "";
-		if(e instanceof QiniuException){
-			exception = (QiniuException)e;
-		}else{
-			this.exception = new QiniuException(statusCode, response, e);
-		}
+		exception = e;
 		doUnmarshal();
 	}
 	
@@ -48,7 +43,7 @@ public class CallRet {
 			unmarshal();
 		} catch (Exception e) {
 			if (this.exception == null) {
-				this.exception = new QiniuException(QiniuException.JSON, "", e);;
+				this.exception = e;
 			}
 		}
 	}
@@ -70,7 +65,7 @@ public class CallRet {
 	public String getResponse() {
 		return response;
 	}
-	public QiniuException getException() {
+	public Exception getException() {
 		return exception;
 	}
 

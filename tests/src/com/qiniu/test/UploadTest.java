@@ -22,7 +22,6 @@ import com.qiniu.rs.CallRet;
 import com.qiniu.rs.CallBack;
 import com.qiniu.rs.UploadCallRet;
 import com.qiniu.rs.UploadTaskExecutor;
-import com.qiniu.utils.QiniuException;
 import com.qiniu.auth.Authorizer;
 import com.qiniu.conf.Conf;
 
@@ -46,7 +45,7 @@ public class UploadTest extends AndroidTestCase {
 	private volatile boolean success;
 	private volatile CallBack jsonRet;
 	private volatile UploadCallRet resp;
-	private volatile QiniuException e;
+	private volatile Exception e;
 
 	private Context context;
 	private volatile Uri uri;
@@ -94,11 +93,10 @@ public class UploadTest extends AndroidTestCase {
 			}
 
 			@Override
-			public void onFailure(CallRet ret, QiniuException ex) {
+			public void onFailure(CallRet ret) {
 				uploading = false;
 				success = false;
-				e = ex;
-				Log.d("UploadTest", "上传失败!  " + (ret != null ? ret.toString() : ex.toString()));
+				Log.d("UploadTest", "上传失败!  " + ret.toString());
 				sem.release();
 			}
 			
@@ -174,9 +172,6 @@ public class UploadTest extends AndroidTestCase {
 			System.out.println(ret.getResponse());
 			if(ret.getException() != null){
 				ret.getException().fillInStackTrace();
-				if(ret.getException().reason != null){
-					ret.getException().reason.fillInStackTrace();
-				}
 			}
 		}
 		Assert.assertTrue((end - s) < 1000 * 5);
@@ -304,9 +299,6 @@ public class UploadTest extends AndroidTestCase {
 		 
 		 if(e != null){
 			 e.printStackTrace();
-			if(e.reason != null){
-				e.reason.printStackTrace();
-			}
 		 }
 		 successCheck();
 		 //Assert.assertTrue(time > 1);
@@ -316,9 +308,6 @@ public class UploadTest extends AndroidTestCase {
 	private void successCheck() throws JSONException{
 		if(e != null){
 			e.printStackTrace();
-			if(e.reason != null){
-				e.reason.printStackTrace();
-			}
 		}
 		Assert.assertTrue(success);
 		Assert.assertNotNull(resp.getHash());
