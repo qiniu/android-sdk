@@ -1,8 +1,6 @@
 package com.qiniu.io;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 import android.content.Context;
 import android.net.Uri;
@@ -21,12 +19,22 @@ public class IO {
 	
 	public static UploadTaskExecutor putFile(Context mContext, 
 			Authorizer auth, String key, Uri uri, PutExtra extra, CallBack callback) {
-		return put(auth, key, InputStreamAt.fromUri(mContext, uri), extra, callback);
+		try {
+			return put(auth, key, InputStreamAt.fromUri(mContext, uri), extra, callback);
+		} catch (Exception e) {
+			callback.onFailure(new CallRet(Conf.ERROR_CODE, "", e));
+			return null;
+		}
 	}
 	
 	public static UploadTaskExecutor putFile(Authorizer auth, String key, 
-			File file, PutExtra extra, CallBack callback) throws FileNotFoundException {
-		return put(auth, key, InputStreamAt.fromFile(file), extra, callback);
+			File file, PutExtra extra, CallBack callback) {
+		try {
+			return put(auth, key, InputStreamAt.fromFile(file), extra, callback);
+		} catch (Exception e) {
+			callback.onFailure(new CallRet(Conf.ERROR_CODE, "", e));
+			return null;
+		}
 	}
 
 	public static UploadTaskExecutor put(Authorizer auth, 
@@ -35,7 +43,7 @@ public class IO {
 			SimpleUploadTask task = new SimpleUploadTask(auth, input, key, extra, callback);
 			task.execute();
 			return new UploadTaskExecutor(task);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			callback.onFailure(new CallRet(Conf.ERROR_CODE, "", e));
 			return null;
 		}
