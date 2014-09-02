@@ -27,7 +27,7 @@ public class ResumableIO {
 		try {
 			return put(auth, key, InputStreamAt.fromUri(mContext, uri), extra, blocks, callback);
 		} catch (Exception e) {
-			callback.onFailure(null, new QiniuException(QiniuException.IO, "build multipart", e));
+			callback.onFailure(null, new QiniuException(QiniuException.IO, "", e));
 			return null;
 		}
 	}
@@ -42,7 +42,7 @@ public class ResumableIO {
 		try{
 			return put(auth, key, InputStreamAt.fromFile(file), extra, blocks, callback);
 		} catch (Exception e) {
-			callback.onFailure(null, new QiniuException(QiniuException.IO, "build multipart", e));
+			callback.onFailure(null, new QiniuException(QiniuException.IO, "", e));
 			return null;
 		}
 	}
@@ -60,7 +60,7 @@ public class ResumableIO {
 			task.execute();
 			return new UploadTaskExecutor(task);
 		} catch (Exception e) {
-			callback.onFailure(null, new QiniuException(QiniuException.IO, "build multipart", e));
+			callback.onFailure(null, new QiniuException(QiniuException.IO, "", e));
 			return null;
 		}
 	}
