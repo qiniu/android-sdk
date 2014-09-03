@@ -1,5 +1,11 @@
 ## CHANGE LOG
 
+### v6.1.0
+2014-09-02 issue [#67](https://github.com/qiniu/android-sdk/pull/67) 
+
+-  [#64] 1.中断上传；2.uri不能直接转换为File时，转换为InputStream处理； 3.重新分片上传，可设置断点记录；4.重构InputStreamAt,MultipartEntity,CallBack等；
+
+
 ### v6.0.5
 2014-07-20 issue [#61](https://github.com/qiniu/android-sdk/pull/61)
 
