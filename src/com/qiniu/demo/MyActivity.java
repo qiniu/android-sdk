@@ -5,11 +5,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.HashMap;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.qiniu.R;
 import com.qiniu.auth.Authorizer;
@@ -26,15 +31,25 @@ public class MyActivity extends Activity implements View.OnClickListener{
 
 	public static final int PICK_PICTURE_RESUMABLE = 0;
 	
-	public static String uptoken = "anEC5u_72gw1kZPSy3Dsq1lo_DPXyvuPDaj4ePkN:zmaikrTu1lgLb8DTvKQbuFZ5ai0=:eyJzY29wZSI6ImFuZHJvaWRzZGsiLCJyZXR1cm5Cb2R5Ijoie1wiaGFzaFwiOlwiJChldGFnKVwiLFwia2V5XCI6XCIkKGtleSlcIixcImZuYW1lXCI6XCIgJChmbmFtZSkgXCIsXCJmc2l6ZVwiOlwiJChmc2l6ZSlcIixcIm1pbWVUeXBlXCI6XCIkKG1pbWVUeXBlKVwiLFwieDphXCI6XCIkKHg6YSlcIn0iLCJkZWFkbGluZSI6MTQ2NjIyMjcwMX0=";
 	// upToken 这里需要自行获取. SDK 将不实现获取过程. 隔一段时间到业务服务器重新获取一次
+	public static String uptoken = "anEC5u_72gw1kZPSy3Dsq1lo_DPXyvuPDaj4ePkN:zmaikrTu1lgLb8DTvKQbuFZ5ai0=:eyJzY29wZSI6ImFuZHJvaWRzZGsiLCJyZXR1cm5Cb2R5Ijoie1wiaGFzaFwiOlwiJChldGFnKVwiLFwia2V5XCI6XCIkKGtleSlcIixcImZuYW1lXCI6XCIgJChmbmFtZSkgXCIsXCJmc2l6ZVwiOlwiJChmc2l6ZSlcIixcIm1pbWVUeXBlXCI6XCIkKG1pbWVUeXBlKVwiLFwieDphXCI6XCIkKHg6YSlcIn0iLCJkZWFkbGluZSI6MTQ2NjIyMjcwMX0=";
+	
+	public static String bucketName;
 	public static Authorizer auth = new Authorizer();
 	{
 		auth.setUploadToken(uptoken); 
+		try {
+			String str = uptoken.split(":")[2];
+			String jsonStr = new String(Base64.decode(str, Base64.URL_SAFE | Base64.NO_WRAP), "utf-8");
+			JSONObject json = new JSONObject(jsonStr);
+			String scope = json.optString("scope");
+			bucketName = scope.split(":")[0];
+			Log.d("Scope", bucketName);
+		} catch (Exception e) {
+			bucketName = "<bucketName>";
+			e.printStackTrace();
+		}
 	}
-
-	// 在七牛绑定的对应bucket的域名. 更换 uptoken 时同时更换为对应的空间名，
-	public static String bucketName = "androidsdk";
 
 	private Button btnUpload;
 	private Button btnResumableUpload;
