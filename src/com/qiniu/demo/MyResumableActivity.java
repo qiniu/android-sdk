@@ -100,7 +100,8 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 			extra.params.put("x:a", "bb");
 		}
 		
-		String id = key + "_" + uri.getPath();
+//		String id = key + "_" + uri.getPath();
+		String id = MyActivity.bucketName + ":" + key + "_" + uri.getPath();
 //		final BlockRecord record = new MyBlockRecord(this, id);
 		final BlockRecord record = new MyFileBlockRecord(this, id);
 		
