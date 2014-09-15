@@ -225,10 +225,10 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 
 		public MyFileBlockRecord(Context context, String id) {
 			super(context, id);
-			initFile(context);
+			initDir(context);
 		}
 		
-		private void initFile(Context context){
+		private void initDir(Context context){
 			File cdir = context.getCacheDir();
 			file = new File(cdir, "_qiniu_");
 			if(!file.exists()){
@@ -249,7 +249,9 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 
 		@Override
 		public List<Block> load(){
-			initFile();
+			if(!file.exists()){
+				return null;
+			}
 			FileReader freader = null;
 			BufferedReader reader = null;
 			try{
