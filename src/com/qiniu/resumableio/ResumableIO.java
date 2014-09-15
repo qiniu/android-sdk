@@ -5,6 +5,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Build;
 
 import com.qiniu.auth.Authorizer;
 import com.qiniu.conf.Conf;
@@ -58,7 +59,8 @@ public class ResumableIO {
 		try {
 			SliceUploadTask task = new SliceUploadTask(auth, input, key, extra, callback);
 			task.setLastUploadBlocks(blocks);
-			if(Conf.PARALLEL){
+			if(Conf.PARALLEL &&
+					(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)){
 				task.parallelExecute();
 			}else{
 		         task.execute();
