@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Semaphore;
 
 
@@ -164,7 +165,12 @@ public class UploadTest extends AndroidTestCase {
 		long s = System.currentTimeMillis();
 		UploadTaskExecutor executor = IO.putFile(context, auth, key, uri, extra, jsonRet);
 		sleepThenCancel(1000 * 4, executor);
-		CallRet ret = executor.get();
+		CallRet ret = null;
+		try {
+			ret = executor.getTask().get();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		long end = System.currentTimeMillis();
 		System.out.println(end - s);
 		System.out.println(ret);
@@ -241,7 +247,11 @@ public class UploadTest extends AndroidTestCase {
 			long s = System.currentTimeMillis();
 			UploadTaskExecutor executor = ResumableIO.putFile(context, auth, key, uri, extra, jsonRet);
 			sleepThenCancel(1000 * 4, executor);
-			CallRet ret = executor.get(); // 阻塞
+			try {
+				CallRet ret = executor.getTask().get();
+			} catch (Exception e) {
+				e.printStackTrace();
+			} // 阻塞
 			long end = System.currentTimeMillis();
 			System.out.println(end - s);
 			Assert.assertTrue((end - s) < 1000 * 5);
