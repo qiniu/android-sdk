@@ -5,7 +5,9 @@ import java.io.IOException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 
+import android.annotation.TargetApi;
 import android.os.AsyncTask;
+import android.os.Build;
 
 import com.qiniu.auth.Authorizer;
 import com.qiniu.conf.Conf;
@@ -114,6 +116,11 @@ public abstract class UploadTask extends AsyncTask<Object, Object, CallRet>{
 		if(post != null){
 			try{post.abort();}catch(Exception e){}
 		}
+	}
+	
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void parallelExecute(){
+		executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 	}
 
 }
