@@ -101,7 +101,7 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 		}
 		
 //		String id = key + "_" + uri.getPath();
-		String id = MyActivity.bucketName + ":" + key + "_" + uri.getPath();
+		String id = MyActivity.bucketName + ":" + key + "_" + uri.getPath() + "<other>"; // 应用中唯一确定一个上传记录
 //		final BlockRecord record = new MyBlockRecord(this, id);
 		final BlockRecord record = new MyFileBlockRecord(this, id);
 		
