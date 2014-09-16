@@ -17,11 +17,8 @@ public class UploadTaskExecutor {
 		this.task = task;
 	}
 	
-	public CallRet get(){
-		if(task != null){
-			try {return task.get();} catch (Exception e) {} 
-		}
-		return null;
+	public UploadTask getTask(){
+		return task;
 	}
 	
 	public boolean isUpCancelled(){
