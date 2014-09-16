@@ -92,9 +92,6 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 
 	public void doResumableUpload(final Uri uri, PutExtra extra) {
 		uploadUri = uri;
-		String id = uri.getPath() + "_" + this.getPackageResourcePath();
-//		final BlockRecord record = new MyBlockRecord(this, id);
-		final BlockRecord record = new MyFileBlockRecord(this, id);
 		
 		hint.setText("连接中");
 		String key = null;
@@ -102,6 +99,12 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 			extra.params = new HashMap<String, String>();
 			extra.params.put("x:a", "bb");
 		}
+		
+//		String id = key + "_" + uri.getPath();
+		String id = MyActivity.bucketName + ":" + key + "_" + uri.getPath() + "<other>"; // 应用中唯一确定一个上传记录
+//		final BlockRecord record = new MyBlockRecord(this, id);
+		final BlockRecord record = new MyFileBlockRecord(this, id);
+		
 		List<Block> blks = record.load();
 		String s = "blks.size(): " + blks.size() + " ==> ";
 		 for(Block blk : blks ){
@@ -222,10 +225,10 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 
 		public MyFileBlockRecord(Context context, String id) {
 			super(context, id);
-			initFile(context);
+			initDir(context);
 		}
 		
-		private void initFile(Context context){
+		private void initDir(Context context){
 			File cdir = context.getCacheDir();
 			file = new File(cdir, "_qiniu_");
 			if(!file.exists()){
@@ -246,7 +249,9 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 
 		@Override
 		public List<Block> load(){
-			initFile();
+			if(!file.exists()){
+				return null;
+			}
 			FileReader freader = null;
 			BufferedReader reader = null;
 			try{
