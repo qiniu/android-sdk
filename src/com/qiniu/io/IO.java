@@ -4,7 +4,6 @@ import java.io.File;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Build;
 
 import com.qiniu.auth.Authorizer;
 import com.qiniu.conf.Conf;
@@ -42,8 +41,7 @@ public class IO {
 			String key, InputStreamAt input, PutExtra extra, CallBack callback) {
 		try {
 			SimpleUploadTask task = new SimpleUploadTask(auth, input, key, extra, callback);
-			if(Conf.PARALLEL &&
-					(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)){
+			if(Conf.PARALLEL){
 		         task.parallelExecute();
 			}else{
 		         task.execute();

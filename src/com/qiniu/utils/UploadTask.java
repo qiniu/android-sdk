@@ -118,17 +118,17 @@ public abstract class UploadTask extends AsyncTask<Object, Object, CallRet>{
 		}
 	}
 	
-	public void parallelExecute(){
+	public AsyncTask<Object, Object, CallRet> parallelExecute(Object... params){
 		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
-			parallelExecute0();
+			return parallelExecute0(params);
 		}else{
-			execute();
+			return execute(params);
 		}
 	}
 	
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-	private void parallelExecute0(){
-		executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+	private AsyncTask<Object, Object, CallRet> parallelExecute0(Object... params){
+		return executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
 	}
 
 }
