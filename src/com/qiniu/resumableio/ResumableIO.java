@@ -58,12 +58,16 @@ public class ResumableIO {
 		try {
 			SliceUploadTask task = new SliceUploadTask(auth, input, key, extra, callback);
 			task.setLastUploadBlocks(blocks);
-			task.execute();
+			if(Conf.PARALLEL){
+				task.parallelExecute();
+			}else{
+		         task.execute();
+			}
 			return new UploadTaskExecutor(task);
 		} catch (Exception e) {
 			callback.onFailure(new CallRet(Conf.ERROR_CODE, "", e));
 			return null;
 		}
 	}
-
+	
 }

@@ -41,7 +41,11 @@ public class IO {
 			String key, InputStreamAt input, PutExtra extra, CallBack callback) {
 		try {
 			SimpleUploadTask task = new SimpleUploadTask(auth, input, key, extra, callback);
-			task.execute();
+			if(Conf.PARALLEL){
+		         task.parallelExecute();
+			}else{
+		         task.execute();
+			}
 			return new UploadTaskExecutor(task);
 		} catch (Exception e) {
 			callback.onFailure(new CallRet(Conf.ERROR_CODE, "", e));

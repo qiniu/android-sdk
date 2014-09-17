@@ -7,6 +7,15 @@ public class Conf {
     
     public static final String CHARSET = "utf-8";
     
+    
+    /**
+     * PARALLEL 为 true 时，UploadTask使用并行任务上传，否则使用默认任务上传（HONEYCOMB 版本后为顺序执行）。
+     * HONEYCOMB 版本后，AsyncTask#execute 为顺序执行，线程池为AsyncTask.SERIAL_EXECUTOR；
+     * AsyncTask#executeOnExecutor可指定线程池，此处使用 AsyncTask.THREAD_POOL_EXECUTOR。
+     * 若要独立控制每个上传，请查考 IO.java、ResumableIO.java代码，而不是直接使用它们。
+     */
+    public static boolean PARALLEL = true;
+    
 	/**
 	 * HTTP连接超时的时间毫秒(ms)
      * Determines the timeout in milliseconds until a connection is established.
