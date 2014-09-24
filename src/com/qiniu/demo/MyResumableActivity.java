@@ -106,10 +106,12 @@ public class MyResumableActivity extends Activity implements View.OnClickListene
 		final BlockRecord record = new MyFileBlockRecord(this, id);
 		
 		List<Block> blks = record.load();
-		String s = "blks.size(): " + blks.size() + " ==> ";
-		 for(Block blk : blks ){
-			 s += blk.getIdx() + ", ";
-		 }
+		String s = "blks.size(): " + (blks == null ? 0 : blks.size()) + " ==> ";
+		if(blks != null){
+			 for(Block blk : blks ){
+				 s += blk.getIdx() + ", ";
+			 }
+		}
 		 final String pre = s + "\r\n";
 		 uploading = true;
 		executor = ResumableIO.putFile(this, auth, key, uri, extra, blks, new CallBack() {
