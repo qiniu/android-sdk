@@ -1,10 +1,13 @@
 package com.qiniu.utils;
 
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.MediaStore;
+import android.test.suitebuilder.annotation.Suppress;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -403,6 +406,7 @@ public abstract class InputStreamAt implements Closeable {
 			is = context.getContentResolver().openInputStream(uri);
 		}
 		
+		@SuppressLint("NewApi")
 		private void checkContent(){
 			if ("content".equalsIgnoreCase(uri.getScheme())){
 	    		Cursor cursor = null;
@@ -410,7 +414,21 @@ public abstract class InputStreamAt implements Closeable {
 	            	ContentResolver resolver = context.getContentResolver();
 	            	String [] col = {MediaStore.MediaColumns.SIZE, MediaStore.MediaColumns.DISPLAY_NAME,
 	            			MediaStore.MediaColumns.MIME_TYPE, MediaStore.MediaColumns.DATA};
-	                cursor = resolver.query(uri, col, null, null, null);
+	            	String selection = null;
+	            	String[] selectionArgs = null;
+	            	Uri tmpUri = null;
+	            	if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT){
+	            		if(android.provider.DocumentsContract.isDocumentUri(context, uri)){
+	            			String documentId = android.provider.DocumentsContract.getDocumentId(uri);
+	                		selectionArgs = new String[] { documentId.split(":")[1] };
+	                		tmpUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+	                		selection = "_id=?";
+	            		} else {
+	            			tmpUri = uri;
+	            		}
+	            	}
+	                cursor = resolver.query(tmpUri, col, selection, selectionArgs, null);
+	                
 		            if(cursor != null && cursor.moveToFirst()){
 		                int cc = cursor.getColumnCount();
 		                for(int i=0; i < cc; i++){
