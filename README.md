@@ -12,7 +12,7 @@
 ## 使用方法
 
 ```java
-import com.qiniu.storage.UploadManager;
+import com.qiniu.android.storage.UploadManager;
 ...
     String token = "从服务端SDK获取";
     UploadManager uploadManager = new UploadManager();
