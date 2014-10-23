@@ -2,7 +2,7 @@ import java.util.regex.Matcher
 
 apply plugin: 'com.android.library'
 
-def versionName(){
+def versionName() {
     String config = 'library/src/main/java/com/qiniu/android/common/Config.java'
     String fileContents = new File(config).text
     Matcher myMatcher = fileContents =~ /VERSION = "(.+)";/
@@ -11,7 +11,7 @@ def versionName(){
     return version
 }
 
-def versionNameToCode(String version){
+def versionNameToCode(String version) {
     String v = version.replaceAll(/\./, '')
     return v.toLong()
 }
@@ -38,8 +38,8 @@ dependencies {
 }
 
 task releaseJar(type: Copy, dependsOn: 'build') {
-    from( 'build/intermediates/bundles/release')
-    into( '../releases')
+    from('build/intermediates/bundles/release')
+    into('../releases')
     include('classes.jar')
     rename('classes.jar', 'qiniu-android-sdk-' + version + '.jar')
 }
