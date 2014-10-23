@@ -12,14 +12,14 @@ public final class UploadOptions {
 
     public UploadOptions(Map<String, String> params, String mimeType, boolean checkCrc,
                          UpProgressHandler progressHandler, UpCancellationSignal cancellationSignal) {
-        this.params = filteParam(params);
+        this.params = filterParam(params);
         this.mimeType = mimeType;
         this.checkCrc = checkCrc;
         this.progressHandler = progressHandler;
         this.cancellationSignal = cancellationSignal;
     }
 
-    private static Map<String, String> filteParam(Map<String, String> params) {
+    private static Map<String, String> filterParam(Map<String, String> params) {
         Map<String, String> ret = new HashMap<String, String>();
         if (params == null) {
             return ret;
