@@ -23,3 +23,11 @@ local.properties
 # Gradle
 .gradle
 build/
+
+# System
+.DS_Store
+
+# Android Studio
+.idea/workspace.xml
+.idea/libraries
+
