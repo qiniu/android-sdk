@@ -4,7 +4,7 @@ package com.qiniu.android.common;
  * Created by bailong on 14/10/8.
  */
 public final class Config {
-    public static final String VERSION = "7.0.0";
+    public static final String VERSION = "7.0.1";
 
     public static final String UP_HOST = "upload.qiniu.com";
     public static final String UP_HOST_BACKUP = "up.qiniu.com";

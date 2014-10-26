@@ -43,3 +43,8 @@ task releaseJar(type: Copy, dependsOn: 'build') {
     include('classes.jar')
     rename('classes.jar', 'qiniu-android-sdk-' + version + '.jar')
 }
+
+setProperty('VERSION_NAME', version)
+setProperty('VERSION_CODE', code)
+
+apply from: 'https://raw.github.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'
