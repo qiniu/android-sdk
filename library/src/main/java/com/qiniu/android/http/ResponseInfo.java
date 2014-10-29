@@ -38,7 +38,7 @@ public final class ResponseInfo {
     }
 
     public boolean isOK() {
-        return statusCode == 200;
+        return statusCode == 200 && error == null && reqId != null;
     }
 
     public boolean isNetworkBroken() {
@@ -50,7 +50,7 @@ public final class ResponseInfo {
     }
 
     public boolean needRetry() {
-        return isNetworkBroken() || isServerError() || statusCode == 406;
+        return isNetworkBroken() || isServerError() || statusCode == 406 || (statusCode == 200 && error != null);
     }
 
     public String toString() {
