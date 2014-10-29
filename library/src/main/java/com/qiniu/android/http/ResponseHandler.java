@@ -57,6 +57,10 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
                     }
                 }
             }
+        } else{
+            if (reqId==null){
+                err = "remote is not qiniu server!";
+            }
         }
 
         if (statusCode == 0) {
@@ -66,23 +70,25 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
         return new ResponseInfo(statusCode, reqId, xlog, err);
     }
 
-    private static JSONObject buildJsonResp(byte[] body) {
-        try {
-            String str = new String(body, Config.CHARSET);
-            return new JSONObject(str);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return null;
+    private static JSONObject buildJsonResp(byte[] body) throws Exception {
+
+        String str = new String(body, Config.CHARSET);
+        return new JSONObject(str);
     }
 
     @Override
     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-        ResponseInfo info = buildResponseInfo(statusCode, headers, null, null);
+        JSONObject obj = null;
+        Exception exception = null;
+        try {
+            obj = buildJsonResp(responseBody);
+        } catch (Exception e) {
+            exception = e;
+        }
+
+        ResponseInfo info = buildResponseInfo(statusCode, headers, null, exception);
         Log.i("qiniu----success", info.toString());
-        JSONObject obj = buildJsonResp(responseBody);
+
         completionHandler.complete(info, obj);
     }
 
