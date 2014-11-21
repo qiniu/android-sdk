@@ -33,7 +33,6 @@ android {
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:21.0.0'
     compile 'com.loopj.android:android-async-http:1.4.6'
 }
 
