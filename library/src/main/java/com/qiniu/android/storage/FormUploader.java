@@ -72,7 +72,7 @@ final class FormUploader {
         }
 
         String mimeType = "application/octet-stream";
-        if (options != null && options.mimeType != null && options.mimeType.equals("")) {
+        if (options != null && options.mimeType != null && !options.mimeType.equals("")) {
             mimeType = options.mimeType;
         }
 
