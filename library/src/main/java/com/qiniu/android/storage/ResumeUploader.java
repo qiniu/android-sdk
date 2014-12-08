@@ -24,6 +24,17 @@ import java.util.Map;
 
 import static java.lang.String.format;
 
+/**
+ *  分片上传
+ *  文档：<a href="http://developer.qiniu.com/docs/v6/api/overview/up/chunked-upload.html">分片上传</a>
+ *
+ *  分片上传通过将一个文件分割为固定大小的块(4M)，然后再将每个块分割为固定大小的片，每次
+ *  上传一个分片的内容，等待所有块的所有分片都上传完成之后，再将这些块拼接起来，构成一个
+ *  完整的文件。另外分片上传还支持纪录上传进度，如果本次上传被暂停，那么下次还可以从上次
+ *  上次完成的文件偏移位置，继续开始上传，这样就实现了断点续传功能。
+ *
+ *  分片上传在网络环境较差的情况下，可以有效地实现大文件的上传。
+ */
 final class ResumeUploader implements Runnable {
 
     private final int size;
@@ -70,6 +81,16 @@ final class ResumeUploader implements Runnable {
         nextTask(offset, 0, Config.UP_HOST);
     }
 
+    /**
+     *  创建块，并上传第一个分片内容
+     *
+     *  @param host                 上传主机
+     *  @param offset               本地文件偏移量
+     *  @param blockSize            分块的块大小
+     *  @param chunkSize            分片的片大小
+     *  @param progress             上传进度
+     *  @param _completionHandler   上传完成处理动作
+     */
     private void makeBlock(String host, int offset, int blockSize, int chunkSize, ProgressHandler progress,
                            CompletionHandler _completionHandler) {
         String url = format(Locale.ENGLISH, "http://%s/mkblk/%d", host, blockSize);

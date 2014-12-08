@@ -6,7 +6,14 @@ import com.qiniu.android.common.Config;
 
 import java.io.UnsupportedEncodingException;
 
+/**
+ *  URL安全的Base64编码和解码
+ */
 public final class UrlSafeBase64 {
+
+    /**
+     *  编码数据
+     */
     public static String encodeToString(String data) {
         try {
             return encodeToString(data.getBytes(Config.CHARSET));
@@ -21,6 +28,9 @@ public final class UrlSafeBase64 {
         return Base64.encodeToString(data, Base64.URL_SAFE | Base64.NO_WRAP);
     }
 
+    /**
+     *  解码数据
+     */
     public static byte[] decode(String data) {
         return Base64.decode(data, Base64.URL_SAFE | Base64.NO_WRAP);
     }
