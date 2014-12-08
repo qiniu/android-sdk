@@ -10,7 +10,21 @@ import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+/**
+ *  计算文件内容或者二进制数据的etag, etag算法是七牛用来标志数据唯一性的算法。
+ *  文档：<a href="https://github.com/qiniu/qetag">etag算法</a>
+ */
 public final class Etag {
+
+    /**
+     *  计算二进制数据的etag
+     *
+     *  @param data 二进制数据
+     *  @param offset 起始字节索引
+     *  @param length 需要计算的字节长度
+     *
+     *  @return 二进制数据的etag
+     */
     public static String data(byte[] data, int offset, int length) {
         try {
             return stream(new ByteArrayInputStream(data, offset, length), length);
@@ -21,20 +35,49 @@ public final class Etag {
         return null;
     }
 
+    /**
+     *  计算二进制数据的etag
+     *
+     *  @param data 二进制数据
+     *
+     *  @return 二进制数据的etag
+     */
     public static String data(byte[] data) {
         return data(data, 0, data.length);
     }
 
+    /**
+     *  计算文件内容的etag
+     *
+     *  @param file 文件对象
+     *
+     *  @return 文件内容的etag
+     */
     public static String file(File file) throws IOException {
         FileInputStream fi = new FileInputStream(file);
         return stream(fi, file.length());
     }
 
+    /**
+     *  计算文件内容的etag
+     *
+     *  @param filePath 文件路径
+     *
+     *  @return 文件内容的etag
+     */
     public static String file(String filePath) throws IOException {
         File f = new File(filePath);
         return file(f);
     }
 
+    /**
+     *  计算输入流的etag
+     *
+     *  @param in 数据输入流
+     *  @param len 数据流长度
+     *
+     *  @return 数据流的etag值
+     */
     public static String stream(InputStream in, long len) throws IOException {
         if (len == 0) {
             return "Fto5o-5ea0sNMlW_75VgGJCv2AcJ";

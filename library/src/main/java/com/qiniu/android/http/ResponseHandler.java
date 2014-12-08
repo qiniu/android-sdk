@@ -12,9 +12,17 @@ import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 
-
+/**
+ *  定义请求回复处理方法
+ */
 public final class ResponseHandler extends AsyncHttpResponseHandler {
+    /**
+     *  请求进度处理器
+     */
     private ProgressHandler progressHandler;
+    /**
+     *  请求完成处理器
+     */
     private CompletionHandler completionHandler;
 
     public ResponseHandler(CompletionHandler completionHandler, ProgressHandler progressHandler) {

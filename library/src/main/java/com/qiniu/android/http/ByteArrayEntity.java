@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ *  定义请求字节实体及相关方法
+ */
 public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneable {
 
     private final byte[] b;

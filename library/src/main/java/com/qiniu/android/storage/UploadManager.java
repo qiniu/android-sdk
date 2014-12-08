@@ -7,6 +7,13 @@ import com.qiniu.android.utils.AsyncRun;
 
 import java.io.File;
 
+/**
+ *  七牛文件上传管理器
+ *
+ *  一般默认可以使用这个类的方法来上传数据和文件。这个类自动检测文件的大小，
+ *  只要超过了{@link com.qiniu.android.common.Config#PUT_THRESHOLD}
+ *
+ */
 public final class UploadManager {
     private final Recorder recorder;
     private final HttpManager httpManager;
@@ -49,6 +56,15 @@ public final class UploadManager {
         return false;
     }
 
+    /**
+     *  上传数据
+     *
+     *  @param data                 上传的数据
+     *  @param key                  上传数据保存的文件名
+     *  @param token                上传凭证
+     *  @param completionHandler    上传完成后续处理动作
+     *  @param options              上传数据的可选参数
+     * */
     public void put(final byte[] data, final String key, final String token, final UpCompletionHandler completionHandler,
                     final UploadOptions options) {
         if (areInvalidArg(key, data, null, token, completionHandler)) {
@@ -62,11 +78,29 @@ public final class UploadManager {
         });
     }
 
+    /**
+     *  上传文件
+     *
+     *  @param filePath              上传的文件路径
+     *  @param key                   上传文件保存的文件名
+     *  @param token                 上传凭证
+     *  @param completionHandler     上传完成的后续处理动作
+     *  @param options               上传数据的可选参数
+     */
     public void put(String filePath, String key, String token, UpCompletionHandler completionHandler,
                     final UploadOptions options) {
         put(new File(filePath), key, token, completionHandler, options);
     }
 
+    /**
+     *  上传文件
+     *
+     *  @param file                   上传的文件对象
+     *  @param key                    上传文件保存的文件名
+     *  @param token                  上传凭证
+     *  @param completionHandler     上传完成的后续处理动作
+     *  @param options               上传数据的可选参数
+     */
     public void put(File file, String key, String token, UpCompletionHandler completionHandler,
                     final UploadOptions options) {
         if (areInvalidArg(key, null, file, token, completionHandler)) {

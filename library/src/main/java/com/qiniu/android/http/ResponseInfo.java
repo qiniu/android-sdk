@@ -3,14 +3,29 @@ package com.qiniu.android.http;
 
 import java.util.Locale;
 
+/**
+ *  定义HTTP请求的日志信息和常规方法
+ */
 public final class ResponseInfo {
     public static final int InvalidArgument = -4;
     public static final int InvalidFile = -3;
     public static final int Cancelled = -2;
     public static final int NetworkError = -1;
+    /**
+     *  回复状态码
+     */
     public final int statusCode;
+    /**
+     *  七牛日志扩展头
+     */
     public final String reqId;
+    /**
+     *  七牛日志扩展头
+     */
     public final String xlog;
+    /**
+     *  错误信息
+     */
     public final String error;
 
     public ResponseInfo(int statusCode, String reqId, String xlog, String error) {
