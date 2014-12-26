@@ -136,7 +136,7 @@ final class ResumeUploader implements Runnable {
         if (options != null && options.params.size() != 0) {
             String str = "";
             for (Map.Entry<String, String> i : options.params.entrySet()) {
-                if (i.getKey().startsWith("x:") && !i.getValue().isEmpty()) {
+                if (i.getKey().startsWith("x:") && !i.getValue().equals("")) {
                     str = format(Locale.ENGLISH, "%s/%s/%s", str, i.getKey(), UrlSafeBase64.encodeToString(i.getValue()));
                 }
             }
