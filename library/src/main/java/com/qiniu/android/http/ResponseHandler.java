@@ -50,7 +50,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
         this.progressHandler = progressHandler;
     }
 
-    private static ResponseInfo buildResponseInfo(int statusCode, Header[] headers, byte[] responseBody, String host, long duration,
+    private static ResponseInfo buildResponseInfo(int statusCode, Header[] headers, byte[] responseBody, String host, double duration,
                                                   Throwable error) {
         String reqId = null;
         String xlog = null;
@@ -104,7 +104,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
 
     @Override
     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-        long duration = System.currentTimeMillis() - reqStartTime;
+        double duration = (System.currentTimeMillis() - reqStartTime) / 1000.0;
         JSONObject obj = null;
         Exception exception = null;
         try {
@@ -119,7 +119,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
 
     @Override
     public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-        long duration = System.currentTimeMillis() - reqStartTime;
+        double duration = (System.currentTimeMillis() - reqStartTime) / 1000.0;
         ResponseInfo info = buildResponseInfo(statusCode, headers, responseBody, host, duration, error);
         Log.i("qiniu----failed", info.toString());
         completionHandler.complete(info, null);

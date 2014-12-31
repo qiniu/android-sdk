@@ -28,15 +28,15 @@ public final class ResponseInfo {
      */
     public final String error;
     /**
-     * 请求消耗时间
+     * 请求消耗时间，单位秒
      */
-    public final long duration;
+    public final double duration;
     /**
      * 服务器域名
      */
     public final String host;
 
-    public ResponseInfo(int statusCode, String reqId, String xlog, String host, long duration, String error) {
+    public ResponseInfo(int statusCode, String reqId, String xlog, String host, double duration, String error) {
         this.statusCode = statusCode;
         this.reqId = reqId;
         this.xlog = xlog;
@@ -81,7 +81,7 @@ public final class ResponseInfo {
     }
 
     public String toString() {
-        return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, host:%s, duration:%d, error:%s}",
+        return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, host:%s, duration:%f s, error:%s}",
                 super.toString(), statusCode, reqId, xlog, host, duration, error);
     }
 }
