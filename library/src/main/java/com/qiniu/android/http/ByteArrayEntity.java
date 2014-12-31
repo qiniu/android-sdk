@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- *  定义请求字节实体及相关方法
+ * 定义请求字节实体及相关方法
  */
 public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneable {
 

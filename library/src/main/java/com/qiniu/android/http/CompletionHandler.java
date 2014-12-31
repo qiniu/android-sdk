@@ -7,7 +7,7 @@ import org.json.JSONObject;
  */
 public interface CompletionHandler {
     /**
-     *  用户自定义的处理对象必须实现的接口方法
+     * 用户自定义的处理对象必须实现的接口方法
      */
     void complete(ResponseInfo info, JSONObject response);
 }

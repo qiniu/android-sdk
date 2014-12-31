@@ -16,23 +16,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *  表单上传
- *
- *  通过表单，你可以将一个图片或者一个文本文件等上传到七牛服务器。这个表单
- *  就是标准的http表单，即<code>enctype="multipart/form-data"</code>
- *  格式的表单。
+ * 表单上传
+ * <p/>
+ * 通过表单，你可以将一个图片或者一个文本文件等上传到七牛服务器。这个表单
+ * 就是标准的http表单，即<code>enctype="multipart/form-data"</code>
+ * 格式的表单。
  */
 final class FormUploader {
 
     /**
-     *  上传数据，并以指定的key保存文件
+     * 上传数据，并以指定的key保存文件
      *
-     *  @param httpManager          HTTP连接管理器
-     *  @param data                 上传的数据
-     *  @param key                  上传的数据保存的文件名
-     *  @param token                上传凭证
-     *  @param completionHandler    上传完成后续处理动作
-     *  @param options              上传时的可选参数
+     * @param httpManager       HTTP连接管理器
+     * @param data              上传的数据
+     * @param key               上传的数据保存的文件名
+     * @param token             上传凭证
+     * @param completionHandler 上传完成后续处理动作
+     * @param options           上传时的可选参数
      */
     static void upload(HttpManager httpManager, byte[] data, String key, String token, final UpCompletionHandler completionHandler,
                        final UploadOptions options) {
@@ -40,14 +40,14 @@ final class FormUploader {
     }
 
     /**
-     *  上传文件，并以指定的key保存文件
+     * 上传文件，并以指定的key保存文件
      *
-     *  @param httpManager          HTTP连接管理器
-     *  @param file                 上传的文件
-     *  @param key                  上传的数据保存的文件名
-     *  @param token                上传凭证
-     *  @param completionHandler    上传完成后续处理动作
-     *  @param options              上传时的可选参数
+     * @param httpManager       HTTP连接管理器
+     * @param file              上传的文件
+     * @param key               上传的数据保存的文件名
+     * @param token             上传凭证
+     * @param completionHandler 上传完成后续处理动作
+     * @param options           上传时的可选参数
      */
     static void upload(HttpManager httpManager, File file, String key, String token, UpCompletionHandler completionHandler,
                        UploadOptions options) {

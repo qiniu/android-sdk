@@ -6,16 +6,16 @@ import java.io.IOException;
 import java.util.zip.CRC32;
 
 /**
- *  计算文件或二进制数据的crc32校验码
+ * 计算文件或二进制数据的crc32校验码
  */
 public final class Crc32 {
 
     /**
-     *  计算二进制字节校验码
+     * 计算二进制字节校验码
      *
-     *  @param data 二进制数据
-     *  @param offset 起始字节索引
-     *  @param length 校验字节长度
+     * @param data   二进制数据
+     * @param offset 起始字节索引
+     * @param length 校验字节长度
      */
     public static long bytes(byte[] data, int offset, int length) {
         CRC32 crc32 = new CRC32();
@@ -24,9 +24,9 @@ public final class Crc32 {
     }
 
     /**
-     *  计算二进制字节校验码
+     * 计算二进制字节校验码
      *
-     *  @param data 二进制数据
+     * @param data 二进制数据
      */
     public static long bytes(byte[] data) {
         return bytes(data, 0, data.length);
@@ -34,9 +34,9 @@ public final class Crc32 {
 
 
     /**
-     *   对文件内容计算crc32校验码
+     * 对文件内容计算crc32校验码
      *
-     *   @param file 需要计算crc32校验码的文件
+     * @param file 需要计算crc32校验码的文件
      */
     public static long file(File f) throws IOException {
         FileInputStream fi = new FileInputStream(f);
