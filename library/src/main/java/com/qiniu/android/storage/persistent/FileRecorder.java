@@ -9,7 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- *  实现分片上传时上传进度的接口方法
+ * 实现分片上传时上传进度的接口方法
  */
 public final class FileRecorder implements Recorder {
 
@@ -31,11 +31,11 @@ public final class FileRecorder implements Recorder {
     }
 
     /**
-     *  纪录分片上传进度
+     * 纪录分片上传进度
      *
-     *  @param key      上传文件进度文件保存名
-     *  @param data     上传文件的进度数据
-     * */
+     * @param key  上传文件进度文件保存名
+     * @param data 上传文件的进度数据
+     */
     @Override
     public void set(String key, byte[] data) {
         File f = new File(directory, UrlSafeBase64.encodeToString(key));
@@ -56,10 +56,10 @@ public final class FileRecorder implements Recorder {
     }
 
     /**
-     *  获取分片上传进度
+     * 获取分片上传进度
      *
-     *  @param key      上传文件进度文件保存名
-     * */
+     * @param key 上传文件进度文件保存名
+     */
     @Override
     public byte[] get(String key) {
         File f = new File(directory, UrlSafeBase64.encodeToString(key));
@@ -86,9 +86,9 @@ public final class FileRecorder implements Recorder {
     }
 
     /**
-     *  删除已上传文件的进度文件
+     * 删除已上传文件的进度文件
      *
-     *  @param key      上传文件进度文件保存名
+     * @param key 上传文件进度文件保存名
      */
     @Override
     public void del(String key) {

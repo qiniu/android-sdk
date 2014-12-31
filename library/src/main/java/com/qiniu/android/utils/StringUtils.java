@@ -2,26 +2,25 @@ package com.qiniu.android.utils;
 
 /**
  * 字符串连接工具类
- * */
+ */
 public final class StringUtils {
 
     /**
-     *  以指定的分隔符来进行字符串元素连接
-     *  <p>
-     *      例如有字符串数组array和连接符为逗号(,)
-     *      <code>
-     *          String[] array = new String[] { "hello", "world", "qiniu", "cloud","storage" };
-     *      </code>
-     *      那么得到的结果是:
-     *      <code>
-     *          hello,world,qiniu,cloud,storage
-     *      </code>
-     *  </p>
+     * 以指定的分隔符来进行字符串元素连接
+     * <p>
+     * 例如有字符串数组array和连接符为逗号(,)
+     * <code>
+     * String[] array = new String[] { "hello", "world", "qiniu", "cloud","storage" };
+     * </code>
+     * 那么得到的结果是:
+     * <code>
+     * hello,world,qiniu,cloud,storage
+     * </code>
+     * </p>
      *
-     *  @param array 需要连接的字符串数组
-     *  @param sep 元素连接之间的分隔符
-     *
-     *  @return 连接好的新字符串
+     * @param array 需要连接的字符串数组
+     * @param sep   元素连接之间的分隔符
+     * @return 连接好的新字符串
      */
     public static String join(String[] array, String sep) {
         if (array == null) {
@@ -49,21 +48,20 @@ public final class StringUtils {
     }
 
     /**
-     *  以json元素的方式连接字符串中元素
-     *  <p>
-     *     例如有字符串数组array
-     *      <code>
-     *          String[] array = new String[] { "hello", "world", "qiniu", "cloud","storage" };
-     *      </code>
-     *      那么得到的结果是:
-     *      <code>
-     *          "hello","world","qiniu","cloud","storage"
-     *      </code>
-     *  </p>
+     * 以json元素的方式连接字符串中元素
+     * <p>
+     * 例如有字符串数组array
+     * <code>
+     * String[] array = new String[] { "hello", "world", "qiniu", "cloud","storage" };
+     * </code>
+     * 那么得到的结果是:
+     * <code>
+     * "hello","world","qiniu","cloud","storage"
+     * </code>
+     * </p>
      *
-     *  @param array 需要连接的字符串数组
-     *
-     *  @return 以json元素方式连接好的新字符串
+     * @param array 需要连接的字符串数组
+     * @return 以json元素方式连接好的新字符串
      */
     public static String jsonJoin(String[] array) {
         int arraySize = array.length;

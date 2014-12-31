@@ -5,7 +5,7 @@ package com.qiniu.android.http;
  */
 public interface ProgressHandler {
     /**
-     *  用户自定义进度处理对象必须实现的接口方法
+     * 用户自定义进度处理对象必须实现的接口方法
      */
     void onProgress(int bytesWritten, int totalSize);
 }

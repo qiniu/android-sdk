@@ -4,7 +4,7 @@ package com.qiniu.android.http;
 import java.util.Locale;
 
 /**
- *  定义HTTP请求的日志信息和常规方法
+ * 定义HTTP请求的日志信息和常规方法
  */
 public final class ResponseInfo {
     public static final int InvalidArgument = -4;
@@ -12,40 +12,52 @@ public final class ResponseInfo {
     public static final int Cancelled = -2;
     public static final int NetworkError = -1;
     /**
-     *  回复状态码
+     * 回复状态码
      */
     public final int statusCode;
     /**
-     *  七牛日志扩展头
+     * 七牛日志扩展头
      */
     public final String reqId;
     /**
-     *  七牛日志扩展头
+     * 七牛日志扩展头
      */
     public final String xlog;
     /**
-     *  错误信息
+     * 错误信息
      */
     public final String error;
+    /**
+     * 请求消耗时间，单位秒
+     */
+    public final double duration;
+    /**
+     * 服务器域名
+     */
+    public final String host;
 
-    public ResponseInfo(int statusCode, String reqId, String xlog, String error) {
+    public ResponseInfo(int statusCode, String reqId, String xlog, String host, double duration, String error) {
         this.statusCode = statusCode;
         this.reqId = reqId;
         this.xlog = xlog;
+        this.host = host;
+        this.duration = duration;
         this.error = error;
     }
 
     public static ResponseInfo cancelled() {
-        return new ResponseInfo(Cancelled, "", "", "cancelled by user");
+        return new ResponseInfo(Cancelled, "", "", "", 0, "cancelled by user");
     }
 
     public static ResponseInfo invalidArgument(String message) {
-        return new ResponseInfo(InvalidArgument, "", "", message);
+        return new ResponseInfo(InvalidArgument, "", "", "", 0,
+                message);
     }
 
 
     public static ResponseInfo fileError(Exception e) {
-        return new ResponseInfo(InvalidFile, "", "", e.getMessage());
+        return new ResponseInfo(InvalidFile, "", "", "",
+                0, e.getMessage());
     }
 
     public boolean isCancelled() {
@@ -69,7 +81,7 @@ public final class ResponseInfo {
     }
 
     public String toString() {
-        return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s,error:%s}",
-                super.toString(), statusCode, reqId, xlog, error);
+        return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, host:%s, duration:%f s, error:%s}",
+                super.toString(), statusCode, reqId, xlog, host, duration, error);
     }
 }

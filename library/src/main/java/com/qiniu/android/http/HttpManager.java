@@ -14,7 +14,7 @@ import java.util.Random;
 import static java.lang.String.format;
 
 /**
- *  定义HTTP请求管理相关方法
+ * 定义HTTP请求管理相关方法
  */
 public final class HttpManager {
     private static final String userAgent = getUserAgent();
@@ -40,19 +40,19 @@ public final class HttpManager {
     }
 
     /**
-     *  以POST方法发送请求数据
+     * 以POST方法发送请求数据
      *
-     *  @param url                  请求的URL
-     *  @param data                 发送的数据
-     *  @param offset               发送的数据起始字节索引
-     *  @param size                 发送的数据字节长度
-     *  @param headers              发送的数据请求头部
-     *  @param progressHandler      发送数据进度处理对象
-     *  @param completionHandler    发送数据完成后续动作处理对象
+     * @param url               请求的URL
+     * @param data              发送的数据
+     * @param offset            发送的数据起始字节索引
+     * @param size              发送的数据字节长度
+     * @param headers           发送的数据请求头部
+     * @param progressHandler   发送数据进度处理对象
+     * @param completionHandler 发送数据完成后续动作处理对象
      */
     public void postData(String url, byte[] data, int offset, int size, Header[] headers,
                          ProgressHandler progressHandler, CompletionHandler completionHandler) {
-        AsyncHttpResponseHandler handler = new ResponseHandler(completionHandler, progressHandler);
+        AsyncHttpResponseHandler handler = new ResponseHandler(url, completionHandler, progressHandler);
         ByteArrayEntity entity = new ByteArrayEntity(data, offset, size);
         client.post(null, url, headers, entity, RequestParams.APPLICATION_OCTET_STREAM, handler);
     }
@@ -63,12 +63,12 @@ public final class HttpManager {
     }
 
     /**
-     *  以POST方式发送multipart/form-data格式数据
+     * 以POST方式发送multipart/form-data格式数据
      *
-     *  @param url                  请求的URL
-     *  @param args                 发送的数据
-     *  @param progressHandler      发送数据进度处理对象
-     *  @param completionHandler    发送数据完成后续动作处理对象
+     * @param url               请求的URL
+     * @param args              发送的数据
+     * @param progressHandler   发送数据进度处理对象
+     * @param completionHandler 发送数据完成后续动作处理对象
      */
     public void multipartPost(String url, PostArgs args, ProgressHandler progressHandler, CompletionHandler completionHandler) {
         RequestParams requestParams = new RequestParams(args.params);
@@ -84,8 +84,7 @@ public final class HttpManager {
                 return;
             }
         }
-
-        AsyncHttpResponseHandler handler = new ResponseHandler(completionHandler, progressHandler);
+        AsyncHttpResponseHandler handler = new ResponseHandler(url, completionHandler, progressHandler);
         client.post(url, requestParams, handler);
     }
 }
