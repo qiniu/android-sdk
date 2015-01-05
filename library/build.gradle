@@ -21,7 +21,7 @@ int code = versionNameToCode(version)
 
 android {
     compileSdkVersion 21
-    buildToolsVersion '21.1.1'
+    buildToolsVersion '21.0.1'
     defaultConfig {
         applicationId "com.qiniu.android"
         minSdkVersion 8
