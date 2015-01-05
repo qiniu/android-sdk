@@ -55,6 +55,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
                                                   Throwable error) {
         String reqId = null;
         String xlog = null;
+        String ip = null;
         if (headers != null) {
             for (Header h : headers) {
                 if ("X-Reqid".equals(h.getName())) {
@@ -67,7 +68,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
 
         String err = null;
         if (statusCode != 200) {
-            String ip = Dns.getAddressesString(host);
+            ip = Dns.getAddressesString(host);
             if (responseBody != null) {
                 try {
                     err = new String(responseBody, Config.CHARSET);

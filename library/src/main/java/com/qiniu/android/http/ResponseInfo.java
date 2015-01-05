@@ -86,7 +86,7 @@ public final class ResponseInfo {
     }
 
     public String toString() {
-        return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, host:%s, duration:%f s, error:%s}",
-                super.toString(), statusCode, reqId, xlog, host, duration, error);
+        return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, host:%s, ip:%s, duration:%f s, error:%s}",
+                super.toString(), statusCode, reqId, xlog, host, ip,  duration, error);
     }
 }
