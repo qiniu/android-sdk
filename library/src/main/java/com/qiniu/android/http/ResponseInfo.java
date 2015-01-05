@@ -35,28 +35,33 @@ public final class ResponseInfo {
      * 服务器域名
      */
     public final String host;
+    /**
+     * 服务器IP
+     */
+    public final String ip;
 
-    public ResponseInfo(int statusCode, String reqId, String xlog, String host, double duration, String error) {
+    public ResponseInfo(int statusCode, String reqId, String xlog, String host, String ip, double duration, String error) {
         this.statusCode = statusCode;
         this.reqId = reqId;
         this.xlog = xlog;
         this.host = host;
         this.duration = duration;
         this.error = error;
+        this.ip = ip;
     }
 
     public static ResponseInfo cancelled() {
-        return new ResponseInfo(Cancelled, "", "", "", 0, "cancelled by user");
+        return new ResponseInfo(Cancelled, "", "", "", "", 0, "cancelled by user");
     }
 
     public static ResponseInfo invalidArgument(String message) {
-        return new ResponseInfo(InvalidArgument, "", "", "", 0,
+        return new ResponseInfo(InvalidArgument, "", "", "", "", 0,
                 message);
     }
 
 
     public static ResponseInfo fileError(Exception e) {
-        return new ResponseInfo(InvalidFile, "", "", "",
+        return new ResponseInfo(InvalidFile, "", "", "", "",
                 0, e.getMessage());
     }
 

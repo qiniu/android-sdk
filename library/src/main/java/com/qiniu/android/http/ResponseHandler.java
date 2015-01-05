@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.qiniu.android.common.Config;
+import com.qiniu.android.utils.Dns;
 
 import org.apache.http.Header;
 import org.json.JSONException;
@@ -66,6 +67,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
 
         String err = null;
         if (statusCode != 200) {
+            String ip = Dns.getAddressesString(host);
             if (responseBody != null) {
                 try {
                     err = new String(responseBody, Config.CHARSET);
@@ -94,7 +96,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
             statusCode = ResponseInfo.NetworkError;
         }
 
-        return new ResponseInfo(statusCode, reqId, xlog, host, duration, err);
+        return new ResponseInfo(statusCode, reqId, xlog, host, ip, duration, err);
     }
 
     private static JSONObject buildJsonResp(byte[] body) throws Exception {
