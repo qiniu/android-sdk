@@ -74,7 +74,6 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
 
         String err = null;
         if (statusCode != 200) {
-            ip = Dns.getAddressesString(host);
             if (responseBody != null) {
                 try {
                     err = new String(responseBody, Config.CHARSET);
