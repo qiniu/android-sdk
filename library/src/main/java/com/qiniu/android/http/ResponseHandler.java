@@ -1,6 +1,7 @@
 package com.qiniu.android.http;
 
 import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
@@ -14,6 +15,7 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 
 
 /**
@@ -36,6 +38,10 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
      * 请求开始时间
      */
     private long reqStartTime;
+    /**
+     * 服务器IP
+     */
+    private String ip;
 
     public ResponseHandler(String url, CompletionHandler completionHandler, ProgressHandler progressHandler) {
         super(Looper.getMainLooper());
@@ -139,5 +145,24 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
     public void onStart() {
         this.reqStartTime = System.currentTimeMillis();
         super.onStart();
+    }
+
+    /**
+     * hack the method for dns in background before receive msg in main looper
+     * @param msg
+     */
+    @Override
+    protected void sendMessage(Message msg) {
+        if (msg.what == AsyncHttpResponseHandler.FAILURE_MESSAGE)
+        {
+            Object[] response = (Object[]) msg.obj;
+            if (response != null && response.length >= 4){
+                Throwable e = (Throwable) response[3];
+                if (! (e instanceof UnknownHostException)){
+                    this.ip = Dns.getAddressesString(host);
+                }
+            }
+        }
+        super.sendMessage(msg);
     }
 }
