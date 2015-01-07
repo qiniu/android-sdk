@@ -21,9 +21,9 @@ int code = versionNameToCode(version)
 
 android {
     compileSdkVersion 21
-    buildToolsVersion '21.0.1'
+    buildToolsVersion '21.1.1'
     defaultConfig {
-        applicationId "com.qiniu.android"
+        //applicationId "com.qiniu.android"
         minSdkVersion 8
         targetSdkVersion 21
         versionCode code
@@ -46,4 +46,4 @@ task releaseJar(type: Copy, dependsOn: 'build') {
 setProperty('VERSION_NAME', version)
 setProperty('VERSION_CODE', code)
 
-apply from: 'https://raw.github.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'
+//apply from: 'https://raw.github.com/chrisbanes/gradle-mvn-push/master/gradle-mvn-push.gradle'
