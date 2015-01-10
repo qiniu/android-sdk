@@ -63,7 +63,7 @@ final class ResumeUploader implements Runnable {
         this.headers = new Header[1];
         headers[0] = new BasicHeader("Authorization", "UpToken " + token);
         this.completionHandler = completionHandler;
-        this.options = options;
+        this.options = options != null ? options : UploadOptions.defaultOptions();
         chunkBuffer = new byte[Config.CHUNK_SIZE];
         long count = (size + Config.BLOCK_SIZE - 1) / Config.BLOCK_SIZE;
         contexts = new String[(int) count];
@@ -122,10 +122,7 @@ final class ResumeUploader implements Runnable {
     }
 
     private void makeFile(String host, CompletionHandler _completionHandler) {
-        String mime = "";
-        if (options != null && options.mimeType != null) {
-            mime = format(Locale.ENGLISH, "/mimeType/%s", UrlSafeBase64.encodeToString(options.mimeType));
-        }
+        String mime = format(Locale.ENGLISH, "/mimeType/%s", UrlSafeBase64.encodeToString(options.mimeType));
 
         String keyStr = "";
         if (key != null) {
@@ -133,14 +130,13 @@ final class ResumeUploader implements Runnable {
         }
 
         String paramStr = "";
-        if (options != null && options.params.size() != 0) {
-            String str = "";
+        if (options.params.size() != 0) {
+            String str[] = new String[options.params.size()];
+            int j = 0;
             for (Map.Entry<String, String> i : options.params.entrySet()) {
-                if (i.getKey().startsWith("x:") && !i.getValue().equals("")) {
-                    str = format(Locale.ENGLISH, "%s/%s/%s", str, i.getKey(), UrlSafeBase64.encodeToString(i.getValue()));
-                }
+                str[j++] = format(Locale.ENGLISH, "%s/%s", i.getKey(), UrlSafeBase64.encodeToString(i.getValue()));
             }
-            paramStr = str;
+            paramStr = "/" + StringUtils.join(str, "/");
         }
         String url = format(Locale.ENGLISH, "http://%s/mkfile/%d%s%s%s", host, size, mime, keyStr, paramStr);
         String bodyStr = StringUtils.join(contexts, ",");
@@ -148,7 +144,8 @@ final class ResumeUploader implements Runnable {
         post(url, data, 0, data.length, null, _completionHandler);
     }
 
-    private void post(String url, byte[] data, int offset, int size, ProgressHandler progress, CompletionHandler completion) {
+    private void post(String url, byte[] data, int offset, int size, ProgressHandler progress,
+                      CompletionHandler completion) {
         httpManager.postData(url, data, offset, size, headers, progress, completion);
     }
 
@@ -163,7 +160,7 @@ final class ResumeUploader implements Runnable {
     }
 
     private boolean isCancelled() {
-        return options != null && options.cancellationSignal != null && options.cancellationSignal.isCancelled();
+        return options.cancellationSignal.isCancelled();
     }
 
     private void nextTask(final int offset, final int retried, final String host) {
@@ -178,9 +175,7 @@ final class ResumeUploader implements Runnable {
                 public void complete(ResponseInfo info, JSONObject response) {
                     if (info.isOK()) {
                         removeRecord();
-                        if (options != null && options.progressHandler != null) {
-                            options.progressHandler.progress(key, 1.0);
-                        }
+                        options.progressHandler.progress(key, 1.0);
                         completionHandler.complete(key, info, response);
                         return;
                     }
@@ -197,19 +192,17 @@ final class ResumeUploader implements Runnable {
         }
 
         final int chunkSize = calcPutSize(offset);
-        ProgressHandler progress = null;
-        if (options != null && options.progressHandler != null) {
-            progress = new ProgressHandler() {
-                @Override
-                public void onProgress(int bytesWritten, int totalSize) {
-                    double percent = (double) (offset + bytesWritten) / size;
-                    if (percent > 0.95) {
-                        percent = 0.95;
-                    }
-                    options.progressHandler.progress(key, percent);
+        ProgressHandler progress = new ProgressHandler() {
+            @Override
+            public void onProgress(int bytesWritten, int totalSize) {
+                double percent = (double) (offset + bytesWritten) / size;
+                if (percent > 0.95) {
+                    percent = 0.95;
                 }
-            };
-        }
+                options.progressHandler.progress(key, percent);
+            }
+        };
+
         CompletionHandler complete = new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
@@ -297,12 +290,12 @@ final class ResumeUploader implements Runnable {
     }
 
     // save json value
-//{
-//    "size":filesize,
-//    "offset":lastSuccessOffset,
-//    "modify_time": lastFileModifyTime,
-//    "contexts": contexts
-//}
+    //{
+    //    "size":filesize,
+    //    "offset":lastSuccessOffset,
+    //    "modify_time": lastFileModifyTime,
+    //    "contexts": contexts
+    //}
     private void record(int offset) {
         if (recorder == null || offset == 0) {
             return;
