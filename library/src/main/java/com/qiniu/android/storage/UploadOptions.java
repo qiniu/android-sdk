@@ -1,5 +1,7 @@
 package com.qiniu.android.storage;
 
+import android.util.Log;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,35 +13,45 @@ public final class UploadOptions {
     /**
      * 扩展参数，以<code>x:</code>开头的用户自定义参数
      */
-    Map<String, String> params;
+    final Map<String, String> params;
 
     /**
      * 指定上传文件的MimeType
      */
-    String mimeType;
+    final String mimeType;
 
     /**
      * 启用上传内容crc32校验
      */
-    boolean checkCrc;
+    final boolean checkCrc;
 
     /**
      * 上传内容进度处理
      */
-    UpProgressHandler progressHandler;
+    final UpProgressHandler progressHandler;
 
     /**
      * 取消上传信号
      */
-    UpCancellationSignal cancellationSignal;
+    final UpCancellationSignal cancellationSignal;
 
     public UploadOptions(Map<String, String> params, String mimeType, boolean checkCrc,
                          UpProgressHandler progressHandler, UpCancellationSignal cancellationSignal) {
         this.params = filterParam(params);
-        this.mimeType = mimeType;
+        this.mimeType = mime(mimeType);
         this.checkCrc = checkCrc;
-        this.progressHandler = progressHandler;
-        this.cancellationSignal = cancellationSignal;
+        this.progressHandler = progressHandler != null ? progressHandler:new UpProgressHandler() {
+            @Override
+            public void progress(String key, double percent) {
+                Log.d("qiniu up progress", "" + percent);
+            }
+        };
+        this.cancellationSignal = cancellationSignal != null? cancellationSignal:new UpCancellationSignal() {
+            @Override
+            public boolean isCancelled() {
+                return false;
+            }
+        };
     }
 
     /**
@@ -55,10 +67,21 @@ public final class UploadOptions {
         }
 
         for (Map.Entry<String, String> i : params.entrySet()) {
-            if (i.getKey().startsWith("x:")) {
+            if (i.getKey().startsWith("x:") && i.getValue() != null && !i.getValue().equals("")) {
                 ret.put(i.getKey(), i.getValue());
             }
         }
         return ret;
+    }
+
+    static UploadOptions defaultOptions(){
+        return new UploadOptions(null, null, false, null, null);
+    }
+
+    private static String mime(String mimeType){
+        if (mimeType == null || mimeType.equals("")){
+            return "application/octet-stream";
+        }
+        return mimeType;
     }
 }
