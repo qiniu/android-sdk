@@ -20,7 +20,6 @@ public final class HttpManager {
     private static final String userAgent = getUserAgent();
     private AsyncHttpClient client;
 
-
     public HttpManager(Proxy proxy) {
         client = new AsyncHttpClient();
         client.setConnectTimeout(Config.CONNECT_TIMEOUT);
@@ -30,6 +29,10 @@ public final class HttpManager {
         if (proxy != null){
             client.setProxy(proxy.hostAddress, proxy.port, proxy.user, proxy.password);
         }
+    }
+
+    public HttpManager() {
+        this(null);
     }
 
     private static String genId() {
