@@ -2,6 +2,7 @@ package com.qiniu.android.storage;
 
 import com.qiniu.android.common.Config;
 import com.qiniu.android.http.HttpManager;
+import com.qiniu.android.http.Proxy;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.AsyncRun;
 
@@ -19,17 +20,27 @@ public final class UploadManager {
     private final KeyGenerator keyGen;
 
     public UploadManager() {
-        this(null, null);
+        this(null, null, null);
     }
 
     public UploadManager(Recorder recorder, KeyGenerator keyGen) {
+        this(recorder, keyGen, null);
+    }
+
+    /**
+     *
+      * @param recorder 本地持久化断点上传纪录的类
+     * @param keyGen 本地持久化断点上传纪录时需要的key生成器
+     * @param proxy http 代理
+     */
+    public UploadManager(Recorder recorder, KeyGenerator keyGen, Proxy proxy) {
         this.recorder = recorder;
-        this.httpManager = new HttpManager();
+        this.httpManager = new HttpManager(proxy);
         this.keyGen = keyGen;
     }
 
     public UploadManager(Recorder recorder) {
-        this(recorder, null);
+        this(recorder, null, null);
     }
 
     private static boolean areInvalidArg(final String key, byte[] data, File f, String token, final UpCompletionHandler completionHandler) {

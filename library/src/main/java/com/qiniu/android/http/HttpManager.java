@@ -20,13 +20,19 @@ public final class HttpManager {
     private static final String userAgent = getUserAgent();
     private AsyncHttpClient client;
 
-
-    public HttpManager() {
+    public HttpManager(Proxy proxy) {
         client = new AsyncHttpClient();
         client.setConnectTimeout(Config.CONNECT_TIMEOUT);
         client.setResponseTimeout(Config.RESPONSE_TIMEOUT);
         client.setUserAgent(userAgent);
         client.setEnableRedirects(false);
+        if (proxy != null){
+            client.setProxy(proxy.hostAddress, proxy.port, proxy.user, proxy.password);
+        }
+    }
+
+    public HttpManager() {
+        this(null);
     }
 
     private static String genId() {
