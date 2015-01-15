@@ -216,7 +216,7 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
                     String host2 = host;
-                    if (info.isNetworkBroken()) {
+                    if (info.needSwitchServer()) {
                         host2 = Config.UP_HOST_BACKUP;
                     }
                     nextTask(offset, retried + 1, host2);
