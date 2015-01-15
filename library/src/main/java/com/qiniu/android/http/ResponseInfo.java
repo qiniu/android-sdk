@@ -81,6 +81,10 @@ public final class ResponseInfo {
         return (statusCode >= 500 && statusCode < 600 && statusCode != 579) || statusCode == 996;
     }
 
+    public boolean needSwitchServer(){
+        return isNetworkBroken() || (statusCode >= 500 && statusCode < 600 && statusCode != 579);
+    }
+
     public boolean needRetry() {
         return isNetworkBroken() || isServerError() || statusCode == 406 || (statusCode == 200 && error != null);
     }

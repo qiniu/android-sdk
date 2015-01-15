@@ -121,7 +121,7 @@ final class FormUploader {
                     }
                 };
                 String host = Config.UP_HOST;
-                if (info.isNetworkBroken()) {
+                if (info.needSwitchServer()) {
                     host = Config.UP_HOST_BACKUP;
                 }
                 httpManager.multipartPost("http://" + host, args, progress, retried);
