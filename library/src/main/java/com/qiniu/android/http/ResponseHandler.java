@@ -106,7 +106,9 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
         if (statusCode == 0) {
             statusCode = ResponseInfo.NetworkError;
         }
+        if (statusCode != 200) {
 
+        }
         return new ResponseInfo(statusCode, reqId, xlog, xvia, host, ip, duration, err);
     }
 
@@ -126,7 +128,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
             exception = e;
         }
         ResponseInfo info = buildResponseInfo(statusCode, headers, null, host, duration, exception);
-        Log.i("qiniu----success", info.toString());
+        Log.i("upload----success", info.toString());
         completionHandler.complete(info, obj);
     }
 
@@ -134,7 +136,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
     public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
         double duration = (System.currentTimeMillis() - reqStartTime) / 1000.0;
         ResponseInfo info = buildResponseInfo(statusCode, headers, responseBody, host, duration, error);
-        Log.i("qiniu----failed", info.toString());
+        Log.i("upload----failed", info.toString());
         completionHandler.complete(info, null);
     }
 
