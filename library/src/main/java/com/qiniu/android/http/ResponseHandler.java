@@ -106,9 +106,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
         if (statusCode == 0) {
             statusCode = ResponseInfo.NetworkError;
         }
-        if (statusCode != 200) {
 
-        }
         return new ResponseInfo(statusCode, reqId, xlog, xvia, host, ip, duration, err);
     }
 
