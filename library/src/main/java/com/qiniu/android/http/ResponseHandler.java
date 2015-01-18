@@ -62,12 +62,17 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
         String reqId = null;
         String xlog = null;
         String ip = null;
+        String xvia = null;
         if (headers != null) {
             for (Header h : headers) {
                 if ("X-Reqid".equals(h.getName())) {
                     reqId = h.getValue();
                 } else if ("X-Log".equals(h.getName())) {
                     xlog = h.getValue();
+                } else if ("X-Via".equals(h.getName())){
+                    xvia = h.getValue();
+                } else if ("X-Px".equals(h.getName())){
+                    xvia = h.getValue();
                 }
             }
         }
@@ -102,7 +107,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
             statusCode = ResponseInfo.NetworkError;
         }
 
-        return new ResponseInfo(statusCode, reqId, xlog, host, ip, duration, err);
+        return new ResponseInfo(statusCode, reqId, xlog, xvia, host, ip, duration, err);
     }
 
     private static JSONObject buildJsonResp(byte[] body) throws Exception {
