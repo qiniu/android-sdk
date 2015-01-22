@@ -10,7 +10,7 @@ import java.io.File;
 
 /**
  * 七牛文件上传管理器
- * <p/>
+ *
  * 一般默认可以使用这个类的方法来上传数据和文件。这个类自动检测文件的大小，
  * 只要超过了{@link com.qiniu.android.common.Config#PUT_THRESHOLD}
  */
@@ -29,7 +29,7 @@ public final class UploadManager {
 
     /**
      *
-      * @param recorder 本地持久化断点上传纪录的类
+     * @param recorder 本地持久化断点上传纪录的类
      * @param keyGen 本地持久化断点上传纪录时需要的key生成器
      * @param proxy http 代理
      */

@@ -16,6 +16,7 @@ public final class Crc32 {
      * @param data   二进制数据
      * @param offset 起始字节索引
      * @param length 校验字节长度
+     * @return 校验码
      */
     public static long bytes(byte[] data, int offset, int length) {
         CRC32 crc32 = new CRC32();
@@ -27,16 +28,18 @@ public final class Crc32 {
      * 计算二进制字节校验码
      *
      * @param data 二进制数据
+     * @return 校验码
      */
     public static long bytes(byte[] data) {
         return bytes(data, 0, data.length);
     }
 
-
     /**
      * 对文件内容计算crc32校验码
      *
-     * @param file 需要计算crc32校验码的文件
+     * @param f 需要计算crc32校验码的文件
+     * @return crc校验码
+     * @throws IOException 读取文件异常
      */
     public static long file(File f) throws IOException {
         FileInputStream fi = new FileInputStream(f);
