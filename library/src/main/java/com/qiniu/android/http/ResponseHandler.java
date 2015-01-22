@@ -73,6 +73,8 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
                     xvia = h.getValue();
                 } else if ("X-Px".equals(h.getName())){
                     xvia = h.getValue();
+                } else if ("Fw-Via".equals(h.getName())){
+                    xvia = h.getValue();
                 }
             }
         }
@@ -153,7 +155,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
 
     /**
      * hack the method for dns in background before receive msg in main looper
-     * @param msg
+     * @param msg 发送的状态信息
      */
     @Override
     protected void sendMessage(Message msg) {

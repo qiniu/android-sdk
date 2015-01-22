@@ -49,6 +49,7 @@ public final class Etag {
      *
      * @param file 文件对象
      * @return 文件内容的etag
+     * @throws IOException 文件读取异常
      */
     public static String file(File file) throws IOException {
         FileInputStream fi = new FileInputStream(file);
@@ -60,6 +61,7 @@ public final class Etag {
      *
      * @param filePath 文件路径
      * @return 文件内容的etag
+     * @throws IOException 文件读取异常
      */
     public static String file(String filePath) throws IOException {
         File f = new File(filePath);
@@ -72,6 +74,7 @@ public final class Etag {
      * @param in  数据输入流
      * @param len 数据流长度
      * @return 数据流的etag值
+     * @throws IOException 文件读取异常
      */
     public static String stream(InputStream in, long len) throws IOException {
         if (len == 0) {
@@ -87,6 +90,14 @@ public final class Etag {
         return resultEncode(blocks);
     }
 
+    /**
+     * 单块计算hash
+     * @param buffer 数据缓冲区
+     * @param in 输入数据
+     * @param len 输入数据长度
+     * @return 计算结果
+     * @throws IOException 读取出错
+     */
     private static byte[] oneBlock(byte[] buffer, InputStream in, int len) throws IOException {
         MessageDigest sha1 = null;
         try {
@@ -107,6 +118,12 @@ public final class Etag {
 
         return sha1.digest();
     }
+
+    /**
+     * 合并结果
+     * @param sha1s 每块计算结果的列表
+     * @return 最终的结果
+     */
 
     private static String resultEncode(byte[][] sha1s) {
         byte head = 0x16;
