@@ -73,6 +73,8 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
                     xvia = h.getValue();
                 } else if ("X-Px".equals(h.getName())){
                     xvia = h.getValue();
+                } else if ("Fw-Via".equals(h.getName())){
+                    xvia = h.getValue();
                 }
             }
         }
