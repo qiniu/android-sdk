@@ -5,6 +5,7 @@ import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.HttpManager;
 import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.StatReport;
 import com.qiniu.android.utils.Crc32;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.UrlSafeBase64;
@@ -51,6 +52,7 @@ final class ResumeUploader implements Runnable {
     private RandomAccessFile file;
     private File f;
     private long crc32;
+    private ResponseInfo previousInfo = null;
 
     ResumeUploader(HttpManager httpManager, Recorder recorder, File file, String key, String token,
                    UpCompletionHandler completionHandler, UploadOptions options, String recorderKey) {
@@ -145,8 +147,20 @@ final class ResumeUploader implements Runnable {
     }
 
     private void post(String url, byte[] data, int offset, int size, ProgressHandler progress,
-                      CompletionHandler completion) {
-        httpManager.postData(url, data, offset, size, headers, progress, completion);
+                      final CompletionHandler completion) {
+        Header[] h = headers;
+        if (previousInfo != null){
+            h = new Header[2];
+            h[0] = headers[0];
+            h[1] = StatReport.xstat(previousInfo);
+        }
+        httpManager.postData(url, data, offset, size, h, progress, new CompletionHandler() {
+            @Override
+            public void complete(ResponseInfo info, JSONObject response) {
+                previousInfo = info;
+                completion.complete(info, response);
+            }
+        });
     }
 
     private int calcPutSize(int offset) {
