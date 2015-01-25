@@ -15,6 +15,6 @@ public class StatReport {
         String reqId = info.reqId != null ? info.reqId : "";
         String cdnId = info.xvia != null ? info.xvia : "";
 
-        return new BasicHeader("X-Stat", String.format("v1;%d;%s;%s%s", info.statusCode, reqId, cdnId, info.ip));
+        return new BasicHeader("X-Stat", String.format("v1;%d;%s;%s;%s;%f", info.statusCode, reqId, cdnId, info.ip, info.duration));
     }
 }
