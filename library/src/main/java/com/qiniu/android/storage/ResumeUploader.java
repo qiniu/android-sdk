@@ -150,9 +150,9 @@ final class ResumeUploader implements Runnable {
                       final CompletionHandler completion) {
         Header[] h = headers;
         if (previousInfo != null){
-            h = new Header[2];
-            h[0] = headers[0];
-            h[1] = StatReport.xstat(previousInfo);
+            h = new Header[headers.length+1];
+            System.arraycopy(headers, 0, h, 0, headers.length);
+            h[headers.length] = StatReport.xstat(previousInfo);
         }
         httpManager.postData(url, data, offset, size, h, progress, new CompletionHandler() {
             @Override
