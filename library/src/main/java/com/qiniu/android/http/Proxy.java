@@ -11,11 +11,10 @@ public class Proxy {
     public final String password;
 
     /**
-     *
      * @param hostAddress 服务器域名或IP，比如proxy.com, 192.168.1.1
-     * @param port 端口
-     * @param user 用户名，无则填null
-     * @param password 用户密码，无则填null
+     * @param port        端口
+     * @param user        用户名，无则填null
+     * @param password    用户密码，无则填null
      */
     public Proxy(String hostAddress, int port, String user, String password) {
         this.hostAddress = hostAddress;

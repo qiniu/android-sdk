@@ -60,13 +60,13 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo invalidArgument(String message) {
-        return new ResponseInfo(InvalidArgument, "","", "", "", "", 0,
+        return new ResponseInfo(InvalidArgument, "", "", "", "", "", 0,
                 message);
     }
 
 
     public static ResponseInfo fileError(Exception e) {
-        return new ResponseInfo(InvalidFile, "","",  "", "", "",
+        return new ResponseInfo(InvalidFile, "", "", "", "", "",
                 0, e.getMessage());
     }
 
@@ -86,7 +86,7 @@ public final class ResponseInfo {
         return (statusCode >= 500 && statusCode < 600 && statusCode != 579) || statusCode == 996;
     }
 
-    public boolean needSwitchServer(){
+    public boolean needSwitchServer() {
         return isNetworkBroken() || (statusCode >= 500 && statusCode < 600 && statusCode != 579);
     }
 
@@ -96,6 +96,6 @@ public final class ResponseInfo {
 
     public String toString() {
         return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s,  host:%s, ip:%s, duration:%f s, error:%s}",
-                super.toString(), statusCode, reqId, xlog, xvia, host, ip,  duration, error);
+                super.toString(), statusCode, reqId, xlog, xvia, host, ip, duration, error);
     }
 }

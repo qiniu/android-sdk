@@ -40,13 +40,13 @@ public final class UploadOptions {
         this.params = filterParam(params);
         this.mimeType = mime(mimeType);
         this.checkCrc = checkCrc;
-        this.progressHandler = progressHandler != null ? progressHandler:new UpProgressHandler() {
+        this.progressHandler = progressHandler != null ? progressHandler : new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
                 Log.d("qiniu up progress", "" + percent);
             }
         };
-        this.cancellationSignal = cancellationSignal != null? cancellationSignal:new UpCancellationSignal() {
+        this.cancellationSignal = cancellationSignal != null ? cancellationSignal : new UpCancellationSignal() {
             @Override
             public boolean isCancelled() {
                 return false;
@@ -74,12 +74,12 @@ public final class UploadOptions {
         return ret;
     }
 
-    static UploadOptions defaultOptions(){
+    static UploadOptions defaultOptions() {
         return new UploadOptions(null, null, false, null, null);
     }
 
-    private static String mime(String mimeType){
-        if (mimeType == null || mimeType.equals("")){
+    private static String mime(String mimeType) {
+        if (mimeType == null || mimeType.equals("")) {
             return "application/octet-stream";
         }
         return mimeType;
