@@ -50,6 +50,15 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
 
     @Override
     public void writeTo(final OutputStream outStream) throws IOException {
+        if (progressHandler != null) {
+            writeWithProgress(outStream);
+        } else {
+            outStream.write(this.b, this.off, len);
+        }
+        outStream.flush();
+    }
+
+    private void writeWithProgress(final OutputStream outStream) throws IOException {
         int off = 0;
         while (off < this.len) {
             int left = this.len - off;
@@ -58,7 +67,6 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
             progressHandler.onProgress(off, this.len);
             off += len;
         }
-        outStream.flush();
     }
 
     /**
