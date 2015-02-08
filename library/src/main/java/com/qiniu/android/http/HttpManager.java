@@ -59,7 +59,7 @@ public final class HttpManager {
     public void postData(String url, byte[] data, int offset, int size, Header[] headers,
                          ProgressHandler progressHandler, CompletionHandler completionHandler) {
         AsyncHttpResponseHandler handler = new ResponseHandler(url, completionHandler, progressHandler);
-        ByteArrayEntity entity = new ByteArrayEntity(data, offset, size);
+        ByteArrayEntity entity = new ByteArrayEntity(data, offset, size, progressHandler);
         client.post(null, url, headers, entity, RequestParams.APPLICATION_OCTET_STREAM, handler);
     }
 

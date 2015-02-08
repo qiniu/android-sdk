@@ -14,16 +14,14 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
 
     private final byte[] b;
     private final int off, len;
+    private final ProgressHandler progressHandler;
 
 
     public ByteArrayEntity(final byte[] b) {
-        super();
-        this.b = b;
-        this.off = 0;
-        this.len = this.b.length;
+        this(b, 0, b.length, null);
     }
 
-    public ByteArrayEntity(final byte[] b, final int off, final int len) {
+    public ByteArrayEntity(final byte[] b, final int off, final int len, ProgressHandler h) {
         super();
         if ((off < 0) || (off > b.length) || (len < 0) ||
                 ((off + len) < 0) || ((off + len) > b.length)) {
@@ -32,6 +30,7 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
         this.b = b;
         this.off = off;
         this.len = len;
+        this.progressHandler = h;
     }
 
     @Override
@@ -50,9 +49,16 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
     }
 
     @Override
-    public void writeTo(final OutputStream outstream) throws IOException {
-        outstream.write(this.b, this.off, this.len);
-        outstream.flush();
+    public void writeTo(final OutputStream outStream) throws IOException {
+        int off = 0;
+        while (off < this.len){
+            int left = this.len - off;
+            int len = left < 16*1024 ? left : 16*1024;
+            outStream.write(this.b, this.off+off, len);
+            progressHandler.onProgress(off, this.len);
+            off += len;
+        }
+        outStream.flush();
     }
 
     /**
