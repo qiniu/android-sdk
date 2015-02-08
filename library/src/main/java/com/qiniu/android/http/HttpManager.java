@@ -26,7 +26,7 @@ public final class HttpManager {
         client.setResponseTimeout(Config.RESPONSE_TIMEOUT);
         client.setUserAgent(userAgent);
         client.setEnableRedirects(false);
-        if (proxy != null){
+        if (proxy != null) {
             client.setProxy(proxy.hostAddress, proxy.port, proxy.user, proxy.password);
         }
     }
