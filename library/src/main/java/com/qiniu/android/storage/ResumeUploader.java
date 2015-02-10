@@ -5,7 +5,6 @@ import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.HttpManager;
 import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.StatReport;
 import com.qiniu.android.utils.Crc32;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.UrlSafeBase64;
@@ -146,7 +145,7 @@ final class ResumeUploader implements Runnable {
     }
 
     private void post(String url, byte[] data, int offset, int size, ProgressHandler progress,
-                      final CompletionHandler completion) {
+                      CompletionHandler completion) {
         httpManager.postData(url, data, offset, size, headers, progress, completion);
     }
 
