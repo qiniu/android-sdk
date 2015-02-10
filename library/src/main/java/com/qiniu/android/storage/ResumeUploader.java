@@ -52,7 +52,6 @@ final class ResumeUploader implements Runnable {
     private RandomAccessFile file;
     private File f;
     private long crc32;
-    private ResponseInfo previousInfo = null;
 
     ResumeUploader(HttpManager httpManager, Recorder recorder, File file, String key, String token,
                    UpCompletionHandler completionHandler, UploadOptions options, String recorderKey) {
@@ -148,16 +147,9 @@ final class ResumeUploader implements Runnable {
 
     private void post(String url, byte[] data, int offset, int size, ProgressHandler progress,
                       final CompletionHandler completion) {
-        Header[] h = headers;
-        if (previousInfo != null){
-            h = new Header[headers.length+1];
-            System.arraycopy(headers, 0, h, 0, headers.length);
-            h[headers.length] = StatReport.xstat(previousInfo);
-        }
-        httpManager.postData(url, data, offset, size, h, progress, new CompletionHandler() {
+        httpManager.postData(url, data, offset, size, headers, progress, new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
-                previousInfo = info;
                 completion.complete(info, response);
             }
         });
