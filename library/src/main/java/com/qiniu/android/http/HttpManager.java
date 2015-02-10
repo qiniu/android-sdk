@@ -36,7 +36,7 @@ public final class HttpManager {
             client.setProxy(proxy.hostAddress, proxy.port, proxy.user, proxy.password);
         }
         this.reporter = reporter;
-        if (reporter == null){
+        if (reporter == null) {
             this.reporter = new IReport() {
                 @Override
                 public Header[] appendStatHeaders(Header[] headers) {
@@ -84,13 +84,7 @@ public final class HttpManager {
     public void postData(String url, byte[] data, int offset, int size, Header[] headers,
                          ProgressHandler progressHandler, final CompletionHandler completionHandler) {
 
-        CompletionHandler wrapper = new CompletionHandler(){
-            @Override
-            public void complete(ResponseInfo info, JSONObject response) {
-                completionHandler.complete(info, response);
-
-            }
-        };
+        CompletionHandler wrapper =  wrap(completionHandler);
         Header[] h = reporter.appendStatHeaders(headers);
         AsyncHttpResponseHandler handler = new ResponseHandler(url, wrapper, progressHandler);
         ByteArrayEntity entity = new ByteArrayEntity(data, offset, size, progressHandler);
@@ -127,14 +121,23 @@ public final class HttpManager {
             }
         }
 
-        CompletionHandler wrapper = new CompletionHandler(){
+        CompletionHandler wrapper = wrap(completionHandler);
+        Header[] h = reporter.appendStatHeaders(new Header[0]);
+        AsyncHttpResponseHandler handler = new ResponseHandler(url, wrapper, progressHandler);
+        client.post(null, url, h, requestParams, null, handler);
+    }
+
+    private CompletionHandler wrap(final CompletionHandler completionHandler){
+        return new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
                 completionHandler.complete(info, response);
+                if (info.isOK()) {
+                    reporter.updateSpeedInfo(info);
+                } else {
+                    reporter.updateErrorInfo(info);
+                }
             }
         };
-        Header[] h = reporter.appendStatHeaders(new Header[0]);
-        AsyncHttpResponseHandler handler = new ResponseHandler(url, wrapper, progressHandler);
-        client.post(url, requestParams, handler);
     }
 }
