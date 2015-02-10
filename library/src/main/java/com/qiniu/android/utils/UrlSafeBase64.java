@@ -13,6 +13,7 @@ public final class UrlSafeBase64 {
 
     /**
      * 编码字符串
+     *
      * @param data 待编码字符串
      * @return 结果字符串
      */
@@ -28,6 +29,7 @@ public final class UrlSafeBase64 {
 
     /**
      * 编码数据
+     *
      * @param data 字节数组
      * @return 结果字符串
      */
@@ -37,6 +39,7 @@ public final class UrlSafeBase64 {
 
     /**
      * 解码数据
+     *
      * @param data 编码过的字符串
      * @return 原始数据
      */

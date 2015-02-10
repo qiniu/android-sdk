@@ -69,11 +69,11 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
                     reqId = h.getValue();
                 } else if ("X-Log".equals(h.getName())) {
                     xlog = h.getValue();
-                } else if ("X-Via".equals(h.getName())){
+                } else if ("X-Via".equals(h.getName())) {
                     xvia = h.getValue();
-                } else if ("X-Px".equals(h.getName())){
+                } else if ("X-Px".equals(h.getName())) {
                     xvia = h.getValue();
-                } else if ("Fw-Via".equals(h.getName())){
+                } else if ("Fw-Via".equals(h.getName())) {
                     xvia = h.getValue();
                 }
             }
@@ -155,16 +155,16 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
 
     /**
      * hack the method for dns in background before receive msg in main looper
+     *
      * @param msg 发送的状态信息
      */
     @Override
     protected void sendMessage(Message msg) {
-        if (msg.what == AsyncHttpResponseHandler.FAILURE_MESSAGE)
-        {
+        if (msg.what == AsyncHttpResponseHandler.FAILURE_MESSAGE) {
             Object[] response = (Object[]) msg.obj;
-            if (response != null && response.length >= 4){
+            if (response != null && response.length >= 4) {
                 Throwable e = (Throwable) response[3];
-                if (! (e instanceof UnknownHostException)){
+                if (!(e instanceof UnknownHostException)) {
                     this.ip = Dns.getAddressesString(host);
                 }
             }

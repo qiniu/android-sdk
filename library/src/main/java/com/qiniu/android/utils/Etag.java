@@ -92,9 +92,10 @@ public final class Etag {
 
     /**
      * 单块计算hash
+     *
      * @param buffer 数据缓冲区
-     * @param in 输入数据
-     * @param len 输入数据长度
+     * @param in     输入数据
+     * @param len    输入数据长度
      * @return 计算结果
      * @throws IOException 读取出错
      */
@@ -121,6 +122,7 @@ public final class Etag {
 
     /**
      * 合并结果
+     *
      * @param sha1s 每块计算结果的列表
      * @return 最终的结果
      */
