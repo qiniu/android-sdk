@@ -147,12 +147,7 @@ final class ResumeUploader implements Runnable {
 
     private void post(String url, byte[] data, int offset, int size, ProgressHandler progress,
                       final CompletionHandler completion) {
-        httpManager.postData(url, data, offset, size, headers, progress, new CompletionHandler() {
-            @Override
-            public void complete(ResponseInfo info, JSONObject response) {
-                completion.complete(info, response);
-            }
-        });
+        httpManager.postData(url, data, offset, size, headers, progress, completion);
     }
 
     private int calcPutSize(int offset) {
