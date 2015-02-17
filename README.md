@@ -1,5 +1,6 @@
-# Qiniu Android SDK
+# Qiniu Resource Storage SDK for Android
 
+[![@qiniu on weibo](http://img.shields.io/badge/weibo-%40qiniutek-blue.svg)](http://weibo.com/qiniutek)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE.md)
 [![Build Status](https://travis-ci.org/qiniu/android-sdk.svg?branch=master)](https://travis-ci.org/qiniu/android-sdk)
 [![Latest Stable Version](http://img.shields.io/maven-central/v/com.qiniu/qiniu-android-sdk.svg)](https://github.com/qiniu/android-sdk/releases)
@@ -11,7 +12,7 @@
 将realease 目录中的jar 复制到项目中去，此版本sdk依赖 http://loopj.com/android-async-http/ 1.4.6及以上版本
 
 ### 通过maven
-* 如果在Adroid Studio中使用，添加dependencies `compile 'com.qiniu:qiniu-android-sdk:7.0.1'` 或在项目中添加maven依赖
+* 如果在Adroid Studio中使用，添加dependencies `compile 'com.qiniu:qiniu-android-sdk:7.0.2'` 或在项目中添加maven依赖
 * 如果是eclipse, 也可以直接添加依赖来处理。
 
 ## 使用方法

@@ -55,7 +55,7 @@ final class FormUploader {
     }
 
     private static void post(byte[] data, File file, String k, String token, final UpCompletionHandler completionHandler,
-                             final UploadOptions options, final HttpManager httpManager) {
+                             final UploadOptions optionsIn, final HttpManager httpManager) {
         final String key = k;
         Map<String, String> params = new HashMap<String, String>();
         final PostArgs args = new PostArgs();
@@ -67,16 +67,11 @@ final class FormUploader {
         }
 
         params.put("token", token);
-        if (options != null) {
-            params.putAll(options.params);
-        }
 
-        String mimeType = "application/octet-stream";
-        if (options != null && options.mimeType != null && !options.mimeType.equals("")) {
-            mimeType = options.mimeType;
-        }
+        final UploadOptions options = optionsIn != null ? optionsIn : UploadOptions.defaultOptions();
+        params.putAll(options.params);
 
-        if (options != null && options.checkCrc) {
+        if (options.checkCrc) {
             long crc = 0;
             if (file != null) {
                 try {
@@ -90,52 +85,46 @@ final class FormUploader {
             params.put("crc32", "" + crc);
         }
 
+        final ProgressHandler progress = new ProgressHandler() {
+            @Override
+            public void onProgress(int bytesWritten, int totalSize) {
+                double percent = (double) bytesWritten / (double) totalSize;
+                if (percent > 0.95) {
+                    percent = 0.95;
+                }
+                options.progressHandler.progress(key, percent);
+            }
+        };
 
         args.data = data;
         args.file = file;
-        args.mimeType = mimeType;
+        args.mimeType = options.mimeType;
         args.params = params;
-
-        ProgressHandler progress = null;
-        if (options != null && options.progressHandler != null) {
-            progress = new ProgressHandler() {
-                @Override
-                public void onProgress(int bytesWritten, int totalSize) {
-                    double percent = (double) bytesWritten / (double) totalSize;
-                    if (percent > 0.95) {
-                        percent = 0.95;
-                    }
-                    options.progressHandler.progress(key, percent);
-                }
-            };
-        }
-
-        final ProgressHandler progress2 = progress;
 
         CompletionHandler completion = new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
                 if (info.isOK()) {
-                    if (progress2 != null) {
-                        options.progressHandler.progress(key, 1.0);
-                    }
+
+                    options.progressHandler.progress(key, 1.0);
+
                     completionHandler.complete(key, info, response);
                     return;
                 }
                 CompletionHandler retried = new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo info, JSONObject response) {
-                        if (info.isOK() && progress2 != null) {
+                        if (info.isOK()) {
                             options.progressHandler.progress(key, 1.0);
                         }
                         completionHandler.complete(key, info, response);
                     }
                 };
                 String host = Config.UP_HOST;
-                if (info.isNetworkBroken()) {
+                if (info.needSwitchServer()) {
                     host = Config.UP_HOST_BACKUP;
                 }
-                httpManager.multipartPost("http://" + host, args, progress2, retried);
+                httpManager.multipartPost("http://" + host, args, progress, retried);
             }
         };
 

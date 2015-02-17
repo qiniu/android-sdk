@@ -2,14 +2,16 @@ package com.qiniu.android.storage;
 
 import com.qiniu.android.common.Config;
 import com.qiniu.android.http.HttpManager;
+import com.qiniu.android.http.Proxy;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.StatReport;
 import com.qiniu.android.utils.AsyncRun;
 
 import java.io.File;
 
 /**
  * 七牛文件上传管理器
- * <p/>
+ *
  * 一般默认可以使用这个类的方法来上传数据和文件。这个类自动检测文件的大小，
  * 只要超过了{@link com.qiniu.android.common.Config#PUT_THRESHOLD}
  */
@@ -19,17 +21,26 @@ public final class UploadManager {
     private final KeyGenerator keyGen;
 
     public UploadManager() {
-        this(null, null);
+        this(null, null, null);
     }
 
     public UploadManager(Recorder recorder, KeyGenerator keyGen) {
+        this(recorder, keyGen, null);
+    }
+
+    /**
+     * @param recorder 本地持久化断点上传纪录的类
+     * @param keyGen   本地持久化断点上传纪录时需要的key生成器
+     * @param proxy    http 代理
+     */
+    public UploadManager(Recorder recorder, KeyGenerator keyGen, Proxy proxy) {
         this.recorder = recorder;
-        this.httpManager = new HttpManager();
+        this.httpManager = new HttpManager(proxy, new StatReport());
         this.keyGen = keyGen;
     }
 
     public UploadManager(Recorder recorder) {
-        this(recorder, null);
+        this(recorder, null, null);
     }
 
     private static boolean areInvalidArg(final String key, byte[] data, File f, String token, final UpCompletionHandler completionHandler) {

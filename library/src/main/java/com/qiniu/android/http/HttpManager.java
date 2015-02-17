@@ -6,6 +6,7 @@ import com.loopj.android.http.RequestParams;
 import com.qiniu.android.common.Config;
 
 import org.apache.http.Header;
+import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
@@ -19,14 +20,44 @@ import static java.lang.String.format;
 public final class HttpManager {
     private static final String userAgent = getUserAgent();
     private AsyncHttpClient client;
+    private IReport reporter;
 
+    public HttpManager(Proxy proxy) {
+        this(proxy, null);
+    }
 
-    public HttpManager() {
+    public HttpManager(Proxy proxy, IReport reporter) {
         client = new AsyncHttpClient();
         client.setConnectTimeout(Config.CONNECT_TIMEOUT);
         client.setResponseTimeout(Config.RESPONSE_TIMEOUT);
         client.setUserAgent(userAgent);
         client.setEnableRedirects(false);
+        if (proxy != null) {
+            client.setProxy(proxy.hostAddress, proxy.port, proxy.user, proxy.password);
+        }
+        this.reporter = reporter;
+        if (reporter == null) {
+            this.reporter = new IReport() {
+                @Override
+                public Header[] appendStatHeaders(Header[] headers) {
+                    return headers;
+                }
+
+                @Override
+                public void updateErrorInfo(ResponseInfo info) {
+
+                }
+
+                @Override
+                public void updateSpeedInfo(ResponseInfo info) {
+
+                }
+            };
+        }
+    }
+
+    public HttpManager() {
+        this(null);
     }
 
     private static String genId() {
@@ -51,10 +82,14 @@ public final class HttpManager {
      * @param completionHandler 发送数据完成后续动作处理对象
      */
     public void postData(String url, byte[] data, int offset, int size, Header[] headers,
-                         ProgressHandler progressHandler, CompletionHandler completionHandler) {
-        AsyncHttpResponseHandler handler = new ResponseHandler(url, completionHandler, progressHandler);
-        ByteArrayEntity entity = new ByteArrayEntity(data, offset, size);
-        client.post(null, url, headers, entity, RequestParams.APPLICATION_OCTET_STREAM, handler);
+                         ProgressHandler progressHandler, final CompletionHandler completionHandler) {
+
+        CompletionHandler wrapper =  wrap(completionHandler);
+        Header[] h = reporter.appendStatHeaders(headers);
+        AsyncHttpResponseHandler handler = new ResponseHandler(url, wrapper, progressHandler);
+        ByteArrayEntity entity = new ByteArrayEntity(data, offset, size, progressHandler);
+
+        client.post(null, url, h, entity, RequestParams.APPLICATION_OCTET_STREAM, handler);
     }
 
     public void postData(String url, byte[] data, Header[] headers,
@@ -70,7 +105,8 @@ public final class HttpManager {
      * @param progressHandler   发送数据进度处理对象
      * @param completionHandler 发送数据完成后续动作处理对象
      */
-    public void multipartPost(String url, PostArgs args, ProgressHandler progressHandler, CompletionHandler completionHandler) {
+    public void multipartPost(String url, PostArgs args, ProgressHandler progressHandler,
+                              final CompletionHandler completionHandler) {
         RequestParams requestParams = new RequestParams(args.params);
         if (args.data != null) {
             ByteArrayInputStream buff = new ByteArrayInputStream(args.data);
@@ -84,7 +120,24 @@ public final class HttpManager {
                 return;
             }
         }
-        AsyncHttpResponseHandler handler = new ResponseHandler(url, completionHandler, progressHandler);
-        client.post(url, requestParams, handler);
+
+        CompletionHandler wrapper = wrap(completionHandler);
+        Header[] h = reporter.appendStatHeaders(new Header[0]);
+        AsyncHttpResponseHandler handler = new ResponseHandler(url, wrapper, progressHandler);
+        client.post(null, url, h, requestParams, null, handler);
+    }
+
+    private CompletionHandler wrap(final CompletionHandler completionHandler){
+        return new CompletionHandler() {
+            @Override
+            public void complete(ResponseInfo info, JSONObject response) {
+                completionHandler.complete(info, response);
+                if (info.isOK()) {
+                    reporter.updateSpeedInfo(info);
+                } else {
+                    reporter.updateErrorInfo(info);
+                }
+            }
+        };
     }
 }

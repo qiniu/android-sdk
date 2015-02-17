@@ -24,6 +24,10 @@ public final class ResponseInfo {
      */
     public final String xlog;
     /**
+     * cdn日志扩展头
+     */
+    public final String xvia;
+    /**
      * 错误信息
      */
     public final String error;
@@ -35,28 +39,34 @@ public final class ResponseInfo {
      * 服务器域名
      */
     public final String host;
+    /**
+     * 服务器IP
+     */
+    public final String ip;
 
-    public ResponseInfo(int statusCode, String reqId, String xlog, String host, double duration, String error) {
+    public ResponseInfo(int statusCode, String reqId, String xlog, String xvia, String host, String ip, double duration, String error) {
         this.statusCode = statusCode;
         this.reqId = reqId;
         this.xlog = xlog;
+        this.xvia = xvia;
         this.host = host;
         this.duration = duration;
         this.error = error;
+        this.ip = ip;
     }
 
     public static ResponseInfo cancelled() {
-        return new ResponseInfo(Cancelled, "", "", "", 0, "cancelled by user");
+        return new ResponseInfo(Cancelled, "", "", "", "", "", 0, "cancelled by user");
     }
 
     public static ResponseInfo invalidArgument(String message) {
-        return new ResponseInfo(InvalidArgument, "", "", "", 0,
+        return new ResponseInfo(InvalidArgument, "", "", "", "", "", 0,
                 message);
     }
 
 
     public static ResponseInfo fileError(Exception e) {
-        return new ResponseInfo(InvalidFile, "", "", "",
+        return new ResponseInfo(InvalidFile, "", "", "", "", "",
                 0, e.getMessage());
     }
 
@@ -76,12 +86,16 @@ public final class ResponseInfo {
         return (statusCode >= 500 && statusCode < 600 && statusCode != 579) || statusCode == 996;
     }
 
+    public boolean needSwitchServer() {
+        return isNetworkBroken() || (statusCode >= 500 && statusCode < 600 && statusCode != 579);
+    }
+
     public boolean needRetry() {
         return isNetworkBroken() || isServerError() || statusCode == 406 || (statusCode == 200 && error != null);
     }
 
     public String toString() {
-        return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, host:%s, duration:%f s, error:%s}",
-                super.toString(), statusCode, reqId, xlog, host, duration, error);
+        return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s,  host:%s, ip:%s, duration:%f s, error:%s}",
+                super.toString(), statusCode, reqId, xlog, xvia, host, ip, duration, error);
     }
 }

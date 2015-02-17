@@ -1,10 +1,12 @@
 package com.qiniu.android.http;
 
 import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.qiniu.android.common.Config;
+import com.qiniu.android.utils.Dns;
 
 import org.apache.http.Header;
 import org.json.JSONException;
@@ -13,6 +15,7 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 
 
 /**
@@ -35,6 +38,10 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
      * 请求开始时间
      */
     private long reqStartTime;
+    /**
+     * 服务器IP
+     */
+    private String ip;
 
     public ResponseHandler(String url, CompletionHandler completionHandler, ProgressHandler progressHandler) {
         super(Looper.getMainLooper());
@@ -54,12 +61,20 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
                                                   Throwable error) {
         String reqId = null;
         String xlog = null;
+        String ip = null;
+        String xvia = null;
         if (headers != null) {
             for (Header h : headers) {
                 if ("X-Reqid".equals(h.getName())) {
                     reqId = h.getValue();
                 } else if ("X-Log".equals(h.getName())) {
                     xlog = h.getValue();
+                } else if ("X-Via".equals(h.getName())) {
+                    xvia = h.getValue();
+                } else if ("X-Px".equals(h.getName())) {
+                    xvia = h.getValue();
+                } else if ("Fw-Via".equals(h.getName())) {
+                    xvia = h.getValue();
                 }
             }
         }
@@ -94,7 +109,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
             statusCode = ResponseInfo.NetworkError;
         }
 
-        return new ResponseInfo(statusCode, reqId, xlog, host, duration, err);
+        return new ResponseInfo(statusCode, reqId, xlog, xvia, host, ip, duration, err);
     }
 
     private static JSONObject buildJsonResp(byte[] body) throws Exception {
@@ -113,7 +128,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
             exception = e;
         }
         ResponseInfo info = buildResponseInfo(statusCode, headers, null, host, duration, exception);
-        Log.i("qiniu----success", info.toString());
+        Log.i("upload----success", info.toString());
         completionHandler.complete(info, obj);
     }
 
@@ -121,7 +136,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
     public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
         double duration = (System.currentTimeMillis() - reqStartTime) / 1000.0;
         ResponseInfo info = buildResponseInfo(statusCode, headers, responseBody, host, duration, error);
-        Log.i("qiniu----failed", info.toString());
+        Log.i("upload----failed", info.toString());
         completionHandler.complete(info, null);
     }
 
@@ -136,5 +151,24 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
     public void onStart() {
         this.reqStartTime = System.currentTimeMillis();
         super.onStart();
+    }
+
+    /**
+     * hack the method for dns in background before receive msg in main looper
+     *
+     * @param msg 发送的状态信息
+     */
+    @Override
+    protected void sendMessage(Message msg) {
+        if (msg.what == AsyncHttpResponseHandler.FAILURE_MESSAGE) {
+            Object[] response = (Object[]) msg.obj;
+            if (response != null && response.length >= 4) {
+                Throwable e = (Throwable) response[3];
+                if (!(e instanceof UnknownHostException)) {
+                    this.ip = Dns.getAddressesString(host);
+                }
+            }
+        }
+        super.sendMessage(msg);
     }
 }
