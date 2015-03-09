@@ -83,7 +83,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
         if (statusCode != 200) {
             if (responseBody != null) {
                 try {
-                    err = new String(responseBody, Config.CHARSET);
+                    err = new String(responseBody, Config.UTF_8);
                     JSONObject obj = new JSONObject(err);
                     err = obj.optString("error", err);
                 } catch (JSONException e) {
@@ -113,7 +113,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
     }
 
     private static JSONObject buildJsonResp(byte[] body) throws Exception {
-        String str = new String(body, Config.CHARSET);
+        String str = new String(body, Config.UTF_8);
         return new JSONObject(str);
     }
 
