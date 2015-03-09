@@ -10,6 +10,7 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Random;
 
@@ -108,27 +109,32 @@ public final class HttpManager {
      */
     public void multipartPost(String url, PostArgs args, ProgressHandler progressHandler,
                               final CompletionHandler completionHandler) {
-        RequestParams requestParams = new RequestParams();
+        MultipartBuilder mbuilder = new MultipartBuilder();
         for (Map.Entry<String, String> entry : args.params.entrySet()) {
-            requestParams.put(escapeMultipartString(entry.getKey()), entry.getValue());
+            mbuilder.addPart(entry.getKey(), entry.getValue());
         }
         if (args.data != null) {
             ByteArrayInputStream buff = new ByteArrayInputStream(args.data);
-            requestParams.put("file", buff, escapeMultipartString(args.fileName), args.mimeType);
+            try {
+                mbuilder.addPart("file", args.fileName, buff, args.mimeType);
+            } catch (IOException e) {
+                completionHandler.complete(ResponseInfo.fileError(e), null);
+                return;
+            }
         } else {
             try {
-                requestParams.put("file", args.file, args.mimeType);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+                mbuilder.addPart("file", args.file, args.mimeType, "filename");
+            } catch (IOException e) {
                 completionHandler.complete(ResponseInfo.fileError(e), null);
                 return;
             }
         }
 
         CompletionHandler wrapper = wrap(completionHandler);
-        Header[] h = reporter.appendStatHeaders(new Header[0]);
         AsyncHttpResponseHandler handler = new ResponseHandler(url, wrapper, progressHandler);
-        client.post(null, url, h, requestParams, null, handler);
+        ByteArrayEntity entity = mbuilder.build(progressHandler);
+        Header[] h = reporter.appendStatHeaders(new Header[0]);
+        client.post(null, url, h, entity, null, handler);
     }
 
     private CompletionHandler wrap(final CompletionHandler completionHandler) {

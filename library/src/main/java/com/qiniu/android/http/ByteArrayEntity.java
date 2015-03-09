@@ -17,8 +17,8 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
     private final ProgressHandler progressHandler;
     private static final int progressStep = 8 * 1024;
 
-    public ByteArrayEntity(final byte[] b) {
-        this(b, 0, b.length, null);
+    public ByteArrayEntity(final byte[] b, ProgressHandler h) {
+        this(b, 0, b.length, h);
     }
 
     public ByteArrayEntity(final byte[] b, final int off, final int len, ProgressHandler h) {

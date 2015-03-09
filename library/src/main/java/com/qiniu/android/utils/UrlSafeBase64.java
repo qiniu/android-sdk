@@ -19,7 +19,7 @@ public final class UrlSafeBase64 {
      */
     public static String encodeToString(String data) {
         try {
-            return encodeToString(data.getBytes(Config.CHARSET));
+            return encodeToString(data.getBytes(Config.UTF_8));
         } catch (UnsupportedEncodingException e) {
             //never in
             e.printStackTrace();

@@ -17,7 +17,7 @@ public class EtagTest extends AndroidTestCase {
         Assert.assertEquals("Fto5o-5ea0sNMlW_75VgGJCv2AcJ", m);
 
         try {
-            String etag = Etag.data("etag".getBytes(Config.CHARSET));
+            String etag = Etag.data("etag".getBytes(Config.UTF_8));
             Assert.assertEquals("FpLiADEaVoALPkdb8tJEJyRTXoe_", etag);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();

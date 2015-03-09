@@ -4,7 +4,7 @@ package com.qiniu.android.common;
  * Created by bailong on 14/10/8.
  */
 public final class Config {
-    public static final String VERSION = "7.0.2";
+    public static final String VERSION = "7.0.3";
 
     /**
      * 默认上传服务器
@@ -46,6 +46,6 @@ public final class Config {
      */
     public static final int RETRY_MAX = 5;
 
-    public static final String CHARSET = "utf-8";
+    public static final String UTF_8 = "utf-8";
 
 }
