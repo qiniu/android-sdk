@@ -46,7 +46,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
     /**
      * 服务器IP
      */
-    private String ip;
+    private String ip = null;
 
     public ResponseHandler(String url, CompletionHandler completionHandler, ProgressHandler progressHandler) {
         super(Looper.getMainLooper());
@@ -62,11 +62,10 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
         this.progressHandler = progressHandler;
     }
 
-    private static ResponseInfo buildResponseInfo(int statusCode, Header[] headers, byte[] responseBody, String host, double duration,
+    private static ResponseInfo buildResponseInfo(int statusCode, Header[] headers, byte[] responseBody, String host, String ip, double duration,
                                                   Throwable error) {
         String reqId = null;
         String xlog = null;
-        String ip = null;
         String xvia = null;
         if (headers != null) {
             for (Header h : headers) {
@@ -146,7 +145,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
         } catch (Exception e) {
             exception = e;
         }
-        ResponseInfo info = buildResponseInfo(statusCode, headers, null, host, duration, exception);
+        ResponseInfo info = buildResponseInfo(statusCode, headers, null, host, ip, duration, exception);
         Log.i("upload----success", info.toString());
         completionHandler.complete(info, obj);
     }
@@ -154,7 +153,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
     @Override
     public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
         double duration = (System.currentTimeMillis() - reqStartTime) / 1000.0;
-        ResponseInfo info = buildResponseInfo(statusCode, headers, responseBody, host, duration, error);
+        ResponseInfo info = buildResponseInfo(statusCode, headers, responseBody, host, ip, duration, error);
         Log.i("upload----failed", info.toString());
         completionHandler.complete(info, null);
     }

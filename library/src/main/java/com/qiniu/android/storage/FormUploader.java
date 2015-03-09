@@ -120,7 +120,7 @@ final class FormUploader {
                         completionHandler.complete(key, info, response);
                     }
                 };
-                String host = Config.UP_HOST;
+                String host = Config.defaultUpHost;
                 if (info.needSwitchServer()) {
                     host = Config.UP_HOST_BACKUP;
                 }
@@ -128,6 +128,6 @@ final class FormUploader {
             }
         };
 
-        httpManager.multipartPost("http://" + Config.UP_HOST, args, progress, completion);
+        httpManager.multipartPost("http://" + Config.defaultUpHost, args, progress, completion);
     }
 }

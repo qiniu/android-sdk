@@ -5,6 +5,7 @@ import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
+import com.qiniu.android.common.Config;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UploadManager;
@@ -249,6 +250,36 @@ public class FormUploadTest extends InstrumentationTestCase {
         Assert.assertNotNull(error);
         Assert.assertTrue(error instanceof IllegalArgumentException);
         Assert.assertEquals("no UpCompletionHandler", error.getMessage());
+    }
+
+    @SmallTest
+    public void testIpBack() throws Throwable {
+        Config.defaultUpHost = "upwelcome.qiniu.com";
+        final String expectKey = "你好;\"\r\n\r\n\r\n";
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("x:foo", "fooval");
+        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
+
+        uploadManager.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                Log.i("qiniutest", k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+                signal.countDown();
+            }
+        }, opt);
+
+
+        try {
+            signal.await(60, TimeUnit.SECONDS); // wait for callback
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Assert.assertEquals(expectKey, key);
+        Assert.assertTrue(info.isOK());
+        Assert.assertNotNull(info.reqId);
+        Assert.assertNotNull(resp);
     }
 
 }
