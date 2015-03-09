@@ -116,4 +116,47 @@ public class HttpTest extends InstrumentationTestCase {
         Assert.assertEquals(418, info.statusCode);
         Assert.assertNotNull(info.error);
     }
+
+    @SmallTest
+    public void testPostNoDomain() throws Throwable {
+
+        httpManager.postData("http://no-domain.qiniu.com", "hello".getBytes(), null, null, new CompletionHandler() {
+            @Override
+            public void complete(ResponseInfo rinfo, JSONObject response) {
+                Log.d("qiniutest", rinfo.toString());
+                info = rinfo;
+                signal.countDown();
+            }
+        });
+
+        try {
+            signal.await(60, TimeUnit.SECONDS); // wait for callback
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Assert.assertNull(info.reqId);
+        Assert.assertEquals(ResponseInfo.UnknownHost, info.statusCode);
+    }
+
+    @SmallTest
+    public void testPostNoPort() throws Throwable {
+
+        httpManager.postData("http://up.qiniu.com:12345", "hello".getBytes(), null, null, new CompletionHandler() {
+            @Override
+            public void complete(ResponseInfo rinfo, JSONObject response) {
+                Log.d("qiniutest", rinfo.toString());
+                info = rinfo;
+                signal.countDown();
+            }
+        });
+
+        try {
+            signal.await(60, TimeUnit.SECONDS); // wait for callback
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Assert.assertNull(info.reqId);
+        Assert.assertEquals(ResponseInfo.CannotConnectToHost, info.statusCode);
+    }
+
 }
