@@ -1,8 +1,6 @@
 package com.qiniu.android.common;
 
-/**
- * Created by bailong on 14/10/8.
- */
+
 public final class Config {
     public static final String VERSION = "7.0.3";
 

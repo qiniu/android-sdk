@@ -9,10 +9,15 @@ import com.qiniu.android.common.Config;
 import com.qiniu.android.utils.Dns;
 
 import org.apache.http.Header;
+import org.apache.http.NoHttpResponseException;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
@@ -107,6 +112,20 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
 
         if (statusCode == 0) {
             statusCode = ResponseInfo.NetworkError;
+            String msg = error.getMessage();
+            if (error instanceof IOException) {
+                if (msg != null && msg.indexOf("UnknownHostException") == 0) {
+                    statusCode = ResponseInfo.UnknownHost;
+                } else if (msg != null && msg.indexOf("Broken pipe") == 0) {
+                    statusCode = ResponseInfo.NetworkConnectionLost;
+                } else if (error instanceof NoHttpResponseException) {
+                    statusCode = ResponseInfo.NetworkConnectionLost;
+                } else if (error instanceof SocketTimeoutException) {
+                    statusCode = ResponseInfo.TimedOut;
+                } else if (error instanceof ConnectTimeoutException || error instanceof SocketException) {
+                    statusCode = ResponseInfo.CannotConnectToHost;
+                }
+            }
         }
 
         return new ResponseInfo(statusCode, reqId, xlog, xvia, host, ip, duration, err);
