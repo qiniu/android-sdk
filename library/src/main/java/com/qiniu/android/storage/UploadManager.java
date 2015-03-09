@@ -35,7 +35,7 @@ public final class UploadManager {
      */
     public UploadManager(Recorder recorder, KeyGenerator keyGen, Proxy proxy) {
         this.recorder = recorder;
-        this.httpManager = new HttpManager(proxy, new StatReport());
+        this.httpManager = new HttpManager(proxy, new StatReport(), Config.UP_IP_BACKUP);
         this.keyGen = keyGen;
     }
 

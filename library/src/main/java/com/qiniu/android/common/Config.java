@@ -15,6 +15,17 @@ public final class Config {
     public static final String UP_HOST_BACKUP = "up.qiniu.com";
 
     /**
+     * 备用上传服务器，当默认服务器网络链接失败时使用
+     */
+    public static final String UP_IP_BACKUP = "183.136.139.16";
+
+    /**
+     * 默认上传服务器
+     */
+    public static String defaultUpHost = UP_HOST;
+
+
+    /**
      * 断点上传时的分片大小(可根据网络情况适当调整)
      */
     public static final int CHUNK_SIZE = 256 * 1024;

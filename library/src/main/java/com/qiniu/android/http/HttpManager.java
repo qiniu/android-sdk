@@ -6,11 +6,16 @@ import com.loopj.android.http.RequestParams;
 import com.qiniu.android.common.Config;
 
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.message.BasicHeader;
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Map;
 import java.util.Random;
 
@@ -23,12 +28,18 @@ public final class HttpManager {
     private static final String userAgent = getUserAgent();
     private AsyncHttpClient client;
     private IReport reporter;
+    private String backUpIp;
 
     public HttpManager(Proxy proxy) {
         this(proxy, null);
     }
 
     public HttpManager(Proxy proxy, IReport reporter) {
+        this(proxy, reporter, null);
+    }
+
+    public HttpManager(Proxy proxy, IReport reporter, String backUpIp) {
+        this.backUpIp = backUpIp;
         client = new AsyncHttpClient();
         client.setConnectTimeout(Config.CONNECT_TIMEOUT);
         client.setResponseTimeout(Config.RESPONSE_TIMEOUT);
@@ -85,18 +96,46 @@ public final class HttpManager {
      */
     public void postData(String url, byte[] data, int offset, int size, Header[] headers,
                          ProgressHandler progressHandler, final CompletionHandler completionHandler) {
-
-        CompletionHandler wrapper = wrap(completionHandler);
-        Header[] h = reporter.appendStatHeaders(headers);
-        AsyncHttpResponseHandler handler = new ResponseHandler(url, wrapper, progressHandler);
         ByteArrayEntity entity = new ByteArrayEntity(data, offset, size, progressHandler);
-
-        client.post(null, url, h, entity, RequestParams.APPLICATION_OCTET_STREAM, handler);
+        postEntity(url, entity, headers, progressHandler, completionHandler);
     }
 
     public void postData(String url, byte[] data, Header[] headers,
                          ProgressHandler progressHandler, CompletionHandler completionHandler) {
         postData(url, data, 0, data.length, headers, progressHandler, completionHandler);
+    }
+
+    private void postEntity(final String url, final HttpEntity entity, Header[] headers,
+                         ProgressHandler progressHandler, CompletionHandler completionHandler) {
+        final CompletionHandler wrapper = wrap(completionHandler);
+        final Header[] h = reporter.appendStatHeaders(headers);
+        final AsyncHttpResponseHandler originHandler = new ResponseHandler(url, wrapper, progressHandler);
+        if(backUpIp == null){
+            client.post(null, url, h, entity, null, originHandler);
+            return;
+        }
+
+        client.post(null, url, h, entity, null, new ResponseHandler(url, new CompletionHandler() {
+            @Override
+            public void complete(ResponseInfo info, JSONObject response) {
+                if (info.statusCode != ResponseInfo.UnknownHost){
+                    wrapper.complete(info, response);
+                    return;
+                }
+                Header[] h2 = new Header[h.length + 1];
+                System.arraycopy(h, 0, h2, 0, h.length);
+
+                URI uri = URI.create(url);
+                String newUrl = null;
+                try {
+                    newUrl = new URI(uri.getScheme(), null, backUpIp, uri.getPort(), uri.getPath(), uri.getQuery(), null).toString();
+                } catch (URISyntaxException e) {
+                    throw new AssertionError(e);
+                }
+                h2[h.length] = new BasicHeader("Host", uri.getHost());
+                client.post(null, newUrl, h2, entity, null, originHandler);
+            }
+        }, progressHandler));
     }
 
     /**
@@ -130,11 +169,9 @@ public final class HttpManager {
             }
         }
 
-        CompletionHandler wrapper = wrap(completionHandler);
-        AsyncHttpResponseHandler handler = new ResponseHandler(url, wrapper, progressHandler);
         ByteArrayEntity entity = mbuilder.build(progressHandler);
         Header[] h = reporter.appendStatHeaders(new Header[0]);
-        client.post(null, url, h, entity, null, handler);
+        postEntity(url, entity, h, progressHandler, completionHandler);
     }
 
     private CompletionHandler wrap(final CompletionHandler completionHandler) {

@@ -10,6 +10,8 @@ import com.qiniu.android.http.ResponseInfo;
 
 import junit.framework.Assert;
 
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 import org.json.JSONObject;
 
 import java.util.concurrent.CountDownLatch;
@@ -159,4 +161,24 @@ public class HttpTest extends InstrumentationTestCase {
         Assert.assertEquals(ResponseInfo.CannotConnectToHost, info.statusCode);
     }
 
+    @SmallTest
+    public void testPostIP() throws Throwable {
+        Header[] x = {new BasicHeader("Host", "www.qiniu.com")};
+        httpManager.postData("http://183.136.139.12/", "hello".getBytes(), x, null, new CompletionHandler() {
+            @Override
+            public void complete(ResponseInfo rinfo, JSONObject response) {
+                Log.d("qiniutest", rinfo.toString());
+                info = rinfo;
+                signal.countDown();
+            }
+        });
+
+        try {
+            signal.await(60, TimeUnit.SECONDS); // wait for callback
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Assert.assertNotNull(info.reqId);
+        Assert.assertEquals(200, info.statusCode);
+    }
 }

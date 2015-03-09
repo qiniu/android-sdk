@@ -78,7 +78,7 @@ final class ResumeUploader implements Runnable {
             e.printStackTrace();
             completionHandler.complete(key, ResponseInfo.fileError(e), null);
         }
-        nextTask(offset, 0, Config.UP_HOST);
+        nextTask(offset, 0, Config.defaultUpHost);
     }
 
     /**
