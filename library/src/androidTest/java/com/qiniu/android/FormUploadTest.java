@@ -33,7 +33,7 @@ public class FormUploadTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testHello() throws Throwable {
-        final String expectKey = "你好";
+        final String expectKey = "你好;\"\r\n\r\n\r\n";
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);

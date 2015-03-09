@@ -10,6 +10,7 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
+import java.util.Map;
 import java.util.Random;
 
 import static java.lang.String.format;
@@ -84,7 +85,7 @@ public final class HttpManager {
     public void postData(String url, byte[] data, int offset, int size, Header[] headers,
                          ProgressHandler progressHandler, final CompletionHandler completionHandler) {
 
-        CompletionHandler wrapper =  wrap(completionHandler);
+        CompletionHandler wrapper = wrap(completionHandler);
         Header[] h = reporter.appendStatHeaders(headers);
         AsyncHttpResponseHandler handler = new ResponseHandler(url, wrapper, progressHandler);
         ByteArrayEntity entity = new ByteArrayEntity(data, offset, size, progressHandler);
@@ -107,10 +108,13 @@ public final class HttpManager {
      */
     public void multipartPost(String url, PostArgs args, ProgressHandler progressHandler,
                               final CompletionHandler completionHandler) {
-        RequestParams requestParams = new RequestParams(args.params);
+        RequestParams requestParams = new RequestParams();
+        for (Map.Entry<String, String> entry : args.params.entrySet()) {
+            requestParams.put(escapeMultipartString(entry.getKey()), entry.getValue());
+        }
         if (args.data != null) {
             ByteArrayInputStream buff = new ByteArrayInputStream(args.data);
-            requestParams.put("file", buff, args.fileName, args.mimeType);
+            requestParams.put("file", buff, escapeMultipartString(args.fileName), args.mimeType);
         } else {
             try {
                 requestParams.put("file", args.file, args.mimeType);
@@ -127,7 +131,7 @@ public final class HttpManager {
         client.post(null, url, h, requestParams, null, handler);
     }
 
-    private CompletionHandler wrap(final CompletionHandler completionHandler){
+    private CompletionHandler wrap(final CompletionHandler completionHandler) {
         return new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
@@ -140,4 +144,40 @@ public final class HttpManager {
             }
         };
     }
+
+    /**
+     * fixed key escape for async http client
+     * Appends a quoted-string to a StringBuilder.
+     * <p/>
+     * <p>RFC 2388 is rather vague about how one should escape special characters
+     * in form-data parameters, and as it turns out Firefox and Chrome actually
+     * do rather different things, and both say in their comments that they're
+     * not really sure what the right approach is. We go with Chrome's behavior
+     * (which also experimentally seems to match what IE does), but if you
+     * actually want to have a good chance of things working, please avoid
+     * double-quotes, newlines, percent signs, and the like in your field names.
+     */
+    private static String escapeMultipartString(String key) {
+        StringBuilder target = new StringBuilder();
+
+        for (int i = 0, len = key.length(); i < len; i++) {
+            char ch = key.charAt(i);
+            switch (ch) {
+                case '\n':
+                    target.append("%0A");
+                    break;
+                case '\r':
+                    target.append("%0D");
+                    break;
+                case '"':
+                    target.append("%22");
+                    break;
+                default:
+                    target.append(ch);
+                    break;
+            }
+        }
+        return target.toString();
+    }
+
 }
