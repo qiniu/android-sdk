@@ -77,6 +77,7 @@ final class ResumeUploader implements Runnable {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             completionHandler.complete(key, ResponseInfo.fileError(e), null);
+            return;
         }
         nextTask(offset, 0, Config.defaultUpHost);
     }
