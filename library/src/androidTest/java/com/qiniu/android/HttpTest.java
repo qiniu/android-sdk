@@ -41,7 +41,7 @@ public class HttpTest extends InstrumentationTestCase {
                 info = rinfo;
                 signal.countDown();
             }
-        });
+        }, null);
 
         try {
             signal.await(60, TimeUnit.SECONDS); // wait for callback
@@ -61,7 +61,7 @@ public class HttpTest extends InstrumentationTestCase {
                 info = rinfo;
                 signal.countDown();
             }
-        });
+        }, null);
 
         try {
             signal.await(60, TimeUnit.SECONDS); // wait for callback
@@ -82,7 +82,7 @@ public class HttpTest extends InstrumentationTestCase {
                         info = rinfo;
                         signal.countDown();
                     }
-                });
+                }, null);
             }
         });
 
@@ -106,7 +106,7 @@ public class HttpTest extends InstrumentationTestCase {
                         info = rinfo;
                         signal.countDown();
                     }
-                });
+                }, null);
             }
         });
 
@@ -129,7 +129,7 @@ public class HttpTest extends InstrumentationTestCase {
                 info = rinfo;
                 signal.countDown();
             }
-        });
+        }, null);
 
         try {
             signal.await(60, TimeUnit.SECONDS); // wait for callback
@@ -150,7 +150,7 @@ public class HttpTest extends InstrumentationTestCase {
                 info = rinfo;
                 signal.countDown();
             }
-        });
+        }, null);
 
         try {
             signal.await(60, TimeUnit.SECONDS); // wait for callback
@@ -171,7 +171,7 @@ public class HttpTest extends InstrumentationTestCase {
                 info = rinfo;
                 signal.countDown();
             }
-        });
+        }, null);
 
         try {
             signal.await(60, TimeUnit.SECONDS); // wait for callback

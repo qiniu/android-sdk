@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.qiniu.android.common.Config;
+import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.utils.Dns;
 
 import org.apache.http.Header;
@@ -62,8 +63,13 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
         this.progressHandler = progressHandler;
     }
 
-    private static ResponseInfo buildResponseInfo(int statusCode, Header[] headers, byte[] responseBody, String host, String ip, double duration,
-                                                  Throwable error) {
+    private static ResponseInfo buildResponseInfo(int statusCode, Header[] headers, byte[] responseBody,
+                                                  String host, String ip, double duration, Throwable error) {
+
+        if(error != null && error instanceof UpCancellationSignal.UpCancellationException) {
+            return ResponseInfo.cancelled();
+        }
+
         String reqId = null;
         String xlog = null;
         String xvia = null;

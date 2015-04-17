@@ -1,5 +1,7 @@
 package com.qiniu.android.http;
 
+import com.qiniu.android.storage.UpCancellationSignal;
+
 import org.apache.http.entity.AbstractHttpEntity;
 
 import java.io.ByteArrayInputStream;
@@ -15,13 +17,14 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
     private final byte[] b;
     private final int off, len;
     private final ProgressHandler progressHandler;
+    private final UpCancellationSignal cancellationSignal;
     private static final int progressStep = 8 * 1024;
 
-    public ByteArrayEntity(final byte[] b, ProgressHandler h) {
-        this(b, 0, b.length, h);
+    public ByteArrayEntity(final byte[] b, ProgressHandler h, UpCancellationSignal c) {
+        this(b, 0, b.length, h, c);
     }
 
-    public ByteArrayEntity(final byte[] b, final int off, final int len, ProgressHandler h) {
+    public ByteArrayEntity(final byte[] b, final int off, final int len, ProgressHandler h,  UpCancellationSignal c) {
         super();
         if ((off < 0) || (off > b.length) || (len < 0) ||
                 ((off + len) < 0) || ((off + len) > b.length)) {
@@ -31,6 +34,7 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
         this.off = off;
         this.len = len;
         this.progressHandler = h;
+        this.cancellationSignal = c;
     }
 
     @Override
@@ -48,25 +52,27 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
         return new ByteArrayInputStream(this.b, this.off, this.len);
     }
 
-    @Override
+   // @Override
     public void writeTo(final OutputStream outStream) throws IOException {
-        if (progressHandler != null) {
-            writeWithProgress(outStream);
-        } else {
-            outStream.write(this.b, this.off, len);
-        }
-        outStream.flush();
-    }
-
-    private void writeWithProgress(final OutputStream outStream) throws IOException {
         int off = 0;
         while (off < this.len) {
+            if(cancellationSignal != null && cancellationSignal.isCancelled()) {
+                try {
+                    outStream.close();
+                } catch (Exception e) {
+                    // ignore
+                }
+                throw new UpCancellationSignal.UpCancellationException();
+            }
             int left = this.len - off;
             int len = left < progressStep ? left : progressStep;
             outStream.write(this.b, this.off + off, len);
-            progressHandler.onProgress(off, this.len);
+            if(progressHandler != null) {
+                progressHandler.onProgress(off, this.len);
+            }
             off += len;
         }
+        outStream.flush();
     }
 
     /**

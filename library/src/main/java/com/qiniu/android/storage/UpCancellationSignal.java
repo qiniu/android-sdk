@@ -1,5 +1,7 @@
 package com.qiniu.android.storage;
 
+import java.io.IOException;
+
 /**
  * 定义用户取消数据或文件上传的信号
  */
@@ -11,4 +13,8 @@ public interface UpCancellationSignal {
      * @return 是否取消上传
      */
     boolean isCancelled();
+
+    public static class UpCancellationException extends IOException {
+
+    }
 }
