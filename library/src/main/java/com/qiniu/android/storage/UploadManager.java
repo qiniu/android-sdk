@@ -36,11 +36,23 @@ public final class UploadManager {
     public UploadManager(Recorder recorder, KeyGenerator keyGen, Proxy proxy) {
         this.recorder = recorder;
         this.httpManager = new HttpManager(proxy, new StatReport(), Config.UP_IP_BACKUP);
-        this.keyGen = keyGen;
+        this.keyGen = getKeyGen(keyGen);
     }
 
     public UploadManager(Recorder recorder) {
         this(recorder, null, null);
+    }
+
+    private KeyGenerator getKeyGen(KeyGenerator keyGen) {
+        if(keyGen == null) {
+            keyGen = new KeyGenerator() {
+                @Override
+                public String gen(String key, File file) {
+                    return key + "_._" + new StringBuffer(file.getAbsolutePath()).reverse();
+                }
+            };
+        }
+        return keyGen;
     }
 
     private static boolean areInvalidArg(final String key, byte[] data, File f, String token, final UpCompletionHandler completionHandler) {
@@ -121,10 +133,7 @@ public final class UploadManager {
             FormUploader.upload(httpManager, file, key, token, completionHandler, options);
             return;
         }
-        String recorderKey = key;
-        if (keyGen != null) {
-            recorderKey = keyGen.gen(key, file);
-        }
+        String recorderKey =  keyGen.gen(key, file);
         ResumeUploader uploader = new ResumeUploader(httpManager, recorder, file, key, token, completionHandler,
                 options, recorderKey);
 
