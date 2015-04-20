@@ -6,7 +6,6 @@ import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.qiniu.android.common.Config;
-import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.utils.Dns;
 
 import org.apache.http.Header;
@@ -66,7 +65,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
     private static ResponseInfo buildResponseInfo(int statusCode, Header[] headers, byte[] responseBody,
                                                   String host, String ip, double duration, Throwable error) {
 
-        if(error != null && error instanceof UpCancellationSignal.UpCancellationException) {
+        if(error != null && error instanceof CancellationHandler.CancellationException) {
             return ResponseInfo.cancelled();
         }
 

@@ -1,20 +1,11 @@
 package com.qiniu.android.storage;
 
-import java.io.IOException;
+import com.qiniu.android.http.CancellationHandler;
 
 /**
  * 定义用户取消数据或文件上传的信号
+ * 用户取消上传时，必须实现的接口
  */
-public interface UpCancellationSignal {
+public interface UpCancellationSignal extends CancellationHandler {
 
-    /**
-     * 用户取消上传时，必须实现的方法
-     *
-     * @return 是否取消上传
-     */
-    boolean isCancelled();
-
-    public static class UpCancellationException extends IOException {
-
-    }
 }

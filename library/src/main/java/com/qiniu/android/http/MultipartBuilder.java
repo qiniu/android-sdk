@@ -5,7 +5,6 @@
 
 package com.qiniu.android.http;
 
-import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.utils.StringUtils;
 
 import org.apache.http.message.BasicHeader;
@@ -170,7 +169,7 @@ final class MultipartBuilder {
         return StringUtils.utf8Bytes(builder.toString());
     }
 
-    public ByteArrayEntity build(ProgressHandler progressHandler, UpCancellationSignal c) {
+    public ByteArrayEntity build(ProgressHandler progressHandler, CancellationHandler c) {
         try {
             out.write(boundaryEnd);
         } catch (IOException e) {

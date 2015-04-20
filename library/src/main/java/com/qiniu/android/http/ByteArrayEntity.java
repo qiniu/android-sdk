@@ -1,7 +1,5 @@
 package com.qiniu.android.http;
 
-import com.qiniu.android.storage.UpCancellationSignal;
-
 import org.apache.http.entity.AbstractHttpEntity;
 
 import java.io.ByteArrayInputStream;
@@ -17,14 +15,14 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
     private final byte[] b;
     private final int off, len;
     private final ProgressHandler progressHandler;
-    private final UpCancellationSignal cancellationSignal;
+    private final CancellationHandler cancellationHandler;
     private static final int progressStep = 8 * 1024;
 
-    public ByteArrayEntity(final byte[] b, ProgressHandler h, UpCancellationSignal c) {
+    public ByteArrayEntity(final byte[] b, ProgressHandler h, CancellationHandler c) {
         this(b, 0, b.length, h, c);
     }
 
-    public ByteArrayEntity(final byte[] b, final int off, final int len, ProgressHandler h,  UpCancellationSignal c) {
+    public ByteArrayEntity(final byte[] b, final int off, final int len, ProgressHandler h,  CancellationHandler c) {
         super();
         if ((off < 0) || (off > b.length) || (len < 0) ||
                 ((off + len) < 0) || ((off + len) > b.length)) {
@@ -34,7 +32,7 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
         this.off = off;
         this.len = len;
         this.progressHandler = h;
-        this.cancellationSignal = c;
+        this.cancellationHandler = c;
     }
 
     @Override
@@ -56,13 +54,13 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
     public void writeTo(final OutputStream outStream) throws IOException {
         int off = 0;
         while (off < this.len) {
-            if(cancellationSignal != null && cancellationSignal.isCancelled()) {
+            if(cancellationHandler != null && cancellationHandler.isCancelled()) {
                 try {
                     outStream.close();
                 } catch (Exception e) {
                     // ignore
                 }
-                throw new UpCancellationSignal.UpCancellationException();
+                throw new CancellationHandler.CancellationException();
             }
             int left = this.len - off;
             int len = left < progressStep ? left : progressStep;

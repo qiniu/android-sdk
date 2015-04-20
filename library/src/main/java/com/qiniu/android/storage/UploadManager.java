@@ -37,7 +37,6 @@ public final class UploadManager {
         this.recorder = recorder;
         this.httpManager = new HttpManager(proxy, new StatReport(), Config.UP_IP_BACKUP);
         this.keyGen = keyGen;
-        HttpManager.blockRetryExceptionClass(UpCancellationSignal.UpCancellationException.class);
     }
 
     public UploadManager(Recorder recorder) {
