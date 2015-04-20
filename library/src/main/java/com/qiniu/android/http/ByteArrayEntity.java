@@ -55,7 +55,7 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
         if(progressHandler != null || cancellationHandler != null){
             writeWithNotify(outStream);
         } else {
-            outStream.write(this.b, this.off, len);
+            outStream.write(this.b, this.off, this.len);
         }
         outStream.flush();
     }
