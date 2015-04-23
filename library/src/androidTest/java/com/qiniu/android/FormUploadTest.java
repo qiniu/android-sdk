@@ -51,7 +51,7 @@ public class FormUploadTest extends InstrumentationTestCase {
 
 
         try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -82,7 +82,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         });
 
         try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -111,7 +111,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         });
 
         try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -137,7 +137,7 @@ public class FormUploadTest extends InstrumentationTestCase {
 
 
         try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -164,7 +164,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         });
 
         try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -191,7 +191,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         });
 
         try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -218,7 +218,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         }, opt);
 
         try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
+            signal.await(130, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -272,7 +272,7 @@ public class FormUploadTest extends InstrumentationTestCase {
 
 
         try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
