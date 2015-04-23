@@ -47,7 +47,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         });
 
         try {
-            signal.await(1200, TimeUnit.SECONDS); // wait for callback
+            signal.await(500, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -73,7 +73,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         }, null);
 
         try {
-            signal.await(1200, TimeUnit.SECONDS); // wait for callback
+            signal.await(500, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
