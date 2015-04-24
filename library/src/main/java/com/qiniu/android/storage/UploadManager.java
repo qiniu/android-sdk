@@ -55,7 +55,8 @@ public final class UploadManager {
         return keyGen;
     }
 
-    private static boolean areInvalidArg(final String key, byte[] data, File f, String token, final UpCompletionHandler completionHandler) {
+    private static boolean areInvalidArg(final String key, byte[] data, File f,
+                                         String token, final UpCompletionHandler completionHandler) {
         if (completionHandler == null) {
             throw new IllegalArgumentException("no UpCompletionHandler");
         }
@@ -87,8 +88,8 @@ public final class UploadManager {
      * @param completionHandler 上传完成后续处理动作
      * @param options           上传数据的可选参数
      */
-    public void put(final byte[] data, final String key, final String token, final UpCompletionHandler completionHandler,
-                    final UploadOptions options) {
+    public void put(final byte[] data, final String key, final String token,
+                    final UpCompletionHandler completionHandler, final UploadOptions options) {
         if (areInvalidArg(key, data, null, token, completionHandler)) {
             return;
         }
@@ -134,8 +135,8 @@ public final class UploadManager {
             return;
         }
         String recorderKey =  keyGen.gen(key, file);
-        ResumeUploader uploader = new ResumeUploader(httpManager, recorder, file, key, token, completionHandler,
-                options, recorderKey);
+        ResumeUploader uploader = new ResumeUploader(httpManager, recorder, file, key,
+                                            token, completionHandler, options, recorderKey);
 
         AsyncRun.run(uploader);
     }
