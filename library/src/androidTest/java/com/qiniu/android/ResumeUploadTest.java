@@ -47,7 +47,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         });
 
         try {
-            signal.await(1200, TimeUnit.SECONDS); // wait for callback
+            signal.await(2000, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -73,7 +73,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         }, null);
 
         try {
-            signal.await(1200, TimeUnit.SECONDS); // wait for callback
+            signal.await(2000, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -99,8 +99,8 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         template(1024 * 4);
     }
 
-//    @LargeTest
-//    public void test8M1k() throws Throwable{
-//        template(1024*8+1);
-//    }
+    @LargeTest
+    public void test8M1k() throws Throwable{
+        template(1024*8+1);
+    }
 }

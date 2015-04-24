@@ -79,7 +79,7 @@ final class ResumeUploader implements Runnable {
             completionHandler.complete(key, ResponseInfo.fileError(e), null);
             return;
         }
-        nextTask(offset, 0, Config.defaultUpHost);
+        nextTask(offset, 0, Config.UP_HOST);
     }
 
     /**
