@@ -54,7 +54,7 @@ public class CancelTest extends InstrumentationTestCase {
     }
 
     public void test700k() throws Throwable {
-        templateFile(700, 0.2); 
+        templateFile(700, 0.2);
     }
 
     public void test1M() throws Throwable {
@@ -140,6 +140,7 @@ public class CancelTest extends InstrumentationTestCase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        Assert.assertFalse(info.isOK());
         Assert.assertEquals(expectKey, key);
         Assert.assertTrue(info.isCancelled());
         Assert.assertNull(resp);
@@ -237,6 +238,7 @@ public class CancelTest extends InstrumentationTestCase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        Assert.assertFalse(info.isOK());
         Assert.assertEquals(expectKey, key);
         Assert.assertTrue(info.isCancelled());
         Assert.assertNull(resp);
