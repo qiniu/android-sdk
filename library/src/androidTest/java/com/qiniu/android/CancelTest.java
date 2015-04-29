@@ -22,6 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -61,7 +62,7 @@ public class CancelTest extends InstrumentationTestCase {
     }
 
     public void test4M() throws Throwable {
-        templateFile(4 * 1024, 0.6);
+        templateFile(4 * 1024, 0.8);
     }
 
     public void test8M1K() throws Throwable {
@@ -77,7 +78,7 @@ public class CancelTest extends InstrumentationTestCase {
     }
 
     public void testD1M() throws Throwable {
-        templateData(1024, 0.52);
+        templateData(1024, 0.51);
     }
 
     public void testD4M() throws Throwable {
@@ -87,7 +88,7 @@ public class CancelTest extends InstrumentationTestCase {
 
     private void templateFile(final int size, final double pos) throws Throwable {
         final File tempFile = TempFile.createFile(size);
-        final String expectKey = "rc=" + size + "k";
+        final String expectKey = "file_" + UUID.randomUUID().toString();
         cancelled = false;
         failed = false;
         Map<String, String> params = new HashMap<String, String>();
@@ -170,7 +171,7 @@ public class CancelTest extends InstrumentationTestCase {
 
     private void templateData(final int size, final double pos) throws Throwable {
         final byte[] tempDate = TempFile.getByte(1024 * size);
-        final String expectKey = "rc=" + size + "k" + "_byte";
+        final String expectKey = "data_" + UUID.randomUUID().toString();
         cancelled = false;
         failed = false;
         Map<String, String> params = new HashMap<String, String>();
