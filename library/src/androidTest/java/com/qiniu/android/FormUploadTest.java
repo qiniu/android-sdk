@@ -24,9 +24,9 @@ import java.util.concurrent.TimeUnit;
 public class FormUploadTest extends InstrumentationTestCase {
     final CountDownLatch signal = new CountDownLatch(1);
     private UploadManager uploadManager;
-    private String key;
-    private ResponseInfo info;
-    private JSONObject resp;
+    private volatile  String key;
+    private volatile  ResponseInfo info;
+    private volatile  JSONObject resp;
 
     public void setUp() throws Exception {
         uploadManager = new UploadManager();

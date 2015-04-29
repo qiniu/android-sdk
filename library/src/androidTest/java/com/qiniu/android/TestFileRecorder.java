@@ -25,12 +25,12 @@ import java.util.concurrent.TimeUnit;
 public class TestFileRecorder extends InstrumentationTestCase {
     final CountDownLatch signal = new CountDownLatch(1);
     final CountDownLatch signal2 = new CountDownLatch(1);
-    boolean cancelled;
-    boolean failed;
+    private volatile boolean cancelled;
+    private volatile boolean failed;
     private UploadManager uploadManager;
-    private String key;
+    private volatile  String key;
     private volatile ResponseInfo info;
-    private JSONObject resp;
+    private volatile  JSONObject resp;
     private volatile UploadOptions options;
 
     @Override
