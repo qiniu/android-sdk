@@ -140,8 +140,8 @@ public class CancelTest extends InstrumentationTestCase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertFalse(info.isOK());
         Assert.assertEquals(expectKey, key);
+        Assert.assertFalse(info.isOK());
         Assert.assertTrue(info.isCancelled());
         Assert.assertNull(resp);
 
@@ -238,8 +238,8 @@ public class CancelTest extends InstrumentationTestCase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertFalse(info.isOK());
         Assert.assertEquals(expectKey, key);
+        Assert.assertFalse(info.isOK());
         Assert.assertTrue(info.isCancelled());
         Assert.assertNull(resp);
 
