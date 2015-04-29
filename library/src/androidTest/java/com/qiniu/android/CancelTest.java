@@ -54,7 +54,7 @@ public class CancelTest extends InstrumentationTestCase {
     }
 
     public void test700k() throws Throwable {
-        templateFile(700, 0.2); 
+        templateFile(700, 0.2);
     }
 
     public void test1M() throws Throwable {
@@ -85,7 +85,6 @@ public class CancelTest extends InstrumentationTestCase {
         templateData(4 * 1024, 0.6);
     }
 
-
     private void templateFile(final int size, final double pos) throws Throwable {
         final File tempFile = TempFile.createFile(size);
         final String expectKey = "file_" + UUID.randomUUID().toString();
@@ -94,6 +93,20 @@ public class CancelTest extends InstrumentationTestCase {
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:a", "test");
         params.put("x:b", "test2");
+
+        Thread t = new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(8 * 60 * 1000);
+                    cancelled = true;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        t.setDaemon(true);
+        t.start();
+
         options = new UploadOptions(params, null, false, new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
@@ -177,6 +190,20 @@ public class CancelTest extends InstrumentationTestCase {
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:a", "test");
         params.put("x:b", "test2");
+
+        Thread t = new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(8 * 60 * 1000);
+                    cancelled = true;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        t.setDaemon(true);
+        t.start();
+
         options = new UploadOptions(params, null, false, new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
