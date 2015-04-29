@@ -31,14 +31,14 @@ import java.util.concurrent.TimeUnit;
  */
 public class CancelTest extends InstrumentationTestCase {
 
-    final CountDownLatch signal = new CountDownLatch(1);
-    final CountDownLatch signal2 = new CountDownLatch(1);
-    boolean cancelled;
-    boolean failed;
-    private UploadManager uploadManager;
-    private String key;
+    private final CountDownLatch signal = new CountDownLatch(1);
+    private final CountDownLatch signal2 = new CountDownLatch(1);
+    private volatile boolean cancelled;
+    private volatile boolean failed;
+    private volatile UploadManager uploadManager;
+    private volatile String key;
     private volatile ResponseInfo info;
-    private JSONObject resp;
+    private volatile JSONObject resp;
     private volatile UploadOptions options;
 
     @Override
