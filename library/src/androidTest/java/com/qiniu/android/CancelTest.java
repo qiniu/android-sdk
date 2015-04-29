@@ -123,7 +123,7 @@ public class CancelTest extends InstrumentationTestCase {
         });
 
         try {
-            signal.await(500, TimeUnit.SECONDS); // wait for callback
+            signal.await(570, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -157,7 +157,7 @@ public class CancelTest extends InstrumentationTestCase {
 //        });
 //
 //        try {
-//            signal2.await(500, TimeUnit.SECONDS); // wait for callback
+//            signal2.await(570, TimeUnit.SECONDS); // wait for callback
 //        } catch (InterruptedException e) {
 //            e.printStackTrace();
 //        }
@@ -206,7 +206,7 @@ public class CancelTest extends InstrumentationTestCase {
         });
 
         try {
-            signal.await(500, TimeUnit.SECONDS); // wait for callback
+            signal.await(570, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -240,7 +240,7 @@ public class CancelTest extends InstrumentationTestCase {
 //        });
 //
 //        try {
-//            signal2.await(500, TimeUnit.SECONDS); // wait for callback
+//            signal2.await(570, TimeUnit.SECONDS); // wait for callback
 //        } catch (InterruptedException e) {
 //            e.printStackTrace();
 //        }
