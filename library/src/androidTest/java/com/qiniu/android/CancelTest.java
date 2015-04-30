@@ -125,11 +125,11 @@ public class CancelTest extends InstrumentationTestCase {
             public void run() {
                 uploadManager.put(tempFile, expectKey, TestConfig.token, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                        Log.i("qiniutest", k + rinfo);
                         key = k;
                         info = rinfo;
                         resp = response;
                         signal.countDown();
-                        Log.i("qiniutest", k + rinfo);
                     }
                 }, options);
             }
@@ -140,13 +140,13 @@ public class CancelTest extends InstrumentationTestCase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。   
+        // 尝试获取info信息。
         // key == null ： 没进入 complete ？ 什么导致的？
         if(!expectKey.equals(key)){
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
-        if(!info.isCancelled()){
+        if(info == null || !info.isCancelled()){
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
@@ -198,11 +198,11 @@ public class CancelTest extends InstrumentationTestCase {
             public void run() {
                 uploadManager.put(tempDate, expectKey, TestConfig.token, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                        Log.i("qiniutest", k + rinfo);
                         key = k;
                         info = rinfo;
                         resp = response;
                         signal.countDown();
-                        Log.i("qiniutest", k + rinfo);
                     }
                 }, options);
             }
@@ -219,7 +219,7 @@ public class CancelTest extends InstrumentationTestCase {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
-        if(!info.isCancelled()){
+        if(info == null || !info.isCancelled()){
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
