@@ -125,11 +125,11 @@ public class CancelTest extends InstrumentationTestCase {
             public void run() {
                 uploadManager.put(tempFile, expectKey, TestConfig.token, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        Log.i("qiniutest", k + rinfo);
                         key = k;
                         info = rinfo;
                         resp = response;
                         signal.countDown();
+                        Log.i("qiniutest", k + rinfo);
                     }
                 }, options);
             }
@@ -140,45 +140,20 @@ public class CancelTest extends InstrumentationTestCase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        // 尝试获取info信息。
+        // key == null ： 没进入 complete ？ 什么导致的？
+        if(!expectKey.equals(key)){
+            //此处通不过， travis 会打印信息
+            Assert.assertEquals("", info);
+        }
+        if(!info.isCancelled()){
+            //此处通不过， travis 会打印信息
+            Assert.assertEquals("", info);
+        }
         Assert.assertEquals(expectKey, key);
         Assert.assertFalse(info.isOK());
         Assert.assertTrue(info.isCancelled());
         Assert.assertNull(resp);
-
-//        cancelled = false;
-//        options = new UploadOptions(null, null, false, new UpProgressHandler() {
-//            @Override
-//            public void progress(String key, double percent) {
-//                if (percent < pos - Config.CHUNK_SIZE / (size * 1024.0)) {
-//                    failed = true;
-//                }
-//                Log.i("qiniutest", "continue progress " + percent);
-//            }
-//        }, null);
-//
-//        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
-//            public void run() {
-//                uploadManager.put(tempFile, expectKey, TestConfig.token, new UpCompletionHandler() {
-//                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-//                        Log.i("qiniutest", k + rinfo);
-//                        key = k;
-//                        info = rinfo;
-//                        resp = response;
-//                        signal2.countDown();
-//                    }
-//                }, options);
-//            }
-//        });
-//
-//        try {
-//            signal2.await(570, TimeUnit.SECONDS); // wait for callback
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        Assert.assertEquals(expectKey, key);
-//        Assert.assertTrue(info.isOK());
-//        Assert.assertTrue(!failed);
-//        Assert.assertNotNull(resp);
 
         TempFile.remove(tempFile);
     }
@@ -223,11 +198,11 @@ public class CancelTest extends InstrumentationTestCase {
             public void run() {
                 uploadManager.put(tempDate, expectKey, TestConfig.token, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        Log.i("qiniutest", k + rinfo);
                         key = k;
                         info = rinfo;
                         resp = response;
                         signal.countDown();
+                        Log.i("qiniutest", k + rinfo);
                     }
                 }, options);
             }
@@ -238,45 +213,20 @@ public class CancelTest extends InstrumentationTestCase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        // 尝试获取info信息。
+        // key == null ： 没进入 complete ？ 什么导致的？
+        if(!expectKey.equals(key)){
+            //此处通不过， travis 会打印信息
+            Assert.assertEquals("", info);
+        }
+        if(!info.isCancelled()){
+            //此处通不过， travis 会打印信息
+            Assert.assertEquals("", info);
+        }
         Assert.assertEquals(expectKey, key);
         Assert.assertFalse(info.isOK());
         Assert.assertTrue(info.isCancelled());
         Assert.assertNull(resp);
-
-//        cancelled = false;
-//        options = new UploadOptions(null, null, false, new UpProgressHandler() {
-//            @Override
-//            public void progress(String key, double percent) {
-//                if (percent < pos - Config.CHUNK_SIZE / (size * 1024.0)) {
-//                    failed = true;
-//                }
-//                Log.i("qiniutest", "continue progress " + percent);
-//            }
-//        }, null);
-//
-//        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
-//            public void run() {
-//                uploadManager.put(tempDate, expectKey, TestConfig.token, new UpCompletionHandler() {
-//                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-//                        Log.i("qiniutest", k + rinfo);
-//                        key = k;
-//                        info = rinfo;
-//                        resp = response;
-//                        signal2.countDown();
-//                    }
-//                }, options);
-//            }
-//        });
-//
-//        try {
-//            signal2.await(570, TimeUnit.SECONDS); // wait for callback
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        Assert.assertEquals(expectKey, key);
-//        Assert.assertTrue(info.isOK());
-//        Assert.assertTrue(!failed);
-//        Assert.assertNotNull(resp);
     }
 
 }
