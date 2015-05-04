@@ -12,7 +12,7 @@
 将realease 目录中的jar 复制到项目中去，此版本sdk依赖 http://loopj.com/android-async-http/ 1.4.6及以上版本
 
 ### 通过maven
-* 如果在Adroid Studio中使用，添加dependencies `compile 'com.qiniu:qiniu-android-sdk:7.0.3'` 或在项目中添加maven依赖
+* 如果在Adroid Studio中使用，添加dependencies `compile 'com.qiniu:qiniu-android-sdk:7.0.+'` 或在项目中添加maven依赖
 * 如果是eclipse, 也可以直接添加依赖来处理。
 
 ## 使用方法
