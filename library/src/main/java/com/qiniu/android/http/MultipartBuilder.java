@@ -169,14 +169,14 @@ final class MultipartBuilder {
         return StringUtils.utf8Bytes(builder.toString());
     }
 
-    public ByteArrayEntity build(ProgressHandler progressHandler) {
+    public ByteArrayEntity build(ProgressHandler progressHandler, CancellationHandler c) {
         try {
             out.write(boundaryEnd);
         } catch (IOException e) {
             throw new AssertionError(e);
         }
         byte[] data = out.toByteArray();
-        ByteArrayEntity b = new ByteArrayEntity(data, progressHandler);
+        ByteArrayEntity b = new ByteArrayEntity(data, progressHandler, c);
         b.setContentType(new BasicHeader(
                 HTTP.CONTENT_TYPE,
                 "multipart/form-data; boundary=" + boundary));

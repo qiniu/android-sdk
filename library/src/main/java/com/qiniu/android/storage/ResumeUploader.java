@@ -1,5 +1,7 @@
 package com.qiniu.android.storage;
 
+import android.util.Log;
+
 import com.qiniu.android.common.Config;
 import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.HttpManager;
@@ -93,7 +95,7 @@ final class ResumeUploader implements Runnable {
      * @param _completionHandler 上传完成处理动作
      */
     private void makeBlock(String host, int offset, int blockSize, int chunkSize, ProgressHandler progress,
-                           CompletionHandler _completionHandler) {
+                           CompletionHandler _completionHandler, UpCancellationSignal c) {
         String url = format(Locale.ENGLISH, "http://%s/mkblk/%d", host, blockSize);
         try {
             file.seek(offset);
@@ -104,11 +106,11 @@ final class ResumeUploader implements Runnable {
         }
         this.crc32 = Crc32.bytes(chunkBuffer, 0, chunkSize);
 
-        post(url, chunkBuffer, 0, chunkSize, progress, _completionHandler);
+        post(url, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
     }
 
     private void putChunk(String host, int offset, int chunkSize, String context, ProgressHandler progress,
-                          CompletionHandler _completionHandler) {
+                          CompletionHandler _completionHandler, UpCancellationSignal c) {
         int chunkOffset = offset % Config.BLOCK_SIZE;
         String url = format(Locale.ENGLISH, "http://%s/bput/%s/%d", host, context, chunkOffset);
         try {
@@ -119,7 +121,7 @@ final class ResumeUploader implements Runnable {
             return;
         }
         this.crc32 = Crc32.bytes(chunkBuffer, 0, chunkSize);
-        post(url, chunkBuffer, 0, chunkSize, progress, _completionHandler);
+        post(url, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
     }
 
     private void makeFile(String host, CompletionHandler _completionHandler) {
@@ -142,12 +144,13 @@ final class ResumeUploader implements Runnable {
         String url = format(Locale.ENGLISH, "http://%s/mkfile/%d%s%s%s", host, size, mime, keyStr, paramStr);
         String bodyStr = StringUtils.join(contexts, ",");
         byte[] data = bodyStr.getBytes();
-        post(url, data, 0, data.length, null, _completionHandler);
+        // 不取消 makeFile 操作
+        post(url, data, 0, data.length, null, _completionHandler, null);
     }
 
     private void post(String url, byte[] data, int offset, int size, ProgressHandler progress,
-                      CompletionHandler completion) {
-        httpManager.postData(url, data, offset, size, headers, progress, completion);
+                      CompletionHandler completion, UpCancellationSignal c) {
+        httpManager.postData(url, data, offset, size, headers, progress, completion, c);
     }
 
     private int calcPutSize(int offset) {
@@ -165,11 +168,6 @@ final class ResumeUploader implements Runnable {
     }
 
     private void nextTask(final int offset, final int retried, final String host) {
-        if (isCancelled()) {
-            completionHandler.complete(key, ResponseInfo.cancelled(), null);
-            return;
-        }
-
         if (offset == size) {
             CompletionHandler complete = new CompletionHandler() {
                 @Override
@@ -247,11 +245,11 @@ final class ResumeUploader implements Runnable {
         };
         if (offset % Config.BLOCK_SIZE == 0) {
             int blockSize = calcBlockSize(offset);
-            makeBlock(host, offset, blockSize, chunkSize, progress, complete);
+            makeBlock(host, offset, blockSize, chunkSize, progress, complete, options.cancellationSignal);
             return;
         }
         String context = contexts[offset / Config.BLOCK_SIZE];
-        putChunk(host, offset, chunkSize, context, progress, complete);
+        putChunk(host, offset, chunkSize, context, progress, complete, options.cancellationSignal);
     }
 
     private int recoveryFromRecord() {

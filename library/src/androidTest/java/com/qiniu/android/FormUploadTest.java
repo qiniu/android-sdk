@@ -24,9 +24,9 @@ import java.util.concurrent.TimeUnit;
 public class FormUploadTest extends InstrumentationTestCase {
     final CountDownLatch signal = new CountDownLatch(1);
     private UploadManager uploadManager;
-    private String key;
-    private ResponseInfo info;
-    private JSONObject resp;
+    private volatile  String key;
+    private volatile  ResponseInfo info;
+    private volatile  JSONObject resp;
 
     public void setUp() throws Exception {
         uploadManager = new UploadManager();
@@ -51,9 +51,19 @@ public class FormUploadTest extends InstrumentationTestCase {
 
 
         try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+        // 尝试获取info信息。
+        // key == null ： 没进入 complete ？ 什么导致的？
+        if(!expectKey.equals(key)){
+            //此处通不过， travis 会打印信息
+            Assert.assertEquals("", info);
+        }
+        if(info == null || !info.isOK()){
+            //此处通不过， travis 会打印信息
+            Assert.assertEquals("", info);
         }
         Assert.assertEquals(expectKey, key);
         Assert.assertTrue(info.isOK());
@@ -82,9 +92,15 @@ public class FormUploadTest extends InstrumentationTestCase {
         });
 
         try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+
+        // 尝试获取info信息。
+        if(info == null || !info.isOK()){
+            //此处通不过， travis 会打印信息
+            Assert.assertEquals("", info);
         }
         Assert.assertEquals(expectKey, key);
         Assert.assertTrue(info.isOK());
@@ -111,7 +127,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         });
 
         try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -137,7 +153,7 @@ public class FormUploadTest extends InstrumentationTestCase {
 
 
         try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -164,7 +180,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         });
 
         try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -191,7 +207,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         });
 
         try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -218,9 +234,19 @@ public class FormUploadTest extends InstrumentationTestCase {
         }, opt);
 
         try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
+            signal.await(130, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+        // 尝试获取info信息。
+        // key == null ： 没进入 complete ？ 什么导致的？
+        if(!expectKey.equals(key)){
+            //此处通不过， travis 会打印信息
+            Assert.assertEquals("", info);
+        }
+        if(info == null || !info.isOK()){
+            //此处通不过， travis 会打印信息
+            Assert.assertEquals("", info);
         }
         Assert.assertEquals(expectKey, key);
         Assert.assertTrue(info.isOK());
@@ -272,9 +298,19 @@ public class FormUploadTest extends InstrumentationTestCase {
 
 
         try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+        // 尝试获取info信息。
+        // key == null ： 没进入 complete ？ 什么导致的？
+        if(!expectKey.equals(key)){
+            //此处通不过， travis 会打印信息
+            Assert.assertEquals("", info);
+        }
+        if(info == null || !info.isOK()){
+            //此处通不过， travis 会打印信息
+            Assert.assertEquals("", info);
         }
         Assert.assertEquals(expectKey, key);
         Assert.assertTrue(info.isOK());

@@ -19,7 +19,7 @@ public final class TempFile {
             File f = File.createTempFile("qiniu_" + kiloSize + "k", "tmp");
             f.createNewFile();
             fos = new FileOutputStream(f);
-            byte[] b = getByte();
+            byte[] b = getByte(1024 * 4);
             long s = 0;
             while (s < size) {
                 int l = (int) Math.min(b.length, size - s);
@@ -39,14 +39,14 @@ public final class TempFile {
         }
     }
 
-    private static byte[] getByte() {
-        byte[] b = new byte[1024 * 4];
+    public static byte[] getByte(int len) {
+        byte[] b = new byte[len];
         b[0] = 'A';
-        for (int i = 1; i < 1024 * 4; i++) {
+        for (int i = 1; i < len; i++) {
             b[i] = 'b';
         }
-        b[1024 * 4 - 2] = '\r';
-        b[1024 * 4 - 1] = '\n';
+        b[len - 2] = '\r';
+        b[len - 1] = '\n';
         return b;
     }
 }

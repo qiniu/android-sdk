@@ -2,7 +2,6 @@ package com.qiniu.android.http;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
 import com.qiniu.android.common.Config;
 
 import org.apache.http.Header;
@@ -11,11 +10,9 @@ import org.apache.http.message.BasicHeader;
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.Map;
 import java.util.Random;
 
@@ -45,6 +42,7 @@ public final class HttpManager {
         client.setResponseTimeout(Config.RESPONSE_TIMEOUT);
         client.setUserAgent(userAgent);
         client.setEnableRedirects(false);
+        AsyncHttpClient.blockRetryExceptionClass(CancellationHandler.CancellationException.class);
         if (proxy != null) {
             client.setProxy(proxy.hostAddress, proxy.port, proxy.user, proxy.password);
         }
@@ -95,14 +93,14 @@ public final class HttpManager {
      * @param completionHandler 发送数据完成后续动作处理对象
      */
     public void postData(String url, byte[] data, int offset, int size, Header[] headers,
-                         ProgressHandler progressHandler, final CompletionHandler completionHandler) {
-        ByteArrayEntity entity = new ByteArrayEntity(data, offset, size, progressHandler);
+                         ProgressHandler progressHandler, final CompletionHandler completionHandler, CancellationHandler c) {
+        ByteArrayEntity entity = new ByteArrayEntity(data, offset, size, progressHandler, c);
         postEntity(url, entity, headers, progressHandler, completionHandler);
     }
 
-    public void postData(String url, byte[] data, Header[] headers,
-                         ProgressHandler progressHandler, CompletionHandler completionHandler) {
-        postData(url, data, 0, data.length, headers, progressHandler, completionHandler);
+    public void postData(String url, byte[] data, Header[] headers, ProgressHandler progressHandler,
+                         CompletionHandler completionHandler, CancellationHandler c) {
+        postData(url, data, 0, data.length, headers, progressHandler, completionHandler, c);
     }
 
     private void postEntity(final String url, final HttpEntity entity, Header[] headers,
@@ -147,7 +145,7 @@ public final class HttpManager {
      * @param completionHandler 发送数据完成后续动作处理对象
      */
     public void multipartPost(String url, PostArgs args, ProgressHandler progressHandler,
-                              final CompletionHandler completionHandler) {
+                              final CompletionHandler completionHandler, CancellationHandler c) {
         MultipartBuilder mbuilder = new MultipartBuilder();
         for (Map.Entry<String, String> entry : args.params.entrySet()) {
             mbuilder.addPart(entry.getKey(), entry.getValue());
@@ -169,7 +167,7 @@ public final class HttpManager {
             }
         }
 
-        ByteArrayEntity entity = mbuilder.build(progressHandler);
+        ByteArrayEntity entity = mbuilder.build(progressHandler, c);
         Header[] h = reporter.appendStatHeaders(new Header[0]);
         postEntity(url, entity, h, progressHandler, completionHandler);
     }

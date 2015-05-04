@@ -17,20 +17,28 @@ import junit.framework.Assert;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class TestFileRecorder extends InstrumentationTestCase {
-    final CountDownLatch signal = new CountDownLatch(1);
-    final CountDownLatch signal2 = new CountDownLatch(1);
+/**
+ * Created by Simon on 2015/4/15.
+ */
+public class CancelTest extends InstrumentationTestCase {
+
+    private final CountDownLatch signal = new CountDownLatch(1);
+    private final CountDownLatch signal2 = new CountDownLatch(1);
     private volatile boolean cancelled;
     private volatile boolean failed;
-    private UploadManager uploadManager;
-    private volatile  String key;
+    private volatile UploadManager uploadManager;
+    private volatile String key;
     private volatile ResponseInfo info;
-    private volatile  JSONObject resp;
+    private volatile JSONObject resp;
     private volatile UploadOptions options;
 
     @Override
@@ -41,21 +49,71 @@ public class TestFileRecorder extends InstrumentationTestCase {
         uploadManager = new UploadManager(fr);
     }
 
-    private void template(final int size, final double pos) throws Throwable {
+    public void test400k() throws Throwable {
+        templateFile(400, 0.2);
+    }
+
+    public void test700k() throws Throwable {
+        templateFile(700, 0.2);
+    }
+
+    public void test1M() throws Throwable {
+        templateFile(1024, 0.51);
+    }
+
+    public void test4M() throws Throwable {
+        templateFile(4 * 1024, 0.8);
+    }
+
+    public void test8M1K() throws Throwable {
+        templateFile(8 * 1024 + 1, 0.6);
+    }
+
+    public void testD400k() throws Throwable {
+        templateData(400, 0.2);
+    }
+
+    public void testD700k() throws Throwable {
+        templateData(700, 0.2);
+    }
+
+    public void testD1M() throws Throwable {
+        templateData(1024, 0.51);
+    }
+
+    public void testD4M() throws Throwable {
+        templateData(4 * 1024, 0.6);
+    }
+
+    private void templateFile(final int size, final double pos) throws Throwable {
         final File tempFile = TempFile.createFile(size);
-        final String expectKey = "rc=" + size + "k";
+        final String expectKey = "file_" + UUID.randomUUID().toString();
         cancelled = false;
         failed = false;
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:a", "test");
         params.put("x:b", "test2");
+
+        Thread t = new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(8 * 60 * 1000);
+                    cancelled = true;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        t.setDaemon(true);
+        t.start();
+
         options = new UploadOptions(params, null, false, new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
                 if (percent >= pos) {
                     cancelled = true;
                 }
-                Log.i("qiniutest", "progress " + percent);
+                Log.i("qiniutest", pos + ": progress " + percent);
             }
         }, new UpCancellationSignal() {
             @Override
@@ -67,18 +125,18 @@ public class TestFileRecorder extends InstrumentationTestCase {
             public void run() {
                 uploadManager.put(tempFile, expectKey, TestConfig.token, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        Log.i("qiniutest", k + rinfo);
                         key = k;
                         info = rinfo;
                         resp = response;
                         signal.countDown();
+                        Log.i("qiniutest", k + rinfo);
                     }
                 }, options);
             }
         });
 
         try {
-            signal.await(500, TimeUnit.SECONDS); // wait for callback
+            signal.await(570, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -93,36 +151,65 @@ public class TestFileRecorder extends InstrumentationTestCase {
             Assert.assertEquals("", info);
         }
         Assert.assertEquals(expectKey, key);
+        Assert.assertFalse(info.isOK());
         Assert.assertTrue(info.isCancelled());
         Assert.assertNull(resp);
 
+        TempFile.remove(tempFile);
+    }
+
+    private void templateData(final int size, final double pos) throws Throwable {
+        final byte[] tempDate = TempFile.getByte(1024 * size);
+        final String expectKey = "data_" + UUID.randomUUID().toString();
         cancelled = false;
-        options = new UploadOptions(null, null, false, new UpProgressHandler() {
+        failed = false;
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("x:a", "test");
+        params.put("x:b", "test2");
+
+        Thread t = new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(8 * 60 * 1000);
+                    cancelled = true;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        t.setDaemon(true);
+        t.start();
+
+        options = new UploadOptions(params, null, false, new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
-                if (percent < pos - Config.CHUNK_SIZE / (size * 1024.0)) {
-                    failed = true;
+                if (percent >= pos) {
+                    cancelled = true;
                 }
-                Log.i("qiniutest", "continue progress " + percent);
+                Log.i("qiniutest", pos + ": progress " + percent);
             }
-        }, null);
-
+        }, new UpCancellationSignal() {
+            @Override
+            public boolean isCancelled() {
+                return cancelled;
+            }
+        });
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(tempFile, expectKey, TestConfig.token, new UpCompletionHandler() {
+                uploadManager.put(tempDate, expectKey, TestConfig.token, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        Log.i("qiniutest", k + rinfo);
                         key = k;
                         info = rinfo;
                         resp = response;
-                        signal2.countDown();
+                        signal.countDown();
+                        Log.i("qiniutest", k + rinfo);
                     }
                 }, options);
             }
         });
 
         try {
-            signal2.await(500, TimeUnit.SECONDS); // wait for callback
+            signal.await(570, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -132,35 +219,14 @@ public class TestFileRecorder extends InstrumentationTestCase {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
-        if(info == null || !info.isOK()){
+        if(info == null || !info.isCancelled()){
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
         Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
-        Assert.assertTrue(!failed);
-        Assert.assertNotNull(resp);
-
-        TempFile.remove(tempFile);
+        Assert.assertFalse(info.isOK());
+        Assert.assertTrue(info.isCancelled());
+        Assert.assertNull(resp);
     }
 
-    public void test600k() throws Throwable {
-        template(600, 0.7);
-    }
-
-    public void test700k() throws Throwable {
-        template(700, 0.1);
-    }
-
-    public void test1M() throws Throwable {
-        template(1024, 0.51);
-    }
-
-    public void test4M() throws Throwable {
-        template(4 * 1024, 0.9);
-    }
-
-    public void test8M1K() throws Throwable {
-        template(8 * 1024 + 1, 0.8);
-    }
 }

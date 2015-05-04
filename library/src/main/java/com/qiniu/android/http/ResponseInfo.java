@@ -102,8 +102,8 @@ public final class ResponseInfo {
     }
 
     public boolean needRetry() {
-        return isNetworkBroken() || isServerError() || statusCode == 406
-                || (statusCode == 200 && error != null);
+        return !isCancelled() && (isNetworkBroken() || isServerError() || statusCode == 406
+                || (statusCode == 200 && error != null) );
     }
 
     public String toString() {

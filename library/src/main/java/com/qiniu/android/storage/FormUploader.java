@@ -105,29 +105,29 @@ final class FormUploader {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
                 if (info.isOK()) {
-
                     options.progressHandler.progress(key, 1.0);
-
                     completionHandler.complete(key, info, response);
-                    return;
-                }
-                CompletionHandler retried = new CompletionHandler() {
-                    @Override
-                    public void complete(ResponseInfo info, JSONObject response) {
-                        if (info.isOK()) {
-                            options.progressHandler.progress(key, 1.0);
+                } else if(info.needRetry()) {
+                    CompletionHandler retried = new CompletionHandler() {
+                        @Override
+                        public void complete(ResponseInfo info, JSONObject response) {
+                            if (info.isOK()) {
+                                options.progressHandler.progress(key, 1.0);
+                            }
+                            completionHandler.complete(key, info, response);
                         }
-                        completionHandler.complete(key, info, response);
+                    };
+                    String host = Config.UP_HOST;
+                    if (info.needSwitchServer()) {
+                        host = Config.UP_HOST_BACKUP;
                     }
-                };
-                String host = Config.defaultUpHost;
-                if (info.needSwitchServer()) {
-                    host = Config.UP_HOST_BACKUP;
+                    httpManager.multipartPost("http://" + host, args, progress, retried, options.cancellationSignal);
+                } else {
+                    completionHandler.complete(key, info, response);
                 }
-                httpManager.multipartPost("http://" + host, args, progress, retried);
             }
         };
 
-        httpManager.multipartPost("http://" + Config.defaultUpHost, args, progress, completion);
+        httpManager.multipartPost("http://" + Config.UP_HOST, args, progress, completion, options.cancellationSignal);
     }
 }
