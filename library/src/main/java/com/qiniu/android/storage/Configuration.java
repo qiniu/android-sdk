@@ -49,12 +49,12 @@ public final class Configuration {
     public final int putThreshold;
 
     /**
-     * 连接超时时间
+     * 连接超时时间，单位 秒
      */
     public final int connectTimeout;
 
     /**
-     * 服务器响应超时时间
+     * 服务器响应超时时间 单位 秒
      */
     public final int responseTimeout;
 
@@ -107,7 +107,7 @@ public final class Configuration {
         private int chunkSize = 256 * 1024;
         private int putThreshold = 512 * 1024;
         private int connectTimeout = 10;
-        private int responseTimeout = 30;
+        private int responseTimeout = 60;
         private int retryMax = 5;
 
         public Builder upHost(String upHost){

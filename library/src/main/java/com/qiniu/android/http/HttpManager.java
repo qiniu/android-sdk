@@ -32,15 +32,15 @@ public final class HttpManager {
     }
 
     public HttpManager(Proxy proxy, IReport reporter) {
-        this(proxy, reporter, null, 10, 60);
+        this(proxy, reporter, null, 10, 30);
     }
 
     public HttpManager(Proxy proxy, IReport reporter, String backUpIp,
                        int connectTimeout, int responseTimeout) {
         this.backUpIp = backUpIp;
         client = new AsyncHttpClient();
-        client.setConnectTimeout(connectTimeout);
-        client.setResponseTimeout(responseTimeout);
+        client.setConnectTimeout(connectTimeout*1000);
+        client.setResponseTimeout(responseTimeout*1000);
         client.setUserAgent(userAgent);
         client.setEnableRedirects(false);
         AsyncHttpClient.blockRetryExceptionClass(CancellationHandler.CancellationException.class);

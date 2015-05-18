@@ -3,7 +3,6 @@ package com.qiniu.android;
 import android.test.InstrumentationTestCase;
 import android.util.Log;
 
-import com.qiniu.android.common.Constants;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCancellationSignal;
