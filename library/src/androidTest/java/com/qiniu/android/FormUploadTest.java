@@ -5,8 +5,9 @@ import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
-import com.qiniu.android.common.Config;
+import com.qiniu.android.common.Constants;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
@@ -24,9 +25,9 @@ import java.util.concurrent.TimeUnit;
 public class FormUploadTest extends InstrumentationTestCase {
     final CountDownLatch signal = new CountDownLatch(1);
     private UploadManager uploadManager;
-    private volatile  String key;
-    private volatile  ResponseInfo info;
-    private volatile  JSONObject resp;
+    private volatile String key;
+    private volatile ResponseInfo info;
+    private volatile JSONObject resp;
 
     public void setUp() throws Exception {
         uploadManager = new UploadManager();
@@ -57,11 +58,11 @@ public class FormUploadTest extends InstrumentationTestCase {
         }
         // 尝试获取info信息。
         // key == null ： 没进入 complete ？ 什么导致的？
-        if(!expectKey.equals(key)){
+        if (!expectKey.equals(key)) {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
-        if(info == null || !info.isOK()){
+        if (info == null || !info.isOK()) {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
@@ -98,7 +99,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         }
 
         // 尝试获取info信息。
-        if(info == null || !info.isOK()){
+        if (info == null || !info.isOK()) {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
@@ -240,11 +241,11 @@ public class FormUploadTest extends InstrumentationTestCase {
         }
         // 尝试获取info信息。
         // key == null ： 没进入 complete ？ 什么导致的？
-        if(!expectKey.equals(key)){
+        if (!expectKey.equals(key)) {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
-        if(info == null || !info.isOK()){
+        if (info == null || !info.isOK()) {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
@@ -280,7 +281,9 @@ public class FormUploadTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testIpBack() throws Throwable {
-        Config.defaultUpHost = "upwelcome.qiniu.com";
+        Configuration c = new Configuration.Builder()
+                .upHost("upwelcome.qiniu.com").build();
+        UploadManager _up = new UploadManager(c);
         final String expectKey = "你好;\"\r\n\r\n\r\n";
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
@@ -304,11 +307,11 @@ public class FormUploadTest extends InstrumentationTestCase {
         }
         // 尝试获取info信息。
         // key == null ： 没进入 complete ？ 什么导致的？
-        if(!expectKey.equals(key)){
+        if (!expectKey.equals(key)) {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
-        if(info == null || !info.isOK()){
+        if (info == null || !info.isOK()) {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }

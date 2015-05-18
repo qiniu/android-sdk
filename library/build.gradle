@@ -3,7 +3,7 @@ import java.util.regex.Matcher
 apply plugin: 'com.android.library'
 
 def versionName() {
-    String config = 'library/src/main/java/com/qiniu/android/common/Config.java'
+    String config = 'library/src/main/java/com/qiniu/android/common/Constants.java'
     String fileContents = new File(config).text
     Matcher myMatcher = fileContents =~ /VERSION = "(.+)";/
     String version = myMatcher[0][1]

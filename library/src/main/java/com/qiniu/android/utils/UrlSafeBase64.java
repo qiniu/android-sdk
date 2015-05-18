@@ -2,7 +2,7 @@ package com.qiniu.android.utils;
 
 import android.util.Base64;
 
-import com.qiniu.android.common.Config;
+import com.qiniu.android.common.Constants;
 
 import java.io.UnsupportedEncodingException;
 
@@ -19,7 +19,7 @@ public final class UrlSafeBase64 {
      */
     public static String encodeToString(String data) {
         try {
-            return encodeToString(data.getBytes(Config.UTF_8));
+            return encodeToString(data.getBytes(Constants.UTF_8));
         } catch (UnsupportedEncodingException e) {
             //never in
             e.printStackTrace();
