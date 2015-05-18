@@ -32,7 +32,7 @@ public final class HttpManager {
     }
 
     public HttpManager(Proxy proxy, IReport reporter) {
-        this(proxy, reporter, null, 10, 30);
+        this(proxy, reporter, null, 10, 60);
     }
 
     public HttpManager(Proxy proxy, IReport reporter, String backUpIp,
