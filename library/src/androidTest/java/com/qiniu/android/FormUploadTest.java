@@ -280,7 +280,7 @@ public class FormUploadTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testIpBack() throws Throwable {
-        Config.defaultUpHost = "upwelcome.qiniu.com";
+        Config.UP_HOST = "upwelcome.qiniu.com";
         final String expectKey = "你好;\"\r\n\r\n\r\n";
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
