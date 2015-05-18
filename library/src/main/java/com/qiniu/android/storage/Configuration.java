@@ -2,11 +2,11 @@ package com.qiniu.android.storage;
 
 
 import com.qiniu.android.http.Proxy;
+import com.qiniu.android.http.UrlConverter;
 
 import java.io.File;
 
 public final class Configuration {
-
 
     /**
      * 断点上传时的分块大小(默认的分块大小, 不建议改变)
@@ -63,6 +63,11 @@ public final class Configuration {
      */
     public final int retryMax;
 
+    /**
+     * 特别定制的url转换
+     */
+    public UrlConverter urlConverter;
+
     private Configuration(Builder builder){
         upHost = builder.upHost;
         upHostBackup = builder.upHostBackup;
@@ -81,6 +86,8 @@ public final class Configuration {
         retryMax = builder.retryMax;
 
         proxy = builder.proxy;
+
+        urlConverter = builder.urlConverter;
     }
 
     private KeyGenerator getKeyGen(KeyGenerator keyGen) {
@@ -109,6 +116,8 @@ public final class Configuration {
         private int connectTimeout = 10;
         private int responseTimeout = 60;
         private int retryMax = 5;
+
+        private UrlConverter urlConverter = null;
 
         public Builder upHost(String upHost){
             this.upHost = upHost;
@@ -168,6 +177,12 @@ public final class Configuration {
 
         public Builder retryMax(int times){
             this.retryMax = times;
+            return this;
+        }
+
+        public Builder urlConverter(UrlConverter converter){
+            this.urlConverter = converter;
+            this.upIp = null;
             return this;
         }
 
