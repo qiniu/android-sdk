@@ -2,7 +2,7 @@ package com.qiniu.android.http;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.qiniu.android.common.Config;
+import com.qiniu.android.common.Constants;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -32,14 +32,15 @@ public final class HttpManager {
     }
 
     public HttpManager(Proxy proxy, IReport reporter) {
-        this(proxy, reporter, null);
+        this(proxy, reporter, null, 10, 30);
     }
 
-    public HttpManager(Proxy proxy, IReport reporter, String backUpIp) {
+    public HttpManager(Proxy proxy, IReport reporter, String backUpIp,
+                       int connectTimeout, int responseTimeout) {
         this.backUpIp = backUpIp;
         client = new AsyncHttpClient();
-        client.setConnectTimeout(Config.CONNECT_TIMEOUT);
-        client.setResponseTimeout(Config.RESPONSE_TIMEOUT);
+        client.setConnectTimeout(connectTimeout*1000);
+        client.setResponseTimeout(responseTimeout*1000);
         client.setUserAgent(userAgent);
         client.setEnableRedirects(false);
         AsyncHttpClient.blockRetryExceptionClass(CancellationHandler.CancellationException.class);
@@ -77,7 +78,7 @@ public final class HttpManager {
     }
 
     private static String getUserAgent() {
-        return format("QiniuAndroid/%s (%s; %s; %s)", Config.VERSION,
+        return format("QiniuAndroid/%s (%s; %s; %s)", Constants.VERSION,
                 android.os.Build.VERSION.RELEASE, android.os.Build.MODEL, genId());
     }
 

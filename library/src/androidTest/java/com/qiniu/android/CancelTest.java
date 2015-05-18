@@ -3,7 +3,6 @@ package com.qiniu.android;
 import android.test.InstrumentationTestCase;
 import android.util.Log;
 
-import com.qiniu.android.common.Config;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.storage.UpCompletionHandler;
@@ -17,9 +16,6 @@ import junit.framework.Assert;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -142,11 +138,11 @@ public class CancelTest extends InstrumentationTestCase {
         }
         // 尝试获取info信息。
         // key == null ： 没进入 complete ？ 什么导致的？
-        if(!expectKey.equals(key)){
+        if (!expectKey.equals(key)) {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
-        if(info == null || !info.isCancelled()){
+        if (info == null || !info.isCancelled()) {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
@@ -215,11 +211,11 @@ public class CancelTest extends InstrumentationTestCase {
         }
         // 尝试获取info信息。
         // key == null ： 没进入 complete ？ 什么导致的？
-        if(!expectKey.equals(key)){
+        if (!expectKey.equals(key)) {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
-        if(info == null || !info.isCancelled()){
+        if (info == null || !info.isCancelled()) {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }

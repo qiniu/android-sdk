@@ -1,6 +1,6 @@
 package com.qiniu.android.utils;
 
-import com.qiniu.android.common.Config;
+import com.qiniu.android.common.Constants;
 
 import java.io.UnsupportedEncodingException;
 
@@ -85,7 +85,7 @@ public final class StringUtils {
 
     public static byte[] utf8Bytes(String data) {
         try {
-            return data.getBytes(Config.UTF_8);
+            return data.getBytes(Constants.UTF_8);
         } catch (UnsupportedEncodingException e) {
             throw new AssertionError(e);
         }

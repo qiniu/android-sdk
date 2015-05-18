@@ -5,7 +5,7 @@ import android.os.Message;
 import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.qiniu.android.common.Config;
+import com.qiniu.android.common.Constants;
 import com.qiniu.android.utils.Dns;
 
 import org.apache.http.Header;
@@ -92,7 +92,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
         if (statusCode != 200) {
             if (responseBody != null) {
                 try {
-                    err = new String(responseBody, Config.UTF_8);
+                    err = new String(responseBody, Constants.UTF_8);
                     JSONObject obj = new JSONObject(err);
                     err = obj.optString("error", err);
                 } catch (JSONException e) {
@@ -136,7 +136,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
     }
 
     private static JSONObject buildJsonResp(byte[] body) throws Exception {
-        String str = new String(body, Config.UTF_8);
+        String str = new String(body, Constants.UTF_8);
         return new JSONObject(str);
     }
 

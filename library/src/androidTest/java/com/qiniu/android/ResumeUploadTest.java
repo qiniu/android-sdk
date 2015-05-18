@@ -21,9 +21,9 @@ public class ResumeUploadTest extends InstrumentationTestCase {
 
     final CountDownLatch signal = new CountDownLatch(1);
     private UploadManager uploadManager;
-    private volatile  String key;
-    private volatile  ResponseInfo info;
-    private volatile  JSONObject resp;
+    private volatile String key;
+    private volatile ResponseInfo info;
+    private volatile JSONObject resp;
 
     public void setUp() throws Exception {
         uploadManager = new UploadManager();
@@ -53,11 +53,11 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         }
         // 尝试获取info信息。
         // key == null ： 没进入 complete ？ 什么导致的？
-        if(!expectKey.equals(key)){
+        if (!expectKey.equals(key)) {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
-        if(info == null || !info.isOK()){
+        if (info == null || !info.isOK()) {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
@@ -89,11 +89,11 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         }
         // 尝试获取info信息。
         // key == null ： 没进入 complete ？ 什么导致的？
-        if(!expectKey.equals(key)){
+        if (!expectKey.equals(key)) {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
-        if(info == null || !info.isOK()){
+        if (info == null || !info.isOK()) {
             //此处通不过， travis 会打印信息
             Assert.assertEquals("", info);
         }
