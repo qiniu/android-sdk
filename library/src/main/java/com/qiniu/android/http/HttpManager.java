@@ -26,17 +26,18 @@ public final class HttpManager {
     private AsyncHttpClient client;
     private IReport reporter;
     private String backUpIp;
+    private UrlConverter converter;
 
     public HttpManager(Proxy proxy) {
         this(proxy, null);
     }
 
     public HttpManager(Proxy proxy, IReport reporter) {
-        this(proxy, reporter, null, 10, 30);
+        this(proxy, reporter, null, 10, 30, null);
     }
 
     public HttpManager(Proxy proxy, IReport reporter, String backUpIp,
-                       int connectTimeout, int responseTimeout) {
+                       int connectTimeout, int responseTimeout, UrlConverter converter) {
         this.backUpIp = backUpIp;
         client = new AsyncHttpClient();
         client.setConnectTimeout(connectTimeout*1000);
@@ -66,6 +67,8 @@ public final class HttpManager {
                 }
             };
         }
+
+        this.converter = converter;
     }
 
     public HttpManager() {
@@ -104,16 +107,21 @@ public final class HttpManager {
         postData(url, data, 0, data.length, headers, progressHandler, completionHandler, c);
     }
 
-    private void postEntity(final String url, final HttpEntity entity, Header[] headers,
+    private void postEntity(String url, final HttpEntity entity, Header[] headers,
                          ProgressHandler progressHandler, CompletionHandler completionHandler) {
         final CompletionHandler wrapper = wrap(completionHandler);
         final Header[] h = reporter.appendStatHeaders(headers);
+
+        if (converter != null){
+            url = converter.convert(url);
+        }
+
         final AsyncHttpResponseHandler originHandler = new ResponseHandler(url, wrapper, progressHandler);
         if(backUpIp == null){
             client.post(null, url, h, entity, null, originHandler);
             return;
         }
-
+        final String url2 = url;
         client.post(null, url, h, entity, null, new ResponseHandler(url, new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
@@ -124,7 +132,7 @@ public final class HttpManager {
                 Header[] h2 = new Header[h.length + 1];
                 System.arraycopy(h, 0, h2, 0, h.length);
 
-                URI uri = URI.create(url);
+                URI uri = URI.create(url2);
                 String newUrl = null;
                 try {
                     newUrl = new URI(uri.getScheme(), null, backUpIp, uri.getPort(), uri.getPath(), uri.getQuery(), null).toString();
