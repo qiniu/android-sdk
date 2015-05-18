@@ -44,6 +44,15 @@ task releaseJar(type: Copy, dependsOn: 'build') {
     rename('classes.jar', 'qiniu-android-sdk-' + version + '.jar')
 }
 
+android.libraryVariants.all { variant ->
+    def name = variant.buildType.name
+    def task = project.tasks.create "jar${name.capitalize()}", Jar
+    task.dependsOn variant.javaCompile
+    task.from variant.javaCompile.destinationDir
+    task.exclude '**/R.*',  '**/R$*.*'
+    artifacts.add('archives', task);
+}
+
 setProperty('VERSION_NAME', version)
 setProperty('VERSION_CODE', code)
 
