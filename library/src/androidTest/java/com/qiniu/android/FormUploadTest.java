@@ -10,6 +10,7 @@ import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
+import com.qiniu.android.storage.Zone;
 
 import junit.framework.Assert;
 
@@ -280,8 +281,10 @@ public class FormUploadTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testIpBack() throws Throwable {
+
         Configuration c = new Configuration.Builder()
-                .upHost("upwelcome.qiniu.com").build();
+                .zone(new Zone("upwelcome.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp))
+                .build();
         UploadManager _up = new UploadManager(c);
         final String expectKey = "你好;\"\r\n\r\n\r\n";
         Map<String, String> params = new HashMap<String, String>();

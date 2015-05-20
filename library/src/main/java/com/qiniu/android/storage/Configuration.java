@@ -134,11 +134,6 @@ public final class Configuration {
             return this;
         }
 
-        public Builder upHost(String upHost){
-            this.upHost = upHost;
-            return this;
-        }
-
         public Builder recorder(Recorder recorder){
             this.recorder = recorder;
             return this;
@@ -147,16 +142,6 @@ public final class Configuration {
         public Builder recorder(Recorder recorder, KeyGenerator keyGen){
             this.recorder = recorder;
             this.keyGen = keyGen;
-            return this;
-        }
-
-        public Builder upHostBackup(String backup){
-            upHostBackup = backup;
-            return this;
-        }
-
-        public Builder upIp(String ip){
-            upIp = ip;
             return this;
         }
 
