@@ -103,10 +103,11 @@ public final class Configuration {
     }
 
     public static class Builder{
-        private String upHost = "upload.qiniu.com";
-        private String upHostBackup = "up.qiniu.com";
-        private String upIp = "183.136.139.16";
-        private int upPort = 80;
+        private String upHost;
+        private String upHostBackup;
+        private String upIp;
+        private int upPort;
+
         private Recorder recorder = null;
         private KeyGenerator keyGen = null;
         private Proxy proxy = null;
@@ -117,7 +118,21 @@ public final class Configuration {
         private int responseTimeout = 60;
         private int retryMax = 5;
 
+        public Builder(){
+            this.upHost = Zone.zone0.upHost;
+            this.upHostBackup = Zone.zone0.upHostBackup;
+            this.upIp = Zone.zone0.upIp;
+            this.upPort = 80;
+        }
+
         private UrlConverter urlConverter = null;
+
+        public Builder zone(Zone zone){
+            this.upHost = zone.upHost;
+            this.upHostBackup = zone.upHostBackup;
+            this.upIp = zone.upIp;
+            return this;
+        }
 
         public Builder upHost(String upHost){
             this.upHost = upHost;
