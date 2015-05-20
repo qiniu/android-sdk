@@ -43,7 +43,7 @@ public class PortTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testData() throws Throwable {
-        final String expectKey = "你好;\"\r\n\r\n\r\n";
+        final String expectKey = "你好;\"\r\n\r\n\r\n_port";
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
