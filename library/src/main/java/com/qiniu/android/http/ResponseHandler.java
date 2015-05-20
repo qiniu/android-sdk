@@ -48,12 +48,18 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
      */
     private String ip = null;
 
+    /**
+     * 服务器端口
+     */
+    public int port = -1;
+
     public ResponseHandler(String url, CompletionHandler completionHandler, ProgressHandler progressHandler) {
         super(Looper.getMainLooper());
         URI uri = null;
         try {
             uri = new URI(url);
             this.host = uri.getHost();
+            this.port = uri.getPort();
         } catch (URISyntaxException e) {
             this.host = "N/A";
             e.printStackTrace();
@@ -63,9 +69,9 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
     }
 
     private static ResponseInfo buildResponseInfo(int statusCode, Header[] headers, byte[] responseBody,
-                                                  String host, String ip, double duration, Throwable error) {
+                                                  String host, String ip, int port, double duration, Throwable error) {
 
-        if(error != null && error instanceof CancellationHandler.CancellationException) {
+        if (error != null && error instanceof CancellationHandler.CancellationException) {
             return ResponseInfo.cancelled();
         }
 
@@ -132,7 +138,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
             }
         }
 
-        return new ResponseInfo(statusCode, reqId, xlog, xvia, host, ip, duration, err);
+        return new ResponseInfo(statusCode, reqId, xlog, xvia, host, ip, port, duration, err);
     }
 
     private static JSONObject buildJsonResp(byte[] body) throws Exception {
@@ -150,7 +156,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
         } catch (Exception e) {
             exception = e;
         }
-        ResponseInfo info = buildResponseInfo(statusCode, headers, null, host, ip, duration, exception);
+        ResponseInfo info = buildResponseInfo(statusCode, headers, null, host, ip, port, duration, exception);
         Log.i("upload----success", info.toString());
         completionHandler.complete(info, obj);
     }
@@ -158,7 +164,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
     @Override
     public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
         double duration = (System.currentTimeMillis() - reqStartTime) / 1000.0;
-        ResponseInfo info = buildResponseInfo(statusCode, headers, responseBody, host, ip, duration, error);
+        ResponseInfo info = buildResponseInfo(statusCode, headers, responseBody, host, ip, port, duration, error);
         Log.i("upload----failed", info.toString());
         completionHandler.complete(info, null);
     }
