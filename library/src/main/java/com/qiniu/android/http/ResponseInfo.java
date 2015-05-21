@@ -52,7 +52,12 @@ public final class ResponseInfo {
      */
     public final String ip;
 
-    public ResponseInfo(int statusCode, String reqId, String xlog, String xvia, String host, String ip, double duration, String error) {
+    /**
+     * 服务器端口
+     */
+    public final int port;
+
+    public ResponseInfo(int statusCode, String reqId, String xlog, String xvia, String host, String ip, int port, double duration, String error) {
         this.statusCode = statusCode;
         this.reqId = reqId;
         this.xlog = xlog;
@@ -61,20 +66,21 @@ public final class ResponseInfo {
         this.duration = duration;
         this.error = error;
         this.ip = ip;
+        this.port = port;
     }
 
     public static ResponseInfo cancelled() {
-        return new ResponseInfo(Cancelled, "", "", "", "", "", 0, "cancelled by user");
+        return new ResponseInfo(Cancelled, "", "", "", "", "", -1, 0, "cancelled by user");
     }
 
     public static ResponseInfo invalidArgument(String message) {
-        return new ResponseInfo(InvalidArgument, "", "", "", "", "", 0,
+        return new ResponseInfo(InvalidArgument, "", "", "", "", "", -1, 0,
                 message);
     }
 
 
     public static ResponseInfo fileError(Exception e) {
-        return new ResponseInfo(InvalidFile, "", "", "", "", "",
+        return new ResponseInfo(InvalidFile, "", "", "", "", "", -1,
                 0, e.getMessage());
     }
 
@@ -103,11 +109,11 @@ public final class ResponseInfo {
 
     public boolean needRetry() {
         return !isCancelled() && (isNetworkBroken() || isServerError() || statusCode == 406
-                || (statusCode == 200 && error != null) );
+                || (statusCode == 200 && error != null));
     }
 
     public String toString() {
-        return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s,  host:%s, ip:%s, duration:%f s, error:%s}",
-                super.toString(), statusCode, reqId, xlog, xvia, host, ip, duration, error);
+        return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s,  host:%s, ip:%s, port:%d, duration:%f s, error:%s}",
+                super.toString(), statusCode, reqId, xlog, xvia, host, ip, port, duration, error);
     }
 }

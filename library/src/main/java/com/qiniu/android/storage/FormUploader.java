@@ -107,7 +107,7 @@ final class FormUploader {
                 if (info.isOK()) {
                     options.progressHandler.progress(key, 1.0);
                     completionHandler.complete(key, info, response);
-                } else if(info.needRetry()) {
+                } else if (info.needRetry()) {
                     CompletionHandler retried = new CompletionHandler() {
                         @Override
                         public void complete(ResponseInfo info, JSONObject response) {
@@ -121,13 +121,17 @@ final class FormUploader {
                     if (info.needSwitchServer()) {
                         host = config.upHostBackup;
                     }
-                    httpManager.multipartPost("http://" + host, args, progress, retried, options.cancellationSignal);
+                    httpManager.multipartPost(genUploadAddress(host, config.upPort), args, progress, retried, options.cancellationSignal);
                 } else {
                     completionHandler.complete(key, info, response);
                 }
             }
         };
 
-        httpManager.multipartPost("http://" + config.upHost, args, progress, completion, options.cancellationSignal);
+        httpManager.multipartPost(genUploadAddress(config.upHost, config.upPort), args, progress, completion, options.cancellationSignal);
+    }
+
+    private static String genUploadAddress(String host, int port) {
+        return "http://" + host + ":" + port;
     }
 }

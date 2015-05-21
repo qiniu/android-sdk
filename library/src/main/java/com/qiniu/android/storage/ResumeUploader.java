@@ -110,7 +110,7 @@ final class ResumeUploader implements Runnable {
     private void putChunk(String host, int offset, int chunkSize, String context, ProgressHandler progress,
                           CompletionHandler _completionHandler, UpCancellationSignal c) {
         int chunkOffset = offset % Configuration.BLOCK_SIZE;
-        String url = format(Locale.ENGLISH, "http://%s/bput/%s/%d", host, context, chunkOffset);
+        String url = format(Locale.ENGLISH, "http://%s:%d/bput/%s/%d", host, config.upPort, context, chunkOffset);
         try {
             file.seek(offset);
             file.read(chunkBuffer, 0, chunkSize);
