@@ -51,7 +51,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
     /**
      * 服务器端口
      */
-    public int port = -1;
+    private int port = -1;
 
     public ResponseHandler(String url, CompletionHandler completionHandler, ProgressHandler progressHandler) {
         super(Looper.getMainLooper());

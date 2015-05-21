@@ -121,17 +121,17 @@ final class FormUploader {
                     if (info.needSwitchServer()) {
                         host = config.upHostBackup;
                     }
-                    httpManager.multipartPost(genUploadHost(host, config.upPort), args, progress, retried, options.cancellationSignal);
+                    httpManager.multipartPost(genUploadAddress(host, config.upPort), args, progress, retried, options.cancellationSignal);
                 } else {
                     completionHandler.complete(key, info, response);
                 }
             }
         };
 
-        httpManager.multipartPost(genUploadHost(config.upHost, config.upPort), args, progress, completion, options.cancellationSignal);
+        httpManager.multipartPost(genUploadAddress(config.upHost, config.upPort), args, progress, completion, options.cancellationSignal);
     }
 
-    private static String genUploadHost(String host, int port) {
+    private static String genUploadAddress(String host, int port) {
         return "http://" + host + ":" + port;
     }
 }
