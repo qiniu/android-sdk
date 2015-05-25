@@ -43,7 +43,7 @@ public final class HttpManager {
         client.setConnectTimeout(connectTimeout*1000);
         client.setResponseTimeout(responseTimeout*1000);
         client.setUserAgent(userAgent);
-        client.setEnableRedirects(false);
+        client.setEnableRedirects(true);
         AsyncHttpClient.blockRetryExceptionClass(CancellationHandler.CancellationException.class);
         if (proxy != null) {
             client.setProxy(proxy.hostAddress, proxy.port, proxy.user, proxy.password);
