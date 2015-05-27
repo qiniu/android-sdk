@@ -91,8 +91,7 @@ public final class ResponseInfo {
     public boolean isOK() {
         return statusCode == 200 && error == null && reqId != null;
     }
-
-
+    
     public boolean isNetworkBroken() {
         return statusCode == NetworkError || statusCode == UnknownHost
                 || statusCode == CannotConnectToHost || statusCode == TimedOut
