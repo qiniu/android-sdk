@@ -91,9 +91,11 @@ public final class ResponseInfo {
     public boolean isOK() {
         return statusCode == 200 && error == null && reqId != null;
     }
-
+    
     public boolean isNetworkBroken() {
-        return statusCode == NetworkError;
+        return statusCode == NetworkError || statusCode == UnknownHost
+                || statusCode == CannotConnectToHost || statusCode == TimedOut
+                || statusCode == NetworkConnectionLost;
     }
 
     public boolean isServerError() {
@@ -102,15 +104,14 @@ public final class ResponseInfo {
     }
 
     public boolean needSwitchServer() {
-        return statusCode == NetworkError || statusCode == CannotConnectToHost
-                || statusCode == TimedOut || statusCode == NetworkConnectionLost
-                || (statusCode >= 500 && statusCode < 600 && statusCode != 579);
+        return isNetworkBroken() || isServerError();
     }
 
     public boolean needRetry() {
-        return !isCancelled() && (isNetworkBroken() || isServerError() || statusCode == 406
+        return !isCancelled() && (needSwitchServer() || statusCode == 406
                 || (statusCode == 200 && error != null));
     }
+
 
     public String toString() {
         return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s,  host:%s, ip:%s, port:%d, duration:%f s, error:%s}",
