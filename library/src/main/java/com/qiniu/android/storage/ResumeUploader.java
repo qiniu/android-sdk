@@ -125,7 +125,7 @@ final class ResumeUploader implements Runnable {
         post(url, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
     }
 
-    private void makeFile(String host, CompletionHandler _completionHandler) {
+    private void makeFile(String host, CompletionHandler _completionHandler, UpCancellationSignal c) {
         String mime = format(Locale.ENGLISH, "/mimeType/%s", UrlSafeBase64.encodeToString(options.mimeType));
 
         String keyStr = "";
@@ -145,8 +145,8 @@ final class ResumeUploader implements Runnable {
         String url = format(Locale.ENGLISH, "http://%s/mkfile/%d%s%s%s", host, size, mime, keyStr, paramStr);
         String bodyStr = StringUtils.join(contexts, ",");
         byte[] data = bodyStr.getBytes();
-        // 不取消 makeFile 操作
-        post(url, data, 0, data.length, null, _completionHandler, null);
+
+        post(url, data, 0, data.length, null, _completionHandler, c);
     }
 
     private void post(String url, byte[] data, int offset, int size, ProgressHandler progress,
@@ -165,7 +165,7 @@ final class ResumeUploader implements Runnable {
     }
 
     private boolean isCancelled() {
-        return options.cancellationSignal.isCancelled();
+        return options.cancellationSignal != null && options.cancellationSignal.isCancelled();
     }
 
     private void nextTask(final int offset, final int retried, final String host) {
@@ -173,6 +173,11 @@ final class ResumeUploader implements Runnable {
             CompletionHandler complete = new CompletionHandler() {
                 @Override
                 public void complete(ResponseInfo info, JSONObject response) {
+                    if(isCancelled()){
+                        ResponseInfo i = ResponseInfo.cancelled();
+                        completionHandler.complete(key, i, null);
+                        return;
+                    }
                     if (info.isOK()) {
                         removeRecord();
                         options.progressHandler.progress(key, 1.0);
@@ -187,7 +192,7 @@ final class ResumeUploader implements Runnable {
                     completionHandler.complete(key, info, response);
                 }
             };
-            makeFile(host, complete);
+            makeFile(host, complete, options.cancellationSignal);
             return;
         }
 
@@ -207,6 +212,11 @@ final class ResumeUploader implements Runnable {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
                 if (!info.isOK()) {
+                    if(isCancelled()){
+                        ResponseInfo i = ResponseInfo.cancelled();
+                        completionHandler.complete(key, i, null);
+                        return;
+                    }
                     if (info.statusCode == 701) {
                         nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried, host);
                         return;
