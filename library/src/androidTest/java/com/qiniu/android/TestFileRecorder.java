@@ -80,7 +80,7 @@ public class TestFileRecorder extends InstrumentationTestCase {
         });
 
         try {
-            signal.await(500, TimeUnit.SECONDS); // wait for callback
+            signal.await(600, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

@@ -133,7 +133,7 @@ public class FormUploadTest extends InstrumentationTestCase {
             e.printStackTrace();
         }
         Assert.assertEquals(expectKey, key);
-        Assert.assertEquals(ResponseInfo.InvalidArgument, info.statusCode);
+        Assert.assertEquals(ResponseInfo.InvalidToken, info.statusCode);
         Assert.assertNotNull(info.reqId);
         Assert.assertNull(resp);
     }
