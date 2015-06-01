@@ -6,12 +6,22 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Created by bailong on 15/5/25.
+ * 内部使用的客户端 token 检查.
  */
-final class UpPolicy {
+public final class UpToken {
     private String returnUrl = null;
-    static UpPolicy parse(String token){
-        byte[] dtoken = UrlSafeBase64.decode(token);
+    public final String token;
+    public static UpToken parse(String token){
+        String[] t;
+        try {
+            t = token.split(":");
+        }catch (Exception e){
+            return null;
+        }
+        if (t.length != 3){
+            return null;
+        }
+        byte[] dtoken = UrlSafeBase64.decode(t[2]);
         JSONObject obj;
         try {
             obj = new JSONObject(new String(dtoken));
@@ -27,11 +37,16 @@ final class UpPolicy {
         if (deadline == 0){
             return null;
         }
-        return new UpPolicy(obj);
+        return new UpToken(obj, token);
     }
 
-    private UpPolicy(JSONObject obj){
+    private UpToken(JSONObject obj, String token){
         returnUrl = obj.optString("returnUrl");
+        this.token = token;
+    }
+
+    public String toString(){
+        return token;
     }
 
     private boolean hasReturnUrl(){

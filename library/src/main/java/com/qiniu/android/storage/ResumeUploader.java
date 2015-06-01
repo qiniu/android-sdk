@@ -51,8 +51,9 @@ final class ResumeUploader implements Runnable {
     private RandomAccessFile file;
     private File f;
     private long crc32;
+    private UpToken token;
 
-    ResumeUploader(HttpManager httpManager, Configuration config, File file, String key, String token,
+    ResumeUploader(HttpManager httpManager, Configuration config, File file, String key, UpToken token,
                    UpCompletionHandler completionHandler, UploadOptions options, String recorderKey) {
         this.httpManager = httpManager;
         this.config = config;
@@ -61,13 +62,14 @@ final class ResumeUploader implements Runnable {
         this.size = (int) file.length();
         this.key = key;
         this.headers = new Header[1];
-        headers[0] = new BasicHeader("Authorization", "UpToken " + token);
+        headers[0] = new BasicHeader("Authorization", "UpToken " + token.token);
         this.completionHandler = completionHandler;
         this.options = options != null ? options : UploadOptions.defaultOptions();
         chunkBuffer = new byte[config.chunkSize];
         long count = (size + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE;
         contexts = new String[(int) count];
         modifyTime = f.lastModified();
+        this.token = token;
     }
 
     public void run() {
