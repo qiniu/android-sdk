@@ -77,7 +77,7 @@ public final class UploadManager {
 
         final UpToken decodedToken = UpToken.parse(token);
         if (decodedToken == null){
-            final ResponseInfo info = ResponseInfo.invalidArgument("invalid token");
+            final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
             AsyncRun.run(new Runnable() {
                 @Override
                 public void run() {
@@ -124,7 +124,7 @@ public final class UploadManager {
         }
         UpToken decodedToken = UpToken.parse(token);
         if (decodedToken == null){
-            final ResponseInfo info = ResponseInfo.invalidArgument("invalid token");
+            final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
             AsyncRun.run(new Runnable() {
                 @Override
                 public void run() {
