@@ -1,6 +1,6 @@
 package com.qiniu.android.storage;
 
-import com.qiniu.android.common.Constants;
+import com.qiniu.android.http.Addresses;
 import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.HttpManager;
 import com.qiniu.android.http.ProgressHandler;
@@ -43,6 +43,7 @@ final class ResumeUploader implements Runnable {
     private final UploadOptions options;
     private final HttpManager httpManager;
     private final Configuration config;
+    private final Addresses addressList;
     private final byte[] chunkBuffer;
     private final String[] contexts;
     private final Header[] headers;
@@ -52,10 +53,11 @@ final class ResumeUploader implements Runnable {
     private File f;
     private long crc32;
 
-    ResumeUploader(HttpManager httpManager, Configuration config, File file, String key, String token,
+    ResumeUploader(HttpManager httpManager, Configuration config, Addresses addressList, File file, String key, String token,
                    UpCompletionHandler completionHandler, UploadOptions options, String recorderKey) {
         this.httpManager = httpManager;
         this.config = config;
+        this.addressList = addressList;
         this.f = file;
         this.recorderKey = recorderKey;
         this.size = (int) file.length();
@@ -79,7 +81,7 @@ final class ResumeUploader implements Runnable {
             completionHandler.complete(key, ResponseInfo.fileError(e), null);
             return;
         }
-        nextTask(offset, 0, config.upHost);
+        nextTask(offset, config.retryMax, config.upHost);
     }
 
     /**
@@ -94,7 +96,7 @@ final class ResumeUploader implements Runnable {
      */
     private void makeBlock(String host, int offset, int blockSize, int chunkSize, ProgressHandler progress,
                            CompletionHandler _completionHandler, UpCancellationSignal c) {
-        String url = format(Locale.ENGLISH, "http://%s/mkblk/%d", host, blockSize);
+        String url = format(Locale.ENGLISH, "%s/mkblk/%d", Addresses.Helper.genAddress(host, config.upPort), blockSize);
         try {
             file.seek(offset);
             file.read(chunkBuffer, 0, chunkSize);
@@ -110,7 +112,7 @@ final class ResumeUploader implements Runnable {
     private void putChunk(String host, int offset, int chunkSize, String context, ProgressHandler progress,
                           CompletionHandler _completionHandler, UpCancellationSignal c) {
         int chunkOffset = offset % Configuration.BLOCK_SIZE;
-        String url = format(Locale.ENGLISH, "http://%s:%d/bput/%s/%d", host, config.upPort, context, chunkOffset);
+        String url = format(Locale.ENGLISH, "%s/bput/%s/%d", Addresses.Helper.genAddress(host, config.upPort), context, chunkOffset);
         try {
             file.seek(offset);
             file.read(chunkBuffer, 0, chunkSize);
@@ -139,7 +141,7 @@ final class ResumeUploader implements Runnable {
             }
             paramStr = "/" + StringUtils.join(str, "/");
         }
-        String url = format(Locale.ENGLISH, "http://%s/mkfile/%d%s%s%s", host, size, mime, keyStr, paramStr);
+        String url = format(Locale.ENGLISH, "%s/mkfile/%d%s%s%s", Addresses.Helper.genAddress(host, config.upPort), size, mime, keyStr, paramStr);
         String bodyStr = StringUtils.join(contexts, ",");
         byte[] data = bodyStr.getBytes();
         // 不取消 makeFile 操作
@@ -148,7 +150,7 @@ final class ResumeUploader implements Runnable {
 
     private void post(String url, byte[] data, int offset, int size, ProgressHandler progress,
                       CompletionHandler completion, UpCancellationSignal c) {
-        httpManager.postData(url, data, offset, size, headers, progress, completion, c);
+        httpManager.postData(url, data, offset, size, headers, progress, completion, c, addressList);
     }
 
     private int calcPutSize(int offset) {
@@ -165,26 +167,30 @@ final class ResumeUploader implements Runnable {
         return options.cancellationSignal.isCancelled();
     }
 
+    private void doMakeFile(final String host, final int t) {
+        CompletionHandler complete = new CompletionHandler() {
+            @Override
+            public void complete(ResponseInfo info, JSONObject response) {
+                if (info.isOK()) {
+                    removeRecord();
+                    options.progressHandler.progress(key, 1.0);
+                    completionHandler.complete(key, info, response);
+                    return;
+                }
+
+                if (info.needRetry() && t > 1) {
+                    doMakeFile(host, t - 1);
+                    return;
+                }
+                completionHandler.complete(key, info, response);
+            }
+        };
+        makeFile(host, complete);
+    }
+
     private void nextTask(final int offset, final int retried, final String host) {
         if (offset == size) {
-            CompletionHandler complete = new CompletionHandler() {
-                @Override
-                public void complete(ResponseInfo info, JSONObject response) {
-                    if (info.isOK()) {
-                        removeRecord();
-                        options.progressHandler.progress(key, 1.0);
-                        completionHandler.complete(key, info, response);
-                        return;
-                    }
-
-                    if (info.needRetry() && retried < config.retryMax) {
-                        nextTask(offset, retried + 1, host);
-                        return;
-                    }
-                    completionHandler.complete(key, info, response);
-                }
-            };
-            makeFile(host, complete);
+            doMakeFile(host, 2);
             return;
         }
 
@@ -203,22 +209,11 @@ final class ResumeUploader implements Runnable {
         CompletionHandler complete = new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
-                if (!info.isOK()) {
-                    if (info.statusCode == 701) {
-                        nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried, host);
-                        return;
-                    }
-                    if (retried >= config.retryMax || !info.needRetry()) {
-                        completionHandler.complete(key, info, null);
-                        return;
-                    }
-                    String host2 = host;
-                    if (info.needSwitchServer()) {
-                        host2 = config.upHostBackup;
-                    }
-                    nextTask(offset, retried + 1, host2);
+                if (info.statusCode == 701 && retried > 1) {
+                    nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried - 1, host);
                     return;
                 }
+
                 String context = null;
 
                 if (response == null) {
@@ -249,6 +244,8 @@ final class ResumeUploader implements Runnable {
         String context = contexts[offset / Configuration.BLOCK_SIZE];
         putChunk(host, offset, chunkSize, context, progress, complete, options.cancellationSignal);
     }
+
+    private void  clearBlockCtx
 
     private int recoveryFromRecord() {
         if (config.recorder == null) {

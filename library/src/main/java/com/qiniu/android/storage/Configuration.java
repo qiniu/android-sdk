@@ -116,7 +116,7 @@ public final class Configuration {
         private int putThreshold = 512 * 1024;
         private int connectTimeout = 10;
         private int responseTimeout = 60;
-        private int retryMax = 5;
+        private int retryMax = 2;
 
         public Builder(){
             this.upHost = Zone.zone0.upHost;

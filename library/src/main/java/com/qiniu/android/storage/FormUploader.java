@@ -1,6 +1,6 @@
 package com.qiniu.android.storage;
 
-import com.qiniu.android.common.Constants;
+import com.qiniu.android.http.Addresses;
 import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.HttpManager;
 import com.qiniu.android.http.PostArgs;
@@ -34,9 +34,10 @@ final class FormUploader {
      * @param completionHandler 上传完成后续处理动作
      * @param options           上传时的可选参数
      */
-    static void upload(HttpManager httpManager, Configuration config, byte[] data, String key, String token, final UpCompletionHandler completionHandler,
+    static void upload(HttpManager httpManager, Configuration config, Addresses addressList,
+                       byte[] data, String key, String token, final UpCompletionHandler completionHandler,
                        final UploadOptions options) {
-        post(data, null, key, token, completionHandler, options, httpManager, config);
+        post(data, null, key, token, completionHandler, options, httpManager, config, addressList);
     }
 
     /**
@@ -49,13 +50,13 @@ final class FormUploader {
      * @param completionHandler 上传完成后续处理动作
      * @param options           上传时的可选参数
      */
-    static void upload(HttpManager httpManager, Configuration config, File file, String key, String token, UpCompletionHandler completionHandler,
+    static void upload(HttpManager httpManager, Configuration config, Addresses addressList, File file, String key, String token, UpCompletionHandler completionHandler,
                        UploadOptions options) {
-        post(null, file, key, token, completionHandler, options, httpManager, config);
+        post(null, file, key, token, completionHandler, options, httpManager, config, addressList);
     }
 
     private static void post(byte[] data, File file, String k, String token, final UpCompletionHandler completionHandler,
-                             final UploadOptions optionsIn, final HttpManager httpManager, final Configuration config) {
+                             final UploadOptions optionsIn, final HttpManager httpManager, final Configuration config, Addresses addressList) {
         final String key = k;
         Map<String, String> params = new HashMap<String, String>();
         final PostArgs args = new PostArgs();
@@ -106,32 +107,13 @@ final class FormUploader {
             public void complete(ResponseInfo info, JSONObject response) {
                 if (info.isOK()) {
                     options.progressHandler.progress(key, 1.0);
-                    completionHandler.complete(key, info, response);
-                } else if (info.needRetry()) {
-                    CompletionHandler retried = new CompletionHandler() {
-                        @Override
-                        public void complete(ResponseInfo info, JSONObject response) {
-                            if (info.isOK()) {
-                                options.progressHandler.progress(key, 1.0);
-                            }
-                            completionHandler.complete(key, info, response);
-                        }
-                    };
-                    String host = config.upHost;
-                    if (info.needSwitchServer()) {
-                        host = config.upHostBackup;
-                    }
-                    httpManager.multipartPost(genUploadAddress(host, config.upPort), args, progress, retried, options.cancellationSignal);
-                } else {
-                    completionHandler.complete(key, info, response);
                 }
+                completionHandler.complete(key, info, response);
             }
         };
 
-        httpManager.multipartPost(genUploadAddress(config.upHost, config.upPort), args, progress, completion, options.cancellationSignal);
+        httpManager.multipartPost(Addresses.Helper.genAddress(config.upHost, config.upPort), args, progress, completion, options.cancellationSignal, addressList);
     }
 
-    private static String genUploadAddress(String host, int port) {
-        return "http://" + host + ":" + port;
-    }
+
 }

@@ -1,5 +1,6 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.http.Addresses;
 import com.qiniu.android.http.HttpManager;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.StatReport;
@@ -16,6 +17,7 @@ import java.io.File;
 public final class UploadManager {
     private final Configuration config;
     private final HttpManager httpManager;
+    private final Addresses addressList;
 
     public UploadManager() {
         this(new Configuration.Builder().build());
@@ -23,8 +25,8 @@ public final class UploadManager {
 
     public UploadManager(Configuration config) {
         this.config = config;
-        this.httpManager = new HttpManager(config.proxy,
-                new StatReport(), config.upIp,
+        this.addressList = buildAddress(config);
+        this.httpManager = new HttpManager(config.proxy, new StatReport(),
                 config.connectTimeout, config.responseTimeout, config.urlConverter);
     }
 
@@ -34,6 +36,29 @@ public final class UploadManager {
 
     public UploadManager(Recorder recorder) {
         this(recorder, null);
+    }
+
+
+    private static Addresses buildAddress(Configuration config) {
+        Addresses.Helper helper = new Addresses.Helper();
+
+        helper.add(new Addresses.Address(config.upHost, config.upPort));
+        if(config.upPort != 80) {
+            helper.add(new Addresses.Address(config.upHost, 80));
+        }
+
+        helper.add(new Addresses.Address(config.upHostBackup, config.upPort));
+        if(config.upPort != 80) {
+            helper.add(new Addresses.Address(config.upHostBackup, 80));
+        }
+
+        // IP 是否需要调用转换函数
+        helper.add(new Addresses.Address(config.upIp, config.upPort, false));
+        if(config.upPort != 80) {
+            helper.add(new Addresses.Address(config.upIp, 80, false));
+        }
+
+        return helper.build();
     }
 
     private static boolean areInvalidArg(final String key, byte[] data, File f,
@@ -77,7 +102,7 @@ public final class UploadManager {
         AsyncRun.run(new Runnable() {
             @Override
             public void run() {
-                FormUploader.upload(httpManager, config, data, key, token, completionHandler, options);
+                FormUploader.upload(httpManager, config, addressList, data, key, token, completionHandler, options);
             }
         });
     }
@@ -112,11 +137,11 @@ public final class UploadManager {
         }
         long size = file.length();
         if (size <= config.putThreshold) {
-            FormUploader.upload(httpManager, config, file, key, token, completionHandler, options);
+            FormUploader.upload(httpManager, config, addressList, file, key, token, completionHandler, options);
             return;
         }
         String recorderKey = config.keyGen.gen(key, file);
-        ResumeUploader uploader = new ResumeUploader(httpManager, config, file, key,
+        ResumeUploader uploader = new ResumeUploader(httpManager, config, addressList, file, key,
                 token, completionHandler, options, recorderKey);
 
         AsyncRun.run(uploader);
