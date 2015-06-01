@@ -7,6 +7,7 @@ import java.util.Locale;
  * 定义HTTP请求的日志信息和常规方法
  */
 public final class ResponseInfo {
+    public static final int InvalidToken = -5;
     public static final int InvalidArgument = -4;
     public static final int InvalidFile = -3;
     public static final int Cancelled = -2;
@@ -78,6 +79,10 @@ public final class ResponseInfo {
                 message);
     }
 
+    public static ResponseInfo invalidToken(String message) {
+        return new ResponseInfo(InvalidToken, "", "", "", "", "", -1, 0,
+                message);
+    }
 
     public static ResponseInfo fileError(Exception e) {
         return new ResponseInfo(InvalidFile, "", "", "", "", "", -1,
@@ -112,6 +117,9 @@ public final class ResponseInfo {
                 || (statusCode == 200 && error != null));
     }
 
+    public boolean isQiniu() {
+        return statusCode < 500 && statusCode >= 200 && reqId == null;
+    }
 
     public String toString() {
         return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s,  host:%s, ip:%s, port:%d, duration:%f s, error:%s}",

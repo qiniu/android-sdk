@@ -3,7 +3,7 @@ package com.qiniu.android.http;
 /**
  * http 代理
  */
-public class Proxy {
+public final class Proxy {
 
     public final String hostAddress;
     public final int port;

@@ -74,10 +74,22 @@ public final class UploadManager {
         if (areInvalidArg(key, data, null, token, completionHandler)) {
             return;
         }
+
+        final UpToken decodedToken = UpToken.parse(token);
+        if (decodedToken == null){
+            final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
+            AsyncRun.run(new Runnable() {
+                @Override
+                public void run() {
+                    completionHandler.complete(key, info, null);
+                }
+            });
+            return;
+        }
         AsyncRun.run(new Runnable() {
             @Override
             public void run() {
-                FormUploader.upload(httpManager, config, data, key, token, completionHandler, options);
+                FormUploader.upload(httpManager, config, data, key, decodedToken, completionHandler, options);
             }
         });
     }
@@ -105,19 +117,30 @@ public final class UploadManager {
      * @param completionHandler 上传完成的后续处理动作
      * @param options           上传数据的可选参数
      */
-    public void put(File file, String key, String token, UpCompletionHandler completionHandler,
+    public void put(File file, final String key, String token, final UpCompletionHandler completionHandler,
                     final UploadOptions options) {
         if (areInvalidArg(key, null, file, token, completionHandler)) {
             return;
         }
+        UpToken decodedToken = UpToken.parse(token);
+        if (decodedToken == null){
+            final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
+            AsyncRun.run(new Runnable() {
+                @Override
+                public void run() {
+                    completionHandler.complete(key, info, null);
+                }
+            });
+            return;
+        }
         long size = file.length();
         if (size <= config.putThreshold) {
-            FormUploader.upload(httpManager, config, file, key, token, completionHandler, options);
+            FormUploader.upload(httpManager, config, file, key, decodedToken, completionHandler, options);
             return;
         }
         String recorderKey = config.keyGen.gen(key, file);
         ResumeUploader uploader = new ResumeUploader(httpManager, config, file, key,
-                token, completionHandler, options, recorderKey);
+                decodedToken, completionHandler, options, recorderKey);
 
         AsyncRun.run(uploader);
     }

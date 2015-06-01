@@ -1,6 +1,5 @@
 package com.qiniu.android.storage;
 
-import com.qiniu.android.common.Constants;
 import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.HttpManager;
 import com.qiniu.android.http.PostArgs;
@@ -34,7 +33,7 @@ final class FormUploader {
      * @param completionHandler 上传完成后续处理动作
      * @param options           上传时的可选参数
      */
-    static void upload(HttpManager httpManager, Configuration config, byte[] data, String key, String token, final UpCompletionHandler completionHandler,
+    static void upload(HttpManager httpManager, Configuration config, byte[] data, String key, UpToken token, final UpCompletionHandler completionHandler,
                        final UploadOptions options) {
         post(data, null, key, token, completionHandler, options, httpManager, config);
     }
@@ -49,12 +48,12 @@ final class FormUploader {
      * @param completionHandler 上传完成后续处理动作
      * @param options           上传时的可选参数
      */
-    static void upload(HttpManager httpManager, Configuration config, File file, String key, String token, UpCompletionHandler completionHandler,
+    static void upload(HttpManager httpManager, Configuration config, File file, String key, UpToken token, UpCompletionHandler completionHandler,
                        UploadOptions options) {
         post(null, file, key, token, completionHandler, options, httpManager, config);
     }
 
-    private static void post(byte[] data, File file, String k, String token, final UpCompletionHandler completionHandler,
+    private static void post(byte[] data, File file, String k, final UpToken token, final UpCompletionHandler completionHandler,
                              final UploadOptions optionsIn, final HttpManager httpManager, final Configuration config) {
         final String key = k;
         Map<String, String> params = new HashMap<String, String>();
@@ -66,7 +65,7 @@ final class FormUploader {
             args.fileName = "?";
         }
 
-        params.put("token", token);
+        params.put("token", token.token);
 
         final UploadOptions options = optionsIn != null ? optionsIn : UploadOptions.defaultOptions();
         params.putAll(options.params);
@@ -121,14 +120,18 @@ final class FormUploader {
                     if (info.needSwitchServer()) {
                         host = config.upHostBackup;
                     }
-                    httpManager.multipartPost(genUploadAddress(host, config.upPort), args, progress, retried, options.cancellationSignal);
+                    boolean forceIp = false;
+                    if (!info.isQiniu() && !token.hasReturnUrl()){
+                        forceIp = true;
+                    }
+                    httpManager.multipartPost(genUploadAddress(host, config.upPort), args, progress, retried, options.cancellationSignal, forceIp);
                 } else {
                     completionHandler.complete(key, info, response);
                 }
             }
         };
 
-        httpManager.multipartPost(genUploadAddress(config.upHost, config.upPort), args, progress, completion, options.cancellationSignal);
+        httpManager.multipartPost(genUploadAddress(config.upHost, config.upPort), args, progress, completion, options.cancellationSignal, false);
     }
 
     private static String genUploadAddress(String host, int port) {

@@ -3,6 +3,7 @@ package com.qiniu.android.http;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.qiniu.android.common.Constants;
+import com.qiniu.android.utils.Dns;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -15,6 +16,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static java.lang.String.format;
 
@@ -41,9 +44,10 @@ public final class HttpManager {
         this.backUpIp = backUpIp;
         client = new AsyncHttpClient();
         client.setConnectTimeout(connectTimeout*1000);
-        client.setResponseTimeout(responseTimeout*1000);
+        client.setResponseTimeout(responseTimeout * 1000);
         client.setUserAgent(userAgent);
-        client.setEnableRedirects(false);
+        client.setEnableRedirects(true);
+        client.setRedirectHandler(new UpRedirectHandler());
         AsyncHttpClient.blockRetryExceptionClass(CancellationHandler.CancellationException.class);
         if (proxy != null) {
             client.setProxy(proxy.hostAddress, proxy.port, proxy.user, proxy.password);
@@ -97,18 +101,18 @@ public final class HttpManager {
      * @param completionHandler 发送数据完成后续动作处理对象
      */
     public void postData(String url, byte[] data, int offset, int size, Header[] headers,
-                         ProgressHandler progressHandler, final CompletionHandler completionHandler, CancellationHandler c) {
+                         ProgressHandler progressHandler, final CompletionHandler completionHandler, CancellationHandler c, boolean forceIp) {
         ByteArrayEntity entity = new ByteArrayEntity(data, offset, size, progressHandler, c);
-        postEntity(url, entity, headers, progressHandler, completionHandler);
+        postEntity(url, entity, headers, progressHandler, completionHandler, forceIp);
     }
 
     public void postData(String url, byte[] data, Header[] headers, ProgressHandler progressHandler,
-                         CompletionHandler completionHandler, CancellationHandler c) {
-        postData(url, data, 0, data.length, headers, progressHandler, completionHandler, c);
+                         CompletionHandler completionHandler, CancellationHandler c, boolean forceIp) {
+        postData(url, data, 0, data.length, headers, progressHandler, completionHandler, c, forceIp);
     }
 
     private void postEntity(String url, final HttpEntity entity, Header[] headers,
-                         ProgressHandler progressHandler, CompletionHandler completionHandler) {
+                         ProgressHandler progressHandler, CompletionHandler completionHandler, final boolean forceIp) {
         final CompletionHandler wrapper = wrap(completionHandler);
         final Header[] h = reporter.appendStatHeaders(headers);
 
@@ -117,32 +121,35 @@ public final class HttpManager {
         }
 
         final AsyncHttpResponseHandler originHandler = new ResponseHandler(url, wrapper, progressHandler);
-        if(backUpIp == null){
+        if(backUpIp == null || converter != null){
             client.post(null, url, h, entity, null, originHandler);
             return;
         }
         final String url2 = url;
-        client.post(null, url, h, entity, null, new ResponseHandler(url, new CompletionHandler() {
+
+        ExecutorService t = client.getThreadPool();
+        t.execute(new Runnable() {
             @Override
-            public void complete(ResponseInfo info, JSONObject response) {
-                if (info.statusCode != ResponseInfo.UnknownHost){
-                    wrapper.complete(info, response);
-                    return;
+            public void run() {
+                URI uri = URI.create(url2);
+                String ip = Dns.getAddress(uri.getHost());
+                if (ip == null || ip.equals("") || forceIp) {
+                    ip = backUpIp;
                 }
+
                 Header[] h2 = new Header[h.length + 1];
                 System.arraycopy(h, 0, h2, 0, h.length);
 
-                URI uri = URI.create(url2);
                 String newUrl = null;
                 try {
-                    newUrl = new URI(uri.getScheme(), null, backUpIp, uri.getPort(), uri.getPath(), uri.getQuery(), null).toString();
+                    newUrl = new URI(uri.getScheme(), null, ip, uri.getPort(), uri.getPath(), uri.getQuery(), null).toString();
                 } catch (URISyntaxException e) {
                     throw new AssertionError(e);
                 }
                 h2[h.length] = new BasicHeader("Host", uri.getHost());
                 client.post(null, newUrl, h2, entity, null, originHandler);
             }
-        }, progressHandler));
+        });
     }
 
     /**
@@ -154,7 +161,7 @@ public final class HttpManager {
      * @param completionHandler 发送数据完成后续动作处理对象
      */
     public void multipartPost(String url, PostArgs args, ProgressHandler progressHandler,
-                              final CompletionHandler completionHandler, CancellationHandler c) {
+                              final CompletionHandler completionHandler, CancellationHandler c, boolean forceIp) {
         MultipartBuilder mbuilder = new MultipartBuilder();
         for (Map.Entry<String, String> entry : args.params.entrySet()) {
             mbuilder.addPart(entry.getKey(), entry.getValue());
@@ -178,7 +185,7 @@ public final class HttpManager {
 
         ByteArrayEntity entity = mbuilder.build(progressHandler, c);
         Header[] h = reporter.appendStatHeaders(new Header[0]);
-        postEntity(url, entity, h, progressHandler, completionHandler);
+        postEntity(url, entity, h, progressHandler, completionHandler, forceIp);
     }
 
     private CompletionHandler wrap(final CompletionHandler completionHandler) {
@@ -194,40 +201,4 @@ public final class HttpManager {
             }
         };
     }
-
-    /**
-     * fixed key escape for async http client
-     * Appends a quoted-string to a StringBuilder.
-     * <p/>
-     * <p>RFC 2388 is rather vague about how one should escape special characters
-     * in form-data parameters, and as it turns out Firefox and Chrome actually
-     * do rather different things, and both say in their comments that they're
-     * not really sure what the right approach is. We go with Chrome's behavior
-     * (which also experimentally seems to match what IE does), but if you
-     * actually want to have a good chance of things working, please avoid
-     * double-quotes, newlines, percent signs, and the like in your field names.
-     */
-    private static String escapeMultipartString(String key) {
-        StringBuilder target = new StringBuilder();
-
-        for (int i = 0, len = key.length(); i < len; i++) {
-            char ch = key.charAt(i);
-            switch (ch) {
-                case '\n':
-                    target.append("%0A");
-                    break;
-                case '\r':
-                    target.append("%0D");
-                    break;
-                case '"':
-                    target.append("%22");
-                    break;
-                default:
-                    target.append(ch);
-                    break;
-            }
-        }
-        return target.toString();
-    }
-
 }
