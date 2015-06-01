@@ -29,6 +29,14 @@ public final class Dns {
         return r;
     }
 
+    public static String getAddress(String hostName){
+        String[] array = getAddresses(hostName);
+        if (array == null || array.length == 0){
+            return null;
+        }
+        return array[0];
+    }
+
     /**
      * 根据域名解析出来IP列表，并合并为一个字符串，通过';'分隔
      *

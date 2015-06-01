@@ -6,7 +6,7 @@ import org.apache.http.Header;
 /**
  * Report the client status to Server.
  */
-public class StatReport implements IReport{
+public final class StatReport implements IReport{
     private ResponseInfo previousErrorInfo = null;
     private ResponseInfo previousSpeedInfo = null;
 

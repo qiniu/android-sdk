@@ -53,7 +53,7 @@ final class FormUploader {
         post(null, file, key, token, completionHandler, options, httpManager, config);
     }
 
-    private static void post(byte[] data, File file, String k, UpToken token, final UpCompletionHandler completionHandler,
+    private static void post(byte[] data, File file, String k, final UpToken token, final UpCompletionHandler completionHandler,
                              final UploadOptions optionsIn, final HttpManager httpManager, final Configuration config) {
         final String key = k;
         Map<String, String> params = new HashMap<String, String>();
@@ -120,14 +120,18 @@ final class FormUploader {
                     if (info.needSwitchServer()) {
                         host = config.upHostBackup;
                     }
-                    httpManager.multipartPost(genUploadAddress(host, config.upPort), args, progress, retried, options.cancellationSignal);
+                    boolean forceIp = false;
+                    if (!info.isQiniu() && !token.hasReturnUrl()){
+                        forceIp = true;
+                    }
+                    httpManager.multipartPost(genUploadAddress(host, config.upPort), args, progress, retried, options.cancellationSignal, forceIp);
                 } else {
                     completionHandler.complete(key, info, response);
                 }
             }
         };
 
-        httpManager.multipartPost(genUploadAddress(config.upHost, config.upPort), args, progress, completion, options.cancellationSignal);
+        httpManager.multipartPost(genUploadAddress(config.upHost, config.upPort), args, progress, completion, options.cancellationSignal, false);
     }
 
     private static String genUploadAddress(String host, int port) {

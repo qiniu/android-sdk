@@ -113,6 +113,10 @@ public final class ResponseInfo {
                 || (statusCode == 200 && error != null));
     }
 
+    public boolean isQiniu() {
+        return statusCode < 500 && statusCode >= 200 && reqId == null;
+    }
+
     public String toString() {
         return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s,  host:%s, ip:%s, port:%d, duration:%f s, error:%s}",
                 super.toString(), statusCode, reqId, xlog, xvia, host, ip, port, duration, error);

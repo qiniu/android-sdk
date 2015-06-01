@@ -5,8 +5,6 @@ import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
-import com.qiniu.android.http.CompletionHandler;
-import com.qiniu.android.http.HttpManager;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
@@ -15,8 +13,6 @@ import com.qiniu.android.storage.UploadOptions;
 
 import junit.framework.Assert;
 
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -96,7 +92,7 @@ public class PortTest extends InstrumentationTestCase {
         check(expectKey);
     }
 
-    private void check( final String expectKey){
+    private void check(final String expectKey) {
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {

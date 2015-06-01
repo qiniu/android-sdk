@@ -52,6 +52,7 @@ final class ResumeUploader implements Runnable {
     private File f;
     private long crc32;
     private UpToken token;
+    private boolean forceIp = false;
 
     ResumeUploader(HttpManager httpManager, Configuration config, File file, String key, UpToken token,
                    UpCompletionHandler completionHandler, UploadOptions options, String recorderKey) {
@@ -150,7 +151,7 @@ final class ResumeUploader implements Runnable {
 
     private void post(String url, byte[] data, int offset, int size, ProgressHandler progress,
                       CompletionHandler completion, UpCancellationSignal c) {
-        httpManager.postData(url, data, offset, size, headers, progress, completion, c);
+        httpManager.postData(url, data, offset, size, headers, progress, completion, c, forceIp);
     }
 
     private int calcPutSize(int offset) {
@@ -209,6 +210,9 @@ final class ResumeUploader implements Runnable {
                     if (info.statusCode == 701) {
                         nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried, host);
                         return;
+                    }
+                    if (!info.isQiniu() && !token.hasReturnUrl()){
+                        forceIp = true;
                     }
                     if (retried >= config.retryMax || !info.needRetry()) {
                         completionHandler.complete(key, info, null);

@@ -21,7 +21,7 @@ import java.net.URISyntaxException;
 /**
  * Created by bailong on 15/5/25.
  */
-public class UpRedirectHandler implements RedirectHandler {
+public final class UpRedirectHandler implements RedirectHandler {
 
     private static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
 

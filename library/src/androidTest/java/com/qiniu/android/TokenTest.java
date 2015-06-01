@@ -10,7 +10,7 @@ import junit.framework.Assert;
  * Created by bailong on 15/6/1.
  */
 public class TokenTest extends AndroidTestCase {
-    public void testRight(){
+    public void testRight() {
         UpToken t = UpToken.parse(TestConfig.token);
         Assert.assertNotNull(t);
     }
