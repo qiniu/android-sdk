@@ -6,6 +6,7 @@ import android.test.suitebuilder.annotation.MediumTest;
 import android.util.Log;
 
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UploadManager;
 
@@ -26,7 +27,8 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     private volatile JSONObject resp;
 
     public void setUp() throws Exception {
-        uploadManager = new UploadManager();
+        Configuration config = new Configuration.Builder().upPort(9999).build();
+        uploadManager = new UploadManager(config);
     }
 
     private void template(int size) throws Throwable {
