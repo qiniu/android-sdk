@@ -109,7 +109,7 @@ final class FormUploader {
                 } else if(options.cancellationSignal.isCancelled()){
                     ResponseInfo i = ResponseInfo.cancelled();
                     completionHandler.complete(key, i, null);
-                } else if (info.needRetry()) {
+                } else if (info.needRetry() || (info.isNotQiniu() && !token.hasReturnUrl())) {
                     CompletionHandler retried = new CompletionHandler() {
                         @Override
                         public void complete(ResponseInfo info, JSONObject response) {

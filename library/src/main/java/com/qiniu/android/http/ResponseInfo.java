@@ -118,7 +118,7 @@ public final class ResponseInfo {
     }
 
     public boolean isNotQiniu() {
-        return statusCode < 500 && statusCode >= 200 && reqId != null;
+        return statusCode < 500 && statusCode >= 200 && reqId == null;
     }
 
     public String toString() {

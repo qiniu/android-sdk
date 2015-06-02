@@ -325,10 +325,52 @@ public class FormUploadTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testPortBackup() throws Throwable {
-
         Configuration c = new Configuration.Builder()
                 .zone(new Zone("upload.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp))
                 .upPort(9999)
+                .build();
+        UploadManager _up = new UploadManager(c);
+        final String expectKey = "你好;\"\r\n\r\n\r\n";
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("x:foo", "fooval");
+        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
+
+        uploadManager.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                Log.i("qiniutest", k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+                signal.countDown();
+            }
+        }, opt);
+
+
+        try {
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        // 尝试获取info信息。
+        // key == null ： 没进入 complete ？ 什么导致的？
+        if (!expectKey.equals(key)) {
+            //此处通不过， travis 会打印信息
+            Assert.assertEquals("", info);
+        }
+        if (info == null || !info.isOK()) {
+            //此处通不过， travis 会打印信息
+            Assert.assertEquals("", info);
+        }
+        Assert.assertEquals(expectKey, key);
+        Assert.assertTrue(info.isOK());
+        Assert.assertNotNull(info.reqId);
+        Assert.assertNotNull(resp);
+    }
+
+    @SmallTest
+    public void testDnsHijacking() throws Throwable {
+        Configuration c = new Configuration.Builder()
+                .zone(new Zone("uphijacktest.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp))
                 .build();
         UploadManager _up = new UploadManager(c);
         final String expectKey = "你好;\"\r\n\r\n\r\n";
