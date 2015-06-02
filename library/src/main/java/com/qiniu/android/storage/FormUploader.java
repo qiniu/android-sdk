@@ -126,7 +126,7 @@ final class FormUploader {
                         host = config.upHostBackup;
                     }
                     boolean forceIp = false;
-                    if (!info.isQiniu() && !token.hasReturnUrl()){
+                    if (info.isNotQiniu() && !token.hasReturnUrl()){
                         forceIp = true;
                     }
                     httpManager.multipartPost(genUploadAddress(host, config.upPort), args, progress, retried, options.cancellationSignal, forceIp);

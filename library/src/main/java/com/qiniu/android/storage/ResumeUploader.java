@@ -165,7 +165,7 @@ final class ResumeUploader implements Runnable {
     }
 
     private boolean isCancelled() {
-        return options.cancellationSignal != null && options.cancellationSignal.isCancelled();
+        return options.cancellationSignal.isCancelled();
     }
 
     private void nextTask(final int offset, final int retried, final String host) {
@@ -221,7 +221,7 @@ final class ResumeUploader implements Runnable {
                         nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried, host);
                         return;
                     }
-                    if (!info.isQiniu() && !token.hasReturnUrl()){
+                    if (info.isNotQiniu() && !token.hasReturnUrl()){
                         forceIp = true;
                     }
                     if (retried >= config.retryMax || !info.needRetry()) {
