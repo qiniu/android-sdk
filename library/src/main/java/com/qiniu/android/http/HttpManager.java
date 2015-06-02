@@ -131,9 +131,14 @@ public final class HttpManager {
             @Override
             public void run() {
                 final URI uri = URI.create(url2);
-                String ip = Dns.getAddress(uri.getHost());
-                if (ip == null || ip.equals("") || forceIp) {
+                String ip = null;
+                if (forceIp) {
                     ip = backUpIp;
+                }else {
+                    ip = Dns.getAddress(uri.getHost());
+                    if (ip == null || ip.equals("")){
+                        ip = backUpIp;
+                    }
                 }
 
                 final Header[] h2 = new Header[h.length + 1];
