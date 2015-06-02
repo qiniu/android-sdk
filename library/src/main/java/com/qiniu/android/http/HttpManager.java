@@ -106,11 +106,6 @@ public final class HttpManager {
         postData(url, data, 0, data.length, headers, progressHandler, completionHandler, c, addressList);
     }
 
-    public void postData(String url, byte[] data, Header[] headers, ProgressHandler progressHandler,
-                         CompletionHandler completionHandler, CancellationHandler c) {
-        postData(url, data, 0, data.length, headers, progressHandler, completionHandler, c, null);
-    }
-
     private void postEntity(final String url, final HttpEntity entity, final Header[] headers,
                             final ProgressHandler progressHandler, final CompletionHandler completionHandler,
                             final Addresses addressList) {

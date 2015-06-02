@@ -37,7 +37,7 @@ import static java.lang.String.format;
  */
 final class ResumeUploader implements Runnable {
 
-    private final int size;
+    private final long size;
     private final String key;
     private final UpCompletionHandler completionHandler;
     private final UploadOptions options;
@@ -51,7 +51,7 @@ final class ResumeUploader implements Runnable {
     private final String recorderKey;
     private RandomAccessFile file;
     private File f;
-    private long crc32;
+    private volatile long crc32;
 
     ResumeUploader(HttpManager httpManager, Configuration config, Addresses addressList, File file, String key, String token,
                    UpCompletionHandler completionHandler, UploadOptions options, String recorderKey) {
@@ -60,20 +60,20 @@ final class ResumeUploader implements Runnable {
         this.addressList = addressList;
         this.f = file;
         this.recorderKey = recorderKey;
-        this.size = (int) file.length();
+        this.size = file.length();
         this.key = key;
         this.headers = new Header[1];
         headers[0] = new BasicHeader("Authorization", "UpToken " + token);
         this.completionHandler = completionHandler;
         this.options = options != null ? options : UploadOptions.defaultOptions();
         chunkBuffer = new byte[config.chunkSize];
-        long count = (size + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE;
-        contexts = new String[(int) count];
+        int count = (int)((size + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE);
+        contexts = new String[count];
         modifyTime = f.lastModified();
     }
 
     public void run() {
-        int offset = recoveryFromRecord();
+        long offset = recoveryFromRecord();
         try {
             file = new RandomAccessFile(f, "r");
         } catch (FileNotFoundException e) {
@@ -94,7 +94,7 @@ final class ResumeUploader implements Runnable {
      * @param progress           上传进度
      * @param _completionHandler 上传完成处理动作
      */
-    private void makeBlock(String host, int offset, int blockSize, int chunkSize, ProgressHandler progress,
+    private void makeBlock(String host, long offset, int blockSize, int chunkSize, ProgressHandler progress,
                            CompletionHandler _completionHandler, UpCancellationSignal c) {
         String url = format(Locale.ENGLISH, "%s/mkblk/%d", Addresses.Helper.genAddress(host, config.upPort), blockSize);
         try {
@@ -109,9 +109,9 @@ final class ResumeUploader implements Runnable {
         post(url, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
     }
 
-    private void putChunk(String host, int offset, int chunkSize, String context, ProgressHandler progress,
+    private void putChunk(String host, long offset, int chunkSize, String context, ProgressHandler progress,
                           CompletionHandler _completionHandler, UpCancellationSignal c) {
-        int chunkOffset = offset % Configuration.BLOCK_SIZE;
+        int chunkOffset = (int)(offset % Configuration.BLOCK_SIZE);
         String url = format(Locale.ENGLISH, "%s/bput/%s/%d", Addresses.Helper.genAddress(host, config.upPort), context, chunkOffset);
         try {
             file.seek(offset);
@@ -153,14 +153,14 @@ final class ResumeUploader implements Runnable {
         httpManager.postData(url, data, offset, size, headers, progress, completion, c, addressList);
     }
 
-    private int calcPutSize(int offset) {
-        int left = size - offset;
-        return left < config.chunkSize ? left : config.chunkSize;
+    private int calcPutSize(long offset) {
+        long left = size - offset;
+        return (int)(left < config.chunkSize ? left : config.chunkSize);
     }
 
-    private int calcBlockSize(int offset) {
-        int left = size - offset;
-        return left < Configuration.BLOCK_SIZE ? left : Configuration.BLOCK_SIZE;
+    private int calcBlockSize(long offset) {
+        long left = size - offset;
+        return (int)(left < Configuration.BLOCK_SIZE ? left : Configuration.BLOCK_SIZE);
     }
 
     private boolean isCancelled() {
@@ -188,12 +188,23 @@ final class ResumeUploader implements Runnable {
         makeFile(host, complete);
     }
 
-    private void nextTask(final int offset, final int retried, final String host) {
-        if (offset == size) {
-            doMakeFile(host, 2);
-            return;
-        }
+    private void doMakeBlock() {
 
+    }
+
+    private void doPutChunk() {
+
+    }
+
+    private void nextTask(final long offset, final int retried, final String host) {
+        if (offset == size) {
+            doMakeFile(host, config.retryMax);
+        } else {
+            nextChunk(offset, retried, host);
+        }
+    }
+
+    private void nextChunk(final long offset, final int retried, final String host) {
         final int chunkSize = calcPutSize(offset);
         ProgressHandler progress = new ProgressHandler() {
             @Override
@@ -231,7 +242,7 @@ final class ResumeUploader implements Runnable {
                     nextTask(offset, retried + 1, host);
                     return;
                 }
-                contexts[offset / Configuration.BLOCK_SIZE] = context;
+                contexts[(int)(offset / Configuration.BLOCK_SIZE)] = context;
                 record(offset + chunkSize);
                 nextTask(offset + chunkSize, retried, host);
             }
@@ -240,14 +251,13 @@ final class ResumeUploader implements Runnable {
             int blockSize = calcBlockSize(offset);
             makeBlock(host, offset, blockSize, chunkSize, progress, complete, options.cancellationSignal);
             return;
+        } else {
+            String context = contexts[(int) (offset / Configuration.BLOCK_SIZE)];
+            putChunk(host, offset, chunkSize, context, progress, complete, options.cancellationSignal);
         }
-        String context = contexts[offset / Configuration.BLOCK_SIZE];
-        putChunk(host, offset, chunkSize, context, progress, complete, options.cancellationSignal);
     }
 
-    private void  clearBlockCtx
-
-    private int recoveryFromRecord() {
+    private long recoveryFromRecord() {
         if (config.recorder == null) {
             return 0;
         }
@@ -290,7 +300,7 @@ final class ResumeUploader implements Runnable {
     //    "modify_time": lastFileModifyTime,
     //    "contexts": contexts
     //}
-    private void record(int offset) {
+    private void record(long offset) {
         if (config.recorder == null || offset == 0) {
             return;
         }
