@@ -136,7 +136,7 @@ public final class Configuration {
             this.upHost = Zone.zone0.upHost;
             this.upHostBackup = Zone.zone0.upHostBackup;
             this.upIp = Zone.zone0.upIp;
-            this.upPort = 80;
+            this.upPort = 8888;
         }
 
         private UrlConverter urlConverter = null;
