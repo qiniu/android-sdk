@@ -103,14 +103,12 @@ final class FormUploader {
         CompletionHandler completion = new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
-                if(options.cancellationSignal != null && options.cancellationSignal.isCancelled()){
-                    ResponseInfo i = ResponseInfo.cancelled();
-                    completionHandler.complete(key, i, null);
-                    return;
-                }
                 if (info.isOK()) {
                     options.progressHandler.progress(key, 1.0);
                     completionHandler.complete(key, info, response);
+                } else if(options.cancellationSignal.isCancelled()){
+                    ResponseInfo i = ResponseInfo.cancelled();
+                    completionHandler.complete(key, i, null);
                 } else if (info.needRetry()) {
                     CompletionHandler retried = new CompletionHandler() {
                         @Override

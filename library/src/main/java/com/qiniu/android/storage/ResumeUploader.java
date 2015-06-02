@@ -173,15 +173,16 @@ final class ResumeUploader implements Runnable {
             CompletionHandler complete = new CompletionHandler() {
                 @Override
                 public void complete(ResponseInfo info, JSONObject response) {
-                    if(isCancelled()){
-                        ResponseInfo i = ResponseInfo.cancelled();
-                        completionHandler.complete(key, i, null);
-                        return;
-                    }
                     if (info.isOK()) {
                         removeRecord();
                         options.progressHandler.progress(key, 1.0);
                         completionHandler.complete(key, info, response);
+                        return;
+                    }
+
+                    if(isCancelled()){
+                        ResponseInfo i = ResponseInfo.cancelled();
+                        completionHandler.complete(key, i, null);
                         return;
                     }
 
