@@ -103,15 +103,13 @@ final class FormUploader {
         CompletionHandler completion = new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
-                if(options.cancellationSignal != null && options.cancellationSignal.isCancelled()){
-                    ResponseInfo i = ResponseInfo.cancelled();
-                    completionHandler.complete(key, i, null);
-                    return;
-                }
                 if (info.isOK()) {
                     options.progressHandler.progress(key, 1.0);
                     completionHandler.complete(key, info, response);
-                } else if (info.needRetry()) {
+                } else if(options.cancellationSignal.isCancelled()){
+                    ResponseInfo i = ResponseInfo.cancelled();
+                    completionHandler.complete(key, i, null);
+                } else if (info.needRetry() || (info.isNotQiniu() && !token.hasReturnUrl())) {
                     CompletionHandler retried = new CompletionHandler() {
                         @Override
                         public void complete(ResponseInfo info, JSONObject response) {
@@ -126,7 +124,7 @@ final class FormUploader {
                         host = config.upHostBackup;
                     }
                     boolean forceIp = false;
-                    if (!info.isQiniu() && !token.hasReturnUrl()){
+                    if (info.isNotQiniu() && !token.hasReturnUrl()){
                         forceIp = true;
                     }
                     httpManager.multipartPost(genUploadAddress(host, config.upPort), args, progress, retried, options.cancellationSignal, forceIp);
@@ -140,6 +138,6 @@ final class FormUploader {
     }
 
     private static String genUploadAddress(String host, int port) {
-        return "http://" + host + ":" + port;
+        return "http://" + host + ":" + port + "/";
     }
 }

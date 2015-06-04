@@ -71,8 +71,8 @@ public final class Configuration {
     private Configuration(Builder builder){
         upHost = builder.upHost;
         upHostBackup = builder.upHostBackup;
-        upIp = builder.upIp;
-        upPort = builder.upPort;
+        upIp = getIp(builder);
+        upPort = getPort(builder);
 
         chunkSize = builder.chunkSize;
         putThreshold = builder.putThreshold;
@@ -88,6 +88,20 @@ public final class Configuration {
         proxy = builder.proxy;
 
         urlConverter = builder.urlConverter;
+    }
+
+    private static int getPort(Builder builder){
+        if (builder.urlConverter != null){
+            return 80;
+        }
+        return builder.upPort;
+    }
+
+    private static String getIp(Builder builder){
+        if (builder.urlConverter != null){
+            return null;
+        }
+        return builder.upIp;
     }
 
     private KeyGenerator getKeyGen(KeyGenerator keyGen) {
@@ -122,7 +136,7 @@ public final class Configuration {
             this.upHost = Zone.zone0.upHost;
             this.upHostBackup = Zone.zone0.upHostBackup;
             this.upIp = Zone.zone0.upIp;
-            this.upPort = 80;
+            this.upPort = 8888;
         }
 
         private UrlConverter urlConverter = null;
@@ -182,7 +196,6 @@ public final class Configuration {
 
         public Builder urlConverter(UrlConverter converter){
             this.urlConverter = converter;
-            this.upIp = null;
             return this;
         }
 

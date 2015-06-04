@@ -111,7 +111,7 @@ public final class HttpManager {
     }
 
     private void postEntity(String url, final HttpEntity entity, Header[] headers,
-                         ProgressHandler progressHandler, CompletionHandler completionHandler, final boolean forceIp) {
+                         final ProgressHandler progressHandler, final CompletionHandler completionHandler, final boolean forceIp) {
         final CompletionHandler wrapper = wrap(completionHandler);
         final Header[] h = reporter.appendStatHeaders(headers);
 
@@ -119,9 +119,9 @@ public final class HttpManager {
             url = converter.convert(url);
         }
 
-        final AsyncHttpResponseHandler originHandler = new ResponseHandler(url, wrapper, progressHandler);
+        ResponseHandler handler = new ResponseHandler(url, wrapper, progressHandler);
         if(backUpIp == null || converter != null){
-            client.post(null, url, h, entity, null, originHandler);
+            client.post(null, url, h, entity, null, handler);
             return;
         }
         final String url2 = url;
@@ -130,13 +130,18 @@ public final class HttpManager {
         t.execute(new Runnable() {
             @Override
             public void run() {
-                URI uri = URI.create(url2);
-                String ip = Dns.getAddress(uri.getHost());
-                if (ip == null || ip.equals("") || forceIp) {
+                final URI uri = URI.create(url2);
+                String ip = null;
+                if (forceIp) {
                     ip = backUpIp;
+                }else {
+                    ip = Dns.getAddress(uri.getHost());
+                    if (ip == null || ip.equals("")){
+                        ip = backUpIp;
+                    }
                 }
 
-                Header[] h2 = new Header[h.length + 1];
+                final Header[] h2 = new Header[h.length + 1];
                 System.arraycopy(h, 0, h2, 0, h.length);
 
                 String newUrl = null;
@@ -146,7 +151,25 @@ public final class HttpManager {
                     throw new AssertionError(e);
                 }
                 h2[h.length] = new BasicHeader("Host", uri.getHost());
-                client.post(null, newUrl, h2, entity, null, originHandler);
+                final String ip2 = ip;
+                ResponseHandler handler2 = new ResponseHandler(url2, wrap(new CompletionHandler() {
+                    @Override
+                    public void complete(ResponseInfo info, JSONObject response) {
+                        if (uri.getPort() == 80 || info.statusCode != ResponseInfo.CannotConnectToHost){
+                            completionHandler.complete(info, response);
+                            return;
+                        }
+                        String newUrl80 = null;
+                        try {
+                            newUrl80 = new URI(uri.getScheme(), null, ip2, 80, uri.getPath(), uri.getQuery(), null).toString();
+                        } catch (URISyntaxException e) {
+                            throw new AssertionError(e);
+                        }
+                        ResponseHandler handler3 = new ResponseHandler(newUrl80, completionHandler, progressHandler);
+                        client.post(null, newUrl80, h2, entity, null, handler3);
+                    }
+                }), progressHandler);
+                client.post(null, newUrl, h2, entity, null, handler2);
             }
         });
     }

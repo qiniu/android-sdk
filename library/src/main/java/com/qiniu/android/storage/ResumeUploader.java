@@ -165,7 +165,7 @@ final class ResumeUploader implements Runnable {
     }
 
     private boolean isCancelled() {
-        return options.cancellationSignal != null && options.cancellationSignal.isCancelled();
+        return options.cancellationSignal.isCancelled();
     }
 
     private void nextTask(final int offset, final int retried, final String host) {
@@ -173,11 +173,6 @@ final class ResumeUploader implements Runnable {
             CompletionHandler complete = new CompletionHandler() {
                 @Override
                 public void complete(ResponseInfo info, JSONObject response) {
-                    if(isCancelled()){
-                        ResponseInfo i = ResponseInfo.cancelled();
-                        completionHandler.complete(key, i, null);
-                        return;
-                    }
                     if (info.isOK()) {
                         removeRecord();
                         options.progressHandler.progress(key, 1.0);
@@ -185,7 +180,17 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
 
-                    if (info.needRetry() && retried < config.retryMax) {
+                    if(isCancelled()){
+                        ResponseInfo i = ResponseInfo.cancelled();
+                        completionHandler.complete(key, i, null);
+                        return;
+                    }
+
+                    if (isNotQiniu(info)){
+                        forceIp = true;
+                    }
+
+                    if (isNotQiniu(info) || (info.needRetry() && retried < config.retryMax)) {
                         nextTask(offset, retried + 1, host);
                         return;
                     }
@@ -221,10 +226,10 @@ final class ResumeUploader implements Runnable {
                         nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried, host);
                         return;
                     }
-                    if (!info.isQiniu() && !token.hasReturnUrl()){
+                    if (isNotQiniu(info)){
                         forceIp = true;
                     }
-                    if (retried >= config.retryMax || !info.needRetry()) {
+                    if (!isNotQiniu(info) && (retried >= config.retryMax || !info.needRetry())) {
                         completionHandler.complete(key, info, null);
                         return;
                     }
@@ -316,5 +321,9 @@ final class ResumeUploader implements Runnable {
         String data = format(Locale.ENGLISH, "{\"size\":%d,\"offset\":%d, \"modify_time\":%d, \"contexts\":[%s]}",
                 size, offset, modifyTime, StringUtils.jsonJoin(contexts));
         config.recorder.set(recorderKey, data.getBytes());
+    }
+
+    private boolean isNotQiniu(ResponseInfo info){
+        return info.isNotQiniu() && !token.hasReturnUrl();
     }
 }
