@@ -49,7 +49,7 @@ public final class UpToken {
         return token;
     }
 
-    boolean hasReturnUrl(){
+    public boolean hasReturnUrl(){
         return !returnUrl.equals("");
     }
 

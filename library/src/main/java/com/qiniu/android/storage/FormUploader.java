@@ -138,6 +138,6 @@ final class FormUploader {
     }
 
     private static String genUploadAddress(String host, int port) {
-        return "http://" + host + ":" + port;
+        return "http://" + host + ":" + port + "/";
     }
 }

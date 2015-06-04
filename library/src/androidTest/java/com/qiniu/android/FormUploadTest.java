@@ -70,6 +70,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         Assert.assertTrue(info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
+        Assert.assertEquals("/", info.path);
     }
 
     @SmallTest
@@ -106,6 +107,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         Assert.assertEquals(expectKey, key);
         Assert.assertTrue(info.isOK());
         Assert.assertNotNull(info.reqId);
+        Assert.assertEquals("/", info.path);
         Assert.assertNotNull(resp);
         Assert.assertEquals("Fqr0xh3cxeii2r7eDztILNmuqUNN", resp.optString("key", ""));
     }

@@ -58,12 +58,18 @@ public final class ResponseInfo {
      */
     public final int port;
 
-    public ResponseInfo(int statusCode, String reqId, String xlog, String xvia, String host, String ip, int port, double duration, String error) {
+    /**
+     * 访问路径
+     */
+    public final String path;
+
+    public ResponseInfo(int statusCode, String reqId, String xlog, String xvia, String host, String path, String ip, int port, double duration, String error) {
         this.statusCode = statusCode;
         this.reqId = reqId;
         this.xlog = xlog;
         this.xvia = xvia;
         this.host = host;
+        this.path = path;
         this.duration = duration;
         this.error = error;
         this.ip = ip;
@@ -71,21 +77,21 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo cancelled() {
-        return new ResponseInfo(Cancelled, "", "", "", "", "", -1, 0, "cancelled by user");
+        return new ResponseInfo(Cancelled, "", "", "", "", "",  "", -1, 0, "cancelled by user");
     }
 
     public static ResponseInfo invalidArgument(String message) {
-        return new ResponseInfo(InvalidArgument, "", "", "", "", "", -1, 0,
+        return new ResponseInfo(InvalidArgument, "", "", "", "", "", "", -1, 0,
                 message);
     }
 
     public static ResponseInfo invalidToken(String message) {
-        return new ResponseInfo(InvalidToken, "", "", "", "", "", -1, 0,
+        return new ResponseInfo(InvalidToken, "", "", "", "", "", "", -1, 0,
                 message);
     }
 
     public static ResponseInfo fileError(Exception e) {
-        return new ResponseInfo(InvalidFile, "", "", "", "", "", -1,
+        return new ResponseInfo(InvalidFile, "", "", "", "", "", "", -1,
                 0, e.getMessage());
     }
 
@@ -122,7 +128,7 @@ public final class ResponseInfo {
     }
 
     public String toString() {
-        return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s, host:%s, ip:%s, port:%d, duration:%f s, error:%s}",
-                super.toString(), statusCode, reqId, xlog, xvia, host, ip, port, duration, error);
+        return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s, host:%s, path:%s, ip:%s, port:%d, duration:%f s, error:%s}",
+                super.toString(), statusCode, reqId, xlog, xvia, host, path, ip, port, duration, error);
     }
 }
