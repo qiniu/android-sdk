@@ -287,13 +287,13 @@ public class FormUploadTest extends InstrumentationTestCase {
         Configuration c = new Configuration.Builder()
                 .zone(new Zone("upwelcome.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp))
                 .build();
-        UploadManager _up = new UploadManager(c);
+        UploadManager uploadManager2 = new UploadManager(c);
         final String expectKey = "你好;\"\r\n\r\n\r\n";
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
 
-        uploadManager.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
+        uploadManager2.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                 Log.i("qiniutest", k + rinfo);
                 key = k;
