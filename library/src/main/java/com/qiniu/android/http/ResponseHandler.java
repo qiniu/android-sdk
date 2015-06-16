@@ -185,22 +185,4 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
         super.onStart();
     }
 
-    /**
-     * hack the method for dns in background before receive msg in main looper
-     *
-     * @param msg 发送的状态信息
-     */
-    @Override
-    protected void sendMessage(Message msg) {
-        if (msg.what == AsyncHttpResponseHandler.FAILURE_MESSAGE) {
-            Object[] response = (Object[]) msg.obj;
-            if (response != null && response.length >= 4) {
-                Throwable e = (Throwable) response[3];
-                if (!(e instanceof UnknownHostException)) {
-                    this.ip = Dns.getAddressesString(host);
-                }
-            }
-        }
-        super.sendMessage(msg);
-    }
 }
