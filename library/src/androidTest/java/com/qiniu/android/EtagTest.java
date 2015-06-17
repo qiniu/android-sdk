@@ -2,7 +2,7 @@ package com.qiniu.android;
 
 import android.test.AndroidTestCase;
 
-import com.qiniu.android.common.Config;
+import com.qiniu.android.common.Constants;
 import com.qiniu.android.utils.Etag;
 
 import junit.framework.Assert;
@@ -17,7 +17,7 @@ public class EtagTest extends AndroidTestCase {
         Assert.assertEquals("Fto5o-5ea0sNMlW_75VgGJCv2AcJ", m);
 
         try {
-            String etag = Etag.data("etag".getBytes(Config.CHARSET));
+            String etag = Etag.data("etag".getBytes(Constants.UTF_8));
             Assert.assertEquals("FpLiADEaVoALPkdb8tJEJyRTXoe_", etag);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();

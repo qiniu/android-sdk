@@ -1,5 +1,9 @@
 package com.qiniu.android.utils;
 
+import com.qiniu.android.common.Constants;
+
+import java.io.UnsupportedEncodingException;
+
 /**
  * 字符串连接工具类
  */
@@ -77,6 +81,14 @@ public final class StringUtils {
             buf.append('"');
         }
         return buf.toString();
+    }
+
+    public static byte[] utf8Bytes(String data) {
+        try {
+            return data.getBytes(Constants.UTF_8);
+        } catch (UnsupportedEncodingException e) {
+            throw new AssertionError(e);
+        }
     }
 }
 

@@ -1,6 +1,5 @@
 package com.qiniu.android.storage;
 
-import com.qiniu.android.common.Config;
 import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.HttpManager;
 import com.qiniu.android.http.PostArgs;
@@ -34,9 +33,9 @@ final class FormUploader {
      * @param completionHandler 上传完成后续处理动作
      * @param options           上传时的可选参数
      */
-    static void upload(HttpManager httpManager, byte[] data, String key, String token, final UpCompletionHandler completionHandler,
+    static void upload(HttpManager httpManager, Configuration config, byte[] data, String key, UpToken token, final UpCompletionHandler completionHandler,
                        final UploadOptions options) {
-        post(data, null, key, token, completionHandler, options, httpManager);
+        post(data, null, key, token, completionHandler, options, httpManager, config);
     }
 
     /**
@@ -49,13 +48,13 @@ final class FormUploader {
      * @param completionHandler 上传完成后续处理动作
      * @param options           上传时的可选参数
      */
-    static void upload(HttpManager httpManager, File file, String key, String token, UpCompletionHandler completionHandler,
+    static void upload(HttpManager httpManager, Configuration config, File file, String key, UpToken token, UpCompletionHandler completionHandler,
                        UploadOptions options) {
-        post(null, file, key, token, completionHandler, options, httpManager);
+        post(null, file, key, token, completionHandler, options, httpManager, config);
     }
 
-    private static void post(byte[] data, File file, String k, String token, final UpCompletionHandler completionHandler,
-                             final UploadOptions optionsIn, final HttpManager httpManager) {
+    private static void post(byte[] data, File file, String k, final UpToken token, final UpCompletionHandler completionHandler,
+                             final UploadOptions optionsIn, final HttpManager httpManager, final Configuration config) {
         final String key = k;
         Map<String, String> params = new HashMap<String, String>();
         final PostArgs args = new PostArgs();
@@ -66,7 +65,7 @@ final class FormUploader {
             args.fileName = "?";
         }
 
-        params.put("token", token);
+        params.put("token", token.token);
 
         final UploadOptions options = optionsIn != null ? optionsIn : UploadOptions.defaultOptions();
         params.putAll(options.params);
@@ -105,29 +104,40 @@ final class FormUploader {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
                 if (info.isOK()) {
-
                     options.progressHandler.progress(key, 1.0);
-
                     completionHandler.complete(key, info, response);
-                    return;
-                }
-                CompletionHandler retried = new CompletionHandler() {
-                    @Override
-                    public void complete(ResponseInfo info, JSONObject response) {
-                        if (info.isOK()) {
-                            options.progressHandler.progress(key, 1.0);
+                } else if(options.cancellationSignal.isCancelled()){
+                    ResponseInfo i = ResponseInfo.cancelled();
+                    completionHandler.complete(key, i, null);
+                } else if (info.needRetry() || (info.isNotQiniu() && !token.hasReturnUrl())) {
+                    CompletionHandler retried = new CompletionHandler() {
+                        @Override
+                        public void complete(ResponseInfo info, JSONObject response) {
+                            if (info.isOK()) {
+                                options.progressHandler.progress(key, 1.0);
+                            }
+                            completionHandler.complete(key, info, response);
                         }
-                        completionHandler.complete(key, info, response);
+                    };
+                    String host = config.upHost;
+                    if (info.needSwitchServer()) {
+                        host = config.upHostBackup;
                     }
-                };
-                String host = Config.UP_HOST;
-                if (info.needSwitchServer()) {
-                    host = Config.UP_HOST_BACKUP;
+                    boolean forceIp = false;
+                    if (info.isNotQiniu() && !token.hasReturnUrl()){
+                        forceIp = true;
+                    }
+                    httpManager.multipartPost(genUploadAddress(host, config.upPort), args, progress, retried, options.cancellationSignal, forceIp);
+                } else {
+                    completionHandler.complete(key, info, response);
                 }
-                httpManager.multipartPost("http://" + host, args, progress, retried);
             }
         };
 
-        httpManager.multipartPost("http://" + Config.UP_HOST, args, progress, completion);
+        httpManager.multipartPost(genUploadAddress(config.upHost, config.upPort), args, progress, completion, options.cancellationSignal, false);
+    }
+
+    private static String genUploadAddress(String host, int port) {
+        return "http://" + host + ":" + port + "/";
     }
 }

@@ -7,10 +7,19 @@ import java.util.Locale;
  * 定义HTTP请求的日志信息和常规方法
  */
 public final class ResponseInfo {
+    public static final int InvalidToken = -5;
     public static final int InvalidArgument = -4;
     public static final int InvalidFile = -3;
     public static final int Cancelled = -2;
     public static final int NetworkError = -1;
+
+    // <-- error code copy from ios
+    public static final int TimedOut = -1001;
+    public static final int UnknownHost = -1003;
+    public static final int CannotConnectToHost = -1004;
+    public static final int NetworkConnectionLost = -1005;
+
+    // -->
     /**
      * 回复状态码
      */
@@ -44,29 +53,45 @@ public final class ResponseInfo {
      */
     public final String ip;
 
-    public ResponseInfo(int statusCode, String reqId, String xlog, String xvia, String host, String ip, double duration, String error) {
+    /**
+     * 服务器端口
+     */
+    public final int port;
+
+    /**
+     * 访问路径
+     */
+    public final String path;
+
+    public ResponseInfo(int statusCode, String reqId, String xlog, String xvia, String host, String path, String ip, int port, double duration, String error) {
         this.statusCode = statusCode;
         this.reqId = reqId;
         this.xlog = xlog;
         this.xvia = xvia;
         this.host = host;
+        this.path = path;
         this.duration = duration;
         this.error = error;
         this.ip = ip;
+        this.port = port;
     }
 
     public static ResponseInfo cancelled() {
-        return new ResponseInfo(Cancelled, "", "", "", "", "", 0, "cancelled by user");
+        return new ResponseInfo(Cancelled, "", "", "", "", "",  "", -1, 0, "cancelled by user");
     }
 
     public static ResponseInfo invalidArgument(String message) {
-        return new ResponseInfo(InvalidArgument, "", "", "", "", "", 0,
+        return new ResponseInfo(InvalidArgument, "", "", "", "", "", "", -1, 0,
                 message);
     }
 
+    public static ResponseInfo invalidToken(String message) {
+        return new ResponseInfo(InvalidToken, "", "", "", "", "", "", -1, 0,
+                message);
+    }
 
     public static ResponseInfo fileError(Exception e) {
-        return new ResponseInfo(InvalidFile, "", "", "", "", "",
+        return new ResponseInfo(InvalidFile, "", "", "", "", "", "", -1,
                 0, e.getMessage());
     }
 
@@ -77,25 +102,33 @@ public final class ResponseInfo {
     public boolean isOK() {
         return statusCode == 200 && error == null && reqId != null;
     }
-
+    
     public boolean isNetworkBroken() {
-        return statusCode == NetworkError;
+        return statusCode == NetworkError || statusCode == UnknownHost
+                || statusCode == CannotConnectToHost || statusCode == TimedOut
+                || statusCode == NetworkConnectionLost;
     }
 
     public boolean isServerError() {
-        return (statusCode >= 500 && statusCode < 600 && statusCode != 579) || statusCode == 996;
+        return (statusCode >= 500 && statusCode < 600 && statusCode != 579)
+                || statusCode == 996;
     }
 
     public boolean needSwitchServer() {
-        return isNetworkBroken() || (statusCode >= 500 && statusCode < 600 && statusCode != 579);
+        return isNetworkBroken() || isServerError();
     }
 
     public boolean needRetry() {
-        return isNetworkBroken() || isServerError() || statusCode == 406 || (statusCode == 200 && error != null);
+        return !isCancelled() && (needSwitchServer() || statusCode == 406
+                || (statusCode == 200 && error != null));
+    }
+
+    public boolean isNotQiniu() {
+        return statusCode < 500 && statusCode >= 200 && reqId == null;
     }
 
     public String toString() {
-        return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s,  host:%s, ip:%s, duration:%f s, error:%s}",
-                super.toString(), statusCode, reqId, xlog, xvia, host, ip, duration, error);
+        return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s, host:%s, path:%s, ip:%s, port:%d, duration:%f s, error:%s}",
+                super.toString(), statusCode, reqId, xlog, xvia, host, path, ip, port, duration, error);
     }
 }
