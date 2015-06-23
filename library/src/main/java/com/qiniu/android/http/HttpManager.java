@@ -24,7 +24,6 @@ import static java.lang.String.format;
  * 定义HTTP请求管理相关方法
  */
 public final class HttpManager {
-    private static final String userAgent = getUserAgent();
     private AsyncHttpClient client;
     private IReport reporter;
     private String backUpIp;
@@ -44,7 +43,7 @@ public final class HttpManager {
         client = new AsyncHttpClient();
         client.setConnectTimeout(connectTimeout*1000);
         client.setResponseTimeout(responseTimeout * 1000);
-        client.setUserAgent(userAgent);
+        client.setUserAgent(UserAgent.instance().toString());
         client.setEnableRedirects(true);
         client.setRedirectHandler(new UpRedirectHandler());
         AsyncHttpClient.blockRetryExceptionClass(CancellationHandler.CancellationException.class);
@@ -78,15 +77,7 @@ public final class HttpManager {
         this(null);
     }
 
-    private static String genId() {
-        Random r = new Random();
-        return System.currentTimeMillis() + "" + r.nextInt(999);
-    }
 
-    private static String getUserAgent() {
-        return format("QiniuAndroid/%s (%s; %s; %s)", Constants.VERSION,
-                android.os.Build.VERSION.RELEASE, android.os.Build.MODEL, genId());
-    }
 
     /**
      * 以POST方法发送请求数据
@@ -119,7 +110,7 @@ public final class HttpManager {
             url = converter.convert(url);
         }
 
-        ResponseHandler handler = new ResponseHandler(url, wrapper, progressHandler);
+        ResponseHandler handler = new ResponseHandler(url, wrapper, progressHandler, null);
         if(backUpIp == null || converter != null){
             client.post(null, url, h, entity, null, handler);
             return;
@@ -165,10 +156,10 @@ public final class HttpManager {
                         } catch (URISyntaxException e) {
                             throw new AssertionError(e);
                         }
-                        ResponseHandler handler3 = new ResponseHandler(newUrl80, completionHandler, progressHandler);
+                        ResponseHandler handler3 = new ResponseHandler(newUrl80, completionHandler, progressHandler, ip2);
                         client.post(null, newUrl80, h2, entity, null, handler3);
                     }
-                }), progressHandler);
+                }), progressHandler, ip);
                 client.post(null, newUrl, h2, entity, null, handler2);
             }
         });
