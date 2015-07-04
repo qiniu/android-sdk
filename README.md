@@ -9,7 +9,7 @@
 ## 安装
 
 ### 直接安装
-将realease 目录中的jar 复制到项目中去，此版本sdk依赖 http://loopj.com/android-async-http/ 1.4.6及以上版本
+将sdk jar文件 复制到项目中去，此版本sdk依赖 http://loopj.com/android-async-http/ 1.4.6及以上版本。[下载地址](http://search.maven.org/remotecontent?filepath=com/qiniu/qiniu-android-sdk/)
 
 ### 通过maven
 * 如果在Adroid Studio中使用，添加dependencies `compile 'com.qiniu:qiniu-android-sdk:7.0.+'` 或在项目中添加maven依赖
