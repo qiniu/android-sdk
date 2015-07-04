@@ -175,12 +175,15 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
         completionHandler.complete(info, null);
     }
 
-    @Override
     public void onProgress(int bytesWritten, int totalSize) {
         this.sent += bytesWritten;
         if (progressHandler != null) {
             progressHandler.onProgress(bytesWritten, totalSize);
         }
+    }
+
+    public void onProgress(long bytesWritten, long totalSize) {
+        onProgress((int)bytesWritten, (int)totalSize);
     }
 
     @Override
