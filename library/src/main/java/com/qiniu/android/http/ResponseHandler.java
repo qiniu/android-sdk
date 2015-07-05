@@ -2,7 +2,6 @@ package com.qiniu.android.http;
 
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.qiniu.android.common.Constants;
@@ -183,7 +182,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
     }
 
     public void onProgress(long bytesWritten, long totalSize) {
-        onProgress((int)bytesWritten, (int)totalSize);
+        onProgress((int) bytesWritten, (int) totalSize);
     }
 
     @Override
@@ -204,7 +203,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
             if (response != null && response.length >= 4) {
                 Throwable e = (Throwable) response[3];
                 if (!(e instanceof UnknownHostException)) {
-                    if (ip == null){
+                    if (ip == null) {
                         this.ip = Dns.getAddressesString(host);
                     }
                 }

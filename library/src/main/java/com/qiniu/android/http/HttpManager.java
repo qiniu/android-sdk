@@ -1,8 +1,6 @@
 package com.qiniu.android.http;
 
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.qiniu.android.common.Constants;
+import com.qiniu.android.dns.DnsManager;
 import com.qiniu.android.utils.Dns;
 
 import org.apache.http.Header;
@@ -15,16 +13,13 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ExecutorService;
-
-import static java.lang.String.format;
 
 /**
  * 定义HTTP请求管理相关方法
  */
 public final class HttpManager {
-    private AsyncHttpClient client;
+    private AsyncHttpClientMod client;
     private IReport reporter;
     private String backUpIp;
     private UrlConverter converter;
@@ -34,19 +29,24 @@ public final class HttpManager {
     }
 
     public HttpManager(Proxy proxy, IReport reporter) {
-        this(proxy, reporter, null, 10, 30, null);
+        this(proxy, reporter, null, 10, 30, null, null);
     }
 
     public HttpManager(Proxy proxy, IReport reporter, String backUpIp,
                        int connectTimeout, int responseTimeout, UrlConverter converter) {
+        this(proxy, reporter, backUpIp, connectTimeout, responseTimeout, converter, null);
+    }
+
+    public HttpManager(Proxy proxy, IReport reporter, String backUpIp,
+                       int connectTimeout, int responseTimeout, UrlConverter converter, DnsManager dns) {
         this.backUpIp = backUpIp;
-        client = new AsyncHttpClient();
-        client.setConnectTimeout(connectTimeout*1000);
+        client = new AsyncHttpClientMod(dns);
+        client.setConnectTimeout(connectTimeout * 1000);
         client.setResponseTimeout(responseTimeout * 1000);
         client.setUserAgent(UserAgent.instance().toString());
         client.setEnableRedirects(true);
         client.setRedirectHandler(new UpRedirectHandler());
-        AsyncHttpClient.blockRetryExceptionClass(CancellationHandler.CancellationException.class);
+        AsyncHttpClientMod.blockRetryExceptionClass(CancellationHandler.CancellationException.class);
         if (proxy != null) {
             client.setProxy(proxy.hostAddress, proxy.port, proxy.user, proxy.password);
         }
@@ -78,7 +78,6 @@ public final class HttpManager {
     }
 
 
-
     /**
      * 以POST方法发送请求数据
      *
@@ -102,16 +101,16 @@ public final class HttpManager {
     }
 
     private void postEntity(String url, final HttpEntity entity, Header[] headers,
-                         final ProgressHandler progressHandler, final CompletionHandler completionHandler, final boolean forceIp) {
+                            final ProgressHandler progressHandler, final CompletionHandler completionHandler, final boolean forceIp) {
         final CompletionHandler wrapper = wrap(completionHandler);
         final Header[] h = reporter.appendStatHeaders(headers);
 
-        if (converter != null){
+        if (converter != null) {
             url = converter.convert(url);
         }
 
         ResponseHandler handler = new ResponseHandler(url, wrapper, progressHandler, null);
-        if(backUpIp == null || converter != null){
+        if (backUpIp == null || converter != null) {
             client.post(null, url, h, entity, null, handler);
             return;
         }
@@ -125,11 +124,6 @@ public final class HttpManager {
                 String ip = null;
                 if (forceIp) {
                     ip = backUpIp;
-                }else {
-                    ip = Dns.getAddress(uri.getHost());
-                    if (ip == null || ip.equals("")){
-                        ip = backUpIp;
-                    }
                 }
 
                 final Header[] h2 = new Header[h.length + 1];
@@ -146,7 +140,7 @@ public final class HttpManager {
                 ResponseHandler handler2 = new ResponseHandler(url2, wrap(new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo info, JSONObject response) {
-                        if (uri.getPort() == 80 || info.statusCode != ResponseInfo.CannotConnectToHost){
+                        if (uri.getPort() == 80 || info.statusCode != ResponseInfo.CannotConnectToHost) {
                             completionHandler.complete(info, response);
                             return;
                         }

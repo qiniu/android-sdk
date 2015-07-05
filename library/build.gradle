@@ -33,16 +33,22 @@ android {
 
 dependencies {
     compile 'com.loopj.android:android-async-http:1.4.+'
-    compile 'com.qiniu:happy-dns:0.1.0'
+    compile 'com.qiniu:happy-dns:0.1.1'
 //    compile 'com.android.support:appcompat-v7:21.0.3'
     compile fileTree(include: ['*.jar'], dir: 'libs')
 }
 
-task releaseJar(type: Copy, dependsOn: 'build') {
-    from('build/intermediates/bundles/release')
-    into('../releases')
-    include('classes.jar')
-    rename('classes.jar', 'qiniu-android-sdk-' + version + '.jar')
+task releaseJar(type:Jar, dependsOn: 'build') {
+    //指定生成的jar名
+    baseName 'qiniu-android-sdk-' + version
+    //从哪里打包class文件
+    from('build/intermediates/classes/release/com/qiniu/android/dns/')
+    //打包到jar后的目录结构
+    into('com/qiniu/android/dns/')
+    //去掉不需要打包的目录和文件
+    exclude('test/', 'BuildConfig.class', 'R.class')
+    //去掉R$开头的文件
+    exclude{ it.name.startsWith('R$');}
 }
 
 android.libraryVariants.all { variant ->
@@ -50,7 +56,7 @@ android.libraryVariants.all { variant ->
     def task = project.tasks.create "jar${name.capitalize()}", Jar
     task.dependsOn variant.javaCompile
     task.from variant.javaCompile.destinationDir
-    task.exclude '**/R.*',  '**/R$*.*'
+    task.exclude '**/R.*',  '**/R$*.*', '**/BuildConfig.class'
     artifacts.add('archives', task);
 }
 

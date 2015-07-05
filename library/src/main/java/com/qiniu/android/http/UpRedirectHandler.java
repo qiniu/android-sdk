@@ -25,7 +25,7 @@ public final class UpRedirectHandler implements RedirectHandler {
 
     private static final String REDIRECT_LOCATIONS = "http.protocol.redirect-locations";
 
-    private static boolean isQiniu(final HttpResponse response){
+    private static boolean isQiniu(final HttpResponse response) {
         return response.getFirstHeader("X-Reqid") != null;
     }
 

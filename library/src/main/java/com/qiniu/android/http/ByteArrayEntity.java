@@ -12,17 +12,17 @@ import java.io.OutputStream;
  */
 public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneable {
 
+    private static final int progressStep = 8 * 1024;
     private final byte[] b;
     private final int off, len;
     private final ProgressHandler progressHandler;
     private final CancellationHandler cancellationHandler;
-    private static final int progressStep = 8 * 1024;
 
     public ByteArrayEntity(final byte[] b, ProgressHandler h, CancellationHandler c) {
         this(b, 0, b.length, h, c);
     }
 
-    public ByteArrayEntity(final byte[] b, final int off, final int len, ProgressHandler h,  CancellationHandler c) {
+    public ByteArrayEntity(final byte[] b, final int off, final int len, ProgressHandler h, CancellationHandler c) {
         super();
         if ((off < 0) || (off > b.length) || (len < 0) ||
                 ((off + len) < 0) || ((off + len) > b.length)) {
@@ -50,9 +50,9 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
         return new ByteArrayInputStream(this.b, this.off, this.len);
     }
 
-   // @Override
+    // @Override
     public void writeTo(final OutputStream outStream) throws IOException {
-        if(progressHandler != null || cancellationHandler != null){
+        if (progressHandler != null || cancellationHandler != null) {
             writeWithNotify(outStream);
         } else {
             outStream.write(this.b, this.off, this.len);
@@ -63,7 +63,7 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
     private void writeWithNotify(final OutputStream outStream) throws IOException {
         int off = 0;
         while (off < this.len) {
-            if(cancellationHandler != null && cancellationHandler.isCancelled()) {
+            if (cancellationHandler != null && cancellationHandler.isCancelled()) {
                 try {
                     outStream.close();
                 } catch (Exception e) {
@@ -74,7 +74,7 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
             int left = this.len - off;
             int len = left < progressStep ? left : progressStep;
             outStream.write(this.b, this.off + off, len);
-            if(progressHandler != null) {
+            if (progressHandler != null) {
                 progressHandler.onProgress(off, this.len);
             }
             off += len;
