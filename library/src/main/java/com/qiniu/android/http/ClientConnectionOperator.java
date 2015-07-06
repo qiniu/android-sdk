@@ -28,8 +28,7 @@
 package com.qiniu.android.http;
 
 import com.qiniu.android.dns.DnsManager;
-import com.qiniu.android.dns.IResolver;
-import com.qiniu.android.dns.local.AndroidDnsServer;
+import com.qiniu.android.dns.Domain;
 
 import org.apache.http.HttpHost;
 import org.apache.http.conn.HttpHostConnectException;
@@ -51,7 +50,7 @@ import java.net.UnknownHostException;
 
 
 /*get from 4.3, mixed 4.0*/
-public class ClientConnectionOperator implements org.apache.http.conn.ClientConnectionOperator {
+public final class ClientConnectionOperator implements org.apache.http.conn.ClientConnectionOperator {
 
 
     /**
@@ -63,17 +62,6 @@ public class ClientConnectionOperator implements org.apache.http.conn.ClientConn
      * the custom-configured DNS lookup mechanism.
      */
     protected final DnsManager dnsResolver;
-
-    /**
-     * Creates a new client connection operator for the given scheme registry.
-     *
-     * @param schemes the scheme registry
-     * @since 4.2
-     */
-    public ClientConnectionOperator(final SchemeRegistry schemes) {
-//        Args.notNull(schemes, "Scheme registry");
-        this(schemes, null);
-    }
 
     /**
      * Creates a new client connection operator for the given scheme registry
@@ -88,12 +76,30 @@ public class ClientConnectionOperator implements org.apache.http.conn.ClientConn
                     ("Scheme registry must not be null.");
         }
         this.schemeRegistry = schemes;
-        DnsManager d = dnsResolver;
-        if (dnsResolver == null) {
-            IResolver r = AndroidDnsServer.defaultResolver();
-            d = new DnsManager(null, new IResolver[]{r});
+        this.dnsResolver = dnsResolver;
+    }
+
+    public static boolean validIP(String ip) {
+        if (ip == null || ip.length() < 7 || ip.length() > 15) return false;
+        if (ip.contains("-")) return false;
+
+        try {
+            int x = 0;
+            int y = ip.indexOf('.');
+
+            if (y != -1 && Integer.parseInt(ip.substring(x, y)) > 255) return false;
+
+            x = ip.indexOf('.', ++y);
+            if (x != -1 && Integer.parseInt(ip.substring(y, x)) > 255) return false;
+
+            y = ip.indexOf('.', ++x);
+            return !(y != -1 && Integer.parseInt(ip.substring(x, y)) > 255 &&
+                    Integer.parseInt(ip.substring(++y, ip.length() - 1)) > 255 &&
+                    ip.charAt(ip.length() - 1) != '.');
+
+        } catch (NumberFormatException e) {
+            return false;
         }
-        this.dnsResolver = d;
     }
 
     public OperatedClientConnection createConnection() {
@@ -129,10 +135,10 @@ public class ClientConnectionOperator implements org.apache.http.conn.ClientConn
         final SocketFactory sf = schm.getSocketFactory();
         String host = target.getHostName();
         String[] ips;
-        if (validIP(host)){
+        if (validIP(host)) {
             ips = new String[]{host};
-        }else{
-            ips = dnsResolver.query(host);
+        } else {
+            ips = systemResolv(host);
             if (ips == null || ips.length == 0) {
                 throw new UnknownHostException("no ip for " + host);
             }
@@ -162,10 +168,7 @@ public class ClientConnectionOperator implements org.apache.http.conn.ClientConn
     public void updateSecureConnection(OperatedClientConnection conn,
                                        HttpHost target,
                                        HttpContext context,
-                                       HttpParams params)
-            throws IOException {
-
-
+                                       HttpParams params) throws IOException {
         if (conn == null) {
             throw new IllegalArgumentException
                     ("Connection must not be null.");
@@ -222,27 +225,16 @@ public class ClientConnectionOperator implements org.apache.http.conn.ClientConn
         }
     }
 
-    public static boolean validIP(String ip) {
-        if(ip == null || ip.length() < 7 || ip.length() > 15) return false;
-        if(ip.contains("-")) return false;
-
-        try {
-            int x = 0;
-            int y = ip.indexOf('.');
-
-            if (y != -1 && Integer.parseInt(ip.substring(x, y)) > 255) return false;
-
-            x = ip.indexOf('.', ++y);
-            if (x != -1 && Integer.parseInt(ip.substring(y, x)) > 255) return false;
-
-            y = ip.indexOf('.', ++x);
-            return  !(y != -1 && Integer.parseInt(ip.substring(x, y)) > 255 &&
-                    Integer.parseInt(ip.substring(++y, ip.length() - 1)) > 255 &&
-                    ip.charAt(ip.length()-1) != '.');
-
-        } catch (NumberFormatException e) {
-            return false;
+    private String[] systemResolv(String domain) throws UnknownHostException {
+        if (dnsResolver == null) {
+            InetAddress[] addresses = InetAddress.getAllByName(domain);
+            String[] x = new String[addresses.length];
+            for (int i = 0; i < addresses.length; i++) {
+                x[i] = addresses[i].getHostAddress();
+            }
+            return x;
         }
+        return dnsResolver.query(new Domain(domain, true, false, 3600));
     }
 }
 

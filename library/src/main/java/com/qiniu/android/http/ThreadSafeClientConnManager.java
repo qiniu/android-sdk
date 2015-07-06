@@ -17,7 +17,7 @@ public final class ThreadSafeClientConnManager extends org.apache.http.impl.conn
     }
 
     protected org.apache.http.conn.ClientConnectionOperator createConnectionOperator(final SchemeRegistry schreg) {
-
-        return new ClientConnectionOperator(schreg, dns);// @ThreadSafe
+        DnsManager d = dns == null ? AsyncHttpClientMod.tempDns[0] : dns;
+        return new ClientConnectionOperator(schreg, d);// @ThreadSafe
     }
 }

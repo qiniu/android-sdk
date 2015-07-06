@@ -1,7 +1,6 @@
 package com.qiniu.android.http;
 
 import com.qiniu.android.dns.DnsManager;
-import com.qiniu.android.utils.Dns;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -13,7 +12,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 
 /**
  * 定义HTTP请求管理相关方法
@@ -40,7 +38,7 @@ public final class HttpManager {
     public HttpManager(Proxy proxy, IReport reporter, String backUpIp,
                        int connectTimeout, int responseTimeout, UrlConverter converter, DnsManager dns) {
         this.backUpIp = backUpIp;
-        client = new AsyncHttpClientMod(dns);
+        client = AsyncHttpClientMod.create(dns);
         client.setConnectTimeout(connectTimeout * 1000);
         client.setResponseTimeout(responseTimeout * 1000);
         client.setUserAgent(UserAgent.instance().toString());
@@ -116,47 +114,44 @@ public final class HttpManager {
         }
         final String url2 = url;
 
-        ExecutorService t = client.getThreadPool();
-        t.execute(new Runnable() {
+
+        final URI uri = URI.create(url2);
+        String ip = null;
+        if (forceIp) {
+            ip = backUpIp;
+        } else {
+            ip = uri.getHost();
+        }
+
+        final Header[] h2 = new Header[h.length + 1];
+        System.arraycopy(h, 0, h2, 0, h.length);
+
+        String newUrl = null;
+        try {
+            newUrl = new URI(uri.getScheme(), null, ip, uri.getPort(), uri.getPath(), uri.getQuery(), null).toString();
+        } catch (URISyntaxException e) {
+            throw new AssertionError(e);
+        }
+        h2[h.length] = new BasicHeader("Host", uri.getHost());
+        final String ip2 = ip;
+        ResponseHandler handler2 = new ResponseHandler(url2, wrap(new CompletionHandler() {
             @Override
-            public void run() {
-                final URI uri = URI.create(url2);
-                String ip = null;
-                if (forceIp) {
-                    ip = backUpIp;
+            public void complete(ResponseInfo info, JSONObject response) {
+                if (uri.getPort() == 80 || info.statusCode != ResponseInfo.CannotConnectToHost) {
+                    completionHandler.complete(info, response);
+                    return;
                 }
-
-                final Header[] h2 = new Header[h.length + 1];
-                System.arraycopy(h, 0, h2, 0, h.length);
-
-                String newUrl = null;
+                String newUrl80 = null;
                 try {
-                    newUrl = new URI(uri.getScheme(), null, ip, uri.getPort(), uri.getPath(), uri.getQuery(), null).toString();
+                    newUrl80 = new URI(uri.getScheme(), null, ip2, 80, uri.getPath(), uri.getQuery(), null).toString();
                 } catch (URISyntaxException e) {
                     throw new AssertionError(e);
                 }
-                h2[h.length] = new BasicHeader("Host", uri.getHost());
-                final String ip2 = ip;
-                ResponseHandler handler2 = new ResponseHandler(url2, wrap(new CompletionHandler() {
-                    @Override
-                    public void complete(ResponseInfo info, JSONObject response) {
-                        if (uri.getPort() == 80 || info.statusCode != ResponseInfo.CannotConnectToHost) {
-                            completionHandler.complete(info, response);
-                            return;
-                        }
-                        String newUrl80 = null;
-                        try {
-                            newUrl80 = new URI(uri.getScheme(), null, ip2, 80, uri.getPath(), uri.getQuery(), null).toString();
-                        } catch (URISyntaxException e) {
-                            throw new AssertionError(e);
-                        }
-                        ResponseHandler handler3 = new ResponseHandler(newUrl80, completionHandler, progressHandler, ip2);
-                        client.post(null, newUrl80, h2, entity, null, handler3);
-                    }
-                }), progressHandler, ip);
-                client.post(null, newUrl, h2, entity, null, handler2);
+                ResponseHandler handler3 = new ResponseHandler(newUrl80, completionHandler, progressHandler, ip2);
+                client.post(null, newUrl80, h2, entity, null, handler3);
             }
-        });
+        }), progressHandler, ip);
+        client.post(null, newUrl, h2, entity, null, handler2);
     }
 
     /**
