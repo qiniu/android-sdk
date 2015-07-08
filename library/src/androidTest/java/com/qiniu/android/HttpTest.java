@@ -33,7 +33,6 @@ public class HttpTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testPost1() throws Throwable {
-
         httpManager.postData("http://www.baidu.com", "hello".getBytes(), null, null, new CompletionHandler() {
             @Override
             public void complete(ResponseInfo rinfo, JSONObject response) {
@@ -44,7 +43,7 @@ public class HttpTest extends InstrumentationTestCase {
         }, null, false);
 
         try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
+            signal.await(6000, TimeUnit.SECONDS); // wait for callback
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

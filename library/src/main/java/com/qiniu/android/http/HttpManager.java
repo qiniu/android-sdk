@@ -107,8 +107,8 @@ public final class HttpManager {
             url = converter.convert(url);
         }
 
-        ResponseHandler handler = new ResponseHandler(url, wrapper, progressHandler, null);
         if (backUpIp == null || converter != null) {
+            ResponseHandler handler = new ResponseHandler(url, wrapper, progressHandler);
             client.post(null, url, h, entity, null, handler);
             return;
         }
@@ -147,10 +147,10 @@ public final class HttpManager {
                 } catch (URISyntaxException e) {
                     throw new AssertionError(e);
                 }
-                ResponseHandler handler3 = new ResponseHandler(newUrl80, completionHandler, progressHandler, ip2);
+                ResponseHandler handler3 = new ResponseHandler(newUrl80, completionHandler, progressHandler);
                 client.post(null, newUrl80, h2, entity, null, handler3);
             }
-        }), progressHandler, ip);
+        }), progressHandler);
         client.post(null, newUrl, h2, entity, null, handler2);
     }
 

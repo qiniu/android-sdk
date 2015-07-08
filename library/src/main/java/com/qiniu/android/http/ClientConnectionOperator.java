@@ -153,9 +153,14 @@ public final class ClientConnectionOperator implements org.apache.http.conn.Clie
             conn.opening(sock, target);
 
             try {
-                sock = sf.connectSocket(sock, ip, port, local, 0, params);
+                Socket connsock = sf.connectSocket(sock, ip, port, local, 0, params);
+                if (sock != connsock) {
+                    sock = connsock;
+                    conn.opening(sock, target);
+                }
                 prepareSocket(sock, context, params);
                 conn.openCompleted(sf.isSecure(sock), params);
+                AsyncHttpClientMod.ip.set(ip);
                 return;
             } catch (ConnectException ex) {
                 if (last) {

@@ -11,7 +11,8 @@ import org.apache.http.params.BasicHttpParams;
  * Created by bailong on 15/7/4.
  */
 public final class AsyncHttpClientMod extends AsyncHttpClient {
-    static final DnsManager[] tempDns = new DnsManager[1];
+    static final ThreadLocal<DnsManager> local = new ThreadLocal<>();
+    static final ThreadLocal<String> ip = new ThreadLocal<>();
     private final DnsManager dns;
 
     private AsyncHttpClientMod(DnsManager dns) {
@@ -19,17 +20,15 @@ public final class AsyncHttpClientMod extends AsyncHttpClient {
     }
 
     public static AsyncHttpClientMod create(DnsManager dns) {
-        synchronized (tempDns) {
-            tempDns[0] = dns;
-            AsyncHttpClientMod a = new AsyncHttpClientMod(dns);
-            tempDns[0] = null;
-            return a;
-        }
+        local.set(dns);
+        AsyncHttpClientMod a = new AsyncHttpClientMod(dns);
+        local.remove();
+        return a;
     }
 
     //在父类构造函数中调用
     protected ClientConnectionManager createConnectionManager(SchemeRegistry schemeRegistry, BasicHttpParams httpParams) {
-        DnsManager d = dns == null ? tempDns[0] : dns;
+        DnsManager d = dns == null ? local.get() : dns;
         return new ThreadSafeClientConnManager(httpParams, schemeRegistry, d);
     }
 }
