@@ -9,7 +9,6 @@ public interface CancellationHandler {
      */
     boolean isCancelled();
 
-    public static class CancellationException extends IOException {
-
+    class CancellationException extends IOException {
     }
 }

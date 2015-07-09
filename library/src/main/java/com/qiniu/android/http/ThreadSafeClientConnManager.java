@@ -16,6 +16,8 @@ public final class ThreadSafeClientConnManager extends org.apache.http.impl.conn
         this.dns = dns;
     }
 
+    //在父类构造函数中调用
+    @Override
     protected org.apache.http.conn.ClientConnectionOperator createConnectionOperator(final SchemeRegistry schreg) {
         DnsManager d = dns == null ? AsyncHttpClientMod.local.get() : dns;
         return new ClientConnectionOperator(schreg, d);// @ThreadSafe
