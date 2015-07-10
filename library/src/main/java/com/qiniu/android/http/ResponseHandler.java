@@ -2,13 +2,13 @@ package com.qiniu.android.http;
 
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.ResponseHandlerInterface;
 import com.qiniu.android.common.Constants;
-import com.qiniu.android.utils.Dns;
 
 import org.apache.http.Header;
+import org.apache.http.HttpResponse;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONException;
@@ -20,7 +20,6 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 
 
 /**
@@ -43,9 +42,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
      * 请求开始时间
      */
     private long reqStartTime;
-    /**
-     * 服务器IP
-     */
+
     private String ip = null;
 
     /**
@@ -57,7 +54,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
 
     private volatile long sent = 0;
 
-    public ResponseHandler(String url, CompletionHandler completionHandler, ProgressHandler progressHandler, String ip) {
+    public ResponseHandler(String url, CompletionHandler completionHandler, ProgressHandler progressHandler) {
         super(Looper.getMainLooper());
         URI uri = null;
         try {
@@ -71,7 +68,6 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
         }
         this.completionHandler = completionHandler;
         this.progressHandler = progressHandler;
-        this.ip = ip;
     }
 
     private static ResponseInfo buildResponseInfo(int statusCode, Header[] headers, byte[] responseBody,
@@ -175,12 +171,15 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
         completionHandler.complete(info, null);
     }
 
-    @Override
     public void onProgress(int bytesWritten, int totalSize) {
         this.sent += bytesWritten;
         if (progressHandler != null) {
             progressHandler.onProgress(bytesWritten, totalSize);
         }
+    }
+
+    public void onProgress(long bytesWritten, long totalSize) {
+        onProgress((int) bytesWritten, (int) totalSize);
     }
 
     @Override
@@ -196,17 +195,18 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
      */
     @Override
     protected void sendMessage(Message msg) {
-        if (msg.what == AsyncHttpResponseHandler.FAILURE_MESSAGE) {
-            Object[] response = (Object[]) msg.obj;
-            if (response != null && response.length >= 4) {
-                Throwable e = (Throwable) response[3];
-                if (!(e instanceof UnknownHostException)) {
-                    if (ip == null){
-                        this.ip = Dns.getAddressesString(host);
-                    }
-                }
-            }
+        switch (msg.what) {
+            case SUCCESS_MESSAGE:
+            case FAILURE_MESSAGE:
+                this.ip = AsyncHttpClientMod.ip.get();
+                AsyncHttpClientMod.ip.remove();
+            default:
+                break;
         }
         super.sendMessage(msg);
+    }
+
+    @Override
+    public void onPostProcessResponse(ResponseHandlerInterface instance, HttpResponse response) {
     }
 }

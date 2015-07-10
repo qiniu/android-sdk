@@ -25,7 +25,7 @@ public final class UploadManager {
         this.config = config;
         this.httpManager = new HttpManager(config.proxy,
                 new StatReport(), config.upIp,
-                config.connectTimeout, config.responseTimeout, config.urlConverter);
+                config.connectTimeout, config.responseTimeout, config.urlConverter, config.dns);
     }
 
     public UploadManager(Recorder recorder, KeyGenerator keyGen) {
@@ -76,7 +76,7 @@ public final class UploadManager {
         }
 
         final UpToken decodedToken = UpToken.parse(token);
-        if (decodedToken == null){
+        if (decodedToken == null) {
             final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
             AsyncRun.run(new Runnable() {
                 @Override
@@ -123,7 +123,7 @@ public final class UploadManager {
             return;
         }
         UpToken decodedToken = UpToken.parse(token);
-        if (decodedToken == null){
+        if (decodedToken == null) {
             final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
             AsyncRun.run(new Runnable() {
                 @Override

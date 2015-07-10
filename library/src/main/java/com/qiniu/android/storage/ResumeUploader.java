@@ -1,6 +1,5 @@
 package com.qiniu.android.storage;
 
-import com.qiniu.android.common.Constants;
 import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.HttpManager;
 import com.qiniu.android.http.ProgressHandler;
@@ -180,13 +179,13 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
 
-                    if(isCancelled()){
+                    if (isCancelled()) {
                         ResponseInfo i = ResponseInfo.cancelled();
                         completionHandler.complete(key, i, null);
                         return;
                     }
 
-                    if (isNotQiniu(info)){
+                    if (isNotQiniu(info)) {
                         forceIp = true;
                     }
 
@@ -217,7 +216,7 @@ final class ResumeUploader implements Runnable {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
                 if (!info.isOK()) {
-                    if(isCancelled()){
+                    if (isCancelled()) {
                         ResponseInfo i = ResponseInfo.cancelled();
                         completionHandler.complete(key, i, null);
                         return;
@@ -226,7 +225,7 @@ final class ResumeUploader implements Runnable {
                         nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried, host);
                         return;
                     }
-                    if (isNotQiniu(info)){
+                    if (isNotQiniu(info)) {
                         forceIp = true;
                     }
                     if (!isNotQiniu(info) && (retried >= config.retryMax || !info.needRetry())) {
@@ -323,7 +322,7 @@ final class ResumeUploader implements Runnable {
         config.recorder.set(recorderKey, data.getBytes());
     }
 
-    private boolean isNotQiniu(ResponseInfo info){
+    private boolean isNotQiniu(ResponseInfo info) {
         return info.isNotQiniu() && !token.hasReturnUrl();
     }
 }

@@ -90,12 +90,12 @@ public final class ResponseInfo {
         this.ip = ip;
         this.port = port;
         this.id = UserAgent.instance().id;
-        this.timeStamp = System.currentTimeMillis()/1000;
+        this.timeStamp = System.currentTimeMillis() / 1000;
         this.sent = sent;
     }
 
     public static ResponseInfo cancelled() {
-        return new ResponseInfo(Cancelled, "", "", "", "", "",  "", -1, 0, 0, "cancelled by user");
+        return new ResponseInfo(Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user");
     }
 
     public static ResponseInfo invalidArgument(String message) {
@@ -104,7 +104,7 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo invalidToken(String message) {
-        return new ResponseInfo(InvalidToken, "", "", "", "", "", "", -1, 0,0,
+        return new ResponseInfo(InvalidToken, "", "", "", "", "", "", -1, 0, 0,
                 message);
     }
 
@@ -120,7 +120,7 @@ public final class ResponseInfo {
     public boolean isOK() {
         return statusCode == 200 && error == null && reqId != null;
     }
-    
+
     public boolean isNetworkBroken() {
         return statusCode == NetworkError || statusCode == UnknownHost
                 || statusCode == CannotConnectToHost || statusCode == TimedOut
