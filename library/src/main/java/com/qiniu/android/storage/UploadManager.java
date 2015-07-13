@@ -9,7 +9,7 @@ import java.io.File;
 
 /**
  * 七牛文件上传管理器
- * <p/>
+ *
  * 一般默认可以使用这个类的方法来上传数据和文件。这个类自动检测文件的大小，
  * 只要超过了{@link Configuration#putThreshold}
  */

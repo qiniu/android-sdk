@@ -86,6 +86,8 @@ public final class HttpManager {
      * @param headers           发送的数据请求头部
      * @param progressHandler   发送数据进度处理对象
      * @param completionHandler 发送数据完成后续动作处理对象
+     * @param c                 发送数据中途取消处理
+     * @param forceIp           强制使用IP
      */
     public void postData(String url, byte[] data, int offset, int size, Header[] headers,
                          ProgressHandler progressHandler, final CompletionHandler completionHandler, CancellationHandler c, boolean forceIp) {
@@ -161,6 +163,8 @@ public final class HttpManager {
      * @param args              发送的数据
      * @param progressHandler   发送数据进度处理对象
      * @param completionHandler 发送数据完成后续动作处理对象
+     * @param c                 发送数据中途取消处理
+     * @param forceIp           强制使用IP
      */
     public void multipartPost(String url, PostArgs args, ProgressHandler progressHandler,
                               final CompletionHandler completionHandler, CancellationHandler c, boolean forceIp) {
