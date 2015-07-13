@@ -239,7 +239,10 @@ public final class ClientConnectionOperator implements org.apache.http.conn.Clie
             }
             return x;
         }
-        return dnsResolver.query(new Domain(domain, true, false, 3600));
+        try {
+            return dnsResolver.query(new Domain(domain, true, false, 3600));
+        } catch (IOException e) {
+            throw new UnknownHostException(e.getMessage());
+        }
     }
 }
-
