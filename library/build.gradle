@@ -20,12 +20,12 @@ String version = versionName()
 int code = versionNameToCode(version)
 
 android {
-    compileSdkVersion 21
-    buildToolsVersion '21.1.2'
+    compileSdkVersion 22
+    buildToolsVersion '22.0.1'
     defaultConfig {
         //applicationId "com.qiniu.android"
         minSdkVersion 8
-        targetSdkVersion 21
+        targetSdkVersion 22
         versionCode code
         versionName version
     }
@@ -33,7 +33,7 @@ android {
 
 dependencies {
     compile 'com.loopj.android:android-async-http:1.4.+'
-    compile 'com.qiniu:happy-dns:0.1.+'
+    compile 'com.qiniu:happy-dns:0.2.+'
 //    compile 'com.android.support:appcompat-v7:21.0.3'
     compile fileTree(include: ['*.jar'], dir: 'libs')
 }
