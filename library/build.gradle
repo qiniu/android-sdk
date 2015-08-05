@@ -33,7 +33,7 @@ android {
 
 dependencies {
     compile 'com.loopj.android:android-async-http:1.4.+'
-    compile 'com.qiniu:happy-dns:0.2.+'
+    compile 'com.qiniu:happy-dns:0.2.3'
 //    compile 'com.android.support:appcompat-v7:21.0.3'
     compile fileTree(include: ['*.jar'], dir: 'libs')
 }
