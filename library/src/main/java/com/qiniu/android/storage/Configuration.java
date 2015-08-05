@@ -109,7 +109,7 @@ public final class Configuration {
             IResolver r1 = AndroidDnsServer.defaultResolver();
             IResolver r2 = null;
             try {
-                r2 = new Resolver(InetAddress.getByName("114.114.115.115"));
+                r2 = new Resolver(InetAddress.getByName("223.6.6.6"));
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
