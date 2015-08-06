@@ -106,7 +106,7 @@ final class FormUploader {
                 if (info.isOK()) {
                     options.progressHandler.progress(key, 1.0);
                     completionHandler.complete(key, info, response);
-                } else if(options.cancellationSignal.isCancelled()){
+                } else if (options.cancellationSignal.isCancelled()) {
                     ResponseInfo i = ResponseInfo.cancelled();
                     completionHandler.complete(key, i, null);
                 } else if (info.needRetry() || (info.isNotQiniu() && !token.hasReturnUrl())) {
@@ -124,7 +124,7 @@ final class FormUploader {
                         host = config.upHostBackup;
                     }
                     boolean forceIp = false;
-                    if (info.isNotQiniu() && !token.hasReturnUrl()){
+                    if (info.isNotQiniu() && !token.hasReturnUrl()) {
                         forceIp = true;
                     }
                     httpManager.multipartPost(genUploadAddress(host, config.upPort), args, progress, retried, options.cancellationSignal, forceIp);

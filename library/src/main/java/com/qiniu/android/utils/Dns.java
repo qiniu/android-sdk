@@ -29,9 +29,9 @@ public final class Dns {
         return r;
     }
 
-    public static String getAddress(String hostName){
+    public static String getAddress(String hostName) {
         String[] array = getAddresses(hostName);
-        if (array == null || array.length == 0){
+        if (array == null || array.length == 0) {
             return null;
         }
         return array[0];

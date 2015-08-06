@@ -1,12 +1,12 @@
 package com.qiniu.android.http;
 
-import org.apache.http.message.BasicHeader;
 import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 
 /**
  * Report the client status to Server.
  */
-public final class StatReport implements IReport{
+public final class StatReport implements IReport {
     private ResponseInfo previousErrorInfo = null;
     private ResponseInfo previousSpeedInfo = null;
 

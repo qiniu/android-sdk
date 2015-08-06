@@ -112,7 +112,8 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         final File f = TempFile.createFile(size);
 
         Configuration c = new Configuration.Builder()
-                .zone(new Zone("uphijacktest.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp))
+                .zone(new Zone("uphijacktest.qiniu.com", Zone.zone0.upHostBackup,
+                        Zone.zone0.upIp, Zone.zone0.upIp2))
                 .build();
         UploadManager uploadManager = new UploadManager(c);
 

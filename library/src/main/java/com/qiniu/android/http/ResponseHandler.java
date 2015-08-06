@@ -2,13 +2,13 @@ package com.qiniu.android.http;
 
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.ResponseHandlerInterface;
 import com.qiniu.android.common.Constants;
-import com.qiniu.android.utils.Dns;
 
 import org.apache.http.Header;
+import org.apache.http.HttpResponse;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONException;
@@ -20,7 +20,6 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 
 
 /**
@@ -43,9 +42,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
      * 请求开始时间
      */
     private long reqStartTime;
-    /**
-     * 服务器IP
-     */
+
     private String ip = null;
 
     /**
@@ -54,6 +51,8 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
     private int port = -1;
 
     private String path = null;
+
+    private volatile long sent = 0;
 
     public ResponseHandler(String url, CompletionHandler completionHandler, ProgressHandler progressHandler) {
         super(Looper.getMainLooper());
@@ -72,7 +71,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
     }
 
     private static ResponseInfo buildResponseInfo(int statusCode, Header[] headers, byte[] responseBody,
-                                                  String host, String path, String ip, int port, double duration, Throwable error) {
+                                                  String host, String path, String ip, int port, double duration, long sent, Throwable error) {
 
         if (error != null && error instanceof CancellationHandler.CancellationException) {
             return ResponseInfo.cancelled();
@@ -141,7 +140,7 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
             }
         }
 
-        return new ResponseInfo(statusCode, reqId, xlog, xvia, host, path, ip, port, duration, err);
+        return new ResponseInfo(statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, err);
     }
 
     private static JSONObject buildJsonResp(byte[] body) throws Exception {
@@ -159,24 +158,28 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
         } catch (Exception e) {
             exception = e;
         }
-        ResponseInfo info = buildResponseInfo(statusCode, headers, null, host, path, ip, port, duration, exception);
-        Log.i("upload----success", info.toString());
+        ResponseInfo info = buildResponseInfo(statusCode, headers, null, host, path, ip, port, duration, sent, exception);
+//        Log.i("upload----success", info.toString());
         completionHandler.complete(info, obj);
     }
 
     @Override
     public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
         double duration = (System.currentTimeMillis() - reqStartTime) / 1000.0;
-        ResponseInfo info = buildResponseInfo(statusCode, headers, responseBody, host, path, ip, port, duration, error);
-        Log.i("upload----failed", info.toString());
+        ResponseInfo info = buildResponseInfo(statusCode, headers, responseBody, host, path, ip, port, duration, sent, error);
+//        Log.i("upload----failed", info.toString());
         completionHandler.complete(info, null);
     }
 
-    @Override
     public void onProgress(int bytesWritten, int totalSize) {
+        this.sent += bytesWritten;
         if (progressHandler != null) {
             progressHandler.onProgress(bytesWritten, totalSize);
         }
+    }
+
+    public void onProgress(long bytesWritten, long totalSize) {
+        onProgress((int) bytesWritten, (int) totalSize);
     }
 
     @Override
@@ -192,15 +195,18 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
      */
     @Override
     protected void sendMessage(Message msg) {
-        if (msg.what == AsyncHttpResponseHandler.FAILURE_MESSAGE) {
-            Object[] response = (Object[]) msg.obj;
-            if (response != null && response.length >= 4) {
-                Throwable e = (Throwable) response[3];
-                if (!(e instanceof UnknownHostException)) {
-                    this.ip = Dns.getAddressesString(host);
-                }
-            }
+        switch (msg.what) {
+            case SUCCESS_MESSAGE:
+            case FAILURE_MESSAGE:
+                this.ip = AsyncHttpClientMod.ip.get();
+                AsyncHttpClientMod.ip.remove();
+            default:
+                break;
         }
         super.sendMessage(msg);
+    }
+
+    @Override
+    public void onPostProcessResponse(ResponseHandlerInterface instance, HttpResponse response) {
     }
 }

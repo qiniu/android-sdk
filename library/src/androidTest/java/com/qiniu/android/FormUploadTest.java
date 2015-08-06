@@ -285,7 +285,7 @@ public class FormUploadTest extends InstrumentationTestCase {
     public void testIpBack() throws Throwable {
 
         Configuration c = new Configuration.Builder()
-                .zone(new Zone("upwelcome.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp))
+                .zone(new Zone("upwelcome.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp, Zone.zone0.upIp2))
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
         final String expectKey = "你好;\"\r\n\r\n\r\n";
@@ -328,7 +328,7 @@ public class FormUploadTest extends InstrumentationTestCase {
     @SmallTest
     public void testPortBackup() throws Throwable {
         Configuration c = new Configuration.Builder()
-                .zone(new Zone("upload.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp))
+                .zone(new Zone("upload.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp, Zone.zone0.upIp2))
                 .upPort(9999)
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
@@ -372,7 +372,7 @@ public class FormUploadTest extends InstrumentationTestCase {
     @SmallTest
     public void testDnsHijacking() throws Throwable {
         Configuration c = new Configuration.Builder()
-                .zone(new Zone("uphijacktest.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp))
+                .zone(new Zone("uphijacktest.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp, Zone.zone0.upIp2))
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
         final String expectKey = "你好;\"\r\n\r\n\r\n";
