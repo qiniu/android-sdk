@@ -36,12 +36,7 @@ public final class UserAgent {
                 android.os.Build.VERSION.RELEASE, device(), id);
     }
 
-    public String toString() {
-        return ua;
-    }
-
-    private static String device()
-    {
+    private static String device() {
         String model = Build.MODEL.trim();
         String device = deviceName(Build.MANUFACTURER.trim(), model);
         if (TextUtils.isEmpty(device)) {
@@ -50,8 +45,7 @@ public final class UserAgent {
         return (device == null ? "" : device) + "-" + model;
     }
 
-    private static String deviceName(String manufacturer, String model)
-    {
+    private static String deviceName(String manufacturer, String model) {
         String str = manufacturer.toLowerCase();
         if ((str.startsWith("unknown")) || (str.startsWith("alps")) ||
                 (str.startsWith("android")) || (str.startsWith("sprd")) ||
@@ -63,5 +57,9 @@ public final class UserAgent {
             return null;
         }
         return manufacturer;
+    }
+
+    public String toString() {
+        return ua;
     }
 }
