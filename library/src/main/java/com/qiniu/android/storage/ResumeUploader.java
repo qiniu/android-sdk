@@ -8,8 +8,6 @@ import com.qiniu.android.utils.Crc32;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.UrlSafeBase64;
 
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,6 +18,9 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Locale;
 import java.util.Map;
+
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.message.BasicHeader;
 
 import static java.lang.String.format;
 

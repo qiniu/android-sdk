@@ -1,6 +1,7 @@
 package com.qiniu.android.http;
 
-import org.apache.http.Header;
+
+import cz.msebera.android.httpclient.Header;
 
 public interface IReport {
     Header[] appendStatHeaders(Header[] headers);

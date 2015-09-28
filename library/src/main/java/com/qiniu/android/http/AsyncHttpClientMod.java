@@ -3,9 +3,9 @@ package com.qiniu.android.http;
 import com.loopj.android.http.AsyncHttpClient;
 import com.qiniu.android.dns.DnsManager;
 
-import org.apache.http.conn.ClientConnectionManager;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.params.BasicHttpParams;
+import cz.msebera.android.httpclient.conn.ClientConnectionManager;
+import cz.msebera.android.httpclient.conn.scheme.SchemeRegistry;
+import cz.msebera.android.httpclient.params.BasicHttpParams;
 
 /**
  * Created by bailong on 15/7/4.

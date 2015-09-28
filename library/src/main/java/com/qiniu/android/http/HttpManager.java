@@ -2,9 +2,6 @@ package com.qiniu.android.http;
 
 import com.qiniu.android.dns.DnsManager;
 
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.message.BasicHeader;
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
@@ -12,6 +9,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.HttpEntity;
+import cz.msebera.android.httpclient.message.BasicHeader;
 
 /**
  * 定义HTTP请求管理相关方法

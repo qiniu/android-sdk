@@ -10,12 +10,13 @@ import com.qiniu.android.http.ResponseInfo;
 
 import junit.framework.Assert;
 
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
 import org.json.JSONObject;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.message.BasicHeader;
 
 /**
  * Created by bailong on 14/10/12.
