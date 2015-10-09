@@ -137,11 +137,11 @@ public class Util {
 
     public static String getUserAgent(){
     	if(Conf.USER_AGENT != null){
-    		return Conf.USER_AGENT;
+    		return Conf.USER_AGENT.trim();
     	}
     	if(userAgent == null){
-    		 return  "QiniuAndroid/" + Conf.VERSION + " (" + android.os.Build.VERSION.RELEASE + "; "
-    		            + android.os.Build.MODEL+ "; " + id +")";
+    		 return  "QiniuAndroid/" + Conf.VERSION + " (" + android.os.Build.VERSION.RELEASE.trim() + "; "
+    		            + android.os.Build.MODEL.trim()+ "; " + id +")";
     	}
     	
 		return userAgent;
