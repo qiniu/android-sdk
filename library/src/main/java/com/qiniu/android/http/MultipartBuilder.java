@@ -7,15 +7,15 @@ package com.qiniu.android.http;
 
 import com.qiniu.android.utils.StringUtils;
 
-import org.apache.http.message.BasicHeader;
-import org.apache.http.protocol.HTTP;
-
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
+
+import cz.msebera.android.httpclient.message.BasicHeader;
+import cz.msebera.android.httpclient.protocol.HTTP;
 
 
 final class MultipartBuilder {
