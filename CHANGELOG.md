@@ -1,6 +1,6 @@
 #Changelog
 
-## 7.0.8 (2015-08-05)
+## 7.0.8 (2015-10-09)
 
 ### 调整
 * android-async-http 最低版本要求 1.4.9, 为了兼容 Android 6.0 感谢 Haoxiqiang
