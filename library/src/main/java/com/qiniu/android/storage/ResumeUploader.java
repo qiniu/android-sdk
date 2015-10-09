@@ -110,7 +110,7 @@ final class ResumeUploader implements Runnable {
      */
     private void makeBlock(String host, int offset, int blockSize, int chunkSize, ProgressHandler progress,
                            CompletionHandler _completionHandler, UpCancellationSignal c) {
-        String url = format(Locale.ENGLISH, "http://%s/mkblk/%d", host, blockSize);
+        String url = format(Locale.ENGLISH, "http://%s:%d/mkblk/%d", host, config.upPort, blockSize);
         try {
             file.seek(offset);
             file.read(chunkBuffer, 0, chunkSize);
@@ -155,7 +155,7 @@ final class ResumeUploader implements Runnable {
             }
             paramStr = "/" + StringUtils.join(str, "/");
         }
-        String url = format(Locale.ENGLISH, "http://%s/mkfile/%d%s%s%s", host, size, mime, keyStr, paramStr);
+        String url = format(Locale.ENGLISH, "http://%s:%d/mkfile/%d%s%s%s", host, config.upPort, size, mime, keyStr, paramStr);
         String bodyStr = StringUtils.join(contexts, ",");
         byte[] data = bodyStr.getBytes();
 

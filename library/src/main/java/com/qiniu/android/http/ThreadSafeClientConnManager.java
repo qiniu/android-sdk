@@ -19,7 +19,7 @@ public final class ThreadSafeClientConnManager extends cz.msebera.android.httpcl
 
     //在父类构造函数中调用
     @Override
-    protected  cz.msebera.android.httpclient.conn.ClientConnectionOperator createConnectionOperator(final SchemeRegistry schreg) {
+    protected cz.msebera.android.httpclient.conn.ClientConnectionOperator createConnectionOperator(final SchemeRegistry schreg) {
         DnsManager d = dns == null ? AsyncHttpClientMod.local.get() : dns;
         return new ClientConnectionOperator(schreg, d);// @ThreadSafe
     }

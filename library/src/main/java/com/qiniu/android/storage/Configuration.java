@@ -165,7 +165,7 @@ public final class Configuration {
             this.upHostBackup = Zone.zone0.upHostBackup;
             this.upIp = Zone.zone0.upIp;
             this.upIp2 = Zone.zone0.upIp2;
-            this.upPort = 8888;
+            this.upPort = 80;
         }
 
         public Builder zone(Zone zone) {
