@@ -1,5 +1,12 @@
 #Changelog
 
+## 7.0.8 (2015-08-05)
+
+### 调整
+* android-async-http 最低版本要求 1.4.9, 为了兼容 Android 6.0 感谢 Haoxiqiang
+* 升级SDK环境
+* 默认http port 为80
+
 ## 7.0.7.1 (2015-08-05)
 
 ### 修正
