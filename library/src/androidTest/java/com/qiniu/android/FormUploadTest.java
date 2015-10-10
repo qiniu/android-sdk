@@ -51,7 +51,6 @@ public class FormUploadTest extends InstrumentationTestCase {
             }
         }, opt);
 
-
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
             Assert.assertNotNull("timeout", info);

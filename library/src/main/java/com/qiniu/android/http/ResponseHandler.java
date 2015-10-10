@@ -56,11 +56,9 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
 
     public ResponseHandler(URI uri, CompletionHandler completionHandler, ProgressHandler progressHandler) {
         super(Looper.getMainLooper());
-
         this.host = uri.getHost();
         this.port = uri.getPort();
         this.path = uri.getPath();
-
         this.completionHandler = completionHandler;
         this.progressHandler = progressHandler;
     }
