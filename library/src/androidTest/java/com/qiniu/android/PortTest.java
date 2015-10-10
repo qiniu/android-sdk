@@ -68,8 +68,8 @@ public class PortTest extends InstrumentationTestCase {
     }
 
     @MediumTest
-    public void test4223K() throws Throwable {
-        fileTemplate(4223);
+    public void test800K() throws Throwable {
+        fileTemplate(800);
     }
 
     public void fileTemplate(int size) throws Throwable {
@@ -94,7 +94,7 @@ public class PortTest extends InstrumentationTestCase {
 
     private void check(final String expectKey) {
         try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
+            signal.await(600, TimeUnit.SECONDS); // wait for callback
             Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
