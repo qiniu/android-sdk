@@ -5,11 +5,12 @@ import android.test.suitebuilder.annotation.LargeTest;
 import android.test.suitebuilder.annotation.MediumTest;
 import android.util.Log;
 
+import com.qiniu.android.common.ServiceAddress;
+import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UploadManager;
-import com.qiniu.android.storage.Zone;
 
 import junit.framework.Assert;
 
@@ -28,7 +29,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     private volatile JSONObject resp;
 
     public void setUp() throws Exception {
-        Configuration config = new Configuration.Builder().upPort(8888).build();
+        Configuration config = new Configuration.Builder().build();
         uploadManager = new UploadManager(config);
     }
 
@@ -50,7 +51,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         });
 
         try {
-            signal.await(600, TimeUnit.SECONDS); // wait for callback
+            signal.await(1200, TimeUnit.SECONDS); // wait for callback
             Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -68,8 +69,13 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     private void template2(int size) throws Throwable {
         final String expectKey = "r=" + size + "k";
         final File f = TempFile.createFile(size);
-
-        uploadManager.put(f, expectKey, TestConfig.token, new UpCompletionHandler() {
+        ServiceAddress s = new ServiceAddress("https://up.qbox.me", null);
+        Zone z = new Zone(s, Zone.zone0.upBackup);
+        Configuration c = new Configuration.Builder()
+                .zone(z)
+                .build();
+        UploadManager uploadManager2 = new UploadManager(c);
+        uploadManager2.put(f, expectKey, TestConfig.token, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                 Log.i("qiniutest", k + rinfo);
                 key = k;
@@ -80,7 +86,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         }, null);
 
         try {
-            signal.await(500, TimeUnit.SECONDS); // wait for callback
+            signal.await(1200, TimeUnit.SECONDS); // wait for callback
             Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -101,9 +107,10 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         final String expectKey = "r=" + size + "k";
         final File f = TempFile.createFile(size);
 
+        ServiceAddress s = new ServiceAddress("http://uphijacktest.qiniu.com", Zone.zone0.up.backupIps);
+        Zone z = new Zone(s, Zone.zone0.upBackup);
         Configuration c = new Configuration.Builder()
-                .zone(new Zone("uphijacktest.qiniu.com", Zone.zone0.upHostBackup,
-                        Zone.zone0.upIp, Zone.zone0.upIp2))
+                .zone(z)
                 .build();
         UploadManager uploadManager = new UploadManager(c);
 
@@ -143,6 +150,11 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     @MediumTest
     public void test600k2() throws Throwable {
         template2(600);
+    }
+
+    @LargeTest
+    public void test4M1k2() throws Throwable {
+        template2(1024 * 4 + 1);
     }
 
     @LargeTest

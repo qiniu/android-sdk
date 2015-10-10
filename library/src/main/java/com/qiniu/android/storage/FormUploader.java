@@ -11,6 +11,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -119,25 +120,18 @@ final class FormUploader {
                             completionHandler.complete(key, info, response);
                         }
                     };
-                    String host = config.upHost;
-                    if (info.needSwitchServer()) {
-                        host = config.upHostBackup;
+                    URI u = config.up.address;
+                    if (info.needSwitchServer() || info.isNotQiniu()) {
+                        u = config.upBackup.address;
                     }
-                    boolean forceIp = false;
-                    if (info.isNotQiniu() && !token.hasReturnUrl()) {
-                        forceIp = true;
-                    }
-                    httpManager.multipartPost(genUploadAddress(host, config.upPort), args, progress, retried, options.cancellationSignal, forceIp);
+
+                    httpManager.multipartPost(u, args, progress, retried, options.cancellationSignal);
                 } else {
                     completionHandler.complete(key, info, response);
                 }
             }
         };
 
-        httpManager.multipartPost(genUploadAddress(config.upHost, config.upPort), args, progress, completion, options.cancellationSignal, false);
-    }
-
-    private static String genUploadAddress(String host, int port) {
-        return "http://" + host + ":" + port + "/";
+        httpManager.multipartPost(config.up.address, args, progress, completion, options.cancellationSignal);
     }
 }

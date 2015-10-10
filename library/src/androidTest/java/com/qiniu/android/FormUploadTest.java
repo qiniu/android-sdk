@@ -5,12 +5,13 @@ import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
+import com.qiniu.android.common.ServiceAddress;
+import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.storage.Zone;
 
 import junit.framework.Assert;
 
@@ -50,7 +51,6 @@ public class FormUploadTest extends InstrumentationTestCase {
             }
         }, opt);
 
-
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
             Assert.assertNotNull("timeout", info);
@@ -61,7 +61,6 @@ public class FormUploadTest extends InstrumentationTestCase {
         Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
-        Assert.assertEquals("/", info.path);
     }
 
     @SmallTest
@@ -95,7 +94,6 @@ public class FormUploadTest extends InstrumentationTestCase {
         Assert.assertTrue(info.toString(), info.isOK());
 
         Assert.assertNotNull(info.reqId);
-        Assert.assertEquals("/", info.path);
         Assert.assertNotNull(resp);
         Assert.assertEquals("Fqr0xh3cxeii2r7eDztILNmuqUNN", resp.optString("key", ""));
     }
@@ -269,10 +267,12 @@ public class FormUploadTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testIpBack() throws Throwable {
-
+        ServiceAddress s = new ServiceAddress("http://upwelcome.qiniu.com", Zone.zone0.up.backupIps);
+        Zone z = new Zone(s, Zone.zone0.upBackup);
         Configuration c = new Configuration.Builder()
-                .zone(new Zone("upwelcome.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp, Zone.zone0.upIp2))
+                .zone(z)
                 .build();
+
         UploadManager uploadManager2 = new UploadManager(c);
         final String expectKey = "你好;\"\r\n\r\n\r\n";
         Map<String, String> params = new HashMap<String, String>();
@@ -305,9 +305,10 @@ public class FormUploadTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testPortBackup() throws Throwable {
+        ServiceAddress s = new ServiceAddress("http://upload.qiniu.com:9999", null);
+        Zone z = new Zone(s, Zone.zone0.upBackup);
         Configuration c = new Configuration.Builder()
-                .zone(new Zone("upload.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp, Zone.zone0.upIp2))
-                .upPort(9999)
+                .zone(z)
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
         final String expectKey = "你好;\"\r\n\r\n\r\n";
@@ -341,8 +342,10 @@ public class FormUploadTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testDnsHijacking() throws Throwable {
+        ServiceAddress s = new ServiceAddress("http://uphijacktest.qiniu.com", Zone.zone0.up.backupIps);
+        Zone z = new Zone(s, Zone.zone0.upBackup);
         Configuration c = new Configuration.Builder()
-                .zone(new Zone("uphijacktest.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp, Zone.zone0.upIp2))
+                .zone(z)
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
         final String expectKey = "你好;\"\r\n\r\n\r\n";
@@ -368,6 +371,42 @@ public class FormUploadTest extends InstrumentationTestCase {
             e.printStackTrace();
         }
 
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
+        Assert.assertNotNull(info.reqId);
+        Assert.assertNotNull(resp);
+    }
+
+    @SmallTest
+    public void testHttps() throws Throwable {
+
+        final String expectKey = "你好;\"\r\n\r\n\r\n";
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("x:foo", "fooval");
+        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
+        ServiceAddress s = new ServiceAddress("https://up.qbox.me", null);
+        Zone z = new Zone(s, Zone.zone0.upBackup);
+        Configuration c = new Configuration.Builder()
+                .zone(z)
+                .build();
+        UploadManager uploadManager2 = new UploadManager(c);
+        uploadManager2.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                Log.i("qiniutest", k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+                signal.countDown();
+            }
+        }, opt);
+
+
+        try {
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         Assert.assertEquals(info.toString(), expectKey, key);
         Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);

@@ -1,6 +1,8 @@
 package com.qiniu.android.http;
 
 
+import com.qiniu.android.common.Constants;
+
 import java.util.Locale;
 
 /**
@@ -146,7 +148,7 @@ public final class ResponseInfo {
     }
 
     public String toString() {
-        return String.format(Locale.ENGLISH, "{ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s, host:%s, path:%s, ip:%s, port:%d, duration:%f s, time:%d, sent:%d,error:%s}",
-                id, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, timeStamp, sent, error);
+        return String.format(Locale.ENGLISH, "{ver:%s,ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s, host:%s, path:%s, ip:%s, port:%d, duration:%f s, time:%d, sent:%d,error:%s}",
+                Constants.VERSION, id, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, timeStamp, sent, error);
     }
 }

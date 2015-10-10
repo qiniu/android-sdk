@@ -116,7 +116,7 @@ public class TestFileRecorder extends InstrumentationTestCase {
         });
 
         try {
-            signal2.await(500, TimeUnit.SECONDS); // wait for callback
+            signal2.await(1200, TimeUnit.SECONDS); // wait for callback
             Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();

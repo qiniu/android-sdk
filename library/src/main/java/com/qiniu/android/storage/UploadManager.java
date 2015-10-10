@@ -25,8 +25,8 @@ public final class UploadManager {
     public UploadManager(Configuration config) {
         this.config = config;
         this.httpManager = new HttpManager(config.proxy,
-                new StatReport(), config.upIp,
-                config.connectTimeout, config.responseTimeout, config.urlConverter, config.dns);
+                new StatReport(), config.connectTimeout, config.responseTimeout,
+                config.urlConverter, config.dns);
     }
 
     public UploadManager(Recorder recorder, KeyGenerator keyGen) {
