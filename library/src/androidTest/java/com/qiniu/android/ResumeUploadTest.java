@@ -24,11 +24,11 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     final CountDownLatch signal = new CountDownLatch(1);
     private UploadManager uploadManager;
     private volatile String key;
-    private volatile ResponseInfo info;
+    private volatile ResponseInfo info = null;
     private volatile JSONObject resp;
 
     public void setUp() throws Exception {
-        Configuration config = new Configuration.Builder().upPort(9999).build();
+        Configuration config = new Configuration.Builder().upPort(8888).build();
         uploadManager = new UploadManager(config);
     }
 
@@ -50,22 +50,16 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         });
 
         try {
-            signal.await(500, TimeUnit.SECONDS); // wait for callback
+            signal.await(600, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
+
+        Assert.assertEquals(info.toString(), expectKey, key);
+
+        Assert.assertTrue(info.toString(), info.isOK());
+
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
         TempFile.remove(f);
@@ -87,19 +81,15 @@ public class ResumeUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(500, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
+
+        Assert.assertEquals(info.toString(), expectKey, key);
+
+        Assert.assertTrue(info.toString(), info.isOK());
+
         Assert.assertEquals(expectKey, key);
         Assert.assertTrue(info.isOK());
         Assert.assertNotNull(info.reqId);
@@ -129,19 +119,15 @@ public class ResumeUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(500, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
+
+        Assert.assertEquals(info.toString(), expectKey, key);
+
+        Assert.assertTrue(info.toString(), info.isOK());
+
         Assert.assertEquals(expectKey, key);
         Assert.assertTrue(info.isOK());
         Assert.assertNotNull(info.reqId);

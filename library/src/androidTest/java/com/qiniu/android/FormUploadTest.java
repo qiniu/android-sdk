@@ -53,21 +53,12 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
         Assert.assertEquals("/", info.path);
@@ -95,17 +86,14 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        // 尝试获取info信息。
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
+
         Assert.assertNotNull(info.reqId);
         Assert.assertEquals("/", info.path);
         Assert.assertNotNull(resp);
@@ -131,11 +119,12 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertEquals(ResponseInfo.InvalidToken, info.statusCode);
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertEquals(info.toString(), ResponseInfo.InvalidToken, info.statusCode);
         Assert.assertNotNull(info.reqId);
         Assert.assertNull(resp);
     }
@@ -157,11 +146,13 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertEquals(ResponseInfo.InvalidArgument, info.statusCode);
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertEquals(info.toString(), ResponseInfo.InvalidArgument,
+                info.statusCode);
         Assert.assertNull(resp);
     }
 
@@ -184,11 +175,12 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertEquals(ResponseInfo.InvalidArgument, info.statusCode);
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertEquals(info.toString(), ResponseInfo.InvalidArgument, info.statusCode);
         Assert.assertNull(resp);
     }
 
@@ -211,11 +203,13 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertEquals(ResponseInfo.InvalidArgument, info.statusCode);
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertEquals(info.toString(), ResponseInfo.InvalidArgument,
+                info.statusCode);
         Assert.assertNull(resp);
     }
 
@@ -238,21 +232,13 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(130, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
+
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
         TempFile.remove(f);
@@ -306,21 +292,13 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
+
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
     }
@@ -350,21 +328,13 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
+
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
     }
@@ -393,21 +363,13 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
+
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
     }
