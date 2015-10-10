@@ -69,8 +69,13 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     private void template2(int size) throws Throwable {
         final String expectKey = "r=" + size + "k";
         final File f = TempFile.createFile(size);
-
-        uploadManager.put(f, expectKey, TestConfig.token, new UpCompletionHandler() {
+        ServiceAddress s = new ServiceAddress("https://up.qbox.me", null);
+        Zone z = new Zone(s, Zone.zone0.upBackup);
+        Configuration c = new Configuration.Builder()
+                .zone(z)
+                .build();
+        UploadManager uploadManager2 = new UploadManager(c);
+        uploadManager2.put(f, expectKey, TestConfig.token, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                 Log.i("qiniutest", k + rinfo);
                 key = k;
@@ -81,7 +86,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         }, null);
 
         try {
-            signal.await(500, TimeUnit.SECONDS); // wait for callback
+            signal.await(600, TimeUnit.SECONDS); // wait for callback
             Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -139,13 +144,17 @@ public class ResumeUploadTest extends InstrumentationTestCase {
 
     @MediumTest
     public void test600k() throws Throwable {
-
         template(600);
     }
 
     @MediumTest
     public void test600k2() throws Throwable {
         template2(600);
+    }
+
+    @LargeTest
+    public void test4M1k2() throws Throwable {
+        template2(1024 * 4 + 1);
     }
 
     @LargeTest

@@ -377,4 +377,40 @@ public class FormUploadTest extends InstrumentationTestCase {
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
     }
+
+    @SmallTest
+    public void testHttps() throws Throwable {
+
+        final String expectKey = "你好;\"\r\n\r\n\r\n";
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("x:foo", "fooval");
+        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
+        ServiceAddress s = new ServiceAddress("https://up.qbox.me", null);
+        Zone z = new Zone(s, Zone.zone0.upBackup);
+        Configuration c = new Configuration.Builder()
+                .zone(z)
+                .build();
+        UploadManager uploadManager2 = new UploadManager(c);
+        uploadManager2.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                Log.i("qiniutest", k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+                signal.countDown();
+            }
+        }, opt);
+
+
+        try {
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
+        Assert.assertNotNull(info.reqId);
+        Assert.assertNotNull(resp);
+    }
 }
