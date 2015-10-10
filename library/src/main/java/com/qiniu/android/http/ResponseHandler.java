@@ -15,7 +15,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
-import java.net.URISyntaxException;
 
 import cz.msebera.android.httpclient.Header;
 import cz.msebera.android.httpclient.HttpResponse;
@@ -55,18 +54,13 @@ public final class ResponseHandler extends AsyncHttpResponseHandler {
 
     private volatile long sent = 0;
 
-    public ResponseHandler(String url, CompletionHandler completionHandler, ProgressHandler progressHandler) {
+    public ResponseHandler(URI uri, CompletionHandler completionHandler, ProgressHandler progressHandler) {
         super(Looper.getMainLooper());
-        URI uri = null;
-        try {
-            uri = new URI(url);
-            this.host = uri.getHost();
-            this.port = uri.getPort();
-            this.path = uri.getPath();
-        } catch (URISyntaxException e) {
-            this.host = "N/A";
-            e.printStackTrace();
-        }
+
+        this.host = uri.getHost();
+        this.port = uri.getPort();
+        this.path = uri.getPath();
+
         this.completionHandler = completionHandler;
         this.progressHandler = progressHandler;
     }

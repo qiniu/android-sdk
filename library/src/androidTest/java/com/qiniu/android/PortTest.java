@@ -5,6 +5,8 @@ import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
+import com.qiniu.android.common.ServiceAddress;
+import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
@@ -33,7 +35,9 @@ public class PortTest extends InstrumentationTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        Configuration config = new Configuration.Builder().upPort(8888).build();
+        ServiceAddress s1 = new ServiceAddress("http://upload.qiniu.com:8888");
+        Zone z = new Zone(s1, s1);
+        Configuration config = new Configuration.Builder().zone(z).build();
         uploadManager = new UploadManager(config);
     }
 

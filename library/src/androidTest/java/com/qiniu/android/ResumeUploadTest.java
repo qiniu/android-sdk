@@ -5,11 +5,12 @@ import android.test.suitebuilder.annotation.LargeTest;
 import android.test.suitebuilder.annotation.MediumTest;
 import android.util.Log;
 
+import com.qiniu.android.common.ServiceAddress;
+import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UploadManager;
-import com.qiniu.android.storage.Zone;
 
 import junit.framework.Assert;
 
@@ -28,7 +29,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     private volatile JSONObject resp;
 
     public void setUp() throws Exception {
-        Configuration config = new Configuration.Builder().upPort(8888).build();
+        Configuration config = new Configuration.Builder().build();
         uploadManager = new UploadManager(config);
     }
 
@@ -101,9 +102,10 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         final String expectKey = "r=" + size + "k";
         final File f = TempFile.createFile(size);
 
+        ServiceAddress s = new ServiceAddress("http://uphijacktest.qiniu.com", Zone.zone0.up.backupIps);
+        Zone z = new Zone(s, Zone.zone0.upBackup);
         Configuration c = new Configuration.Builder()
-                .zone(new Zone("uphijacktest.qiniu.com", Zone.zone0.upHostBackup,
-                        Zone.zone0.upIp, Zone.zone0.upIp2))
+                .zone(z)
                 .build();
         UploadManager uploadManager = new UploadManager(c);
 
@@ -137,6 +139,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
 
     @MediumTest
     public void test600k() throws Throwable {
+
         template(600);
     }
 
