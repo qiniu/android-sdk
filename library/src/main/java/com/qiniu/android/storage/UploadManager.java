@@ -47,7 +47,12 @@ public final class UploadManager {
             message = "no input data";
         } else if (token == null || token.equals("")) {
             message = "no token";
+        }else if (f!=null && f.length() == 0){
+            message = "0 size file";
+        }else if (data != null && data.length == 0){
+            message = "0 size data";
         }
+
         if (message != null) {
             final ResponseInfo info = ResponseInfo.invalidArgument(message);
             AsyncRun.run(new Runnable() {
