@@ -86,7 +86,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertEquals(info.toString(), ResponseInfo.InvalidArgument, info.statusCode);
+        Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
         Assert.assertEquals(info.toString(), expectKey, key);
         Assert.assertFalse(info.toString(), info.isOK());
         Assert.assertEquals(info.toString(), "", info.reqId);
@@ -296,7 +296,7 @@ public class FormUploadTest extends InstrumentationTestCase {
             e.printStackTrace();
         }
         Assert.assertEquals(f.toString(), 0, f.length());
-        Assert.assertEquals(info.toString(), ResponseInfo.InvalidArgument, info.statusCode);
+        Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
         Assert.assertEquals(info.toString(), expectKey, key);
         Assert.assertFalse(info.toString(), info.isOK());
         Assert.assertEquals(info.toString(), "", info.reqId);

@@ -9,6 +9,7 @@ import java.util.Locale;
  * 定义HTTP请求的日志信息和常规方法
  */
 public final class ResponseInfo {
+    public static final int ZeroSizeFile = -6;
     public static final int InvalidToken = -5;
     public static final int InvalidArgument = -4;
     public static final int InvalidFile = -3;
@@ -96,6 +97,9 @@ public final class ResponseInfo {
         this.sent = sent;
     }
 
+    public static ResponseInfo zeroSize(){
+        return new ResponseInfo(ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero");
+    }
     public static ResponseInfo cancelled() {
         return new ResponseInfo(Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user");
     }

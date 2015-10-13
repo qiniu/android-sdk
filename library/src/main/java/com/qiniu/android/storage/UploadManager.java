@@ -47,22 +47,25 @@ public final class UploadManager {
             message = "no input data";
         } else if (token == null || token.equals("")) {
             message = "no token";
-        }else if (f!=null && f.length() == 0){
-            message = "0 size file";
-        }else if (data != null && data.length == 0){
-            message = "0 size data";
         }
 
+        ResponseInfo info = null;
         if (message != null) {
-            final ResponseInfo info = ResponseInfo.invalidArgument(message);
+            info = ResponseInfo.invalidArgument(message);
+        } if ((f!=null && f.length() == 0) || (data != null && data.length == 0)){
+            info = ResponseInfo.zeroSize();
+        }
+        if (info != null){
+            final ResponseInfo info2 = info;
             AsyncRun.run(new Runnable() {
                 @Override
                 public void run() {
-                    completionHandler.complete(key, info, null);
+                    completionHandler.complete(key, info2, null);
                 }
             });
             return true;
         }
+
         return false;
     }
 
