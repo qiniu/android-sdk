@@ -189,7 +189,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         final String expectKey = "你好";
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(new byte[0], expectKey, null, new UpCompletionHandler() {
+                uploadManager.put(new byte[1], expectKey, null, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         Log.i("qiniutest", k + rinfo);
                         key = k;
@@ -217,7 +217,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         final String expectKey = "你好";
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(new byte[0], expectKey, "", new UpCompletionHandler() {
+                uploadManager.put(new byte[1], expectKey, "", new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         Log.i("qiniutest", k + rinfo);
                         key = k;
