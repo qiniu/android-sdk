@@ -97,9 +97,10 @@ public final class ResponseInfo {
         this.sent = sent;
     }
 
-    public static ResponseInfo zeroSize(){
+    public static ResponseInfo zeroSize() {
         return new ResponseInfo(ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero");
     }
+
     public static ResponseInfo cancelled() {
         return new ResponseInfo(Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user");
     }
