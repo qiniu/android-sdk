@@ -9,8 +9,6 @@ import java.io.File;
 
 /**
  * 七牛文件上传管理器
- * <p/>
- * <p/>
  * 一般默认可以使用这个类的方法来上传数据和文件。这个类自动检测文件的大小，
  * 只要超过了{@link Configuration#putThreshold}
  */
@@ -52,10 +50,11 @@ public final class UploadManager {
         ResponseInfo info = null;
         if (message != null) {
             info = ResponseInfo.invalidArgument(message);
-        } if ((f!=null && f.length() == 0) || (data != null && data.length == 0)){
+        }
+        if ((f != null && f.length() == 0) || (data != null && data.length == 0)) {
             info = ResponseInfo.zeroSize();
         }
-        if (info != null){
+        if (info != null) {
             final ResponseInfo info2 = info;
             AsyncRun.run(new Runnable() {
                 @Override
