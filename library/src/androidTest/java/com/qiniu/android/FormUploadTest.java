@@ -64,6 +64,36 @@ public class FormUploadTest extends InstrumentationTestCase {
     }
 
     @SmallTest
+    public void test0Data() throws Throwable {
+        final String expectKey = "你好;\"\r\n\r\n\r\n";
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("x:foo", "fooval");
+        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
+
+        uploadManager.put("".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                Log.i("qiniutest", k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+                signal.countDown();
+            }
+        }, opt);
+
+        try {
+            signal.await(10, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertFalse(info.toString(), info.isOK());
+        Assert.assertEquals(info.toString(), "", info.reqId);
+        Assert.assertNull(resp);
+    }
+
+    @SmallTest
     public void testNoKey() throws Throwable {
         final String expectKey = null;
         Map<String, String> params = new HashMap<String, String>();
@@ -159,7 +189,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         final String expectKey = "你好";
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(new byte[0], expectKey, null, new UpCompletionHandler() {
+                uploadManager.put(new byte[1], expectKey, null, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         Log.i("qiniutest", k + rinfo);
                         key = k;
@@ -187,7 +217,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         final String expectKey = "你好";
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(new byte[0], expectKey, "", new UpCompletionHandler() {
+                uploadManager.put(new byte[1], expectKey, "", new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         Log.i("qiniutest", k + rinfo);
                         key = k;
@@ -239,6 +269,38 @@ public class FormUploadTest extends InstrumentationTestCase {
         Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
+        TempFile.remove(f);
+    }
+
+    @MediumTest
+    public void test0File() throws Throwable {
+        final String expectKey = "世/界";
+        final File f = TempFile.createFile(0);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("x:foo", "fooval");
+        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
+        uploadManager.put(f, expectKey, TestConfig.token, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                Log.i("qiniutest", k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+                signal.countDown();
+            }
+        }, opt);
+
+        try {
+            signal.await(10, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Assert.assertEquals(f.toString(), 0, f.length());
+        Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertFalse(info.toString(), info.isOK());
+        Assert.assertEquals(info.toString(), "", info.reqId);
+        Assert.assertNull(resp);
         TempFile.remove(f);
     }
 
