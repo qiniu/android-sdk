@@ -101,7 +101,6 @@ public class FormUploadTest extends InstrumentationTestCase {
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                final Thread t = Thread.currentThread();
                 uploadManager.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         Log.i("qiniutest", k + rinfo);
@@ -109,7 +108,6 @@ public class FormUploadTest extends InstrumentationTestCase {
                         info = rinfo;
                         resp = response;
                         signal.countDown();
-                        Assert.assertSame("not in ui thread", t, Thread.currentThread());
                     }
                 }, opt);
             }
@@ -135,7 +133,6 @@ public class FormUploadTest extends InstrumentationTestCase {
         final String expectKey = "你好";
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                final Thread t = Thread.currentThread();
                 uploadManager.put("hello".getBytes(), expectKey, "invalid", new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         Log.i("qiniutest", k + rinfo);
@@ -143,7 +140,6 @@ public class FormUploadTest extends InstrumentationTestCase {
                         info = rinfo;
                         resp = response;
                         signal.countDown();
-                        Assert.assertSame("not in ui thread", t, Thread.currentThread());
                     }
                 }, null);
             }
@@ -192,9 +188,6 @@ public class FormUploadTest extends InstrumentationTestCase {
     public void testNoToken() throws Throwable {
         final String expectKey = "你好";
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
-
-            final Thread t = Thread.currentThread();
-
             public void run() {
                 uploadManager.put(new byte[1], expectKey, null, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
@@ -203,7 +196,6 @@ public class FormUploadTest extends InstrumentationTestCase {
                         info = rinfo;
                         resp = response;
                         signal.countDown();
-                        Assert.assertSame("not in ui thread", t, Thread.currentThread());
                     }
                 }, null);
             }
@@ -225,8 +217,6 @@ public class FormUploadTest extends InstrumentationTestCase {
         final String expectKey = "你好";
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-
-                final Thread t = Thread.currentThread();
                 uploadManager.put(new byte[1], expectKey, "", new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         Log.i("qiniutest", k + rinfo);
@@ -234,8 +224,6 @@ public class FormUploadTest extends InstrumentationTestCase {
                         info = rinfo;
                         resp = response;
                         signal.countDown();
-                        Assert.assertSame("not in ui thread", t, Thread.currentThread());
-
                     }
                 }, null);
             }
