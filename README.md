@@ -5,6 +5,8 @@
 [![Build Status](https://travis-ci.org/qiniu/android-sdk.svg?branch=master)](https://travis-ci.org/qiniu/android-sdk)
 [![Latest Stable Version](http://img.shields.io/maven-central/v/com.qiniu/qiniu-android-sdk.svg)](https://github.com/qiniu/android-sdk/releases)
 
+## 演示代码
+https://github.com/qiniudemo/qiniu-lab-android
 
 ## 安装
 
