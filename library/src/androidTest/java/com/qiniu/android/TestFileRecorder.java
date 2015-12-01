@@ -11,12 +11,15 @@ import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.storage.persistent.FileRecorder;
+import com.qiniu.android.utils.UrlSafeBase64;
 
 import junit.framework.Assert;
 
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -148,5 +151,51 @@ public class TestFileRecorder extends InstrumentationTestCase {
 
     public void test8M1K() throws Throwable {
         template(8 * 1024 + 1, 0.8);
+    }
+
+
+    public void testLastModify() throws IOException {
+        File f = File.createTempFile("qiniutest", "b");
+        String folder = f.getParent();
+        FileRecorder fr = new FileRecorder(folder);
+
+        String key = "test_profile_";
+        byte[] data = new byte[3];
+        data[0] = 'a';
+        data[1] = '8';
+        data[2] = 'b';
+
+        fr.set(key, data);
+        byte[] data2 = fr.get(key);
+
+        File recoderFile = new File(folder, UrlSafeBase64.encodeToString(key));
+
+        long m1 = recoderFile.lastModified();
+
+        assertEquals(3, data2.length);
+        assertEquals('8', data2[1]);
+
+        recoderFile.setLastModified(new Date().getTime() - 3600 * 48 + 2300);
+        data2 = fr.get(key);
+        assertEquals(3, data2.length);
+        assertEquals('8', data2[1]);
+
+        recoderFile.setLastModified(new Date().getTime() - 3600 * 48 - 2300);
+
+        long m2 = recoderFile.lastModified();
+
+        byte[] data3 = fr.get(key);
+
+        assertNull(data3);
+        assertTrue(m1 - m2 > 3600 * 48 && m1 - m2 < 3600 * 48 + 5500);
+
+        try {
+            Thread.sleep(2300);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        fr.set(key, data);
+        long m4 = recoderFile.lastModified();
+        assertTrue(m4 > m1);
     }
 }
