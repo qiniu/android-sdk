@@ -175,19 +175,19 @@ public class TestFileRecorder extends InstrumentationTestCase {
         assertEquals(3, data2.length);
         assertEquals('8', data2[1]);
 
-        recoderFile.setLastModified(new Date().getTime() - 3600 * 48 + 2300);
+        recoderFile.setLastModified(new Date().getTime() - 1000 * 3600 * 48 + 2300);
         data2 = fr.get(key);
         assertEquals(3, data2.length);
         assertEquals('8', data2[1]);
 
-        recoderFile.setLastModified(new Date().getTime() - 3600 * 48 - 2300);
+        recoderFile.setLastModified(new Date().getTime() - 1000 * 3600 * 48 - 2300);
 
         long m2 = recoderFile.lastModified();
 
         byte[] data3 = fr.get(key);
 
         assertNull(data3);
-        assertTrue(m1 - m2 > 3600 * 48 && m1 - m2 < 3600 * 48 + 5500);
+        assertTrue(m1 - m2 > 1000 * 3600 * 48 && m1 - m2 < 1000 * 3600 * 48 + 5500);
 
         try {
             Thread.sleep(2300);

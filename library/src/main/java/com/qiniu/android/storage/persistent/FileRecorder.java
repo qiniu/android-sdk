@@ -92,7 +92,7 @@ public final class FileRecorder implements Recorder {
     }
 
     private boolean outOfDate(File f) {
-        return f.lastModified() + 3600 * 24 * 2 < new Date().getTime();
+        return f.lastModified() + 1000 * 3600 * 24 * 2 < new Date().getTime();
     }
 
     /**
