@@ -61,7 +61,7 @@ public class HttpsTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testPost2() throws Throwable {
-        httpManager.postData(newURI("https://dn-kdt-img.qbox.me/"), "hello".getBytes(), null, null, new CompletionHandler() {
+        httpManager.postData(newURI("https://static-fw.qbox.me/"), "hello".getBytes(), null, null, new CompletionHandler() {
             @Override
             public void complete(ResponseInfo rinfo, JSONObject response) {
                 Log.d("qiniutest", rinfo.toString());
