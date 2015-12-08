@@ -78,4 +78,24 @@ public class HttpsTest extends InstrumentationTestCase {
         Assert.assertEquals(info.error, 200, info.statusCode);
         Assert.assertNotNull(info.reqId);
     }
+
+    @SmallTest
+    public void testPost3() throws Throwable {
+        httpManager.postData(newURI("https://up.qiniu.com"), "hello".getBytes(), null, null, new CompletionHandler() {
+            @Override
+            public void complete(ResponseInfo rinfo, JSONObject response) {
+                Log.d("qiniutest", rinfo.toString());
+                info = rinfo;
+                signal.countDown();
+            }
+        }, null);
+
+        try {
+            signal.await(60000, TimeUnit.SECONDS); // wait for callback
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        // cert is not match
+        Assert.assertEquals(info.error, -1, info.statusCode);
+    }
 }
