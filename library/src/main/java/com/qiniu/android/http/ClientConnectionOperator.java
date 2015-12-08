@@ -27,22 +27,31 @@
 
 package com.qiniu.android.http;
 
+import android.util.Log;
+
+import com.loopj.android.http.MySSLSocketFactory;
 import com.qiniu.android.dns.DnsManager;
 import com.qiniu.android.dns.Domain;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.ConnectException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import javax.net.ssl.SSLSocket;
+
 import cz.msebera.android.httpclient.HttpHost;
 import cz.msebera.android.httpclient.conn.HttpHostConnectException;
+import cz.msebera.android.httpclient.conn.HttpInetSocketAddress;
 import cz.msebera.android.httpclient.conn.OperatedClientConnection;
 import cz.msebera.android.httpclient.conn.scheme.LayeredSocketFactory;
 import cz.msebera.android.httpclient.conn.scheme.Scheme;
 import cz.msebera.android.httpclient.conn.scheme.SchemeRegistry;
 import cz.msebera.android.httpclient.conn.scheme.SocketFactory;
+import cz.msebera.android.httpclient.conn.ssl.SSLSocketFactory;
 import cz.msebera.android.httpclient.impl.conn.DefaultClientConnection;
 import cz.msebera.android.httpclient.params.HttpConnectionParams;
 import cz.msebera.android.httpclient.params.HttpParams;
@@ -150,10 +159,38 @@ public final class ClientConnectionOperator implements cz.msebera.android.httpcl
             final boolean last = i == ips.length - 1;
 
             Socket sock = sf.createSocket();
+            if (sock instanceof SSLSocket){
+                Log.d("qiniu ", "ssl socket");
+                SSLSocket ssl = (SSLSocket) sock;
+                ssl.setEnabledProtocols(ssl.getSupportedProtocols());
+                java.lang.reflect.Method setHostnameMethod = null;
+                try {
+                    setHostnameMethod = ssl.getClass().getMethod("setHostname", String.class);
+                    setHostnameMethod.invoke(ssl, host);
+                    Log.d("qiniu ", "ssl socket sni done");
+                } catch (NoSuchMethodException e) {
+                    e.printStackTrace();
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+
             conn.opening(sock, target);
 
             try {
-                Socket connsock = sf.connectSocket(sock, ip, port, local, 0, params);
+                Socket connsock;
+                if (sf instanceof SSLSocketFactory){
+                    InetAddress remote = InetAddress.getByName(ip);
+                    InetSocketAddress remoteAddress = new HttpInetSocketAddress(
+                            new HttpHost(host, port), remote, port);
+                    SSLSocketFactory sf2 = (SSLSocketFactory) sf;
+                    connsock = sf2.connectSocket(sock, remoteAddress, null, params);
+                }else{
+                    connsock = sf.connectSocket(sock, ip, port, local, 0, params);
+                }
+
                 if (sock != connsock) {
                     sock = connsock;
                     conn.opening(sock, target);
@@ -165,6 +202,10 @@ public final class ClientConnectionOperator implements cz.msebera.android.httpcl
             } catch (ConnectException ex) {
                 if (last) {
                     throw new HttpHostConnectException(target, ex);
+                }
+            } catch (IOException e2){
+                if (last) {
+                    throw e2;
                 }
             }
         }
