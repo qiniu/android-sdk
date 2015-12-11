@@ -97,6 +97,9 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         Assert.assertTrue(info.toString(), info.isOK());
 
         Assert.assertEquals(expectKey, key);
+
+        //上传策略含空格 \"fname\":\" $(fname) \"
+        Assert.assertEquals(f.getName(), resp.optString("fname", "res doesn't include the FNAME").trim());
         Assert.assertTrue(info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
