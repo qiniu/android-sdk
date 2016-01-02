@@ -11,7 +11,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 ## 安装
 
 ### 直接安装
-将sdk jar文件 复制到项目中去，sdk依赖 http://loopj.com/android-async-http/ 7.0.7版本依赖1.4.7,1.4.8，7.0.8依赖1.4.9。[下载地址](http://search.maven.org/remotecontent?filepath=com/qiniu/qiniu-android-sdk/)
+将sdk jar文件 复制到项目中去，sdk依赖 http://loopj.com/android-async-http/ 7.0.7版本依赖1.4.7,1.4.8，7.0.8及以上依赖1.4.9。[下载地址](http://search.maven.org/remotecontent?filepath=com/qiniu/qiniu-android-sdk/)
  还有 happy-dns [下载地址](https://repo1.maven.org/maven2/com/qiniu/happy-dns/)
 
 ### 通过maven
@@ -39,6 +39,25 @@ import com.qiniu.android.storage.UploadManager;
 
 ``` bash
 $ ./gradlew connectedAndroidTest
+```
+
+## 常见问题
+对七牛的SDK不需要做特殊混淆处理，混淆时将七牛相关的包都排除就可以了。 
+
+1. 在Android Studio中，混淆配置在 proguard-rules.pro 里面加上下面几行混淆代码就行：
+```
+-keep class com.qiniu.**{*;}
+-keep class com.qiniu.**{public <init>();}
+-ignorewarnings
+```
+
+注意：-ignorewarnings这个也是必须加的，如果不加这个编译的时候可能是可以通过的，但是release的时候还是会出现错误。 
+
+2. 对于Eeclipse中也是一样的，在proguard-project.txt 文件附件同样的排除代码就可以了
+```
+-keep class com.qiniu.**{*;}
+-keep class com.qiniu.**{public <init>();}
+-ignorewarnings
 ```
 
 ## 运行环境
