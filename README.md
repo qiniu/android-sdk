@@ -42,6 +42,7 @@ $ ./gradlew connectedAndroidTest
 ```
 
 ## 常见问题
+* 混淆处理
 对七牛的SDK不需要做特殊混淆处理，混淆时将七牛相关的包都排除就可以了。 
 
 1. 在Android Studio中，混淆配置在 proguard-rules.pro 里面加上下面几行混淆代码就行：
@@ -59,6 +60,9 @@ $ ./gradlew connectedAndroidTest
 -keep class com.qiniu.**{public <init>();}
 -ignorewarnings
 ```
+
+* 为什么进度会在95% 停很久
+因为上传进度是用sdk写入socket的 字节数/总字节数 作为进度，但写入socket不等于服务器收到并且处理完成，中间还有一段时间，如果只是用字节数就会出现更怪异的情况，在100% 停留很久，所以综合考虑就使用了 95%这个值
 
 ## 运行环境
 
