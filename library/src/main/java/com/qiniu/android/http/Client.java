@@ -2,9 +2,12 @@ package com.qiniu.android.http;
 
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.dns.DnsManager;
+import com.qiniu.android.dns.Domain;
+import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringMap;
 import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.Dns;
 import com.squareup.okhttp.Interceptor;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.MultipartBuilder;
@@ -18,13 +21,12 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import javax.net.SocketFactory;
 
 import okio.BufferedSink;
 
@@ -40,12 +42,38 @@ public final class Client {
     private final OkHttpClient httpClient;
     private final UrlConverter converter;
 
-    public Client(Proxy proxy, int connectTimeout, int responseTimeout, UrlConverter converter, DnsManager dns {
+    public Client(){
+        this(null, 10, 30, null, null);
+    }
+
+    public Client(Proxy proxy, int connectTimeout, int responseTimeout, UrlConverter converter, final DnsManager dns) {
         this.converter = converter;
         httpClient = new OkHttpClient();
-        httpClient.ne
+
         if (proxy != null) {
             httpClient.setProxy(proxy.toSystemProxy());
+        }
+        if (dns != null){
+            httpClient.setDns(new Dns() {
+                @Override
+                public List<InetAddress> lookup(String hostname) throws UnknownHostException {
+                    InetAddress[] ips;
+                    try {
+                        ips = dns.queryInetAdress(new Domain(hostname));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        throw new UnknownHostException(e.getMessage());
+                    }
+                    if (ips == null){
+                        throw new UnknownHostException(hostname + " resolve failed");
+                    }
+                    List<InetAddress> l = new ArrayList<>();
+                    for (InetAddress ip:ips){
+                        l.add(ip);
+                    }
+                    return l;
+                }
+            });
         }
         httpClient.networkInterceptors().add(new Interceptor() {
             @Override
@@ -62,29 +90,7 @@ public final class Client {
 
         httpClient.setConnectTimeout(connectTimeout, TimeUnit.SECONDS);
         httpClient.setReadTimeout(responseTimeout, TimeUnit.SECONDS);
-    }
-
-
-    private static RequestBody create(final MediaType contentType,
-                                      final byte[] content, final int offset, final int size) {
-        if (content == null) throw new NullPointerException("content == null");
-
-        return new RequestBody() {
-            @Override
-            public MediaType contentType() {
-                return contentType;
-            }
-
-            @Override
-            public long contentLength() {
-                return size;
-            }
-
-            @Override
-            public void writeTo(BufferedSink sink) throws IOException {
-                sink.write(content, offset, size);
-            }
-        };
+        httpClient.setWriteTimeout(0, TimeUnit.SECONDS);
     }
 
     public void asyncSend(final Request.Builder requestBuilder, StringMap headers, final CompletionHandler completionHandler) {
@@ -141,18 +147,28 @@ public final class Client {
         });
     }
 
+    public void asyncPost(String url, byte[] body,
+                          StringMap headers, ProgressHandler progressHandler,
+                          CompletionHandler completionHandler, UpCancellationSignal c){
+        asyncPost(url, body, 0, body.length, headers, progressHandler, completionHandler, c);
+    }
+
     public void asyncPost(String url, byte[] body, int offset, int size,
-                          StringMap headers, String contentType, CompletionHandler completionHandler) {
+                          StringMap headers, ProgressHandler progressHandler,
+                          CompletionHandler completionHandler, UpCancellationSignal c) {
         if (converter != null) {
             url = converter.convert(url);
         }
 
         RequestBody rbody;
         if (body != null && body.length > 0) {
-            MediaType t = MediaType.parse(contentType);
-            rbody = create(t, body, offset, size);
+            MediaType t = MediaType.parse(DefaultMime);
+            rbody = RequestBody.create(t, body, offset, size);
         } else {
             rbody = RequestBody.create(null, new byte[0]);
+        }
+        if (progressHandler != null){
+            rbody = new CountingRequestBody(rbody, progressHandler);
         }
 
         Request.Builder requestBuilder = new Request.Builder().url(url).post(rbody);
@@ -160,41 +176,30 @@ public final class Client {
     }
 
     public void asyncMultipartPost(String url,
-                                   StringMap fields,
-                                   String name,
-                                   String fileName,
-                                   byte[] fileBody,
-                                   String mimeType,
-                                   StringMap headers,
-                                   CompletionHandler completionHandler) {
-        RequestBody file = RequestBody.create(MediaType.parse(mimeType), fileBody);
-        asyncMultipartPost(url, fields, name, fileName, file, headers, completionHandler);
-    }
-
-    public void asyncMultipartPost(String url,
-                                   StringMap fields,
-                                   String name,
-                                   String fileName,
-                                   File fileBody,
-                                   String mimeType,
-                                   StringMap headers,
-                                   CompletionHandler completionHandler) {
-        RequestBody file = RequestBody.create(MediaType.parse(mimeType), fileBody);
-        asyncMultipartPost(url, fields, name, fileName, file, headers, completionHandler);
+                                   PostArgs args,
+                                   ProgressHandler progressHandler,
+                                   CompletionHandler completionHandler,
+                                   UpCancellationSignal c) {
+        RequestBody file;
+        if (args.file != null){
+            file = RequestBody.create(MediaType.parse(args.mimeType), args.file);
+        }else{
+            file = RequestBody.create(MediaType.parse(args.mimeType), args.data);
+        }
+        asyncMultipartPost(url, args.params, progressHandler, args.fileName, file, completionHandler);
     }
 
     private void asyncMultipartPost(String url,
                                     StringMap fields,
-                                    String name,
+                                    ProgressHandler progressHandler,
                                     String fileName,
                                     RequestBody file,
-                                    StringMap headers,
                                     CompletionHandler completionHandler) {
         if (converter != null) {
             url = converter.convert(url);
         }
         final MultipartBuilder mb = new MultipartBuilder();
-        mb.addFormDataPart(name, fileName, file);
+        mb.addFormDataPart("filename", fileName, file);
 
         fields.forEach(new StringMap.Consumer() {
             @Override
@@ -204,8 +209,11 @@ public final class Client {
         });
         mb.type(MediaType.parse("multipart/form-data"));
         RequestBody body = mb.build();
+        if (progressHandler != null){
+            body = new CountingRequestBody(body, progressHandler);
+        }
         Request.Builder requestBuilder = new Request.Builder().url(url).post(body);
-        asyncSend(requestBuilder, headers, completionHandler);
+        asyncSend(requestBuilder, null, completionHandler);
     }
 
     private static class IpTag {
@@ -214,7 +222,7 @@ public final class Client {
 
 
     private void onRet(com.squareup.okhttp.Response response, String ip, long duration,
-                            CompletionHandler complete){
+                            final CompletionHandler complete){
         int code = response.code();
         String reqId = response.header("X-Reqid");
         reqId = (reqId == null) ? null : reqId.trim();
@@ -239,9 +247,16 @@ public final class Client {
         }
 
         URL u = response.request().url();
-        ResponseInfo info = new ResponseInfo(code, reqId, response.header("X-Log"), via(response),
+        final ResponseInfo info = new ResponseInfo(code, reqId, response.header("X-Log"), via(response),
                 u.getHost(), u.getPath(), ip, u.getPort(), duration, 0, error);
-        complete.complete(info,json);
+        final JSONObject json2 = json;
+        AsyncRun.run(new Runnable() {
+            @Override
+            public void run() {
+                complete.complete(info, json2);
+            }
+        });
+
     }
 
     private static String via(com.squareup.okhttp.Response response) {

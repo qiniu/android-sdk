@@ -48,6 +48,11 @@ public final class StringMap {
         return this;
     }
 
+    public StringMap putFileds(Map<String, String> map) {
+        this.map.putAll(map);
+        return this;
+    }
+
     public StringMap putAll(StringMap map) {
         this.map.putAll(map.map);
         return this;

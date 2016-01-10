@@ -1,8 +1,7 @@
 package com.qiniu.android.storage;
 
-import com.qiniu.android.http.HttpManager;
+import com.qiniu.android.http.Client;
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.StatReport;
 import com.qiniu.android.utils.AsyncRun;
 
 import java.io.File;
@@ -14,7 +13,7 @@ import java.io.File;
  */
 public final class UploadManager {
     private final Configuration config;
-    private final HttpManager httpManager;
+    private final Client client;
 
     public UploadManager() {
         this(new Configuration.Builder().build());
@@ -22,8 +21,7 @@ public final class UploadManager {
 
     public UploadManager(Configuration config) {
         this.config = config;
-        this.httpManager = new HttpManager(config.proxy,
-                new StatReport(), config.connectTimeout, config.responseTimeout,
+        this.client = new Client(config.proxy, config.connectTimeout, config.responseTimeout,
                 config.urlConverter, config.dns);
     }
 
@@ -97,7 +95,7 @@ public final class UploadManager {
         AsyncRun.run(new Runnable() {
             @Override
             public void run() {
-                FormUploader.upload(httpManager, config, data, key, decodedToken, completionHandler, options);
+                FormUploader.upload(client, config, data, key, decodedToken, completionHandler, options);
             }
         });
     }
@@ -143,11 +141,11 @@ public final class UploadManager {
         }
         long size = file.length();
         if (size <= config.putThreshold) {
-            FormUploader.upload(httpManager, config, file, key, decodedToken, completionHandler, options);
+            FormUploader.upload(client, config, file, key, decodedToken, completionHandler, options);
             return;
         }
         String recorderKey = config.keyGen.gen(key, file);
-        ResumeUploader uploader = new ResumeUploader(httpManager, config, file, key,
+        ResumeUploader uploader = new ResumeUploader(client, config, file, key,
                 decodedToken, completionHandler, options, recorderKey);
 
         AsyncRun.run(uploader);

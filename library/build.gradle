@@ -29,12 +29,16 @@ android {
         versionCode code
         versionName version
     }
+
+    lintOptions {
+        warning 'InvalidPackage'
+    }
 }
 
 dependencies {
-    compile 'com.squareup.okhttp:okhttp:2.5.0'
-    compile 'com.squareup.okio:okio:1.5.0'
-    compile 'com.qiniu:happy-dns:0.2.+'
+    compile 'com.squareup.okhttp:okhttp:2.6.0'
+    compile 'com.squareup.okio:okio:1.6.0'
+    compile 'com.qiniu:happy-dns:0.2.1'
 //    compile 'com.android.support:appcompat-v7:21.0.3'
     compile fileTree(include: ['*.jar'], dir: 'libs')
 }

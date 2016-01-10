@@ -5,8 +5,9 @@ import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
 import com.qiniu.android.http.CompletionHandler;
-import com.qiniu.android.http.HttpManager;
+import com.qiniu.android.http.Client;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.utils.StringMap;
 
 import junit.framework.Assert;
 
@@ -17,15 +18,13 @@ import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import cz.msebera.android.httpclient.Header;
-import cz.msebera.android.httpclient.message.BasicHeader;
 
 /**
  * Created by bailong on 14/10/12.
  */
 public class HttpTest extends InstrumentationTestCase {
     final CountDownLatch signal = new CountDownLatch(1);
-    private HttpManager httpManager;
+    private Client httpManager;
     private ResponseInfo info;
 
     private static URI newURI(String s) {
@@ -39,12 +38,13 @@ public class HttpTest extends InstrumentationTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        httpManager = new HttpManager();
+        httpManager = new Client();
     }
 
     @SmallTest
     public void testPost1() throws Throwable {
-        httpManager.postData(newURI("http://www.baidu.com"), "hello".getBytes(), null, null, new CompletionHandler() {
+        httpManager.asyncPost("http://www.baidu.com",
+                "hello".getBytes(), null, null, new CompletionHandler() {
             @Override
             public void complete(ResponseInfo rinfo, JSONObject response) {
                 Log.d("qiniutest", rinfo.toString());
@@ -64,7 +64,7 @@ public class HttpTest extends InstrumentationTestCase {
     @SmallTest
     public void testPost2() throws Throwable {
 
-        httpManager.postData(newURI("http://up.qiniu.com"), "hello".getBytes(), null, null, new CompletionHandler() {
+        httpManager.asyncPost("http://up.qiniu.com", "hello".getBytes(), null, null, new CompletionHandler() {
             @Override
             public void complete(ResponseInfo rinfo, JSONObject response) {
                 Log.d("qiniutest", rinfo.toString());
@@ -85,7 +85,7 @@ public class HttpTest extends InstrumentationTestCase {
     public void testPost3() throws Throwable {
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                httpManager.postData(newURI("http://httpbin.org/status/500"), "hello".getBytes(),
+                httpManager.asyncPost("http://httpbin.org/status/500", "hello".getBytes(),
                         null, null, new CompletionHandler() {
                             @Override
                             public void complete(ResponseInfo rinfo, JSONObject response) {
@@ -110,7 +110,8 @@ public class HttpTest extends InstrumentationTestCase {
     public void testPost4() throws Throwable {
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                httpManager.postData(newURI("http://httpbin.org/status/418"), "hello".getBytes(),
+                httpManager.asyncPost("http://httpbin.org/status/418",
+                        "hello".getBytes(),
                         null, null, new CompletionHandler() {
                             @Override
                             public void complete(ResponseInfo rinfo, JSONObject response) {
@@ -134,7 +135,7 @@ public class HttpTest extends InstrumentationTestCase {
     @SmallTest
     public void testPostNoDomain() throws Throwable {
 
-        httpManager.postData(newURI("http://no-domain.qiniu.com"), "hello".getBytes(),
+        httpManager.asyncPost("http://no-domain.qiniu.com", "hello".getBytes(),
                 null, null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
@@ -156,7 +157,7 @@ public class HttpTest extends InstrumentationTestCase {
     @SmallTest
     public void testPostNoPort() throws Throwable {
 
-        httpManager.postData(newURI("http://up.qiniu.com:12345"), "hello".getBytes(),
+        httpManager.asyncPost("http://up.qiniu.com:12345", "hello".getBytes(),
                 null, null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
@@ -177,8 +178,8 @@ public class HttpTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testPostIP() throws Throwable {
-        Header[] x = {new BasicHeader("Host", "www.qiniu.com")};
-        httpManager.postData(newURI("http://183.136.139.12/"), "hello".getBytes(),
+        StringMap x = new StringMap().put("Host", "www.qiniu.com");
+        httpManager.asyncPost("http://183.136.139.12/", "hello".getBytes(),
                 x, null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {

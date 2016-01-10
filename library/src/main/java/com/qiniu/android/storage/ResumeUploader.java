@@ -1,10 +1,11 @@
 package com.qiniu.android.storage;
 
 import com.qiniu.android.http.CompletionHandler;
-import com.qiniu.android.http.HttpManager;
+import com.qiniu.android.http.Client;
 import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.Crc32;
+import com.qiniu.android.utils.StringMap;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.UrlSafeBase64;
 
@@ -20,9 +21,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
 import java.util.Map;
-
-import cz.msebera.android.httpclient.Header;
-import cz.msebera.android.httpclient.message.BasicHeader;
 
 import static java.lang.String.format;
 
@@ -43,11 +41,12 @@ final class ResumeUploader implements Runnable {
     private final String key;
     private final UpCompletionHandler completionHandler;
     private final UploadOptions options;
-    private final HttpManager httpManager;
+    private final Client client;
     private final Configuration config;
     private final byte[] chunkBuffer;
     private final String[] contexts;
-    private final Header[] headers;
+//    private final Header[] headers;
+    private final StringMap headers;
     private final long modifyTime;
     private final String recorderKey;
     private RandomAccessFile file;
@@ -55,16 +54,15 @@ final class ResumeUploader implements Runnable {
     private long crc32;
     private UpToken token;
 
-    ResumeUploader(HttpManager httpManager, Configuration config, File f, String key, UpToken token,
+    ResumeUploader(Client client, Configuration config, File f, String key, UpToken token,
                    final UpCompletionHandler completionHandler, UploadOptions options, String recorderKey) {
-        this.httpManager = httpManager;
+        this.client = client;
         this.config = config;
         this.f = f;
         this.recorderKey = recorderKey;
         this.size = (int) f.length();
         this.key = key;
-        this.headers = new Header[1];
-        headers[0] = new BasicHeader("Authorization", "UpToken " + token.token);
+        this.headers = new StringMap().put("Authorization", "UpToken " + token.token);
         this.file = null;
         this.completionHandler = new UpCompletionHandler() {
             @Override
@@ -141,7 +139,8 @@ final class ResumeUploader implements Runnable {
     }
 
     private void makeFile(URI uri, CompletionHandler _completionHandler, UpCancellationSignal c) {
-        String mime = format(Locale.ENGLISH, "/mimeType/%s", UrlSafeBase64.encodeToString(options.mimeType));
+        String mime = format(Locale.ENGLISH, "/mimeType/%s/fname/%s",
+                UrlSafeBase64.encodeToString(options.mimeType), UrlSafeBase64.encodeToString(f.getName()));
 
         String keyStr = "";
         if (key != null) {
@@ -174,7 +173,7 @@ final class ResumeUploader implements Runnable {
 
     private void post(URI uri, byte[] data, int offset, int size, ProgressHandler progress,
                       CompletionHandler completion, UpCancellationSignal c) {
-        httpManager.postData(uri, data, offset, size, headers, progress, completion, c);
+        client.asyncPost(uri.toString(), data, offset, size, headers, progress, completion, c);
     }
 
     private int calcPutSize(int offset) {
