@@ -1,7 +1,7 @@
 package com.qiniu.android.storage;
 
-import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.Client;
+import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.PostArgs;
 import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ResponseInfo;
@@ -13,8 +13,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 表单上传
@@ -43,7 +41,7 @@ final class FormUploader {
     /**
      * 上传文件，并以指定的key保存文件
      *
-     * @param client       HTTP连接管理器
+     * @param client            HTTP连接管理器
      * @param file              上传的文件
      * @param key               上传的数据保存的文件名
      * @param token             上传凭证

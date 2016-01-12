@@ -14,11 +14,9 @@ import com.squareup.okhttp.MultipartBuilder;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
-import com.squareup.okhttp.Response;
 
 import org.json.JSONObject;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
@@ -28,8 +26,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import okio.BufferedSink;
 
 /**
  * Created by bailong on 15/11/12.
@@ -43,7 +39,7 @@ public final class Client {
     private final OkHttpClient httpClient;
     private final UrlConverter converter;
 
-    public Client(){
+    public Client() {
         this(null, 10, 30, null, null);
     }
 
@@ -54,7 +50,7 @@ public final class Client {
         if (proxy != null) {
             httpClient.setProxy(proxy.toSystemProxy());
         }
-        if (dns != null){
+        if (dns != null) {
             httpClient.setDns(new Dns() {
                 @Override
                 public List<InetAddress> lookup(String hostname) throws UnknownHostException {
@@ -65,7 +61,7 @@ public final class Client {
                         e.printStackTrace();
                         throw new UnknownHostException(e.getMessage());
                     }
-                    if (ips == null){
+                    if (ips == null) {
                         throw new UnknownHostException(hostname + " resolve failed");
                     }
                     List<InetAddress> l = new ArrayList<>();
@@ -90,6 +86,35 @@ public final class Client {
         httpClient.setConnectTimeout(connectTimeout, TimeUnit.SECONDS);
         httpClient.setReadTimeout(responseTimeout, TimeUnit.SECONDS);
         httpClient.setWriteTimeout(0, TimeUnit.SECONDS);
+    }
+
+    private static String via(com.squareup.okhttp.Response response) {
+        String via;
+        if (!(via = response.header("X-Via", "")).equals("")) {
+            return via;
+        }
+
+        if (!(via = response.header("X-Px", "")).equals("")) {
+            return via;
+        }
+
+        if (!(via = response.header("Fw-Via", "")).equals("")) {
+            return via;
+        }
+        return via;
+    }
+
+    private static String ctype(com.squareup.okhttp.Response response) {
+        MediaType mediaType = response.body().contentType();
+        if (mediaType == null) {
+            return "";
+        }
+        return mediaType.type() + "/" + mediaType.subtype();
+    }
+
+    private static JSONObject buildJsonResp(byte[] body) throws Exception {
+        String str = new String(body, Constants.UTF_8);
+        return new JSONObject(str);
     }
 
     public void asyncSend(final Request.Builder requestBuilder, StringMap headers, final CompletionHandler completionHandler) {
@@ -124,14 +149,16 @@ public final class Client {
                 long duration = (System.currentTimeMillis() - start) / 1000;
                 int statusCode = ResponseInfo.NetworkError;
                 String msg = e.getMessage();
-                if (e instanceof CancellationHandler.CancellationException){
+                if (e instanceof CancellationHandler.CancellationException) {
                     statusCode = ResponseInfo.Cancelled;
-                }else if (e instanceof  UnknownHostException) {
+                } else if (e instanceof UnknownHostException) {
                     statusCode = ResponseInfo.UnknownHost;
                 } else if (msg != null && msg.indexOf("Broken pipe") == 0) {
                     statusCode = ResponseInfo.NetworkConnectionLost;
                 } else if (e instanceof SocketTimeoutException) {
                     statusCode = ResponseInfo.TimedOut;
+                } else if (e instanceof java.net.ConnectException) {
+                    statusCode = ResponseInfo.CannotConnectToHost;
                 }
 
                 URL u = request.url();
@@ -151,7 +178,7 @@ public final class Client {
 
     public void asyncPost(String url, byte[] body,
                           StringMap headers, ProgressHandler progressHandler,
-                          CompletionHandler completionHandler, UpCancellationSignal c){
+                          CompletionHandler completionHandler, UpCancellationSignal c) {
         asyncPost(url, body, 0, body.length, headers, progressHandler, completionHandler, c);
     }
 
@@ -169,7 +196,7 @@ public final class Client {
         } else {
             rbody = RequestBody.create(null, new byte[0]);
         }
-        if (progressHandler != null){
+        if (progressHandler != null) {
             rbody = new CountingRequestBody(rbody, progressHandler, c);
         }
 
@@ -183,9 +210,9 @@ public final class Client {
                                    CompletionHandler completionHandler,
                                    CancellationHandler c) {
         RequestBody file;
-        if (args.file != null){
+        if (args.file != null) {
             file = RequestBody.create(MediaType.parse(args.mimeType), args.file);
-        }else{
+        } else {
             file = RequestBody.create(MediaType.parse(args.mimeType), args.data);
         }
         asyncMultipartPost(url, args.params, progressHandler, args.fileName, file, completionHandler, c);
@@ -212,20 +239,15 @@ public final class Client {
         });
         mb.type(MediaType.parse("multipart/form-data"));
         RequestBody body = mb.build();
-        if (progressHandler != null){
+        if (progressHandler != null) {
             body = new CountingRequestBody(body, progressHandler, cancellationHandler);
         }
         Request.Builder requestBuilder = new Request.Builder().url(url).post(body);
         asyncSend(requestBuilder, null, completionHandler);
     }
 
-    private static class IpTag {
-        public String ip = null;
-    }
-
-
     private void onRet(com.squareup.okhttp.Response response, String ip, long duration,
-                            final CompletionHandler complete){
+                       final CompletionHandler complete) {
         int code = response.code();
         String reqId = response.header("X-Reqid");
         reqId = (reqId == null) ? null : reqId.trim();
@@ -240,7 +262,7 @@ public final class Client {
         if (ctype(response).equals(Client.JsonMime) && body != null) {
             try {
                 json = buildJsonResp(body);
-                if(response.code() != 200){
+                if (response.code() != 200) {
                     String err = new String(body, Constants.UTF_8);
                     error = json.optString("error", err);
                 }
@@ -249,7 +271,7 @@ public final class Client {
                     error = e.getMessage();
                 }
             }
-        }else{
+        } else {
             error = new String(body);
         }
 
@@ -266,32 +288,7 @@ public final class Client {
 
     }
 
-    private static String via(com.squareup.okhttp.Response response) {
-        String via;
-        if (!(via = response.header("X-Via", "")).equals("")) {
-            return via;
-        }
-
-        if (!(via = response.header("X-Px", "")).equals("")) {
-            return via;
-        }
-
-        if (!(via = response.header("Fw-Via", "")).equals("")) {
-            return via;
-        }
-        return via;
-    }
-
-    private static String ctype(com.squareup.okhttp.Response response) {
-        MediaType mediaType = response.body().contentType();
-        if (mediaType == null) {
-            return "";
-        }
-        return mediaType.type() + "/" + mediaType.subtype();
-    }
-
-    private static JSONObject buildJsonResp(byte[] body) throws Exception {
-        String str = new String(body, Constants.UTF_8);
-        return new JSONObject(str);
+    private static class IpTag {
+        public String ip = null;
     }
 }

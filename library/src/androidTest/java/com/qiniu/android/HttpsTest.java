@@ -4,8 +4,8 @@ import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
-import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.Client;
+import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.ResponseInfo;
 
 import junit.framework.Assert;
@@ -63,13 +63,13 @@ public class HttpsTest extends InstrumentationTestCase {
     public void testPost2() throws Throwable {
         httpManager.asyncPost("https://static-fw.qbox.me/public/v28812/add-on/ga/analytics.js",
                 "hello".getBytes(), null, null, new CompletionHandler() {
-            @Override
-            public void complete(ResponseInfo rinfo, JSONObject response) {
-                Log.d("qiniutest", rinfo.toString());
-                info = rinfo;
-                signal.countDown();
-            }
-        }, null);
+                    @Override
+                    public void complete(ResponseInfo rinfo, JSONObject response) {
+                        Log.d("qiniutest", rinfo.toString());
+                        info = rinfo;
+                        signal.countDown();
+                    }
+                }, null);
 
         try {
             signal.await(60000, TimeUnit.SECONDS); // wait for callback
@@ -84,13 +84,13 @@ public class HttpsTest extends InstrumentationTestCase {
     public void testPost3() throws Throwable {
         httpManager.asyncPost("https://up.qiniu.com",
                 "hello".getBytes(), null, null, new CompletionHandler() {
-            @Override
-            public void complete(ResponseInfo rinfo, JSONObject response) {
-                Log.d("qiniutest", rinfo.toString());
-                info = rinfo;
-                signal.countDown();
-            }
-        }, null);
+                    @Override
+                    public void complete(ResponseInfo rinfo, JSONObject response) {
+                        Log.d("qiniutest", rinfo.toString());
+                        info = rinfo;
+                        signal.countDown();
+                    }
+                }, null);
 
         try {
             signal.await(60000, TimeUnit.SECONDS); // wait for callback

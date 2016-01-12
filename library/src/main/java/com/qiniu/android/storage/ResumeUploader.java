@@ -1,7 +1,7 @@
 package com.qiniu.android.storage;
 
-import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.Client;
+import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.Crc32;
@@ -45,7 +45,7 @@ final class ResumeUploader implements Runnable {
     private final Configuration config;
     private final byte[] chunkBuffer;
     private final String[] contexts;
-//    private final Header[] headers;
+    //    private final Header[] headers;
     private final StringMap headers;
     private final long modifyTime;
     private final String recorderKey;

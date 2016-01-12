@@ -62,35 +62,27 @@ public class CountingRequestBody extends RequestBody {
 
         @Override
         public void write(Buffer source, long byteCount) throws IOException {
-
-//            if (cancellationHandler == null && progress == null) {
+            if (cancellationHandler == null && progress == null) {
                 super.write(source, byteCount);
-//                return;
-//            }
-//            int pos = 0;
-//            long size = 0;
-//            while (pos < byteCount) {
-//                size = 8092 < byteCount - pos ? 8092 : byteCount - pos;
-//                if (cancellationHandler != null && cancellationHandler.isCancelled()) {
-//                    throw new CancellationHandler.CancellationException();
-//                }
-//                super.write(source, size);
-//                bytesWritten += size;
-//
-//                if (progress != null) {
-//                    AsyncRun.run(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            try {
-//                                progress.onProgress(bytesWritten, (int) contentLength());
-//                            } catch (IOException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                    });
-//                }
-//                pos += size;
-//            }
+                return;
+            }
+            if (cancellationHandler != null && cancellationHandler.isCancelled()) {
+                throw new CancellationHandler.CancellationException();
+            }
+            super.write(source, byteCount);
+            bytesWritten += byteCount;
+            if (progress != null) {
+                AsyncRun.run(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            progress.onProgress(bytesWritten, (int) contentLength());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+            }
         }
     }
 }

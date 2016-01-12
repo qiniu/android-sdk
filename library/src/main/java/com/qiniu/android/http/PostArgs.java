@@ -3,7 +3,6 @@ package com.qiniu.android.http;
 import com.qiniu.android.utils.StringMap;
 
 import java.io.File;
-import java.util.Map;
 
 /**
  * 定义请求参数列表

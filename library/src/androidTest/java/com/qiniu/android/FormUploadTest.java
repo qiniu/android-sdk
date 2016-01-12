@@ -12,6 +12,7 @@ import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
+import com.qiniu.android.utils.Etag;
 
 import junit.framework.Assert;
 
@@ -40,8 +41,8 @@ public class FormUploadTest extends InstrumentationTestCase {
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-
-        uploadManager.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
+        byte[] b = "hello".getBytes();
+        uploadManager.put(b, expectKey, TestConfig.token, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                 Log.i("qiniutest", k + rinfo);
                 key = k;
@@ -61,6 +62,9 @@ public class FormUploadTest extends InstrumentationTestCase {
         Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
+
+        String hash = resp.getString("hash");
+        Assert.assertEquals(hash, Etag.data(b));
     }
 
     @SmallTest
@@ -269,6 +273,9 @@ public class FormUploadTest extends InstrumentationTestCase {
         Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
+
+        String hash = resp.getString("hash");
+        Assert.assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
     }
 

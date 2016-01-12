@@ -23,7 +23,7 @@ public final class Proxy {
         this.password = password;
     }
 
-    public java.net.Proxy toSystemProxy(){
+    public java.net.Proxy toSystemProxy() {
         return null;
     }
 }

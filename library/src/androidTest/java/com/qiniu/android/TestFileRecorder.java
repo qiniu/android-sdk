@@ -11,6 +11,7 @@ import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.storage.persistent.FileRecorder;
+import com.qiniu.android.utils.Etag;
 import com.qiniu.android.utils.UrlSafeBase64;
 
 import junit.framework.Assert;
@@ -130,6 +131,8 @@ public class TestFileRecorder extends InstrumentationTestCase {
         Assert.assertTrue(!failed);
         Assert.assertNotNull(resp);
 
+        String hash = resp.getString("hash");
+        Assert.assertEquals(hash, Etag.file(tempFile));
         TempFile.remove(tempFile);
     }
 
