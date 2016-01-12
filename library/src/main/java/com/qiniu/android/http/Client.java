@@ -25,6 +25,7 @@ import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -68,9 +69,7 @@ public final class Client {
                         throw new UnknownHostException(hostname + " resolve failed");
                     }
                     List<InetAddress> l = new ArrayList<>();
-                    for (InetAddress ip:ips){
-                        l.add(ip);
-                    }
+                    Collections.addAll(l, ips);
                     return l;
                 }
             });
@@ -125,7 +124,9 @@ public final class Client {
                 long duration = (System.currentTimeMillis() - start) / 1000;
                 int statusCode = ResponseInfo.NetworkError;
                 String msg = e.getMessage();
-                if (msg != null && msg.indexOf("UnknownHostException") == 0) {
+                if (e instanceof CancellationHandler.CancellationException){
+                    statusCode = ResponseInfo.Cancelled;
+                }else if (e instanceof  UnknownHostException) {
                     statusCode = ResponseInfo.UnknownHost;
                 } else if (msg != null && msg.indexOf("Broken pipe") == 0) {
                     statusCode = ResponseInfo.NetworkConnectionLost;
@@ -142,7 +143,8 @@ public final class Client {
             @Override
             public void onResponse(com.squareup.okhttp.Response response) throws IOException {
                 long duration = (System.currentTimeMillis() - start) / 1000;
-                onRet(response, "", duration, complete);
+                IpTag tag = (IpTag) response.request().tag();
+                onRet(response, tag.ip, duration, complete);
             }
         });
     }
@@ -155,7 +157,7 @@ public final class Client {
 
     public void asyncPost(String url, byte[] body, int offset, int size,
                           StringMap headers, ProgressHandler progressHandler,
-                          CompletionHandler completionHandler, UpCancellationSignal c) {
+                          CompletionHandler completionHandler, CancellationHandler c) {
         if (converter != null) {
             url = converter.convert(url);
         }
@@ -168,7 +170,7 @@ public final class Client {
             rbody = RequestBody.create(null, new byte[0]);
         }
         if (progressHandler != null){
-            rbody = new CountingRequestBody(rbody, progressHandler);
+            rbody = new CountingRequestBody(rbody, progressHandler, c);
         }
 
         Request.Builder requestBuilder = new Request.Builder().url(url).post(rbody);
@@ -179,14 +181,14 @@ public final class Client {
                                    PostArgs args,
                                    ProgressHandler progressHandler,
                                    CompletionHandler completionHandler,
-                                   UpCancellationSignal c) {
+                                   CancellationHandler c) {
         RequestBody file;
         if (args.file != null){
             file = RequestBody.create(MediaType.parse(args.mimeType), args.file);
         }else{
             file = RequestBody.create(MediaType.parse(args.mimeType), args.data);
         }
-        asyncMultipartPost(url, args.params, progressHandler, args.fileName, file, completionHandler);
+        asyncMultipartPost(url, args.params, progressHandler, args.fileName, file, completionHandler, c);
     }
 
     private void asyncMultipartPost(String url,
@@ -194,12 +196,13 @@ public final class Client {
                                     ProgressHandler progressHandler,
                                     String fileName,
                                     RequestBody file,
-                                    CompletionHandler completionHandler) {
+                                    CompletionHandler completionHandler,
+                                    CancellationHandler cancellationHandler) {
         if (converter != null) {
             url = converter.convert(url);
         }
         final MultipartBuilder mb = new MultipartBuilder();
-        mb.addFormDataPart("filename", fileName, file);
+        mb.addFormDataPart("file", fileName, file);
 
         fields.forEach(new StringMap.Consumer() {
             @Override
@@ -210,7 +213,7 @@ public final class Client {
         mb.type(MediaType.parse("multipart/form-data"));
         RequestBody body = mb.build();
         if (progressHandler != null){
-            body = new CountingRequestBody(body, progressHandler);
+            body = new CountingRequestBody(body, progressHandler, cancellationHandler);
         }
         Request.Builder requestBuilder = new Request.Builder().url(url).post(body);
         asyncSend(requestBuilder, null, completionHandler);
@@ -237,13 +240,17 @@ public final class Client {
         if (ctype(response).equals(Client.JsonMime) && body != null) {
             try {
                 json = buildJsonResp(body);
-                String err = new String(body, Constants.UTF_8);
-                error = json.optString("error", err);
+                if(response.code() != 200){
+                    String err = new String(body, Constants.UTF_8);
+                    error = json.optString("error", err);
+                }
             } catch (Exception e) {
                 if (response.code() < 300) {
                     error = e.getMessage();
                 }
             }
+        }else{
+            error = new String(body);
         }
 
         URL u = response.request().url();

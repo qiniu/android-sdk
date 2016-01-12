@@ -21,14 +21,17 @@ public class CountingRequestBody extends RequestBody {
 
     private final RequestBody body;
     private final ProgressHandler progress;
+    private final CancellationHandler cancellationHandler;
 
-    public CountingRequestBody(RequestBody body, ProgressHandler progress) {
+    public CountingRequestBody(RequestBody body, ProgressHandler progress,
+                               CancellationHandler cancellationHandler) {
         this.body = body;
         this.progress = progress;
+        this.cancellationHandler = cancellationHandler;
     }
 
     @Override
-    public long contentLength() throws IOException{
+    public long contentLength() throws IOException {
         return body.contentLength();
     }
 
@@ -59,19 +62,35 @@ public class CountingRequestBody extends RequestBody {
 
         @Override
         public void write(Buffer source, long byteCount) throws IOException {
-            super.write(source, byteCount);
 
-            bytesWritten += byteCount;
-            AsyncRun.run(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        progress.onProgress(bytesWritten, (int)contentLength());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
+//            if (cancellationHandler == null && progress == null) {
+                super.write(source, byteCount);
+//                return;
+//            }
+//            int pos = 0;
+//            long size = 0;
+//            while (pos < byteCount) {
+//                size = 8092 < byteCount - pos ? 8092 : byteCount - pos;
+//                if (cancellationHandler != null && cancellationHandler.isCancelled()) {
+//                    throw new CancellationHandler.CancellationException();
+//                }
+//                super.write(source, size);
+//                bytesWritten += size;
+//
+//                if (progress != null) {
+//                    AsyncRun.run(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            try {
+//                                progress.onProgress(bytesWritten, (int) contentLength());
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                    });
+//                }
+//                pos += size;
+//            }
         }
     }
 }

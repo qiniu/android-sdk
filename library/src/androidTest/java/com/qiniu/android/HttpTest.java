@@ -4,8 +4,8 @@ import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
-import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.Client;
+import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.StringMap;
 
@@ -45,13 +45,13 @@ public class HttpTest extends InstrumentationTestCase {
     public void testPost1() throws Throwable {
         httpManager.asyncPost("http://www.baidu.com",
                 "hello".getBytes(), null, null, new CompletionHandler() {
-            @Override
-            public void complete(ResponseInfo rinfo, JSONObject response) {
-                Log.d("qiniutest", rinfo.toString());
-                info = rinfo;
-                signal.countDown();
-            }
-        }, null);
+                    @Override
+                    public void complete(ResponseInfo rinfo, JSONObject response) {
+                        Log.d("qiniutest", rinfo.toString());
+                        info = rinfo;
+                        signal.countDown();
+                    }
+                }, null);
 
         try {
             signal.await(6000, TimeUnit.SECONDS); // wait for callback
@@ -150,7 +150,7 @@ public class HttpTest extends InstrumentationTestCase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertNull(info.reqId);
+        Assert.assertEquals("", info.reqId);
         Assert.assertEquals(ResponseInfo.UnknownHost, info.statusCode);
     }
 
@@ -172,8 +172,9 @@ public class HttpTest extends InstrumentationTestCase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertNull(info.reqId);
-        Assert.assertEquals(ResponseInfo.CannotConnectToHost, info.statusCode);
+        Assert.assertEquals("", info.reqId);
+        Assert.assertTrue(ResponseInfo.CannotConnectToHost == info.statusCode ||
+                ResponseInfo.TimedOut == info.statusCode);
     }
 
     @SmallTest
