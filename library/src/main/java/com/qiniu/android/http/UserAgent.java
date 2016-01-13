@@ -5,6 +5,7 @@ import android.text.TextUtils;
 
 import com.qiniu.android.common.Constants;
 
+import java.util.Locale;
 import java.util.Random;
 
 import static java.lang.String.format;
@@ -46,14 +47,14 @@ public final class UserAgent {
     }
 
     private static String deviceName(String manufacturer, String model) {
-        String str = manufacturer.toLowerCase();
+        String str = manufacturer.toLowerCase(Locale.getDefault());
         if ((str.startsWith("unknown")) || (str.startsWith("alps")) ||
                 (str.startsWith("android")) || (str.startsWith("sprd")) ||
                 (str.startsWith("spreadtrum")) || (str.startsWith("rockchip")) ||
                 (str.startsWith("wondermedia")) || (str.startsWith("mtk")) ||
                 (str.startsWith("mt65")) || (str.startsWith("nvidia")) ||
                 (str.startsWith("brcm")) || (str.startsWith("marvell")) ||
-                (model.toLowerCase().contains(str))) {
+                (model.toLowerCase(Locale.getDefault()).contains(str))) {
             return null;
         }
         return manufacturer;

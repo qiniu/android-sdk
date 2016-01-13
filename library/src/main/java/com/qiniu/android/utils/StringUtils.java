@@ -90,5 +90,9 @@ public final class StringUtils {
             throw new AssertionError(e);
         }
     }
+
+    public static boolean isNullOrEmpty(String s) {
+        return s == null || "".equals(s);
+    }
 }
 

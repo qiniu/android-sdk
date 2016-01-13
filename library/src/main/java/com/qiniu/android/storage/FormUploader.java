@@ -1,19 +1,18 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
-import com.qiniu.android.http.HttpManager;
 import com.qiniu.android.http.PostArgs;
 import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.Crc32;
+import com.qiniu.android.utils.StringMap;
 
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 表单上传
@@ -34,7 +33,7 @@ final class FormUploader {
      * @param completionHandler 上传完成后续处理动作
      * @param options           上传时的可选参数
      */
-    static void upload(HttpManager httpManager, Configuration config, byte[] data, String key, UpToken token, final UpCompletionHandler completionHandler,
+    static void upload(Client httpManager, Configuration config, byte[] data, String key, UpToken token, final UpCompletionHandler completionHandler,
                        final UploadOptions options) {
         post(data, null, key, token, completionHandler, options, httpManager, config);
     }
@@ -42,22 +41,22 @@ final class FormUploader {
     /**
      * 上传文件，并以指定的key保存文件
      *
-     * @param httpManager       HTTP连接管理器
+     * @param client            HTTP连接管理器
      * @param file              上传的文件
      * @param key               上传的数据保存的文件名
      * @param token             上传凭证
      * @param completionHandler 上传完成后续处理动作
      * @param options           上传时的可选参数
      */
-    static void upload(HttpManager httpManager, Configuration config, File file, String key, UpToken token, UpCompletionHandler completionHandler,
+    static void upload(Client client, Configuration config, File file, String key, UpToken token, UpCompletionHandler completionHandler,
                        UploadOptions options) {
-        post(null, file, key, token, completionHandler, options, httpManager, config);
+        post(null, file, key, token, completionHandler, options, client, config);
     }
 
     private static void post(byte[] data, File file, String k, final UpToken token, final UpCompletionHandler completionHandler,
-                             final UploadOptions optionsIn, final HttpManager httpManager, final Configuration config) {
+                             final UploadOptions optionsIn, final Client client, final Configuration config) {
         final String key = k;
-        Map<String, String> params = new HashMap<String, String>();
+        StringMap params = new StringMap();
         final PostArgs args = new PostArgs();
         if (k != null) {
             params.put("key", key);
@@ -69,7 +68,7 @@ final class FormUploader {
         params.put("token", token.token);
 
         final UploadOptions options = optionsIn != null ? optionsIn : UploadOptions.defaultOptions();
-        params.putAll(options.params);
+        params.putFileds(options.params);
 
         if (options.checkCrc) {
             long crc = 0;
@@ -125,13 +124,13 @@ final class FormUploader {
                         u = config.upBackup.address;
                     }
 
-                    httpManager.multipartPost(u, args, progress, retried, options.cancellationSignal);
+                    client.asyncMultipartPost(u.toString(), args, progress, retried, options.cancellationSignal);
                 } else {
                     completionHandler.complete(key, info, response);
                 }
             }
         };
 
-        httpManager.multipartPost(config.up.address, args, progress, completion, options.cancellationSignal);
+        client.asyncMultipartPost(config.up.address.toString(), args, progress, completion, options.cancellationSignal);
     }
 }

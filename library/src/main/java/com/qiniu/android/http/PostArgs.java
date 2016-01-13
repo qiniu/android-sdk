@@ -1,7 +1,8 @@
 package com.qiniu.android.http;
 
+import com.qiniu.android.utils.StringMap;
+
 import java.io.File;
-import java.util.Map;
 
 /**
  * 定义请求参数列表
@@ -18,7 +19,7 @@ public final class PostArgs {
     /**
      * 请求参数
      */
-    public Map<String, String> params;
+    public StringMap params;
     /**
      * 上传文件名
      */

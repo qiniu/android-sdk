@@ -11,7 +11,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 ## 安装
 
 ### 直接安装
-将sdk jar文件 复制到项目中去，sdk依赖 http://loopj.com/android-async-http/ 7.0.7版本依赖1.4.7,1.4.8，7.0.8及以上依赖1.4.9。[下载地址](http://search.maven.org/remotecontent?filepath=com/qiniu/qiniu-android-sdk/)
+将sdk jar文件 复制到项目中去，sdk依赖 http://loopj.com/android-async-http/ 7.0.7版本依赖1.4.7,1.4.8；7.0.8及7.0.9依赖1.4.9。7.1.0 以后切换到okhttp(2.6及以上)[下载地址](http://search.maven.org/remotecontent?filepath=com/qiniu/qiniu-android-sdk/)
  还有 happy-dns [下载地址](https://repo1.maven.org/maven2/com/qiniu/happy-dns/)
 
 ### 通过maven

@@ -11,6 +11,7 @@ import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UploadManager;
+import com.qiniu.android.utils.Etag;
 
 import junit.framework.Assert;
 
@@ -63,6 +64,8 @@ public class ResumeUploadTest extends InstrumentationTestCase {
 
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
+        String hash = resp.getString("hash");
+        Assert.assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
     }
 
@@ -103,6 +106,8 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         Assert.assertTrue(info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
+        String hash = resp.getString("hash");
+        Assert.assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
     }
 

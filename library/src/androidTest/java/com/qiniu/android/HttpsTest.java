@@ -4,8 +4,8 @@ import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
+import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
-import com.qiniu.android.http.HttpManager;
 import com.qiniu.android.http.ResponseInfo;
 
 import junit.framework.Assert;
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class HttpsTest extends InstrumentationTestCase {
     final CountDownLatch signal = new CountDownLatch(1);
-    private HttpManager httpManager;
+    private Client httpManager;
     private ResponseInfo info;
 
     private static URI newURI(String s) {
@@ -36,12 +36,12 @@ public class HttpsTest extends InstrumentationTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        httpManager = new HttpManager();
+        httpManager = new Client();
     }
 
     @SmallTest
     public void testPost1() throws Throwable {
-        httpManager.postData(newURI("https://www.baidu.com/"), "hello".getBytes(), null, null, new CompletionHandler() {
+        httpManager.asyncPost("https://www.baidu.com/", "hello".getBytes(), null, null, new CompletionHandler() {
             @Override
             public void complete(ResponseInfo rinfo, JSONObject response) {
                 Log.d("qiniutest", rinfo.toString());
@@ -61,14 +61,15 @@ public class HttpsTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testPost2() throws Throwable {
-        httpManager.postData(newURI("https://static-fw.qbox.me/public/v28812/add-on/ga/analytics.js"), "hello".getBytes(), null, null, new CompletionHandler() {
-            @Override
-            public void complete(ResponseInfo rinfo, JSONObject response) {
-                Log.d("qiniutest", rinfo.toString());
-                info = rinfo;
-                signal.countDown();
-            }
-        }, null);
+        httpManager.asyncPost("https://static-fw.qbox.me/public/v28812/add-on/ga/analytics.js",
+                "hello".getBytes(), null, null, new CompletionHandler() {
+                    @Override
+                    public void complete(ResponseInfo rinfo, JSONObject response) {
+                        Log.d("qiniutest", rinfo.toString());
+                        info = rinfo;
+                        signal.countDown();
+                    }
+                }, null);
 
         try {
             signal.await(60000, TimeUnit.SECONDS); // wait for callback
@@ -81,14 +82,15 @@ public class HttpsTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testPost3() throws Throwable {
-        httpManager.postData(newURI("https://up.qiniu.com"), "hello".getBytes(), null, null, new CompletionHandler() {
-            @Override
-            public void complete(ResponseInfo rinfo, JSONObject response) {
-                Log.d("qiniutest", rinfo.toString());
-                info = rinfo;
-                signal.countDown();
-            }
-        }, null);
+        httpManager.asyncPost("https://up.qiniu.com",
+                "hello".getBytes(), null, null, new CompletionHandler() {
+                    @Override
+                    public void complete(ResponseInfo rinfo, JSONObject response) {
+                        Log.d("qiniutest", rinfo.toString());
+                        info = rinfo;
+                        signal.countDown();
+                    }
+                }, null);
 
         try {
             signal.await(60000, TimeUnit.SECONDS); // wait for callback

@@ -22,4 +22,8 @@ public final class Proxy {
         this.user = user;
         this.password = password;
     }
+
+    public java.net.Proxy toSystemProxy() {
+        return null;
+    }
 }
