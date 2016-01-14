@@ -40,10 +40,10 @@ public final class Client {
     private final UrlConverter converter;
 
     public Client() {
-        this(null, 10, 30, null, null);
+        this(null, 10, 30, 0, null, null);
     }
 
-    public Client(Proxy proxy, int connectTimeout, int responseTimeout, UrlConverter converter, final DnsManager dns) {
+    public Client(Proxy proxy, int connectTimeout, int responseTimeout, int writeTimeout, UrlConverter converter, final DnsManager dns) {
         this.converter = converter;
         httpClient = new OkHttpClient();
 
@@ -85,7 +85,7 @@ public final class Client {
 
         httpClient.setConnectTimeout(connectTimeout, TimeUnit.SECONDS);
         httpClient.setReadTimeout(responseTimeout, TimeUnit.SECONDS);
-        httpClient.setWriteTimeout(0, TimeUnit.SECONDS);
+        httpClient.setWriteTimeout(writeTimeout, TimeUnit.SECONDS);
     }
 
     private static String via(com.squareup.okhttp.Response response) {
