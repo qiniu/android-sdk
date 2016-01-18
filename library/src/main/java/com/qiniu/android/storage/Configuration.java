@@ -192,7 +192,7 @@ public final class Configuration {
             return this;
         }
 
-        public Builder writeTimeout(int timeout) {
+        private Builder writeTimeout(int timeout) {
             this.writeTimeout = timeout;
             return this;
         }
