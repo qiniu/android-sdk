@@ -65,6 +65,10 @@ final class FormUploader {
         } else {
             args.fileName = "?";
         }
+        // data is null , or file is null
+        if (file != null) {
+            args.fileName = file.getName();
+        }
 
         params.put("token", token.token);
 
