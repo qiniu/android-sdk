@@ -209,7 +209,7 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
 
-                    if (isNotQiniu(info) || (info.needRetry() && retried < config.retryMax)) {
+                    if ((isNotQiniu(info) || info.needRetry()) && retried < config.retryMax) {
                         nextTask(offset, retried + 1, config.upBackup.address);
                         return;
                     }
@@ -241,22 +241,22 @@ final class ResumeUploader implements Runnable {
                         completionHandler.complete(key, i, null);
                         return;
                     }
-                    if (info.statusCode == 701) {
-                        nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried, address);
+                    if (info.statusCode == 701 && retried < config.retryMax) {
+                        nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried + 1, address);
                         return;
                     }
 
-                    if (!isNotQiniu(info) && (retried >= config.retryMax || !info.needRetry())) {
-                        completionHandler.complete(key, info, null);
+                    if ((isNotQiniu(info) || info.needRetry()) && retried < config.retryMax) {
+                        nextTask(offset, retried + 1, config.upBackup.address);
                         return;
                     }
 
-                    nextTask(offset, retried + 1, config.upBackup.address);
+                    completionHandler.complete(key, info, null);
                     return;
                 }
                 String context = null;
 
-                if (response == null) {
+                if (response == null && retried < config.retryMax) {
                     nextTask(offset, retried + 1, config.upBackup.address);
                     return;
                 }
@@ -267,7 +267,7 @@ final class ResumeUploader implements Runnable {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                if (context == null || crc != ResumeUploader.this.crc32) {
+                if ((context == null || crc != ResumeUploader.this.crc32) && retried < config.retryMax) {
                     nextTask(offset, retried + 1, config.upBackup.address);
                     return;
                 }
