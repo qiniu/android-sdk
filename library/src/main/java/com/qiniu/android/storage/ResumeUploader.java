@@ -217,7 +217,7 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
 
-                    if (!isNotQiniu(info) && (retried >= config.retryMax || !info.needRetry())) {
+                    if (isNotQiniu(info) || info.needRetry()) {
                         nextTask(offset, retried + 1, config.upBackup.address, info, response);
                         return;
                     }
