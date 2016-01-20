@@ -281,7 +281,7 @@ final class ResumeUploader implements Runnable {
                 }
                 contexts[offset / Configuration.BLOCK_SIZE] = context;
                 record(offset + chunkSize);
-                nextTask(offset + chunkSize, retried, address, null, null); // 上传正常,下一片,非重试. retried 替换为 0 ?
+                nextTask(offset + chunkSize, retried, address, info, response); // 上传正常,下一片,非重试. retried 替换为 0 ?
             }
         };
         if (offset % Configuration.BLOCK_SIZE == 0) {
