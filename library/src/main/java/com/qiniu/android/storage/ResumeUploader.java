@@ -96,7 +96,7 @@ final class ResumeUploader implements Runnable {
             completionHandler.complete(key, ResponseInfo.fileError(e), null);
             return;
         }
-        nextTask(offset, 0, config.up.address);
+        nextTask(offset, 0, config.up.address, null, null);
     }
 
     /**
@@ -191,7 +191,15 @@ final class ResumeUploader implements Runnable {
         return options.cancellationSignal.isCancelled();
     }
 
-    private void nextTask(final int offset, final int retried, final URI address) {
+    private void nextTask(final int offset, final int retried, final URI address,
+                          ResponseInfo lastInfo, JSONObject lastResponse) {
+        if (retried > config.retryMax) {
+            completionHandler.complete(key, lastInfo, lastResponse);
+            return;
+        }
+        lastInfo = null;
+        lastResponse = null;
+
         if (offset == size) {
             CompletionHandler complete = new CompletionHandler() {
                 @Override
@@ -209,8 +217,8 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
 
-                    if (isNotQiniu(info) || (info.needRetry() && retried < config.retryMax)) {
-                        nextTask(offset, retried + 1, config.upBackup.address);
+                    if (isNotQiniu(info) || info.needRetry()) {
+                        nextTask(offset, retried + 1, config.upBackup.address, info, response);
                         return;
                     }
                     completionHandler.complete(key, info, response);
@@ -242,22 +250,22 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
                     if (info.statusCode == 701) {
-                        nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried, address);
+                        nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried + 1, address, info, response);
                         return;
                     }
 
-                    if (!isNotQiniu(info) && (retried >= config.retryMax || !info.needRetry())) {
+                    if (!isNotQiniu(info) &&  !info.needRetry()) {
                         completionHandler.complete(key, info, null);
                         return;
                     }
 
-                    nextTask(offset, retried + 1, config.upBackup.address);
+                    nextTask(offset, retried + 1, config.upBackup.address, info, response);
                     return;
                 }
                 String context = null;
 
                 if (response == null) {
-                    nextTask(offset, retried + 1, config.upBackup.address);
+                    nextTask(offset, retried + 1, config.upBackup.address, info, response);
                     return;
                 }
                 long crc = 0;
@@ -268,12 +276,12 @@ final class ResumeUploader implements Runnable {
                     e.printStackTrace();
                 }
                 if (context == null || crc != ResumeUploader.this.crc32) {
-                    nextTask(offset, retried + 1, config.upBackup.address);
+                    nextTask(offset, retried + 1, config.upBackup.address, info, response);
                     return;
                 }
                 contexts[offset / Configuration.BLOCK_SIZE] = context;
                 record(offset + chunkSize);
-                nextTask(offset + chunkSize, retried, address);
+                nextTask(offset + chunkSize, retried, address, null, null); // 上传正常,下一片,非重试. retried 替换为 0 ?
             }
         };
         if (offset % Configuration.BLOCK_SIZE == 0) {
