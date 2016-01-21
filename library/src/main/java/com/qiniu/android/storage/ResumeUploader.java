@@ -192,6 +192,12 @@ final class ResumeUploader implements Runnable {
     }
 
     private void nextTask(final int offset, final int retried, final URI address) {
+        if (isCancelled()) {
+            ResponseInfo i = ResponseInfo.cancelled();
+            completionHandler.complete(key, i, null);
+            return;
+        }
+
         if (offset == size) {
             CompletionHandler complete = new CompletionHandler() {
                 @Override
@@ -200,12 +206,6 @@ final class ResumeUploader implements Runnable {
                         removeRecord();
                         options.progressHandler.progress(key, 1.0);
                         completionHandler.complete(key, info, response);
-                        return;
-                    }
-
-                    if (isCancelled()) {
-                        ResponseInfo i = ResponseInfo.cancelled();
-                        completionHandler.complete(key, i, null);
                         return;
                     }
 
@@ -236,11 +236,6 @@ final class ResumeUploader implements Runnable {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
                 if (!info.isOK()) {
-                    if (isCancelled()) {
-                        ResponseInfo i = ResponseInfo.cancelled();
-                        completionHandler.complete(key, i, null);
-                        return;
-                    }
                     if (info.statusCode == 701 && retried < config.retryMax) {
                         nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried + 1, address);
                         return;
@@ -251,7 +246,7 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
 
-                    completionHandler.complete(key, info, null);
+                    completionHandler.complete(key, info, response);
                     return;
                 }
                 String context = null;
