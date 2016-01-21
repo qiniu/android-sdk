@@ -152,7 +152,7 @@ public final class HttpManager {
             }
         } else {
             try {
-                mbuilder.addPart("file", args.file, args.mimeType, "filename");
+                mbuilder.addPart("file", args.file, args.mimeType, args.fileName);
             } catch (IOException e) {
                 completionHandler.complete(ResponseInfo.fileError(e), null);
                 return;
