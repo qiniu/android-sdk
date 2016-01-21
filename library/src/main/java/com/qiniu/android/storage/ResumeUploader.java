@@ -248,7 +248,7 @@ final class ResumeUploader implements Runnable {
                     }
 
                     if (!isNotQiniu(info) &&  !info.needRetry()) {
-                        completionHandler.complete(key, info, null);
+                        completionHandler.complete(key, info, response);
                         return;
                     }
 
