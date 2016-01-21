@@ -199,6 +199,11 @@ final class ResumeUploader implements Runnable {
         }
         lastInfo = null;
         lastResponse = null;
+        if (isCancelled()) {
+            ResponseInfo i = ResponseInfo.cancelled();
+            completionHandler.complete(key, i, null);
+            return;
+        }
 
         if (offset == size) {
             CompletionHandler complete = new CompletionHandler() {
@@ -210,13 +215,6 @@ final class ResumeUploader implements Runnable {
                         completionHandler.complete(key, info, response);
                         return;
                     }
-
-                    if (isCancelled()) {
-                        ResponseInfo i = ResponseInfo.cancelled();
-                        completionHandler.complete(key, i, null);
-                        return;
-                    }
-
                     if (isNotQiniu(info) || info.needRetry()) {
                         nextTask(offset, retried + 1, config.upBackup.address, info, response);
                         return;
@@ -244,11 +242,6 @@ final class ResumeUploader implements Runnable {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
                 if (!info.isOK()) {
-                    if (isCancelled()) {
-                        ResponseInfo i = ResponseInfo.cancelled();
-                        completionHandler.complete(key, i, null);
-                        return;
-                    }
                     if (info.statusCode == 701) {
                         nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried + 1, address, info, response);
                         return;
