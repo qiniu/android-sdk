@@ -40,10 +40,11 @@ public final class Client {
     private final UrlConverter converter;
 
     public Client() {
-        this(null, 10, 30, null, null);
+        this(null, 10, 30, 0, null, null);
     }
 
-    public Client(Proxy proxy, int connectTimeout, int responseTimeout, UrlConverter converter, final DnsManager dns) {
+    public Client(Proxy proxy, int connectTimeout, int responseTimeout, int writeTimeout,
+                  UrlConverter converter, final DnsManager dns) {
         this.converter = converter;
         httpClient = new OkHttpClient();
 
@@ -85,7 +86,7 @@ public final class Client {
 
         httpClient.setConnectTimeout(connectTimeout, TimeUnit.SECONDS);
         httpClient.setReadTimeout(responseTimeout, TimeUnit.SECONDS);
-        httpClient.setWriteTimeout(0, TimeUnit.SECONDS);
+        httpClient.setWriteTimeout(writeTimeout, TimeUnit.SECONDS);
     }
 
     private static String via(com.squareup.okhttp.Response response) {
@@ -117,7 +118,8 @@ public final class Client {
         return new JSONObject(str);
     }
 
-    public void asyncSend(final Request.Builder requestBuilder, StringMap headers, final CompletionHandler completionHandler) {
+    public void asyncSend(final Request.Builder requestBuilder, StringMap headers,
+                          final CompletionHandler completionHandler) {
         if (headers != null) {
             headers.forEach(new StringMap.Consumer() {
                 @Override
@@ -162,7 +164,8 @@ public final class Client {
                 }
 
                 URL u = request.url();
-                ResponseInfo info = new ResponseInfo(statusCode, "", "", "", u.getHost(), u.getPath(), "", u.getPort(), duration, 0, e.getMessage());
+                ResponseInfo info = new ResponseInfo(statusCode, "", "", "", u.getHost(),
+                        u.getPath(), "", u.getPort(), duration, 0, e.getMessage());
 
                 complete.complete(info, null);
             }

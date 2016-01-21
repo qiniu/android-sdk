@@ -58,6 +58,11 @@ public final class Configuration {
     public final int responseTimeout;
 
     /**
+     * 上行写超时时间，单位 秒
+     * */
+    public final int writeTimeout;
+
+    /**
      * 上传失败重试次数
      */
     public final int retryMax;
@@ -78,6 +83,7 @@ public final class Configuration {
 
         connectTimeout = builder.connectTimeout;
         responseTimeout = builder.responseTimeout;
+        writeTimeout = builder.writeTimeout;
 
         recorder = builder.recorder;
         keyGen = getKeyGen(builder.keyGen);
@@ -124,7 +130,8 @@ public final class Configuration {
         private int chunkSize = 256 * 1024;
         private int putThreshold = 512 * 1024;
         private int connectTimeout = 10;
-        private int responseTimeout = 60;
+        private int responseTimeout = 30;
+        private int writeTimeout = 0;
         private int retryMax = 3;
         private UrlConverter urlConverter = null;
         private DnsManager dns = null;
@@ -182,6 +189,11 @@ public final class Configuration {
 
         public Builder responseTimeout(int timeout) {
             this.responseTimeout = timeout;
+            return this;
+        }
+
+        private Builder writeTimeout(int timeout) {
+            this.writeTimeout = timeout;
             return this;
         }
 
