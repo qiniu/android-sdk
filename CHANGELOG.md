@@ -1,5 +1,11 @@
 #Changelog
 
+## 7.0.7.2 (2016-01-22)
+
+### merge from master
+* PR132 file handle leak
+* progress not in main
+
 ## 7.0.7 (2015-07-10)
 
 ### 增加
