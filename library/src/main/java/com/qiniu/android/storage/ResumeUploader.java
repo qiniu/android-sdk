@@ -59,7 +59,7 @@ final class ResumeUploader implements Runnable {
         this.config = config;
         this.f = f;
         this.recorderKey = recorderKey;
-        this.size = (int) file.length();
+        this.size = (int) f.length();
         this.key = key;
         this.headers = new Header[1];
         headers[0] = new BasicHeader("Authorization", "UpToken " + token.token);
