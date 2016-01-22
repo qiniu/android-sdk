@@ -53,17 +53,30 @@ final class ResumeUploader implements Runnable {
     private UpToken token;
     private boolean forceIp = false;
 
-    ResumeUploader(HttpManager httpManager, Configuration config, File file, String key, UpToken token,
-                   UpCompletionHandler completionHandler, UploadOptions options, String recorderKey) {
+    ResumeUploader(HttpManager httpManager, Configuration config, File f, String key, UpToken token,
+                   final UpCompletionHandler completionHandler, UploadOptions options, String recorderKey) {
         this.httpManager = httpManager;
         this.config = config;
-        this.f = file;
+        this.f = f;
         this.recorderKey = recorderKey;
         this.size = (int) file.length();
         this.key = key;
         this.headers = new Header[1];
         headers[0] = new BasicHeader("Authorization", "UpToken " + token.token);
-        this.completionHandler = completionHandler;
+        this.file = null;
+        this.completionHandler = new UpCompletionHandler() {
+            @Override
+            public void complete(String key, ResponseInfo info, JSONObject response) {
+                if (file != null) {
+                    try {
+                        file.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                completionHandler.complete(key, info, response);
+            }
+        };
         this.options = options != null ? options : UploadOptions.defaultOptions();
         chunkBuffer = new byte[config.chunkSize];
         long count = (size + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE;
