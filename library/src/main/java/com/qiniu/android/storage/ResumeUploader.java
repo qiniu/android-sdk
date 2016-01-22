@@ -138,7 +138,8 @@ final class ResumeUploader implements Runnable {
     }
 
     private void makeFile(String host, CompletionHandler _completionHandler, UpCancellationSignal c) {
-        String mime = format(Locale.ENGLISH, "/mimeType/%s", UrlSafeBase64.encodeToString(options.mimeType));
+        String mime = format(Locale.ENGLISH, "/mimeType/%s/fname/%s",
+                UrlSafeBase64.encodeToString(options.mimeType), UrlSafeBase64.encodeToString(f.getName()));
 
         String keyStr = "";
         if (key != null) {
