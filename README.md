@@ -9,7 +9,7 @@
 ## 安装
 
 ### 直接安装
-将sdk jar文件 复制到项目中去，此版本sdk依赖 http://loopj.com/android-async-http/ 1.4.6及以上版本。[下载地址](http://search.maven.org/remotecontent?filepath=com/qiniu/qiniu-android-sdk/)
+将sdk jar文件 复制到项目中去，此版本sdk依赖 http://loopj.com/android-async-http/ 1.4.7,1.4.8。[下载地址](http://search.maven.org/remotecontent?filepath=com/qiniu/qiniu-android-sdk/)
  还有 happy-dns [下载地址](https://repo1.maven.org/maven2/com/qiniu/happy-dns/)
 
 ### 通过maven
