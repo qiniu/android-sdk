@@ -181,6 +181,12 @@ final class ResumeUploader implements Runnable {
     }
 
     private void nextTask(final int offset, final int retried, final String host) {
+        if (isCancelled()) {
+            ResponseInfo i = ResponseInfo.cancelled();
+            completionHandler.complete(key, i, null);
+            return;
+        }
+
         if (offset == size) {
             CompletionHandler complete = new CompletionHandler() {
                 @Override
@@ -192,20 +198,20 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
 
-                    if (isCancelled()) {
-                        ResponseInfo i = ResponseInfo.cancelled();
-                        completionHandler.complete(key, i, null);
-                        return;
-                    }
-
                     if (isNotQiniu(info)) {
                         forceIp = true;
                     }
 
-                    if (isNotQiniu(info) || (info.needRetry() && retried < config.retryMax)) {
-                        nextTask(offset, retried + 1, host);
+                    String host2 = host;
+                    if (info.needSwitchServer()) {
+                        host2 = config.upHostBackup;
+                    }
+
+                    if ((isNotQiniu(info) || info.needRetry()) && retried < config.retryMax) {
+                        nextTask(offset, retried + 1, host2);
                         return;
                     }
+
                     completionHandler.complete(key, info, response);
                 }
             };
@@ -229,35 +235,36 @@ final class ResumeUploader implements Runnable {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
                 if (!info.isOK()) {
-                    if (isCancelled()) {
-                        ResponseInfo i = ResponseInfo.cancelled();
-                        completionHandler.complete(key, i, null);
-                        return;
-                    }
-                    if (info.statusCode == 701) {
-                        nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried, host);
+                    if (info.statusCode == 701 && retried < config.retryMax) {
+                        nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried + 1, host);
                         return;
                     }
                     if (isNotQiniu(info)) {
                         forceIp = true;
                     }
-                    if (!isNotQiniu(info) && (retried >= config.retryMax || !info.needRetry())) {
-                        completionHandler.complete(key, info, null);
-                        return;
-                    }
+
                     String host2 = host;
                     if (info.needSwitchServer()) {
                         host2 = config.upHostBackup;
                     }
-                    nextTask(offset, retried + 1, host2);
+
+                    if ((isNotQiniu(info) || info.needRetry()) && retried < config.retryMax) {
+                        nextTask(offset, retried + 1, host2);
+                        return;
+                    }
+
+                    completionHandler.complete(key, info, null);
                     return;
                 }
-                String context = null;
 
-                if (response == null) {
+                // info.isOK()
+
+                if (response == null && retried < config.retryMax) {
                     nextTask(offset, retried + 1, host);
                     return;
                 }
+
+                String context = null;
                 long crc = 0;
                 try {
                     context = response.getString("ctx");
@@ -265,7 +272,7 @@ final class ResumeUploader implements Runnable {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                if (context == null || crc != ResumeUploader.this.crc32) {
+                if ((context == null || crc != ResumeUploader.this.crc32) && retried < config.retryMax) {
                     nextTask(offset, retried + 1, host);
                     return;
                 }
