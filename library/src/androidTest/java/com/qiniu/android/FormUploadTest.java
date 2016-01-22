@@ -253,6 +253,8 @@ public class FormUploadTest extends InstrumentationTestCase {
         }
         Assert.assertEquals(expectKey, key);
         Assert.assertTrue(info.isOK());
+        //上传策略含空格 \"fname\":\" $(fname) \"
+        Assert.assertEquals(f.getName(), resp.optString("fname", "res doesn't include the FNAME").trim());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
         TempFile.remove(f);
