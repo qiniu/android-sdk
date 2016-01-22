@@ -1,11 +1,14 @@
 package com.qiniu.android.http;
 
-import org.apache.http.entity.AbstractHttpEntity;
+
+import com.qiniu.android.utils.AsyncRun;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import cz.msebera.android.httpclient.entity.AbstractHttpEntity;
 
 /**
  * 定义请求字节实体及相关方法
@@ -14,7 +17,7 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
 
     private static final int progressStep = 8 * 1024;
     private final byte[] b;
-    private final int off, len;
+    private final int offset, len;
     private final ProgressHandler progressHandler;
     private final CancellationHandler cancellationHandler;
 
@@ -29,7 +32,7 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
             throw new IndexOutOfBoundsException("off: " + off + " len: " + len + " b.length: " + b.length);
         }
         this.b = b;
-        this.off = off;
+        this.offset = off;
         this.len = len;
         this.progressHandler = h;
         this.cancellationHandler = c;
@@ -47,7 +50,7 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
 
     @Override
     public InputStream getContent() {
-        return new ByteArrayInputStream(this.b, this.off, this.len);
+        return new ByteArrayInputStream(this.b, this.offset, this.len);
     }
 
     // @Override
@@ -55,7 +58,7 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
         if (progressHandler != null || cancellationHandler != null) {
             writeWithNotify(outStream);
         } else {
-            outStream.write(this.b, this.off, this.len);
+            outStream.write(this.b, this.offset, this.len);
         }
         outStream.flush();
     }
@@ -73,9 +76,16 @@ public final class ByteArrayEntity extends AbstractHttpEntity implements Cloneab
             }
             int left = this.len - off;
             int len = left < progressStep ? left : progressStep;
-            outStream.write(this.b, this.off + off, len);
+            outStream.write(this.b, this.offset + off, len);
             if (progressHandler != null) {
-                progressHandler.onProgress(off, this.len);
+                final int off2 = off;
+                final ByteArrayEntity b = this;
+                AsyncRun.run(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressHandler.onProgress(off2, b.len);
+                    }
+                });
             }
             off += len;
         }

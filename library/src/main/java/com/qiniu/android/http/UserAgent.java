@@ -1,5 +1,8 @@
 package com.qiniu.android.http;
 
+import android.os.Build;
+import android.text.TextUtils;
+
 import com.qiniu.android.common.Constants;
 
 import java.util.Random;
@@ -30,7 +33,30 @@ public final class UserAgent {
 
     private static String getUserAgent(String id) {
         return format("QiniuAndroid/%s (%s; %s; %s)", Constants.VERSION,
-                android.os.Build.VERSION.RELEASE, android.os.Build.MODEL, id);
+                android.os.Build.VERSION.RELEASE, device(), id);
+    }
+
+    private static String device() {
+        String model = Build.MODEL.trim();
+        String device = deviceName(Build.MANUFACTURER.trim(), model);
+        if (TextUtils.isEmpty(device)) {
+            device = deviceName(Build.BRAND.trim(), model);
+        }
+        return (device == null ? "" : device) + "-" + model;
+    }
+
+    private static String deviceName(String manufacturer, String model) {
+        String str = manufacturer.toLowerCase();
+        if ((str.startsWith("unknown")) || (str.startsWith("alps")) ||
+                (str.startsWith("android")) || (str.startsWith("sprd")) ||
+                (str.startsWith("spreadtrum")) || (str.startsWith("rockchip")) ||
+                (str.startsWith("wondermedia")) || (str.startsWith("mtk")) ||
+                (str.startsWith("mt65")) || (str.startsWith("nvidia")) ||
+                (str.startsWith("brcm")) || (str.startsWith("marvell")) ||
+                (model.toLowerCase().contains(str))) {
+            return null;
+        }
+        return manufacturer;
     }
 
     public String toString() {

@@ -33,7 +33,7 @@ public class CancelTest extends InstrumentationTestCase {
     private volatile boolean failed;
     private volatile UploadManager uploadManager;
     private volatile String key;
-    private volatile ResponseInfo info;
+    private volatile ResponseInfo info = null;
     private volatile JSONObject resp;
     private volatile UploadOptions options;
 
@@ -133,22 +133,13 @@ public class CancelTest extends InstrumentationTestCase {
 
         try {
             signal.await(570, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isCancelled()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertFalse(info.isOK());
-        Assert.assertTrue(info.isCancelled());
+
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isCancelled());
         Assert.assertNull(resp);
 
         TempFile.remove(tempFile);
@@ -206,22 +197,13 @@ public class CancelTest extends InstrumentationTestCase {
 
         try {
             signal.await(570, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isCancelled()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertFalse(info.isOK());
-        Assert.assertTrue(info.isCancelled());
+
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isCancelled());
         Assert.assertNull(resp);
     }
 

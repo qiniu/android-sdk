@@ -81,21 +81,13 @@ public class TestFileRecorder extends InstrumentationTestCase {
 
         try {
             signal.await(600, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isCancelled()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isCancelled());
+
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isCancelled());
         Assert.assertNull(resp);
 
         cancelled = false;
@@ -124,22 +116,14 @@ public class TestFileRecorder extends InstrumentationTestCase {
         });
 
         try {
-            signal2.await(500, TimeUnit.SECONDS); // wait for callback
+            signal2.await(1200, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
+
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertTrue(!failed);
         Assert.assertNotNull(resp);
 

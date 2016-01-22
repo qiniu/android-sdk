@@ -30,27 +30,27 @@ package com.qiniu.android.http;
 import com.qiniu.android.dns.DnsManager;
 import com.qiniu.android.dns.Domain;
 
-import org.apache.http.HttpHost;
-import org.apache.http.conn.HttpHostConnectException;
-import org.apache.http.conn.OperatedClientConnection;
-import org.apache.http.conn.scheme.LayeredSocketFactory;
-import org.apache.http.conn.scheme.Scheme;
-import org.apache.http.conn.scheme.SchemeRegistry;
-import org.apache.http.conn.scheme.SocketFactory;
-import org.apache.http.impl.conn.DefaultClientConnection;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.HttpContext;
-
 import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+import cz.msebera.android.httpclient.HttpHost;
+import cz.msebera.android.httpclient.conn.HttpHostConnectException;
+import cz.msebera.android.httpclient.conn.OperatedClientConnection;
+import cz.msebera.android.httpclient.conn.scheme.LayeredSocketFactory;
+import cz.msebera.android.httpclient.conn.scheme.Scheme;
+import cz.msebera.android.httpclient.conn.scheme.SchemeRegistry;
+import cz.msebera.android.httpclient.conn.scheme.SocketFactory;
+import cz.msebera.android.httpclient.impl.conn.DefaultClientConnection;
+import cz.msebera.android.httpclient.params.HttpConnectionParams;
+import cz.msebera.android.httpclient.params.HttpParams;
+import cz.msebera.android.httpclient.protocol.HttpContext;
+
 
 /*get from 4.3, mixed 4.0*/
-public final class ClientConnectionOperator implements org.apache.http.conn.ClientConnectionOperator {
+public final class ClientConnectionOperator implements cz.msebera.android.httpclient.conn.ClientConnectionOperator {
 
 
     /**

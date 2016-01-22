@@ -5,12 +5,13 @@ import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
+import com.qiniu.android.common.ServiceAddress;
+import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.storage.Zone;
 
 import junit.framework.Assert;
 
@@ -50,27 +51,46 @@ public class FormUploadTest extends InstrumentationTestCase {
             }
         }, opt);
 
-
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
-        Assert.assertEquals("/", info.path);
+    }
+
+    @SmallTest
+    public void test0Data() throws Throwable {
+        final String expectKey = "你好;\"\r\n\r\n\r\n";
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("x:foo", "fooval");
+        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
+
+        uploadManager.put("".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                Log.i("qiniutest", k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+                signal.countDown();
+            }
+        }, opt);
+
+        try {
+            signal.await(10, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertFalse(info.toString(), info.isOK());
+        Assert.assertEquals(info.toString(), "", info.reqId);
+        Assert.assertNull(resp);
     }
 
     @SmallTest
@@ -95,19 +115,15 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        // 尝试获取info信息。
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
+
         Assert.assertNotNull(info.reqId);
-        Assert.assertEquals("/", info.path);
         Assert.assertNotNull(resp);
         Assert.assertEquals("Fqr0xh3cxeii2r7eDztILNmuqUNN", resp.optString("key", ""));
     }
@@ -131,11 +147,12 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertEquals(ResponseInfo.InvalidToken, info.statusCode);
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertEquals(info.toString(), ResponseInfo.InvalidToken, info.statusCode);
         Assert.assertNotNull(info.reqId);
         Assert.assertNull(resp);
     }
@@ -157,11 +174,13 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertEquals(ResponseInfo.InvalidArgument, info.statusCode);
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertEquals(info.toString(), ResponseInfo.InvalidArgument,
+                info.statusCode);
         Assert.assertNull(resp);
     }
 
@@ -170,7 +189,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         final String expectKey = "你好";
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(new byte[0], expectKey, null, new UpCompletionHandler() {
+                uploadManager.put(new byte[1], expectKey, null, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         Log.i("qiniutest", k + rinfo);
                         key = k;
@@ -184,11 +203,12 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertEquals(ResponseInfo.InvalidArgument, info.statusCode);
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertEquals(info.toString(), ResponseInfo.InvalidArgument, info.statusCode);
         Assert.assertNull(resp);
     }
 
@@ -197,7 +217,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         final String expectKey = "你好";
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(new byte[0], expectKey, "", new UpCompletionHandler() {
+                uploadManager.put(new byte[1], expectKey, "", new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         Log.i("qiniutest", k + rinfo);
                         key = k;
@@ -211,11 +231,13 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertEquals(ResponseInfo.InvalidArgument, info.statusCode);
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertEquals(info.toString(), ResponseInfo.InvalidArgument,
+                info.statusCode);
         Assert.assertNull(resp);
     }
 
@@ -238,23 +260,49 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(130, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
+
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
+        //上传策略含空格 \"fname\":\" $(fname) \"
+        Assert.assertEquals(f.getName(), resp.optString("fname", "res doesn't include the FNAME").trim());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
+        TempFile.remove(f);
+    }
+
+    @MediumTest
+    public void test0File() throws Throwable {
+        final String expectKey = "世/界";
+        final File f = TempFile.createFile(0);
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("x:foo", "fooval");
+        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
+        uploadManager.put(f, expectKey, TestConfig.token, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                Log.i("qiniutest", k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+                signal.countDown();
+            }
+        }, opt);
+
+        try {
+            signal.await(10, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Assert.assertEquals(f.toString(), 0, f.length());
+        Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertFalse(info.toString(), info.isOK());
+        Assert.assertEquals(info.toString(), "", info.reqId);
+        Assert.assertNull(resp);
         TempFile.remove(f);
     }
 
@@ -283,10 +331,12 @@ public class FormUploadTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testIpBack() throws Throwable {
-
+        ServiceAddress s = new ServiceAddress("http://upwelcome.qiniu.com", Zone.zone0.up.backupIps);
+        Zone z = new Zone(s, Zone.zone0.upBackup);
         Configuration c = new Configuration.Builder()
-                .zone(new Zone("upwelcome.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp, Zone.zone0.upIp2))
+                .zone(z)
                 .build();
+
         UploadManager uploadManager2 = new UploadManager(c);
         final String expectKey = "你好;\"\r\n\r\n\r\n";
         Map<String, String> params = new HashMap<String, String>();
@@ -306,30 +356,23 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
+
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
     }
 
     @SmallTest
     public void testPortBackup() throws Throwable {
+        ServiceAddress s = new ServiceAddress("http://upload.qiniu.com:9999", null);
+        Zone z = new Zone(s, Zone.zone0.upBackup);
         Configuration c = new Configuration.Builder()
-                .zone(new Zone("upload.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp, Zone.zone0.upIp2))
-                .upPort(9999)
+                .zone(z)
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
         final String expectKey = "你好;\"\r\n\r\n\r\n";
@@ -350,29 +393,23 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
+
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
     }
 
     @SmallTest
     public void testDnsHijacking() throws Throwable {
+        ServiceAddress s = new ServiceAddress("http://uphijacktest.qiniu.com", Zone.zone0.up.backupIps);
+        Zone z = new Zone(s, Zone.zone0.upBackup);
         Configuration c = new Configuration.Builder()
-                .zone(new Zone("uphijacktest.qiniu.com", Zone.zone0.upHostBackup, Zone.zone0.upIp, Zone.zone0.upIp2))
+                .zone(z)
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
         final String expectKey = "你好;\"\r\n\r\n\r\n";
@@ -393,21 +430,49 @@ public class FormUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
+
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
+        Assert.assertNotNull(info.reqId);
+        Assert.assertNotNull(resp);
+    }
+
+    @SmallTest
+    public void testHttps() throws Throwable {
+
+        final String expectKey = "你好;\"\r\n\r\n\r\n";
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("x:foo", "fooval");
+        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
+        ServiceAddress s = new ServiceAddress("https://up.qbox.me", null);
+        Zone z = new Zone(s, Zone.zone0.upBackup);
+        Configuration c = new Configuration.Builder()
+                .zone(z)
+                .build();
+        UploadManager uploadManager2 = new UploadManager(c);
+        uploadManager2.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                Log.i("qiniutest", k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+                signal.countDown();
+            }
+        }, opt);
+
+
+        try {
+            signal.await(120, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
     }

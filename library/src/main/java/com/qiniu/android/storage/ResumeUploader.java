@@ -8,8 +8,6 @@ import com.qiniu.android.utils.Crc32;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.UrlSafeBase64;
 
-import org.apache.http.Header;
-import org.apache.http.message.BasicHeader;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,8 +16,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Locale;
 import java.util.Map;
+
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.message.BasicHeader;
 
 import static java.lang.String.format;
 
@@ -51,19 +54,31 @@ final class ResumeUploader implements Runnable {
     private File f;
     private long crc32;
     private UpToken token;
-    private boolean forceIp = false;
 
-    ResumeUploader(HttpManager httpManager, Configuration config, File file, String key, UpToken token,
-                   UpCompletionHandler completionHandler, UploadOptions options, String recorderKey) {
+    ResumeUploader(HttpManager httpManager, Configuration config, File f, String key, UpToken token,
+                   final UpCompletionHandler completionHandler, UploadOptions options, String recorderKey) {
         this.httpManager = httpManager;
         this.config = config;
-        this.f = file;
+        this.f = f;
         this.recorderKey = recorderKey;
-        this.size = (int) file.length();
+        this.size = (int) f.length();
         this.key = key;
         this.headers = new Header[1];
         headers[0] = new BasicHeader("Authorization", "UpToken " + token.token);
-        this.completionHandler = completionHandler;
+        this.file = null;
+        this.completionHandler = new UpCompletionHandler() {
+            @Override
+            public void complete(String key, ResponseInfo info, JSONObject response) {
+                if (file != null) {
+                    try {
+                        file.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                completionHandler.complete(key, info, response);
+            }
+        };
         this.options = options != null ? options : UploadOptions.defaultOptions();
         chunkBuffer = new byte[config.chunkSize];
         long count = (size + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE;
@@ -81,22 +96,22 @@ final class ResumeUploader implements Runnable {
             completionHandler.complete(key, ResponseInfo.fileError(e), null);
             return;
         }
-        nextTask(offset, 0, config.upHost);
+        nextTask(offset, 0, config.up.address);
     }
 
     /**
      * 创建块，并上传第一个分片内容
      *
-     * @param host               上传主机
+     * @param address            上传主机
      * @param offset             本地文件偏移量
      * @param blockSize          分块的块大小
      * @param chunkSize          分片的片大小
      * @param progress           上传进度
      * @param _completionHandler 上传完成处理动作
      */
-    private void makeBlock(String host, int offset, int blockSize, int chunkSize, ProgressHandler progress,
+    private void makeBlock(URI address, int offset, int blockSize, int chunkSize, ProgressHandler progress,
                            CompletionHandler _completionHandler, UpCancellationSignal c) {
-        String url = format(Locale.ENGLISH, "http://%s/mkblk/%d", host, blockSize);
+        String path = format(Locale.ENGLISH, "/mkblk/%d", blockSize);
         try {
             file.seek(offset);
             file.read(chunkBuffer, 0, chunkSize);
@@ -105,14 +120,14 @@ final class ResumeUploader implements Runnable {
             return;
         }
         this.crc32 = Crc32.bytes(chunkBuffer, 0, chunkSize);
-
-        post(url, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
+        URI u = newURI(address, path);
+        post(u, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
     }
 
-    private void putChunk(String host, int offset, int chunkSize, String context, ProgressHandler progress,
+    private void putChunk(URI address, int offset, int chunkSize, String context, ProgressHandler progress,
                           CompletionHandler _completionHandler, UpCancellationSignal c) {
         int chunkOffset = offset % Configuration.BLOCK_SIZE;
-        String url = format(Locale.ENGLISH, "http://%s:%d/bput/%s/%d", host, config.upPort, context, chunkOffset);
+        String path = format(Locale.ENGLISH, "/bput/%s/%d", context, chunkOffset);
         try {
             file.seek(offset);
             file.read(chunkBuffer, 0, chunkSize);
@@ -121,10 +136,11 @@ final class ResumeUploader implements Runnable {
             return;
         }
         this.crc32 = Crc32.bytes(chunkBuffer, 0, chunkSize);
-        post(url, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
+        URI u = newURI(address, path);
+        post(u, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
     }
 
-    private void makeFile(String host, CompletionHandler _completionHandler, UpCancellationSignal c) {
+    private void makeFile(URI uri, CompletionHandler _completionHandler, UpCancellationSignal c) {
         String mime = format(Locale.ENGLISH, "/mimeType/%s", UrlSafeBase64.encodeToString(options.mimeType));
 
         String keyStr = "";
@@ -141,16 +157,24 @@ final class ResumeUploader implements Runnable {
             }
             paramStr = "/" + StringUtils.join(str, "/");
         }
-        String url = format(Locale.ENGLISH, "http://%s/mkfile/%d%s%s%s", host, size, mime, keyStr, paramStr);
+        String path = format(Locale.ENGLISH, "/mkfile/%d%s%s%s", size, mime, keyStr, paramStr);
+        URI address = uri;
+        try {
+            address = new URI(uri.getScheme(), uri.getHost(), path, null);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
+
         String bodyStr = StringUtils.join(contexts, ",");
         byte[] data = bodyStr.getBytes();
 
-        post(url, data, 0, data.length, null, _completionHandler, c);
+        post(address, data, 0, data.length, null, _completionHandler, c);
     }
 
-    private void post(String url, byte[] data, int offset, int size, ProgressHandler progress,
+    private void post(URI uri, byte[] data, int offset, int size, ProgressHandler progress,
                       CompletionHandler completion, UpCancellationSignal c) {
-        httpManager.postData(url, data, offset, size, headers, progress, completion, c, forceIp);
+        httpManager.postData(uri, data, offset, size, headers, progress, completion, c);
     }
 
     private int calcPutSize(int offset) {
@@ -167,7 +191,7 @@ final class ResumeUploader implements Runnable {
         return options.cancellationSignal.isCancelled();
     }
 
-    private void nextTask(final int offset, final int retried, final String host) {
+    private void nextTask(final int offset, final int retried, final URI address) {
         if (offset == size) {
             CompletionHandler complete = new CompletionHandler() {
                 @Override
@@ -185,18 +209,14 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
 
-                    if (isNotQiniu(info)) {
-                        forceIp = true;
-                    }
-
                     if (isNotQiniu(info) || (info.needRetry() && retried < config.retryMax)) {
-                        nextTask(offset, retried + 1, host);
+                        nextTask(offset, retried + 1, config.upBackup.address);
                         return;
                     }
                     completionHandler.complete(key, info, response);
                 }
             };
-            makeFile(host, complete, options.cancellationSignal);
+            makeFile(address, complete, options.cancellationSignal);
             return;
         }
 
@@ -222,27 +242,22 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
                     if (info.statusCode == 701) {
-                        nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried, host);
+                        nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried, address);
                         return;
                     }
-                    if (isNotQiniu(info)) {
-                        forceIp = true;
-                    }
+
                     if (!isNotQiniu(info) && (retried >= config.retryMax || !info.needRetry())) {
                         completionHandler.complete(key, info, null);
                         return;
                     }
-                    String host2 = host;
-                    if (info.needSwitchServer()) {
-                        host2 = config.upHostBackup;
-                    }
-                    nextTask(offset, retried + 1, host2);
+
+                    nextTask(offset, retried + 1, config.upBackup.address);
                     return;
                 }
                 String context = null;
 
                 if (response == null) {
-                    nextTask(offset, retried + 1, host);
+                    nextTask(offset, retried + 1, config.upBackup.address);
                     return;
                 }
                 long crc = 0;
@@ -253,21 +268,21 @@ final class ResumeUploader implements Runnable {
                     e.printStackTrace();
                 }
                 if (context == null || crc != ResumeUploader.this.crc32) {
-                    nextTask(offset, retried + 1, host);
+                    nextTask(offset, retried + 1, config.upBackup.address);
                     return;
                 }
                 contexts[offset / Configuration.BLOCK_SIZE] = context;
                 record(offset + chunkSize);
-                nextTask(offset + chunkSize, retried, host);
+                nextTask(offset + chunkSize, retried, address);
             }
         };
         if (offset % Configuration.BLOCK_SIZE == 0) {
             int blockSize = calcBlockSize(offset);
-            makeBlock(host, offset, blockSize, chunkSize, progress, complete, options.cancellationSignal);
+            makeBlock(address, offset, blockSize, chunkSize, progress, complete, options.cancellationSignal);
             return;
         }
         String context = contexts[offset / Configuration.BLOCK_SIZE];
-        putChunk(host, offset, chunkSize, context, progress, complete, options.cancellationSignal);
+        putChunk(address, offset, chunkSize, context, progress, complete, options.cancellationSignal);
     }
 
     private int recoveryFromRecord() {
@@ -324,5 +339,14 @@ final class ResumeUploader implements Runnable {
 
     private boolean isNotQiniu(ResponseInfo info) {
         return info.isNotQiniu() && !token.hasReturnUrl();
+    }
+
+    private URI newURI(URI uri, String path) {
+        try {
+            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), path, null, null);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+        return uri;
     }
 }

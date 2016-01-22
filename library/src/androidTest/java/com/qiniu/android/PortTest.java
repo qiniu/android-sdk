@@ -5,6 +5,8 @@ import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
+import com.qiniu.android.common.ServiceAddress;
+import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
@@ -33,7 +35,9 @@ public class PortTest extends InstrumentationTestCase {
 
     @Override
     protected void setUp() throws Exception {
-        Configuration config = new Configuration.Builder().upPort(8888).build();
+        ServiceAddress s1 = new ServiceAddress("http://upload.qiniu.com:8888");
+        Zone z = new Zone(s1, s1);
+        Configuration config = new Configuration.Builder().zone(z).build();
         uploadManager = new UploadManager(config);
     }
 
@@ -68,8 +72,8 @@ public class PortTest extends InstrumentationTestCase {
     }
 
     @MediumTest
-    public void test4223K() throws Throwable {
-        fileTemplate(4223);
+    public void test800K() throws Throwable {
+        fileTemplate(800);
     }
 
     public void fileTemplate(int size) throws Throwable {
@@ -94,22 +98,14 @@ public class PortTest extends InstrumentationTestCase {
 
     private void check(final String expectKey) {
         try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
+            signal.await(600, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        // 尝试获取info信息。
-        // key == null ： 没进入 complete ？ 什么导致的？
-        if (!expectKey.equals(key)) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        if (info == null || !info.isOK()) {
-            //此处通不过， travis 会打印信息
-            Assert.assertEquals("", info);
-        }
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
+
+        Assert.assertEquals(info.toString(), expectKey, key);
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
     }

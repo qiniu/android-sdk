@@ -1,22 +1,23 @@
 package com.qiniu.android.http;
 
-import org.apache.http.Header;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpRequest;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.ProtocolException;
-import org.apache.http.client.CircularRedirectException;
-import org.apache.http.client.RedirectHandler;
-import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.utils.URIUtils;
-import org.apache.http.impl.client.RedirectLocations;
-import org.apache.http.params.HttpParams;
-import org.apache.http.protocol.ExecutionContext;
-import org.apache.http.protocol.HttpContext;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.HttpHost;
+import cz.msebera.android.httpclient.HttpRequest;
+import cz.msebera.android.httpclient.HttpResponse;
+import cz.msebera.android.httpclient.HttpStatus;
+import cz.msebera.android.httpclient.ProtocolException;
+import cz.msebera.android.httpclient.client.CircularRedirectException;
+import cz.msebera.android.httpclient.client.RedirectHandler;
+import cz.msebera.android.httpclient.client.params.ClientPNames;
+import cz.msebera.android.httpclient.client.utils.URIUtils;
+import cz.msebera.android.httpclient.impl.client.RedirectLocations;
+import cz.msebera.android.httpclient.params.HttpParams;
+import cz.msebera.android.httpclient.protocol.ExecutionContext;
+import cz.msebera.android.httpclient.protocol.HttpContext;
 
 /**
  * Created by bailong on 15/5/25.
