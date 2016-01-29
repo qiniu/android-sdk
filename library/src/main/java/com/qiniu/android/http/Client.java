@@ -78,7 +78,7 @@ public final class Client {
 
                 com.squareup.okhttp.Response response = chain.proceed(request);
                 IpTag tag = (IpTag) request.tag();
-                String ip = null;
+                String ip = "";
                 try {
                    ip = chain.connection().getSocket().getRemoteSocketAddress().toString();
                 }catch (Exception e){
