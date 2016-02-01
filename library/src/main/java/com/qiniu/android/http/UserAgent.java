@@ -4,6 +4,7 @@ import android.os.Build;
 import android.text.TextUtils;
 
 import com.qiniu.android.common.Constants;
+import com.qiniu.android.utils.StringUtils;
 
 import java.util.Locale;
 import java.util.Random;
@@ -34,7 +35,15 @@ public final class UserAgent {
 
     private static String getUserAgent(String id) {
         return format("QiniuAndroid/%s (%s; %s; %s)", Constants.VERSION,
-                android.os.Build.VERSION.RELEASE, device(), id);
+                osVersion(), device(), id);
+    }
+
+    private static String osVersion() {
+        String v = android.os.Build.VERSION.RELEASE;
+        if (v == null) {
+            return "";
+        }
+        return StringUtils.strip(v.trim());
     }
 
     private static String device() {
@@ -43,7 +52,7 @@ public final class UserAgent {
         if (TextUtils.isEmpty(device)) {
             device = deviceName(Build.BRAND.trim(), model);
         }
-        return (device == null ? "" : device) + "-" + model;
+        return StringUtils.strip((device == null ? "" : device) + "-" + model);
     }
 
     private static String deviceName(String manufacturer, String model) {
