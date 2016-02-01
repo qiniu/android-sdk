@@ -95,15 +95,14 @@ public final class StringUtils {
         return s == null || "".equals(s);
     }
 
-    public static String strip(String s){
+    public static String strip(String s) {
         StringBuilder b = new StringBuilder();
         for (int i = 0, length = s.length(); i < length; i++) {
             char c = s.charAt(i);
-            if (c > '\u001f' || c < '\u007f') {
+            if (c > '\u001f' && c < '\u007f') {
                 b.append(c);
             }
         }
         return b.toString();
     }
 }
-

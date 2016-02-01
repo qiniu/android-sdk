@@ -25,7 +25,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -80,8 +79,8 @@ public final class Client {
                 IpTag tag = (IpTag) request.tag();
                 String ip = "";
                 try {
-                   ip = chain.connection().getSocket().getRemoteSocketAddress().toString();
-                }catch (Exception e){
+                    ip = chain.connection().getSocket().getRemoteSocketAddress().toString();
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 tag.ip = ip;

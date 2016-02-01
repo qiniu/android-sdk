@@ -38,14 +38,14 @@ public final class UserAgent {
                 osVersion(), device(), id);
     }
 
-    private static String osVersion(){
+    private static String osVersion() {
         String v = android.os.Build.VERSION.RELEASE;
-        if (v == null){
+        if (v == null) {
             return "";
         }
         return StringUtils.strip(v.trim());
     }
-    
+
     private static String device() {
         String model = Build.MODEL.trim();
         String device = deviceName(Build.MANUFACTURER.trim(), model);
