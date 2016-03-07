@@ -6,6 +6,7 @@ import com.qiniu.android.dns.Domain;
 import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringMap;
+import com.qiniu.android.utils.StringUtils;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.Dns;
 import com.squareup.okhttp.Interceptor;
@@ -119,6 +120,10 @@ public final class Client {
 
     private static JSONObject buildJsonResp(byte[] body) throws Exception {
         String str = new String(body, Constants.UTF_8);
+        // 允许 空 字符串
+        if (StringUtils.isNullOrEmpty(str)) {
+            return new JSONObject();
+        }
         return new JSONObject(str);
     }
 

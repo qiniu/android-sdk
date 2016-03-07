@@ -3,6 +3,9 @@ package com.qiniu.android.http;
 
 import com.qiniu.android.common.Constants;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Locale;
 
 /**
@@ -124,9 +127,6 @@ public final class ResponseInfo {
         return statusCode == Cancelled;
     }
 
-    public boolean isOK() {
-        return statusCode == 200 && error == null && reqId != null;
-    }
 
     public boolean isNetworkBroken() {
         return statusCode == NetworkError || statusCode == UnknownHost
@@ -148,12 +148,45 @@ public final class ResponseInfo {
                 || (statusCode == 200 && error != null));
     }
 
-    public boolean isNotQiniu() {
-        return statusCode < 500 && statusCode >= 200 && reqId == null;
-    }
 
     public String toString() {
         return String.format(Locale.ENGLISH, "{ver:%s,ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s, host:%s, path:%s, ip:%s, port:%d, duration:%f s, time:%d, sent:%d,error:%s}",
                 Constants.VERSION, id, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, timeStamp, sent, error);
+    }
+
+    public boolean hasReqId() {
+        return reqId != null;
+    }
+
+
+
+    /**
+     * 文件上传执行结束时检查是否正常完成上传
+     * */
+    public static boolean isUpOK(ResponseInfo info, JSONObject response) {
+        return info.statusCode == 200 && info.error == null && (info.hasReqId() || response != null);
+    }
+
+    public static boolean isChunkOK(ResponseInfo info, JSONObject response) {
+        return info.statusCode == 200 && info.error == null && (info.hasReqId() || isChunkResOK(response));
+    }
+
+    private static boolean isChunkResOK(JSONObject response) {
+        try {
+            // getXxxx 若获取不到值,会抛出异常
+            response.getString("ctx");
+            response.getLong("crc32");
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean isNotUpToQiniu(ResponseInfo info, JSONObject response) {
+        return info.statusCode < 500 && info.statusCode >= 200 && (info.hasReqId() || response != null);
+    }
+
+    public static boolean isNotChunkToQiniu(ResponseInfo info, JSONObject response) {
+        return info.statusCode < 500 && info.statusCode >= 200 && (info.hasReqId() || isChunkResOK(response));
     }
 }

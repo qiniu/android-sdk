@@ -198,17 +198,18 @@ final class ResumeUploader implements Runnable {
         }
 
         if (offset == size) {
+            //完成操作,返回的内容不确定,是否真正成功逻辑让用户自己判断
             CompletionHandler complete = new CompletionHandler() {
                 @Override
                 public void complete(ResponseInfo info, JSONObject response) {
-                    if (info.isOK()) {
+                    if (ResponseInfo.isUpOK(info, response)) {
                         removeRecord();
                         options.progressHandler.progress(key, 1.0);
                         completionHandler.complete(key, info, response);
                         return;
                     }
 
-                    if ((isNotQiniu(info) || info.needRetry()) && retried < config.retryMax) {
+                    if ((ResponseInfo.isNotUpToQiniu(info, response) && !token.hasReturnUrl() || info.needRetry()) && retried < config.retryMax) {
                         nextTask(offset, retried + 1, config.upBackup.address);
                         return;
                     }
@@ -231,16 +232,17 @@ final class ResumeUploader implements Runnable {
             }
         };
 
+        // 分片上传,七牛响应内容固定,若缺少reqId,可通过响应体判断
         CompletionHandler complete = new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
-                if (!info.isOK()) {
+                if (!ResponseInfo.isChunkOK(info, response)) {
                     if (info.statusCode == 701 && retried < config.retryMax) {
                         nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried + 1, address);
                         return;
                     }
 
-                    if ((isNotQiniu(info) || info.needRetry()) && retried < config.retryMax) {
+                    if ((ResponseInfo.isNotChunkToQiniu(info, response) || info.needRetry()) && retried < config.retryMax) {
                         nextTask(offset, retried + 1, config.upBackup.address);
                         return;
                     }
@@ -331,9 +333,6 @@ final class ResumeUploader implements Runnable {
         config.recorder.set(recorderKey, data.getBytes());
     }
 
-    private boolean isNotQiniu(ResponseInfo info) {
-        return info.isNotQiniu() && !token.hasReturnUrl();
-    }
 
     private URI newURI(URI uri, String path) {
         try {

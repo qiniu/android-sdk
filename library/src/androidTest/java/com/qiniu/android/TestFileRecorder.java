@@ -127,7 +127,7 @@ public class TestFileRecorder extends InstrumentationTestCase {
         }
 
         Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isOK());
+        Assert.assertTrue(info.toString(), ResponseInfo.isUpOK(info, resp));
         Assert.assertTrue(!failed);
         Assert.assertNotNull(resp);
 
