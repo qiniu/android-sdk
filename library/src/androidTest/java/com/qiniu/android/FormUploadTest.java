@@ -59,7 +59,7 @@ public class FormUploadTest extends InstrumentationTestCase {
             e.printStackTrace();
         }
         Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), ResponseInfo.isUpOK(info, resp));
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
 
@@ -92,7 +92,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         }
         Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
         Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertFalse(info.toString(), ResponseInfo.isUpOK(info, resp));
+        Assert.assertFalse(info.toString(), info.isOK());
         Assert.assertEquals(info.toString(), "", info.reqId);
         Assert.assertNull(resp);
     }
@@ -125,7 +125,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         }
 
         Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), ResponseInfo.isUpOK(info, resp));
+        Assert.assertTrue(info.toString(), info.isOK());
 
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
@@ -270,7 +270,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         }
 
         Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), ResponseInfo.isUpOK(info, resp));
+        Assert.assertTrue(info.toString(), info.isOK());
         //上传策略含空格 \"fname\":\" $(fname) \"
         Assert.assertEquals(f.getName(), resp.optString("fname", "res doesn't include the FNAME").trim());
         Assert.assertNotNull(info.reqId);
@@ -307,7 +307,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         Assert.assertEquals(f.toString(), 0, f.length());
         Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
         Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertFalse(info.toString(), ResponseInfo.isUpOK(info, resp));
+        Assert.assertFalse(info.toString(), info.isOK());
         Assert.assertEquals(info.toString(), "", info.reqId);
         Assert.assertNull(resp);
         TempFile.remove(f);
@@ -369,7 +369,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         }
 
         Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), ResponseInfo.isUpOK(info, resp));
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
     }
@@ -406,7 +406,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         }
 
         Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), ResponseInfo.isUpOK(info, resp));
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
     }
@@ -443,7 +443,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         }
 
         Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), ResponseInfo.isUpOK(info, resp));
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
     }
@@ -479,7 +479,7 @@ public class FormUploadTest extends InstrumentationTestCase {
             e.printStackTrace();
         }
         Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), ResponseInfo.isUpOK(info, resp));
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
     }

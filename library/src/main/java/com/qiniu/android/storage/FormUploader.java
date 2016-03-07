@@ -108,24 +108,24 @@ final class FormUploader {
         CompletionHandler completion = new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
-                if (ResponseInfo.isUpOK(info, response)) {
+                if (info.isOK()) {
                     options.progressHandler.progress(key, 1.0);
                     completionHandler.complete(key, info, response);
                 } else if (options.cancellationSignal.isCancelled()) {
                     ResponseInfo i = ResponseInfo.cancelled();
                     completionHandler.complete(key, i, null);
-                } else if (info.needRetry() || (ResponseInfo.isNotUpToQiniu(info, response) && !token.hasReturnUrl())) {
+                } else if (info.needRetry() || (info.isNotQiniu() && !token.hasReturnUrl())) {
                     CompletionHandler retried = new CompletionHandler() {
                         @Override
                         public void complete(ResponseInfo info, JSONObject response) {
-                            if (ResponseInfo.isUpOK(info, response)) {
+                            if (info.isOK()) {
                                 options.progressHandler.progress(key, 1.0);
                             }
                             completionHandler.complete(key, info, response);
                         }
                     };
                     URI u = config.up.address;
-                    if (info.needSwitchServer() || ResponseInfo.isNotUpToQiniu(info, response)) {
+                    if (info.needSwitchServer() || info.isNotQiniu()) {
                         u = config.upBackup.address;
                     }
 

@@ -172,7 +172,7 @@ public final class Client {
                 }
 
                 URL u = request.url();
-                ResponseInfo info = new ResponseInfo(statusCode, "", "", "", u.getHost(), u.getPath(), "", u.getPort(), duration, 0, e.getMessage());
+                ResponseInfo info = new ResponseInfo(null, statusCode, "", "", "", u.getHost(), u.getPath(), "", u.getPort(), duration, 0, e.getMessage());
 
                 complete.complete(info, null);
             }
@@ -286,8 +286,8 @@ public final class Client {
         }
 
         URL u = response.request().url();
-        final ResponseInfo info = new ResponseInfo(code, reqId, response.header("X-Log"), via(response),
-                u.getHost(), u.getPath(), ip, u.getPort(), duration, 0, error);
+        final ResponseInfo info = new ResponseInfo(json, code, reqId, response.header("X-Log"),
+                via(response), u.getHost(), u.getPath(), ip, u.getPort(), duration, 0, error);
         final JSONObject json2 = json;
         AsyncRun.run(new Runnable() {
             @Override

@@ -84,7 +84,11 @@ public final class ResponseInfo {
      */
     public final long sent;
 
-    public ResponseInfo(int statusCode, String reqId, String xlog, String xvia, String host, String path, String ip, int port, double duration, long sent, String error) {
+    private final JSONObject response;
+
+    public ResponseInfo(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
+                        String path, String ip, int port, double duration, long sent, String error) {
+        response = json;
         this.statusCode = statusCode;
         this.reqId = reqId;
         this.xlog = xlog;
@@ -101,32 +105,32 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo zeroSize() {
-        return new ResponseInfo(ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero");
+        return new ResponseInfo(null, ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero");
     }
 
     public static ResponseInfo cancelled() {
-        return new ResponseInfo(Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user");
+        return new ResponseInfo(null, Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user");
     }
 
     public static ResponseInfo invalidArgument(String message) {
-        return new ResponseInfo(InvalidArgument, "", "", "", "", "", "", -1, 0, 0,
-                message);
+        return new ResponseInfo(null, InvalidArgument, "", "", "", "", "", "", -1, 0, 0, message);
     }
 
     public static ResponseInfo invalidToken(String message) {
-        return new ResponseInfo(InvalidToken, "", "", "", "", "", "", -1, 0, 0,
-                message);
+        return new ResponseInfo(null, InvalidToken, "", "", "", "", "", "", -1, 0, 0, message);
     }
 
     public static ResponseInfo fileError(Exception e) {
-        return new ResponseInfo(InvalidFile, "", "", "", "", "", "", -1,
-                0, 0, e.getMessage());
+        return new ResponseInfo(null, InvalidFile, "", "", "", "", "", "", -1, 0, 0, e.getMessage());
     }
 
     public boolean isCancelled() {
         return statusCode == Cancelled;
     }
 
+    public boolean isOK() {
+        return statusCode == 200 && error == null && (hasReqId() || response != null);
+    }
 
     public boolean isNetworkBroken() {
         return statusCode == NetworkError || statusCode == UnknownHost
@@ -148,6 +152,9 @@ public final class ResponseInfo {
                 || (statusCode == 200 && error != null));
     }
 
+    public boolean isNotQiniu() {
+        return statusCode < 500 && statusCode >= 200 && (!hasReqId() && response == null);
+    }
 
     public String toString() {
         return String.format(Locale.ENGLISH, "{ver:%s,ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s, host:%s, path:%s, ip:%s, port:%d, duration:%f s, time:%d, sent:%d,error:%s}",
@@ -158,35 +165,4 @@ public final class ResponseInfo {
         return reqId != null;
     }
 
-
-
-    /**
-     * 文件上传执行结束时检查是否正常完成上传
-     * */
-    public static boolean isUpOK(ResponseInfo info, JSONObject response) {
-        return info.statusCode == 200 && info.error == null && (info.hasReqId() || response != null);
-    }
-
-    public static boolean isChunkOK(ResponseInfo info, JSONObject response) {
-        return info.statusCode == 200 && info.error == null && (info.hasReqId() || isChunkResOK(response));
-    }
-
-    private static boolean isChunkResOK(JSONObject response) {
-        try {
-            // getXxxx 若获取不到值,会抛出异常
-            response.getString("ctx");
-            response.getLong("crc32");
-        } catch (Exception e) {
-            return false;
-        }
-        return true;
-    }
-
-    public static boolean isNotUpToQiniu(ResponseInfo info, JSONObject response) {
-        return info.statusCode < 500 && info.statusCode >= 200 && (!info.hasReqId() && response == null);
-    }
-
-    public static boolean isNotChunkToQiniu(ResponseInfo info, JSONObject response) {
-        return info.statusCode < 500 && info.statusCode >= 200 && (!info.hasReqId() && !isChunkResOK(response));
-    }
 }

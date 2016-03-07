@@ -202,14 +202,14 @@ final class ResumeUploader implements Runnable {
             CompletionHandler complete = new CompletionHandler() {
                 @Override
                 public void complete(ResponseInfo info, JSONObject response) {
-                    if (ResponseInfo.isUpOK(info, response)) {
+                    if (info.isOK()) {
                         removeRecord();
                         options.progressHandler.progress(key, 1.0);
                         completionHandler.complete(key, info, response);
                         return;
                     }
 
-                    if ((ResponseInfo.isNotUpToQiniu(info, response) && !token.hasReturnUrl() || info.needRetry()) && retried < config.retryMax) {
+                    if ((info.isNotQiniu() && !token.hasReturnUrl() || info.needRetry()) && retried < config.retryMax) {
                         nextTask(offset, retried + 1, config.upBackup.address);
                         return;
                     }
@@ -236,13 +236,13 @@ final class ResumeUploader implements Runnable {
         CompletionHandler complete = new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
-                if (!ResponseInfo.isChunkOK(info, response)) {
+                if (!isChunkOK(info, response)) {
                     if (info.statusCode == 701 && retried < config.retryMax) {
                         nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried + 1, address);
                         return;
                     }
 
-                    if ((ResponseInfo.isNotChunkToQiniu(info, response) || info.needRetry()) && retried < config.retryMax) {
+                    if ((isNotChunkToQiniu(info, response) || info.needRetry()) && retried < config.retryMax) {
                         nextTask(offset, retried + 1, config.upBackup.address);
                         return;
                     }
@@ -279,6 +279,27 @@ final class ResumeUploader implements Runnable {
         }
         String context = contexts[offset / Configuration.BLOCK_SIZE];
         putChunk(address, offset, chunkSize, context, progress, complete, options.cancellationSignal);
+    }
+
+
+    private static boolean isChunkOK(ResponseInfo info, JSONObject response) {
+        return info.statusCode == 200 && info.error == null && (info.hasReqId() || isChunkResOK(response));
+    }
+
+    private static boolean isChunkResOK(JSONObject response) {
+        try {
+            // getXxxx 若获取不到值,会抛出异常
+            response.getString("ctx");
+            response.getLong("crc32");
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+
+    private static boolean isNotChunkToQiniu(ResponseInfo info, JSONObject response) {
+        return info.statusCode < 500 && info.statusCode >= 200 && (!info.hasReqId() && !isChunkResOK(response));
     }
 
     private int recoveryFromRecord() {

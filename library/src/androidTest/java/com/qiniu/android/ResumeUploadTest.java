@@ -60,7 +60,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
 
         Assert.assertEquals(info.toString(), expectKey, key);
 
-        Assert.assertTrue(info.toString(), ResponseInfo.isUpOK(info, resp));
+        Assert.assertTrue(info.toString(), info.isOK());
 
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
@@ -97,13 +97,13 @@ public class ResumeUploadTest extends InstrumentationTestCase {
 
         Assert.assertEquals(info.toString(), expectKey, key);
 
-        Assert.assertTrue(info.toString(), ResponseInfo.isUpOK(info, resp));
+        Assert.assertTrue(info.toString(), info.isOK());
 
         Assert.assertEquals(expectKey, key);
 
         //上传策略含空格 \"fname\":\" $(fname) \"
         Assert.assertEquals(f.getName(), resp.optString("fname", "res doesn't include the FNAME").trim());
-        Assert.assertTrue(ResponseInfo.isUpOK(info, resp));
+        Assert.assertTrue(info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
         String hash = resp.getString("hash");
@@ -141,10 +141,10 @@ public class ResumeUploadTest extends InstrumentationTestCase {
 
         Assert.assertEquals(info.toString(), expectKey, key);
 
-        Assert.assertTrue(info.toString(), ResponseInfo.isUpOK(info, resp));
+        Assert.assertTrue(info.toString(), info.isOK());
 
         Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(ResponseInfo.isUpOK(info, resp));
+        Assert.assertTrue(info.isOK());
         Assert.assertNotNull(info.reqId);
         Assert.assertNotNull(resp);
         TempFile.remove(f);
