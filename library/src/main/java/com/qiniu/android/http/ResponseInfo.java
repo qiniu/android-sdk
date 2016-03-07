@@ -183,10 +183,10 @@ public final class ResponseInfo {
     }
 
     public static boolean isNotUpToQiniu(ResponseInfo info, JSONObject response) {
-        return info.statusCode < 500 && info.statusCode >= 200 && (info.hasReqId() || response != null);
+        return info.statusCode < 500 && info.statusCode >= 200 && (!info.hasReqId() && response == null);
     }
 
     public static boolean isNotChunkToQiniu(ResponseInfo info, JSONObject response) {
-        return info.statusCode < 500 && info.statusCode >= 200 && (info.hasReqId() || isChunkResOK(response));
+        return info.statusCode < 500 && info.statusCode >= 200 && (!info.hasReqId() && !isChunkResOK(response));
     }
 }
