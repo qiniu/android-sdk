@@ -47,6 +47,7 @@ public class HttpTest extends InstrumentationTestCase {
                 "hello".getBytes(), null, null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
+                        Assert.assertNotNull(rinfo);
                         Log.d("qiniutest", rinfo.toString());
                         info = rinfo;
                         signal.countDown();

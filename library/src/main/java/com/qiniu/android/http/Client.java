@@ -6,6 +6,7 @@ import com.qiniu.android.dns.Domain;
 import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringMap;
+import com.qiniu.android.utils.StringUtils;
 import com.squareup.okhttp.Callback;
 import com.squareup.okhttp.Dns;
 import com.squareup.okhttp.Interceptor;
@@ -119,6 +120,10 @@ public final class Client {
 
     private static JSONObject buildJsonResp(byte[] body) throws Exception {
         String str = new String(body, Constants.UTF_8);
+        // 允许 空 字符串
+        if (StringUtils.isNullOrEmpty(str)) {
+            return new JSONObject();
+        }
         return new JSONObject(str);
     }
 
@@ -167,7 +172,7 @@ public final class Client {
                 }
 
                 URL u = request.url();
-                ResponseInfo info = new ResponseInfo(statusCode, "", "", "", u.getHost(), u.getPath(), "", u.getPort(), duration, 0, e.getMessage());
+                ResponseInfo info = new ResponseInfo(null, statusCode, "", "", "", u.getHost(), u.getPath(), "", u.getPort(), duration, 0, e.getMessage());
 
                 complete.complete(info, null);
             }
@@ -281,8 +286,8 @@ public final class Client {
         }
 
         URL u = response.request().url();
-        final ResponseInfo info = new ResponseInfo(code, reqId, response.header("X-Log"), via(response),
-                u.getHost(), u.getPath(), ip, u.getPort(), duration, 0, error);
+        final ResponseInfo info = new ResponseInfo(json, code, reqId, response.header("X-Log"),
+                via(response), u.getHost(), u.getPath(), ip, u.getPort(), duration, 0, error);
         final JSONObject json2 = json;
         AsyncRun.run(new Runnable() {
             @Override

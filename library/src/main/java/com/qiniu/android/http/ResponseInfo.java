@@ -3,6 +3,9 @@ package com.qiniu.android.http;
 
 import com.qiniu.android.common.Constants;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Locale;
 
 /**
@@ -81,7 +84,11 @@ public final class ResponseInfo {
      */
     public final long sent;
 
-    public ResponseInfo(int statusCode, String reqId, String xlog, String xvia, String host, String path, String ip, int port, double duration, long sent, String error) {
+    private final JSONObject response;
+
+    public ResponseInfo(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
+                        String path, String ip, int port, double duration, long sent, String error) {
+        response = json;
         this.statusCode = statusCode;
         this.reqId = reqId;
         this.xlog = xlog;
@@ -98,26 +105,23 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo zeroSize() {
-        return new ResponseInfo(ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero");
+        return new ResponseInfo(null, ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero");
     }
 
     public static ResponseInfo cancelled() {
-        return new ResponseInfo(Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user");
+        return new ResponseInfo(null, Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user");
     }
 
     public static ResponseInfo invalidArgument(String message) {
-        return new ResponseInfo(InvalidArgument, "", "", "", "", "", "", -1, 0, 0,
-                message);
+        return new ResponseInfo(null, InvalidArgument, "", "", "", "", "", "", -1, 0, 0, message);
     }
 
     public static ResponseInfo invalidToken(String message) {
-        return new ResponseInfo(InvalidToken, "", "", "", "", "", "", -1, 0, 0,
-                message);
+        return new ResponseInfo(null, InvalidToken, "", "", "", "", "", "", -1, 0, 0, message);
     }
 
     public static ResponseInfo fileError(Exception e) {
-        return new ResponseInfo(InvalidFile, "", "", "", "", "", "", -1,
-                0, 0, e.getMessage());
+        return new ResponseInfo(null, InvalidFile, "", "", "", "", "", "", -1, 0, 0, e.getMessage());
     }
 
     public boolean isCancelled() {
@@ -125,7 +129,7 @@ public final class ResponseInfo {
     }
 
     public boolean isOK() {
-        return statusCode == 200 && error == null && reqId != null;
+        return statusCode == 200 && error == null && (hasReqId() || response != null);
     }
 
     public boolean isNetworkBroken() {
@@ -149,11 +153,16 @@ public final class ResponseInfo {
     }
 
     public boolean isNotQiniu() {
-        return statusCode < 500 && statusCode >= 200 && reqId == null;
+        return statusCode < 500 && statusCode >= 200 && (!hasReqId() && response == null);
     }
 
     public String toString() {
         return String.format(Locale.ENGLISH, "{ver:%s,ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s, host:%s, path:%s, ip:%s, port:%d, duration:%f s, time:%d, sent:%d,error:%s}",
                 Constants.VERSION, id, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, timeStamp, sent, error);
     }
+
+    public boolean hasReqId() {
+        return reqId != null;
+    }
+
 }

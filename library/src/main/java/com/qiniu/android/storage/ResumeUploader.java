@@ -198,6 +198,7 @@ final class ResumeUploader implements Runnable {
         }
 
         if (offset == size) {
+            //完成操作,返回的内容不确定,是否真正成功逻辑让用户自己判断
             CompletionHandler complete = new CompletionHandler() {
                 @Override
                 public void complete(ResponseInfo info, JSONObject response) {
@@ -208,7 +209,7 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
 
-                    if ((isNotQiniu(info) || info.needRetry()) && retried < config.retryMax) {
+                    if ((info.isNotQiniu() && !token.hasReturnUrl() || info.needRetry()) && retried < config.retryMax) {
                         nextTask(offset, retried + 1, config.upBackup.address);
                         return;
                     }
@@ -231,16 +232,17 @@ final class ResumeUploader implements Runnable {
             }
         };
 
+        // 分片上传,七牛响应内容固定,若缺少reqId,可通过响应体判断
         CompletionHandler complete = new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
-                if (!info.isOK()) {
+                if (!isChunkOK(info, response)) {
                     if (info.statusCode == 701 && retried < config.retryMax) {
                         nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried + 1, address);
                         return;
                     }
 
-                    if ((isNotQiniu(info) || info.needRetry()) && retried < config.retryMax) {
+                    if ((isNotChunkToQiniu(info, response) || info.needRetry()) && retried < config.retryMax) {
                         nextTask(offset, retried + 1, config.upBackup.address);
                         return;
                     }
@@ -277,6 +279,27 @@ final class ResumeUploader implements Runnable {
         }
         String context = contexts[offset / Configuration.BLOCK_SIZE];
         putChunk(address, offset, chunkSize, context, progress, complete, options.cancellationSignal);
+    }
+
+
+    private static boolean isChunkOK(ResponseInfo info, JSONObject response) {
+        return info.statusCode == 200 && info.error == null && (info.hasReqId() || isChunkResOK(response));
+    }
+
+    private static boolean isChunkResOK(JSONObject response) {
+        try {
+            // getXxxx 若获取不到值,会抛出异常
+            response.getString("ctx");
+            response.getLong("crc32");
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+
+    private static boolean isNotChunkToQiniu(ResponseInfo info, JSONObject response) {
+        return info.statusCode < 500 && info.statusCode >= 200 && (!info.hasReqId() && !isChunkResOK(response));
     }
 
     private int recoveryFromRecord() {
@@ -331,9 +354,6 @@ final class ResumeUploader implements Runnable {
         config.recorder.set(recorderKey, data.getBytes());
     }
 
-    private boolean isNotQiniu(ResponseInfo info) {
-        return info.isNotQiniu() && !token.hasReturnUrl();
-    }
 
     private URI newURI(URI uri, String path) {
         try {
