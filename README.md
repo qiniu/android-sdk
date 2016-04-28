@@ -10,12 +10,20 @@ https://github.com/qiniudemo/qiniu-lab-android
 
 ## 安装
 
+### 运行环境
+| Qiniu SDK 版本 | 最低 Android版本   |       依赖库版本           | 
+|:------------ :|:-----------------:|:------------------------:|
+|  7.2.x        |  Android 2.3+     |        okhttp 3+         |
+|  7.1.x        |  Android 2.3+     |        okhttp 2.6+       |
+| 7.0.8,7.0.9   |  Android 2.2+     | android-async-http 1.4.9 |
+|  7.0.7        |  Android 2.2+     | android-async-http 1.4.8 |
+
 ### 直接安装
-将sdk jar文件 复制到项目中去，sdk依赖 http://loopj.com/android-async-http/ 7.0.7版本依赖1.4.7,1.4.8；7.0.8及7.0.9依赖1.4.9。7.1.0 以后切换到okhttp(2.6及以上)[下载地址](http://search.maven.org/remotecontent?filepath=com/qiniu/qiniu-android-sdk/)
+将sdk jar文件 复制到项目中去，[下载地址](http://search.maven.org/remotecontent?filepath=com/qiniu/qiniu-android-sdk/) 还有对应的依赖库
  还有 happy-dns [下载地址](https://repo1.maven.org/maven2/com/qiniu/happy-dns/)
 
 ### 通过maven
-* 如果在Adroid Studio中使用，添加dependencies `compile 'com.qiniu:qiniu-android-sdk:7.1.+'` 或在项目中添加maven依赖
+* 如果在Adroid Studio中使用，添加dependencies `compile 'com.qiniu:qiniu-android-sdk:7.2.+'` 或在项目中添加maven依赖
 * 如果是eclipse, 也可以直接添加依赖来处理。
 
 ## 使用方法
