@@ -3,7 +3,6 @@ package com.qiniu.android.http;
 
 import com.qiniu.android.common.Constants;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Locale;
