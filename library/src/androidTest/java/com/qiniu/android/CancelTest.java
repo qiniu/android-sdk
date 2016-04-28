@@ -45,9 +45,9 @@ public class CancelTest extends InstrumentationTestCase {
         uploadManager = new UploadManager(fr);
     }
 
-//    public void test400k() throws Throwable {
-//        templateFile(400, 0.2);
-//    }
+    public void test400k() throws Throwable {
+        templateFile(400, 0.2);
+    }
 
     public void test700k() throws Throwable {
         templateFile(700, 0.2);
@@ -73,13 +73,13 @@ public class CancelTest extends InstrumentationTestCase {
         templateData(700, 0.2);
     }
 
-    public void testD1M() throws Throwable {
-        templateData(1024, 0.51);
-    }
-
-    public void testD4M() throws Throwable {
-        templateData(4 * 1024, 0.6);
-    }
+//    public void testD1M() throws Throwable {
+//        templateData(1024, 0.51);
+//    }
+//
+//    public void testD4M() throws Throwable {
+//        templateData(4 * 1024, 0.6);
+//    }
 
     private void templateFile(final int size, final double pos) throws Throwable {
         final File tempFile = TempFile.createFile(size);

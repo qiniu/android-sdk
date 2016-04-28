@@ -1,11 +1,11 @@
 package com.qiniu.android.http;
 
 import com.qiniu.android.utils.AsyncRun;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.RequestBody;
 
 import java.io.IOException;
 
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 import okio.Buffer;
 import okio.BufferedSink;
 import okio.ForwardingSink;
