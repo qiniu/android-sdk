@@ -85,6 +85,25 @@ final class ResumeUploader implements Runnable {
         this.token = token;
     }
 
+    private static boolean isChunkOK(ResponseInfo info, JSONObject response) {
+        return info.statusCode == 200 && info.error == null && (info.hasReqId() || isChunkResOK(response));
+    }
+
+    private static boolean isChunkResOK(JSONObject response) {
+        try {
+            // getXxxx 若获取不到值,会抛出异常
+            response.getString("ctx");
+            response.getLong("crc32");
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean isNotChunkToQiniu(ResponseInfo info, JSONObject response) {
+        return info.statusCode < 500 && info.statusCode >= 200 && (!info.hasReqId() && !isChunkResOK(response));
+    }
+
     public void run() {
         int offset = recoveryFromRecord();
         try {
@@ -279,27 +298,6 @@ final class ResumeUploader implements Runnable {
         }
         String context = contexts[offset / Configuration.BLOCK_SIZE];
         putChunk(address, offset, chunkSize, context, progress, complete, options.cancellationSignal);
-    }
-
-
-    private static boolean isChunkOK(ResponseInfo info, JSONObject response) {
-        return info.statusCode == 200 && info.error == null && (info.hasReqId() || isChunkResOK(response));
-    }
-
-    private static boolean isChunkResOK(JSONObject response) {
-        try {
-            // getXxxx 若获取不到值,会抛出异常
-            response.getString("ctx");
-            response.getLong("crc32");
-        } catch (Exception e) {
-            return false;
-        }
-        return true;
-    }
-
-
-    private static boolean isNotChunkToQiniu(ResponseInfo info, JSONObject response) {
-        return info.statusCode < 500 && info.statusCode >= 200 && (!info.hasReqId() && !isChunkResOK(response));
     }
 
     private int recoveryFromRecord() {

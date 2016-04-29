@@ -38,9 +38,8 @@ public final class Client {
     public static final String DefaultMime = "application/octet-stream";
     public static final String JsonMime = "application/json";
     public static final String FormMime = "application/x-www-form-urlencoded";
-
-    private OkHttpClient httpClient;
     private final UrlConverter converter;
+    private OkHttpClient httpClient;
 
     public Client() {
         this(null, 10, 30, null, null);
