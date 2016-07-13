@@ -285,7 +285,7 @@ public final class Client {
                 }
             }
         } else {
-            error = new String(body);
+            error = body == null ? "null body" : new String(body);
         }
 
         HttpUrl u = response.request().url();
