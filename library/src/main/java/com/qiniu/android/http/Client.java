@@ -7,26 +7,28 @@ import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringMap;
 import com.qiniu.android.utils.StringUtils;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.Dns;
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.MediaType;
-import com.squareup.okhttp.MultipartBuilder;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Request;
-import com.squareup.okhttp.RequestBody;
 
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
-import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.Dns;
+import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 
 /**
  * Created by bailong on 15/11/12.
@@ -36,9 +38,8 @@ public final class Client {
     public static final String DefaultMime = "application/octet-stream";
     public static final String JsonMime = "application/json";
     public static final String FormMime = "application/x-www-form-urlencoded";
-
-    private final OkHttpClient httpClient;
     private final UrlConverter converter;
+    private OkHttpClient httpClient;
 
     public Client() {
         this(null, 10, 30, null, null);
@@ -46,13 +47,13 @@ public final class Client {
 
     public Client(Proxy proxy, int connectTimeout, int responseTimeout, UrlConverter converter, final DnsManager dns) {
         this.converter = converter;
-        httpClient = new OkHttpClient();
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
 
         if (proxy != null) {
-            httpClient.setProxy(proxy.toSystemProxy());
+            builder.proxy(proxy.toSystemProxy());
         }
         if (dns != null) {
-            httpClient.setDns(new Dns() {
+            builder.dns(new Dns() {
                 @Override
                 public List<InetAddress> lookup(String hostname) throws UnknownHostException {
                     InetAddress[] ips;
@@ -71,16 +72,16 @@ public final class Client {
                 }
             });
         }
-        httpClient.networkInterceptors().add(new Interceptor() {
+        builder.networkInterceptors().add(new Interceptor() {
             @Override
-            public com.squareup.okhttp.Response intercept(Chain chain) throws IOException {
+            public okhttp3.Response intercept(Chain chain) throws IOException {
                 Request request = chain.request();
 
-                com.squareup.okhttp.Response response = chain.proceed(request);
+                okhttp3.Response response = chain.proceed(request);
                 IpTag tag = (IpTag) request.tag();
                 String ip = "";
                 try {
-                    ip = chain.connection().getSocket().getRemoteSocketAddress().toString();
+                    ip = chain.connection().socket().getRemoteSocketAddress().toString();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -89,12 +90,14 @@ public final class Client {
             }
         });
 
-        httpClient.setConnectTimeout(connectTimeout, TimeUnit.SECONDS);
-        httpClient.setReadTimeout(responseTimeout, TimeUnit.SECONDS);
-        httpClient.setWriteTimeout(0, TimeUnit.SECONDS);
+        builder.connectTimeout(connectTimeout, TimeUnit.SECONDS);
+        builder.readTimeout(responseTimeout, TimeUnit.SECONDS);
+        builder.writeTimeout(0, TimeUnit.SECONDS);
+        httpClient = builder.build();
+
     }
 
-    private static String via(com.squareup.okhttp.Response response) {
+    private static String via(okhttp3.Response response) {
         String via;
         if (!(via = response.header("X-Via", "")).equals("")) {
             return via;
@@ -110,7 +113,7 @@ public final class Client {
         return via;
     }
 
-    private static String ctype(com.squareup.okhttp.Response response) {
+    private static String ctype(okhttp3.Response response) {
         MediaType mediaType = response.body().contentType();
         if (mediaType == null) {
             return "";
@@ -154,7 +157,7 @@ public final class Client {
         IpTag tag = new IpTag();
         httpClient.newCall(requestBuilder.tag(tag).build()).enqueue(new Callback() {
             @Override
-            public void onFailure(Request request, IOException e) {
+            public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
                 long duration = (System.currentTimeMillis() - start) / 1000;
                 int statusCode = ResponseInfo.NetworkError;
@@ -171,14 +174,14 @@ public final class Client {
                     statusCode = ResponseInfo.CannotConnectToHost;
                 }
 
-                URL u = request.url();
-                ResponseInfo info = new ResponseInfo(null, statusCode, "", "", "", u.getHost(), u.getPath(), "", u.getPort(), duration, 0, e.getMessage());
+                HttpUrl u = call.request().url();
+                ResponseInfo info = new ResponseInfo(null, statusCode, "", "", "", u.host(), u.encodedPath(), "", u.port(), duration, 0, e.getMessage());
 
                 complete.complete(info, null);
             }
 
             @Override
-            public void onResponse(com.squareup.okhttp.Response response) throws IOException {
+            public void onResponse(Call call, okhttp3.Response response) throws IOException {
                 long duration = (System.currentTimeMillis() - start) / 1000;
                 IpTag tag = (IpTag) response.request().tag();
                 onRet(response, tag.ip, duration, complete);
@@ -238,7 +241,7 @@ public final class Client {
         if (converter != null) {
             url = converter.convert(url);
         }
-        final MultipartBuilder mb = new MultipartBuilder();
+        final MultipartBody.Builder mb = new MultipartBody.Builder();
         mb.addFormDataPart("file", fileName, file);
 
         fields.forEach(new StringMap.Consumer() {
@@ -247,7 +250,7 @@ public final class Client {
                 mb.addFormDataPart(key, value.toString());
             }
         });
-        mb.type(MediaType.parse("multipart/form-data"));
+        mb.setType(MediaType.parse("multipart/form-data"));
         RequestBody body = mb.build();
         if (progressHandler != null) {
             body = new CountingRequestBody(body, progressHandler, cancellationHandler);
@@ -256,7 +259,7 @@ public final class Client {
         asyncSend(requestBuilder, null, completionHandler);
     }
 
-    private void onRet(com.squareup.okhttp.Response response, String ip, long duration,
+    private void onRet(okhttp3.Response response, String ip, long duration,
                        final CompletionHandler complete) {
         int code = response.code();
         String reqId = response.header("X-Reqid");
@@ -285,9 +288,9 @@ public final class Client {
             error = new String(body);
         }
 
-        URL u = response.request().url();
+        HttpUrl u = response.request().url();
         final ResponseInfo info = new ResponseInfo(json, code, reqId, response.header("X-Log"),
-                via(response), u.getHost(), u.getPath(), ip, u.getPort(), duration, 0, error);
+                via(response), u.host(), u.encodedPath(), ip, u.port(), duration, 0, error);
         final JSONObject json2 = json;
         AsyncRun.run(new Runnable() {
             @Override
