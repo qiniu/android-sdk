@@ -54,27 +54,25 @@ $ ./gradlew connectedAndroidTest
 
 
 1).有关Android Studio以及Eclipse安装运行Android Demo步骤，这里以Android Studio为实例:
-1.将以上相应的jar包也拷贝到工程的 libs 目录下，集成后的工程示例如下：
-![这里写图片描述](http://7xl4cb.com1.z0.glb.clouddn.com/QQ20160606-01.png)
-
-2.修改 build.gradle
-双击打开您的工程目录下的 build.gradle，确保已经添加了对  相关jar包的依赖，如下所示：
+1.修改 build.gradle
+双击打开您的工程目录下的build.gradle，在dependencies中添加一条依赖compile 'com.qiniu:qiniu-android-sdk:7.2.+'，如下所示：
 ```
 dependencies {
-     compile files('libs/happy-dns-0.2.3.2.jar')
-    compile files('libs/okio-1.6.0.jar')
-    compile files('libs/okhttp-2.7.0.jar')
-    compile files('libs/qiniu-android-sdk-7.1.2.jar')
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    testCompile 'junit:junit:4.12'
+    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.qiniu:qiniu-android-sdk:7.2.+'
 }
 ```
+当然也可以将jar包下载到本地导入到项目中
 
-3.添加相关权限，在 app/src/main 目录中的 AndroidManifest.xml 中增加如下 uses-permission 声明
+2.添加相关权限，在 app/src/main 目录中的 AndroidManifest.xml 中增加如下 uses-permission 声明
 ```
  <uses-permission android:name="android.permission.INTERNET"/>
  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 ```
 
-4.布局，在res/layout/activity_main.xml添加相应的上传的按钮以及相关控件，以下以一个简单的布局为例:
+3.布局，在res/layout/activity_main.xml添加相应的上传的按钮以及相关控件，以下以一个简单的布局为例:
 ```
 <TextView
         android:layout_width="wrap_content"
@@ -98,7 +96,7 @@ dependencies {
 效果如下:
 ![这里写图片描述](http://7xl4cb.com1.z0.glb.clouddn.com/QQ20160606-1.png)
 
-5.逻辑代码, 为按钮添加上传事件，这里以上传一个byte数组为例，另外，上传的数据可以是文件路径或者文件，以下给出具体的代码:
+4.逻辑代码, 为按钮添加上传事件，这里以上传一个byte数组为例，另外，上传的数据可以是文件路径或者文件，以下给出具体的代码:
 ```
 package com.dxy.cloud.myapplication;
 import android.app.Activity;
