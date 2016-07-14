@@ -116,7 +116,7 @@ import org.json.JSONObject;
 public class MainActivity extends Activity implements View.OnClickListener {
 
     //指定upToken, 强烈建议从服务端提供get请求获取, 这里为了掩饰直接指定key
-    public static String uptoken = "um6IEH7mtwnwkGpjImD08JdxlvViuELhI4mFfoeL:NCnWTr1D3jR_9_dxj6geIgPBQq4=:eyJzY29wZSI6ImFuZHJvaWRkZW1vIiwiZGVhZGxpbmUiOjIzMDk5MjE5MTIsInJldHVybkJvZHkiOiJ7IFwiaGFzaFwiOiQoZXRhZyksXCJrZXlcIjokKGtleSksXCJtaW1lVHlwZVwiOiQobWltZVR5cGUpLCBcImZzaXplXCI6JChmc2l6ZSl9In0=";
+    public static String uptoken = "xxxxx:xxxxx:xxxxx";
     private Button btnUpload;
     private TextView textView;
     private UploadManager uploadManager;
