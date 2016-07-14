@@ -8,7 +8,7 @@ import com.qiniu.android.dns.IResolver;
 import com.qiniu.android.dns.NetworkInfo;
 import com.qiniu.android.dns.local.AndroidDnsServer;
 import com.qiniu.android.dns.local.Resolver;
-import com.qiniu.android.http.Proxy;
+import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.UrlConverter;
 
 import java.io.File;
@@ -35,7 +35,7 @@ public final class Configuration {
     public final Recorder recorder;
     public final KeyGenerator keyGen;
 
-    public final Proxy proxy;
+    public final ProxyConfiguration proxy;
 
     /**
      * 断点上传时的分片大小(可根据网络情况适当调整)
@@ -119,7 +119,7 @@ public final class Configuration {
 
         private Recorder recorder = null;
         private KeyGenerator keyGen = null;
-        private Proxy proxy = null;
+        private ProxyConfiguration proxy = null;
 
         private int chunkSize = 256 * 1024;
         private int putThreshold = 512 * 1024;
@@ -160,7 +160,7 @@ public final class Configuration {
             return this;
         }
 
-        public Builder proxy(Proxy proxy) {
+        public Builder proxy(ProxyConfiguration proxy) {
             this.proxy = proxy;
             return this;
         }
