@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
+import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.StringMap;
 
@@ -196,7 +197,31 @@ public class HttpTest extends InstrumentationTestCase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertNotNull(info.reqId);
+        Assert.assertTrue(!"".equals(info.reqId));
         Assert.assertEquals(200, info.statusCode);
+    }
+
+    @SmallTest
+    public void testProxy() throws Throwable {
+        StringMap x = new StringMap();
+        ProxyConfiguration p = new ProxyConfiguration("115.231.183.168", 80);
+        Client c = new Client(p, 10, 30, null, null);
+        c.asyncPost("http://upproxy1.qiniu.com", "hello".getBytes(),
+                x, null, new CompletionHandler() {
+                    @Override
+                    public void complete(ResponseInfo rinfo, JSONObject response) {
+                        Log.d("qiniutest", rinfo.toString());
+                        info = rinfo;
+                        signal.countDown();
+                    }
+                }, null);
+
+        try {
+            signal.await(60, TimeUnit.SECONDS); // wait for callback
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Assert.assertTrue(!"".equals(info.reqId));
+        Assert.assertEquals(400, info.statusCode);
     }
 }
