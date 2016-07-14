@@ -21,7 +21,7 @@ public final class UploadManager {
 
     public UploadManager(Configuration config) {
         this.config = config;
-        this.client = new Client(config.proxyConfiguration, config.connectTimeout, config.responseTimeout,
+        this.client = new Client(config.proxy, config.connectTimeout, config.responseTimeout,
                 config.urlConverter, config.dns);
     }
 
