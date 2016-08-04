@@ -19,10 +19,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import okhttp3.Authenticator;
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.Credentials;
 import okhttp3.Dns;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
@@ -31,8 +29,6 @@ import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.Route;
 
 /**
  * Created by bailong on 15/11/12.
@@ -55,7 +51,7 @@ public final class Client {
 
         if (proxy != null) {
             builder.proxy(proxy.proxy());
-            if (proxy.user != null && proxy.password != null){
+            if (proxy.user != null && proxy.password != null) {
                 builder.proxyAuthenticator(proxy.authenticator());
             }
         }

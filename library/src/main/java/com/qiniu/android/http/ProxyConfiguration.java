@@ -36,11 +36,12 @@ public final class ProxyConfiguration {
     public ProxyConfiguration(String hostAddress, int port) {
         this(hostAddress, port, null, null, Proxy.Type.HTTP);
     }
-    Proxy proxy(){
+
+    Proxy proxy() {
         return new Proxy(type, new InetSocketAddress(hostAddress, port));
     }
 
-    Authenticator authenticator(){
+    Authenticator authenticator() {
         return new Authenticator() {
             @Override
             public okhttp3.Request authenticate(Route route, okhttp3.Response response) throws IOException {
