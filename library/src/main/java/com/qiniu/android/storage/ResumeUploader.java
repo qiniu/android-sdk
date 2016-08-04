@@ -37,7 +37,7 @@ import static java.lang.String.format;
  */
 final class ResumeUploader implements Runnable {
 
-    private final int size;
+    private final long size;
     private final String key;
     private final UpCompletionHandler completionHandler;
     private final UploadOptions options;
@@ -60,7 +60,7 @@ final class ResumeUploader implements Runnable {
         this.config = config;
         this.f = f;
         this.recorderKey = recorderKey;
-        this.size = (int) f.length();
+        this.size = f.length();
         this.key = key;
         this.headers = new StringMap().put("Authorization", "UpToken " + token.token);
         this.file = null;
@@ -105,7 +105,7 @@ final class ResumeUploader implements Runnable {
     }
 
     public void run() {
-        int offset = recoveryFromRecord();
+        long offset = recoveryFromRecord();
         try {
             file = new RandomAccessFile(f, "r");
         } catch (FileNotFoundException e) {
@@ -126,7 +126,7 @@ final class ResumeUploader implements Runnable {
      * @param progress           上传进度
      * @param _completionHandler 上传完成处理动作
      */
-    private void makeBlock(URI address, int offset, int blockSize, int chunkSize, ProgressHandler progress,
+    private void makeBlock(URI address, long offset, int blockSize, int chunkSize, ProgressHandler progress,
                            CompletionHandler _completionHandler, UpCancellationSignal c) {
         String path = format(Locale.ENGLISH, "/mkblk/%d", blockSize);
         try {
@@ -141,9 +141,9 @@ final class ResumeUploader implements Runnable {
         post(u, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
     }
 
-    private void putChunk(URI address, int offset, int chunkSize, String context, ProgressHandler progress,
+    private void putChunk(URI address, long offset, int chunkSize, String context, ProgressHandler progress,
                           CompletionHandler _completionHandler, UpCancellationSignal c) {
-        int chunkOffset = offset % Configuration.BLOCK_SIZE;
+        int chunkOffset = (int) (offset % Configuration.BLOCK_SIZE);
         String path = format(Locale.ENGLISH, "/bput/%s/%d", context, chunkOffset);
         try {
             file.seek(offset);
@@ -195,13 +195,13 @@ final class ResumeUploader implements Runnable {
         client.asyncPost(uri.toString(), data, offset, size, headers, progress, completion, c);
     }
 
-    private int calcPutSize(int offset) {
-        int left = size - offset;
+    private long calcPutSize(long offset) {
+        long left = size - offset;
         return left < config.chunkSize ? left : config.chunkSize;
     }
 
-    private int calcBlockSize(int offset) {
-        int left = size - offset;
+    private long calcBlockSize(long offset) {
+        long left = size - offset;
         return left < Configuration.BLOCK_SIZE ? left : Configuration.BLOCK_SIZE;
     }
 
@@ -209,7 +209,7 @@ final class ResumeUploader implements Runnable {
         return options.cancellationSignal.isCancelled();
     }
 
-    private void nextTask(final int offset, final int retried, final URI address) {
+    private void nextTask(final long offset, final int retried, final URI address) {
         if (isCancelled()) {
             ResponseInfo i = ResponseInfo.cancelled();
             completionHandler.complete(key, i, null);
@@ -239,7 +239,7 @@ final class ResumeUploader implements Runnable {
             return;
         }
 
-        final int chunkSize = calcPutSize(offset);
+        final int chunkSize = (int) calcPutSize(offset);
         ProgressHandler progress = new ProgressHandler() {
             @Override
             public void onProgress(int bytesWritten, int totalSize) {
@@ -279,28 +279,28 @@ final class ResumeUploader implements Runnable {
                 try {
                     context = response.getString("ctx");
                     crc = response.getLong("crc32");
-                } catch (JSONException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 if ((context == null || crc != ResumeUploader.this.crc32) && retried < config.retryMax) {
                     nextTask(offset, retried + 1, config.upBackup.address);
                     return;
                 }
-                contexts[offset / Configuration.BLOCK_SIZE] = context;
+                contexts[(int) (offset / Configuration.BLOCK_SIZE)] = context;
                 record(offset + chunkSize);
                 nextTask(offset + chunkSize, retried, address);
             }
         };
         if (offset % Configuration.BLOCK_SIZE == 0) {
-            int blockSize = calcBlockSize(offset);
+            int blockSize = (int) calcBlockSize(offset);
             makeBlock(address, offset, blockSize, chunkSize, progress, complete, options.cancellationSignal);
             return;
         }
-        String context = contexts[offset / Configuration.BLOCK_SIZE];
+        String context = contexts[(int) (offset / Configuration.BLOCK_SIZE)];
         putChunk(address, offset, chunkSize, context, progress, complete, options.cancellationSignal);
     }
 
-    private int recoveryFromRecord() {
+    private long recoveryFromRecord() {
         if (config.recorder == null) {
             return 0;
         }
@@ -316,9 +316,9 @@ final class ResumeUploader implements Runnable {
             e.printStackTrace();
             return 0;
         }
-        int offset = obj.optInt("offset", 0);
+        long offset = obj.optLong("offset", 0);
         long modify = obj.optLong("modify_time", 0);
-        int fSize = obj.optInt("size", 0);
+        long fSize = obj.optLong("size", 0);
         JSONArray array = obj.optJSONArray("contexts");
         if (offset == 0 || modify != modifyTime || fSize != size || array == null || array.length() == 0) {
             return 0;
@@ -343,7 +343,7 @@ final class ResumeUploader implements Runnable {
     //    "modify_time": lastFileModifyTime,
     //    "contexts": contexts
     //}
-    private void record(int offset) {
+    private void record(long offset) {
         if (config.recorder == null || offset == 0) {
             return;
         }
