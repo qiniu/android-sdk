@@ -37,7 +37,7 @@ import static java.lang.String.format;
  */
 final class ResumeUploader implements Runnable {
 
-    private final int size;
+    private final long size;
     private final String key;
     private final UpCompletionHandler completionHandler;
     private final UploadOptions options;
@@ -60,7 +60,7 @@ final class ResumeUploader implements Runnable {
         this.config = config;
         this.f = f;
         this.recorderKey = recorderKey;
-        this.size = (int) f.length();
+        this.size = f.length();
         this.key = key;
         this.headers = new StringMap().put("Authorization", "UpToken " + token.token);
         this.file = null;
@@ -195,13 +195,13 @@ final class ResumeUploader implements Runnable {
         client.asyncPost(uri.toString(), data, offset, size, headers, progress, completion, c);
     }
 
-    private int calcPutSize(int offset) {
-        int left = size - offset;
+    private long calcPutSize(int offset) {
+        long left = size - offset;
         return left < config.chunkSize ? left : config.chunkSize;
     }
 
-    private int calcBlockSize(int offset) {
-        int left = size - offset;
+    private long calcBlockSize(int offset) {
+        long left = size - offset;
         return left < Configuration.BLOCK_SIZE ? left : Configuration.BLOCK_SIZE;
     }
 
@@ -239,7 +239,7 @@ final class ResumeUploader implements Runnable {
             return;
         }
 
-        final int chunkSize = calcPutSize(offset);
+        final int chunkSize = (int)calcPutSize(offset);
         ProgressHandler progress = new ProgressHandler() {
             @Override
             public void onProgress(int bytesWritten, int totalSize) {
@@ -292,7 +292,7 @@ final class ResumeUploader implements Runnable {
             }
         };
         if (offset % Configuration.BLOCK_SIZE == 0) {
-            int blockSize = calcBlockSize(offset);
+            int blockSize = (int)calcBlockSize(offset);
             makeBlock(address, offset, blockSize, chunkSize, progress, complete, options.cancellationSignal);
             return;
         }
@@ -300,7 +300,7 @@ final class ResumeUploader implements Runnable {
         putChunk(address, offset, chunkSize, context, progress, complete, options.cancellationSignal);
     }
 
-    private int recoveryFromRecord() {
+    private long recoveryFromRecord() {
         if (config.recorder == null) {
             return 0;
         }
@@ -316,9 +316,9 @@ final class ResumeUploader implements Runnable {
             e.printStackTrace();
             return 0;
         }
-        int offset = obj.optInt("offset", 0);
+        long offset = obj.optLong("offset", 0);
         long modify = obj.optLong("modify_time", 0);
-        int fSize = obj.optInt("size", 0);
+        long fSize = obj.optLong("size", 0);
         JSONArray array = obj.optJSONArray("contexts");
         if (offset == 0 || modify != modifyTime || fSize != size || array == null || array.length() == 0) {
             return 0;
