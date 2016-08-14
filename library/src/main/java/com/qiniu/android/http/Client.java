@@ -306,6 +306,6 @@ public final class Client {
 
     private static class ResponseTag {
         public String ip = null;
-        public Long duration = null;
+        public long duration = null;
     }
 }
