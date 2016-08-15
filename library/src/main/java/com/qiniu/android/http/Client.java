@@ -79,9 +79,11 @@ public final class Client {
             @Override
             public okhttp3.Response intercept(Chain chain) throws IOException {
                 Request request = chain.request();
-
+                final long before = System.currentTimeMillis();
                 okhttp3.Response response = chain.proceed(request);
-                IpTag tag = (IpTag) request.tag();
+                final long after = System.currentTimeMillis();
+
+                ResponseTag tag = (ResponseTag) request.tag();
                 String ip = "";
                 try {
                     ip = chain.connection().socket().getRemoteSocketAddress().toString();
@@ -89,6 +91,7 @@ public final class Client {
                     e.printStackTrace();
                 }
                 tag.ip = ip;
+                tag.duration = after - before;
                 return response;
             }
         });
@@ -156,13 +159,11 @@ public final class Client {
         };
 
         requestBuilder.header("User-Agent", UserAgent.instance().toString());
-        final long start = System.currentTimeMillis();
-        IpTag tag = new IpTag();
+        ResponseTag tag = new ResponseTag();
         httpClient.newCall(requestBuilder.tag(tag).build()).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
-                long duration = (System.currentTimeMillis() - start) / 1000;
                 int statusCode = ResponseInfo.NetworkError;
                 String msg = e.getMessage();
                 if (e instanceof CancellationHandler.CancellationException) {
@@ -178,16 +179,15 @@ public final class Client {
                 }
 
                 HttpUrl u = call.request().url();
-                ResponseInfo info = new ResponseInfo(null, statusCode, "", "", "", u.host(), u.encodedPath(), "", u.port(), duration, 0, e.getMessage());
+                ResponseInfo info = new ResponseInfo(null, statusCode, "", "", "", u.host(), u.encodedPath(), "", u.port(), 0, 0, e.getMessage());
 
                 complete.complete(info, null);
             }
 
             @Override
             public void onResponse(Call call, okhttp3.Response response) throws IOException {
-                long duration = (System.currentTimeMillis() - start) / 1000;
-                IpTag tag = (IpTag) response.request().tag();
-                onRet(response, tag.ip, duration, complete);
+                ResponseTag tag = (ResponseTag) response.request().tag();
+                onRet(response, tag.ip, tag.duration, complete);
             }
         });
     }
@@ -304,7 +304,8 @@ public final class Client {
 
     }
 
-    private static class IpTag {
+    private static class ResponseTag {
         public String ip = null;
+        public long duration = null;
     }
 }
