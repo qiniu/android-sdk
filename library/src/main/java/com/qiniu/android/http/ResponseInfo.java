@@ -83,10 +83,15 @@ public final class ResponseInfo {
      */
     public final long sent;
 
+    /**
+     * 该次请求类型 (mkblk / bput / mkfile)
+     */
+    public final String type;
+
     private final JSONObject response;
 
     public ResponseInfo(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
-                        String path, String ip, int port, double duration, long sent, String error) {
+                        String path, String ip, int port, double duration, long sent, String type, String error) {
         response = json;
         this.statusCode = statusCode;
         this.reqId = reqId;
@@ -101,26 +106,27 @@ public final class ResponseInfo {
         this.id = UserAgent.instance().id;
         this.timeStamp = System.currentTimeMillis() / 1000;
         this.sent = sent;
+        this.type = type;
     }
 
     public static ResponseInfo zeroSize() {
-        return new ResponseInfo(null, ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero");
+        return new ResponseInfo(null, ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "","file or data size is zero");
     }
 
     public static ResponseInfo cancelled() {
-        return new ResponseInfo(null, Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user");
+        return new ResponseInfo(null, Cancelled, "", "", "", "", "", "", -1, 0, 0, "", "cancelled by user");
     }
 
     public static ResponseInfo invalidArgument(String message) {
-        return new ResponseInfo(null, InvalidArgument, "", "", "", "", "", "", -1, 0, 0, message);
+        return new ResponseInfo(null, InvalidArgument, "", "", "", "", "", "", -1, 0, 0, "", message);
     }
 
     public static ResponseInfo invalidToken(String message) {
-        return new ResponseInfo(null, InvalidToken, "", "", "", "", "", "", -1, 0, 0, message);
+        return new ResponseInfo(null, InvalidToken, "", "", "", "", "", "", -1, 0, 0, "", message);
     }
 
     public static ResponseInfo fileError(Exception e) {
-        return new ResponseInfo(null, InvalidFile, "", "", "", "", "", "", -1, 0, 0, e.getMessage());
+        return new ResponseInfo(null, InvalidFile, "", "", "", "", "", "", -1, 0, 0, "", e.getMessage());
     }
 
     public boolean isCancelled() {

@@ -138,7 +138,7 @@ final class ResumeUploader implements Runnable {
         }
         this.crc32 = Crc32.bytes(chunkBuffer, 0, chunkSize);
         URI u = newURI(address, path);
-        post(u, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
+        post(u, chunkBuffer, 0, chunkSize, "mkblk", progress, _completionHandler, c);
     }
 
     private void putChunk(URI address, long offset, int chunkSize, String context, ProgressHandler progress,
@@ -154,7 +154,7 @@ final class ResumeUploader implements Runnable {
         }
         this.crc32 = Crc32.bytes(chunkBuffer, 0, chunkSize);
         URI u = newURI(address, path);
-        post(u, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
+        post(u, chunkBuffer, 0, chunkSize, "bput", progress, _completionHandler, c);
     }
 
     private void makeFile(URI uri, CompletionHandler _completionHandler, UpCancellationSignal c) {
@@ -187,12 +187,12 @@ final class ResumeUploader implements Runnable {
         String bodyStr = StringUtils.join(contexts, ",");
         byte[] data = bodyStr.getBytes();
 
-        post(address, data, 0, data.length, null, _completionHandler, c);
+        post(address, data, 0, data.length, "mkfile", null, _completionHandler, c);
     }
 
-    private void post(URI uri, byte[] data, int offset, int size, ProgressHandler progress,
+    private void post(URI uri, byte[] data, int offset, int size, String type, ProgressHandler progress,
                       CompletionHandler completion, UpCancellationSignal c) {
-        client.asyncPost(uri.toString(), data, offset, size, headers, progress, completion, c);
+        client.asyncPost(uri.toString(), data, offset, size, type, headers, progress, completion, c);
     }
 
     private long calcPutSize(long offset) {
@@ -221,6 +221,10 @@ final class ResumeUploader implements Runnable {
             CompletionHandler complete = new CompletionHandler() {
                 @Override
                 public void complete(ResponseInfo info, JSONObject response) {
+                    if (!info.type.isEmpty()) {
+                        completionHandler.pieceComplete(info.type, info);
+                    }
+
                     if (info.isOK()) {
                         removeRecord();
                         options.progressHandler.progress(key, 1.0);
@@ -255,6 +259,9 @@ final class ResumeUploader implements Runnable {
         CompletionHandler complete = new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
+                if (!info.type.isEmpty()) {
+                    completionHandler.pieceComplete(info.type, info);
+                }
                 if (!isChunkOK(info, response)) {
                     if (info.statusCode == 701 && retried < config.retryMax) {
                         nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried + 1, address);
