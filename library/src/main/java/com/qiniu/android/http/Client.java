@@ -159,8 +159,7 @@ public final class Client {
         };
 
         requestBuilder.header("User-Agent", UserAgent.instance().toString());
-        ResponseTag tag = new ResponseTag();
-        httpClient.newCall(requestBuilder.tag(tag).build()).enqueue(new Callback() {
+        httpClient.newCall(requestBuilder.build()).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
@@ -179,7 +178,7 @@ public final class Client {
                 }
 
                 HttpUrl u = call.request().url();
-                ResponseInfo info = new ResponseInfo(null, statusCode, "", "", "", u.host(), u.encodedPath(), "", u.port(), 0, 0, e.getMessage());
+                ResponseInfo info = new ResponseInfo(null, statusCode, "", "", "", u.host(), u.encodedPath(), "", u.port(), 0, 0, "", e.getMessage());
 
                 complete.complete(info, null);
             }
@@ -187,7 +186,7 @@ public final class Client {
             @Override
             public void onResponse(Call call, okhttp3.Response response) throws IOException {
                 ResponseTag tag = (ResponseTag) response.request().tag();
-                onRet(response, tag.ip, tag.duration, complete);
+                onRet(response, tag.ip, tag.duration, tag.type, complete);
             }
         });
     }
@@ -195,10 +194,10 @@ public final class Client {
     public void asyncPost(String url, byte[] body,
                           StringMap headers, ProgressHandler progressHandler,
                           CompletionHandler completionHandler, UpCancellationSignal c) {
-        asyncPost(url, body, 0, body.length, headers, progressHandler, completionHandler, c);
+        asyncPost(url, body, 0, body.length, "", headers, progressHandler, completionHandler, c);
     }
 
-    public void asyncPost(String url, byte[] body, int offset, int size,
+    public void asyncPost(String url, byte[] body, int offset, int size, String type,
                           StringMap headers, ProgressHandler progressHandler,
                           CompletionHandler completionHandler, CancellationHandler c) {
         if (converter != null) {
@@ -216,7 +215,9 @@ public final class Client {
             rbody = new CountingRequestBody(rbody, progressHandler, c);
         }
 
-        Request.Builder requestBuilder = new Request.Builder().url(url).post(rbody);
+
+        Request.Builder requestBuilder = new Request.Builder().url(url).post(rbody)
+                .tag(new ResponseTag().type = type);
         asyncSend(requestBuilder, headers, completionHandler);
     }
 
@@ -258,11 +259,11 @@ public final class Client {
         if (progressHandler != null) {
             body = new CountingRequestBody(body, progressHandler, cancellationHandler);
         }
-        Request.Builder requestBuilder = new Request.Builder().url(url).post(body);
+        Request.Builder requestBuilder = new Request.Builder().url(url).tag(new ResponseTag()).post(body);
         asyncSend(requestBuilder, null, completionHandler);
     }
 
-    private void onRet(okhttp3.Response response, String ip, long duration,
+    private void onRet(okhttp3.Response response, String ip, long duration, String type,
                        final CompletionHandler complete) {
         int code = response.code();
         String reqId = response.header("X-Reqid");
@@ -293,7 +294,7 @@ public final class Client {
 
         HttpUrl u = response.request().url();
         final ResponseInfo info = new ResponseInfo(json, code, reqId, response.header("X-Log"),
-                via(response), u.host(), u.encodedPath(), ip, u.port(), duration, 0, error);
+                via(response), u.host(), u.encodedPath(), ip, u.port(), duration, 0, type, error);
         final JSONObject json2 = json;
         AsyncRun.run(new Runnable() {
             @Override
@@ -301,11 +302,11 @@ public final class Client {
                 complete.complete(info, json2);
             }
         });
-
     }
 
     private static class ResponseTag {
         public String ip = null;
-        public long duration = null;
+        public long duration;
+        public String type = null;
     }
 }
