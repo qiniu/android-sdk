@@ -1,6 +1,6 @@
 package com.qiniu.android;
 
-import com.qiniu.android.utils.Network;
+import com.qiniu.android.utils.AndroidNetwork;
 
 import junit.framework.TestCase;
 
@@ -9,7 +9,7 @@ import junit.framework.TestCase;
  */
 public class NetworkTest extends TestCase {
     public void testConnected() {
-        boolean stat = Network.isNetWorkReady();
+        boolean stat = AndroidNetwork.isNetWorkReady();
         assertTrue(stat);
     }
 }

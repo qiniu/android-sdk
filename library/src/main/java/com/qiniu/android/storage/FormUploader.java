@@ -5,6 +5,7 @@ import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.PostArgs;
 import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.utils.AndroidNetwork;
 import com.qiniu.android.utils.Crc32;
 import com.qiniu.android.utils.StringMap;
 
@@ -108,6 +109,14 @@ final class FormUploader {
         CompletionHandler completion = new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
+                if (info.isNetworkBroken() && !AndroidNetwork.isNetWorkReady()) {
+                    options.netReadyHandler.waitReady();
+                    if (!AndroidNetwork.isNetWorkReady()) {
+                        completionHandler.complete(key, info, response);
+                        return;
+                    }
+                }
+
                 if (info.isOK()) {
                     options.progressHandler.progress(key, 1.0);
                     completionHandler.complete(key, info, response);

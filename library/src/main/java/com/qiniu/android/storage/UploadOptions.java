@@ -75,7 +75,7 @@ public final class UploadOptions {
                     e.printStackTrace();
                 }
             }
-        }
+        };
     }
 
     /**
