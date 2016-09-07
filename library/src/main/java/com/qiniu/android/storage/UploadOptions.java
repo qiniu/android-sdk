@@ -1,5 +1,6 @@
 package com.qiniu.android.storage;
 
+import android.os.Looper;
 import android.util.Log;
 
 import java.util.HashMap;
@@ -35,8 +36,18 @@ public final class UploadOptions {
      */
     final UpCancellationSignal cancellationSignal;
 
+    /**
+     * 当网络暂时无法使用时，由用户决定是否继续处理
+     */
+    final NetReadyHandler netReadyHandler;
+
     public UploadOptions(Map<String, String> params, String mimeType, boolean checkCrc,
                          UpProgressHandler progressHandler, UpCancellationSignal cancellationSignal) {
+        this(params, mimeType, checkCrc, progressHandler, cancellationSignal, null);
+    }
+
+    public UploadOptions(Map<String, String> params, String mimeType, boolean checkCrc,
+                         UpProgressHandler progressHandler, UpCancellationSignal cancellationSignal, NetReadyHandler netReadyHandler) {
         this.params = filterParam(params);
         this.mimeType = mime(mimeType);
         this.checkCrc = checkCrc;
@@ -52,6 +63,19 @@ public final class UploadOptions {
                 return false;
             }
         };
+        this.netReadyHandler = netReadyHandler != null ? netReadyHandler : new NetReadyHandler() {
+            @Override
+            public void waitReady() {
+                if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
+                    return;
+                }
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     /**
