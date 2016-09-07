@@ -4,14 +4,13 @@ import android.test.AndroidTestCase;
 
 import junit.framework.Assert;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
  * Created by Simon on 3/3/16.
  */
-public class JsonTest  extends AndroidTestCase {
+public class JsonTest extends AndroidTestCase {
 
     private boolean showContent = false;
 

@@ -4,6 +4,8 @@ import com.qiniu.android.http.Client;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.AsyncRun;
 
+import org.json.JSONObject;
+
 import java.io.File;
 
 /**
@@ -69,27 +71,34 @@ public final class UploadManager {
     /**
      * 上传数据
      *
-     * @param data              上传的数据
-     * @param key               上传数据保存的文件名
-     * @param token             上传凭证
-     * @param completionHandler 上传完成后续处理动作
-     * @param options           上传数据的可选参数
+     * @param data     上传的数据
+     * @param key      上传数据保存的文件名
+     * @param token    上传凭证
+     * @param complete 上传完成后续处理动作
+     * @param options  上传数据的可选参数
      */
     public void put(final byte[] data, final String key, final String token,
-                    final UpCompletionHandler completionHandler, final UploadOptions options) {
-        if (areInvalidArg(key, data, null, token, completionHandler)) {
+                    final UpCompletionHandler complete, final UploadOptions options) {
+        if (areInvalidArg(key, data, null, token, complete)) {
             return;
         }
+
+        final UpCompletionHandler completionHandler = new UpCompletionHandler() {
+            @Override
+            public void complete(final String key, final ResponseInfo info, final JSONObject response) {
+                AsyncRun.run(new Runnable() {
+                    @Override
+                    public void run() {
+                        complete.complete(key, info, response);
+                    }
+                });
+            }
+        };
 
         final UpToken decodedToken = UpToken.parse(token);
         if (decodedToken == null) {
             final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
-            AsyncRun.run(new Runnable() {
-                @Override
-                public void run() {
-                    completionHandler.complete(key, info, null);
-                }
-            });
+            completionHandler.complete(key, info, null);
             return;
         }
         AsyncRun.run(new Runnable() {
@@ -117,26 +126,33 @@ public final class UploadManager {
     /**
      * 上传文件
      *
-     * @param file              上传的文件对象
-     * @param key               上传文件保存的文件名
-     * @param token             上传凭证
-     * @param completionHandler 上传完成的后续处理动作
-     * @param options           上传数据的可选参数
+     * @param file     上传的文件对象
+     * @param key      上传文件保存的文件名
+     * @param token    上传凭证
+     * @param complete 上传完成的后续处理动作
+     * @param options  上传数据的可选参数
      */
-    public void put(File file, final String key, String token, final UpCompletionHandler completionHandler,
+    public void put(File file, final String key, String token, final UpCompletionHandler complete,
                     final UploadOptions options) {
-        if (areInvalidArg(key, null, file, token, completionHandler)) {
+        if (areInvalidArg(key, null, file, token, complete)) {
             return;
         }
+        final UpCompletionHandler completionHandler = new UpCompletionHandler() {
+            @Override
+            public void complete(final String key, final ResponseInfo info, final JSONObject response) {
+                AsyncRun.run(new Runnable() {
+                    @Override
+                    public void run() {
+                        complete.complete(key, info, response);
+                    }
+                });
+            }
+        };
+
         UpToken decodedToken = UpToken.parse(token);
         if (decodedToken == null) {
             final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
-            AsyncRun.run(new Runnable() {
-                @Override
-                public void run() {
-                    completionHandler.complete(key, info, null);
-                }
-            });
+            completionHandler.complete(key, info, null);
             return;
         }
         long size = file.length();

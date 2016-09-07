@@ -136,7 +136,7 @@ public final class Client {
         return new JSONObject(str);
     }
 
-    public void asyncSend(final Request.Builder requestBuilder, StringMap headers, final CompletionHandler completionHandler) {
+    public void asyncSend(final Request.Builder requestBuilder, StringMap headers, final CompletionHandler complete) {
         if (headers != null) {
             headers.forEach(new StringMap.Consumer() {
                 @Override
@@ -145,18 +145,6 @@ public final class Client {
                 }
             });
         }
-
-        final CompletionHandler complete = new CompletionHandler() {
-            @Override
-            public void complete(final ResponseInfo info, final JSONObject response) {
-                AsyncRun.run(new Runnable() {
-                    @Override
-                    public void run() {
-                        completionHandler.complete(info, response);
-                    }
-                });
-            }
-        };
 
         requestBuilder.header("User-Agent", UserAgent.instance().toString());
         ResponseTag tag = new ResponseTag();
@@ -306,6 +294,6 @@ public final class Client {
 
     private static class ResponseTag {
         public String ip = null;
-        public long duration = null;
+        public long duration = 0;
     }
 }

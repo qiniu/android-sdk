@@ -4,6 +4,7 @@ import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.utils.AndroidNetwork;
 import com.qiniu.android.utils.Crc32;
 import com.qiniu.android.utils.StringMap;
 import com.qiniu.android.utils.StringUtils;
@@ -221,6 +222,14 @@ final class ResumeUploader implements Runnable {
             CompletionHandler complete = new CompletionHandler() {
                 @Override
                 public void complete(ResponseInfo info, JSONObject response) {
+                    if (info.isNetworkBroken() && !AndroidNetwork.isNetWorkReady()) {
+                        options.netReadyHandler.waitReady();
+                        if (!AndroidNetwork.isNetWorkReady()) {
+                            completionHandler.complete(key, info, response);
+                            return;
+                        }
+                    }
+
                     if (info.isOK()) {
                         removeRecord();
                         options.progressHandler.progress(key, 1.0);
@@ -255,6 +264,13 @@ final class ResumeUploader implements Runnable {
         CompletionHandler complete = new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
+                if (info.isNetworkBroken() && !AndroidNetwork.isNetWorkReady()) {
+                    options.netReadyHandler.waitReady();
+                    if (!AndroidNetwork.isNetWorkReady()) {
+                        completionHandler.complete(key, info, response);
+                        return;
+                    }
+                }
                 if (!isChunkOK(info, response)) {
                     if (info.statusCode == 701 && retried < config.retryMax) {
                         nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried + 1, address);
