@@ -3,6 +3,8 @@ package com.qiniu.android.storage;
 import android.os.Looper;
 import android.util.Log;
 
+import com.qiniu.android.utils.AndroidNetwork;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -69,10 +71,15 @@ public final class UploadOptions {
                 if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
                     return;
                 }
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                for (int i = 0; i < 6; i++) {
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    if (AndroidNetwork.isNetWorkReady()) {
+                        return;
+                    }
                 }
             }
         };
