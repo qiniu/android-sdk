@@ -22,16 +22,6 @@ public final class Configuration {
      */
     public static final int BLOCK_SIZE = 4 * 1024 * 1024;
 
-    /**
-     * 默认上传服务器
-     */
-    public final ServiceAddress up;
-
-    /**
-     * 备用上传服务器，当默认服务器网络连接失败时使用
-     */
-    public final ServiceAddress upBackup;
-
     public final Recorder recorder;
     public final KeyGenerator keyGen;
 
@@ -67,12 +57,17 @@ public final class Configuration {
      */
     public UrlConverter urlConverter;
 
+    /**
+     * dns 解析客户端
+     */
     public DnsManager dns;
 
-    private Configuration(Builder builder) {
-        up = builder.up;
-        upBackup = builder.upBackup == null ? builder.up : builder.upBackup;
+    /**
+     * 上传区域
+     */
+    public Zone zone;
 
+    private Configuration(Builder builder) {
         chunkSize = builder.chunkSize;
         putThreshold = builder.putThreshold;
 
@@ -88,14 +83,14 @@ public final class Configuration {
 
         urlConverter = builder.urlConverter;
 
+        zone = builder.zone == null? Zone.zone0 : builder.zone;
         dns = initDns(builder);
     }
 
     private static DnsManager initDns(Builder builder) {
         DnsManager d = builder.dns;
-        builder.up.addIpToDns(d);
-        if (builder.upBackup != null) {
-            builder.upBackup.addIpToDns(d);
+        if (d != null){
+            Zone.addDnsIp(d);
         }
 
         return d;
@@ -114,9 +109,7 @@ public final class Configuration {
     }
 
     public static class Builder {
-        private ServiceAddress up;
-        private ServiceAddress upBackup;
-
+        private Zone zone = null;
         private Recorder recorder = null;
         private KeyGenerator keyGen = null;
         private ProxyConfiguration proxy = null;
@@ -130,9 +123,6 @@ public final class Configuration {
         private DnsManager dns = null;
 
         public Builder() {
-            this.up = Zone.zone0.up;
-            this.upBackup = Zone.zone0.upBackup;
-
             IResolver r1 = AndroidDnsServer.defaultResolver();
             IResolver r2 = null;
             try {
@@ -144,8 +134,7 @@ public final class Configuration {
         }
 
         public Builder zone(Zone zone) {
-            this.up = zone.up;
-            this.upBackup = zone.upBackup;
+            this.zone = zone;
             return this;
         }
 

@@ -1,26 +1,48 @@
 package com.qiniu.android.common;
 
+import com.qiniu.android.dns.DnsManager;
+
 /**
  * Created by bailong on 15/10/10.
  */
-public final class Zone {
+public abstract class Zone {
     public static final Zone zone0 =
             createZone("upload.qiniu.com", "up.qiniu.com", "183.136.139.10", "115.231.182.136");
     public static final Zone zone1 =
             createZone("upload-z1.qiniu.com", "up-z1.qiniu.com", "106.38.227.27", "106.38.227.28");
-    public final ServiceAddress up;
-    public final ServiceAddress upBackup;
 
-    public Zone(ServiceAddress up, ServiceAddress upBackup) {
-        this.up = up;
-        this.upBackup = upBackup;
+    public static final Zone zone2 =
+            createZone("upload-z2.qiniu.com", "up-z2.qiniu.com", "183.60.214.197", "14.152.37.7");
+
+    /**
+     * 默认上传服务器
+     */
+    public ServiceAddress upHost(String token){
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * 备用上传服务器，当默认服务器网络连接失败时使用
+     */
+    public ServiceAddress upHostBackup(String token){
+        throw new UnsupportedOperationException();
     }
 
     private static Zone createZone(String upHost, String upHostBackup, String upIp, String upIp2) {
         String[] upIps = {upIp, upIp2};
         ServiceAddress up = new ServiceAddress("http://" + upHost, upIps);
         ServiceAddress upBackup = new ServiceAddress("http://" + upHostBackup, upIps);
-        return new Zone(up, upBackup);
+        return new FixedZone(up, upBackup);
     }
 
+    public static void addDnsIp(DnsManager dns){
+        zone0.upHost("").addIpToDns(dns);
+        zone0.upHostBackup("").addIpToDns(dns);
+
+        zone1.upHost("").addIpToDns(dns);
+        zone1.upHostBackup("").addIpToDns(dns);
+
+        zone2.upHost("").addIpToDns(dns);
+        zone2.upHostBackup("").addIpToDns(dns);
+    }
 }

@@ -83,7 +83,10 @@ public final class ResponseInfo {
      */
     public final long sent;
 
-    private final JSONObject response;
+    /**
+     * hide, 内部使用
+     */
+    public final JSONObject response;
 
     public ResponseInfo(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
                         String path, String ip, int port, double duration, long sent, String error) {

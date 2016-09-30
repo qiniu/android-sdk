@@ -30,6 +30,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 
+import static com.qiniu.android.http.ResponseInfo.NetworkError;
+
 /**
  * Created by bailong on 15/11/12.
  */
@@ -152,7 +154,7 @@ public final class Client {
             @Override
             public void onFailure(Call call, IOException e) {
                 e.printStackTrace();
-                int statusCode = ResponseInfo.NetworkError;
+                int statusCode = NetworkError;
                 String msg = e.getMessage();
                 if (e instanceof CancellationHandler.CancellationException) {
                     statusCode = ResponseInfo.Cancelled;
@@ -250,8 +252,7 @@ public final class Client {
         asyncSend(requestBuilder, null, completionHandler);
     }
 
-    private void onRet(okhttp3.Response response, String ip, long duration,
-                       final CompletionHandler complete) {
+    private static ResponseInfo buildResponseInfo(okhttp3.Response response, String ip, long duration){
         int code = response.code();
         String reqId = response.header("X-Reqid");
         reqId = (reqId == null) ? null : reqId.trim();
@@ -280,20 +281,56 @@ public final class Client {
         }
 
         HttpUrl u = response.request().url();
-        final ResponseInfo info = new ResponseInfo(json, code, reqId, response.header("X-Log"),
+        return new ResponseInfo(json, code, reqId, response.header("X-Log"),
                 via(response), u.host(), u.encodedPath(), ip, u.port(), duration, 0, error);
-        final JSONObject json2 = json;
+    }
+
+    private static void onRet(okhttp3.Response response, String ip, long duration,
+                       final CompletionHandler complete) {
+        final ResponseInfo info = buildResponseInfo(response, ip, duration);
+
         AsyncRun.run(new Runnable() {
             @Override
             public void run() {
-                complete.complete(info, json2);
+                complete.complete(info, info.response);
             }
         });
+    }
 
+    public ResponseInfo syncGet(String url, StringMap headers){
+        Request.Builder requestBuilder = new Request.Builder().get().url(url);
+        return send(requestBuilder, headers);
+    }
+
+    public ResponseInfo send(final Request.Builder requestBuilder, StringMap headers) {
+        if (headers != null) {
+            headers.forEach(new StringMap.Consumer() {
+                @Override
+                public void accept(String key, Object value) {
+                    requestBuilder.header(key, value.toString());
+                }
+            });
+        }
+
+        requestBuilder.header("User-Agent", UserAgent.instance().toString());
+        long start = System.currentTimeMillis();
+        okhttp3.Response res = null;
+        ResponseTag tag = new ResponseTag();
+        Request req = requestBuilder.tag(tag).build();
+        try {
+            res = httpClient.newCall(req).execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new ResponseInfo(null, NetworkError, "", "", "",
+                    req.url().host(), req.url().encodedPath(), tag.ip, req.url().port(),
+                    tag.duration, 0, e.getMessage());
+        }
+
+        return buildResponseInfo(res, tag.ip, tag.duration);
     }
 
     private static class ResponseTag {
-        public String ip = null;
+        public String ip = "";
         public long duration = 0;
     }
 }
