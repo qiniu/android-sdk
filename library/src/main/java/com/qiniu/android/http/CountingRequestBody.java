@@ -72,7 +72,7 @@ public final class CountingRequestBody extends RequestBody {
             super.write(source, byteCount);
             bytesWritten += byteCount;
             if (progress != null) {
-                AsyncRun.run(new Runnable() {
+                AsyncRun.runInMain(new Runnable() {
                     @Override
                     public void run() {
                         try {

@@ -289,7 +289,7 @@ public final class Client {
                        final CompletionHandler complete) {
         final ResponseInfo info = buildResponseInfo(response, ip, duration);
 
-        AsyncRun.run(new Runnable() {
+        AsyncRun.runInMain(new Runnable() {
             @Override
             public void run() {
                 complete.complete(info, info.response);
@@ -297,10 +297,15 @@ public final class Client {
         });
     }
 
-    public ResponseInfo syncGet(String url, StringMap headers){
+    public void asyncGet(String url, StringMap headers, CompletionHandler completionHandler){
         Request.Builder requestBuilder = new Request.Builder().get().url(url);
-        return send(requestBuilder, headers);
+        asyncSend(requestBuilder, headers, completionHandler);
     }
+
+//    public ResponseInfo syncGet(String url, StringMap headers){
+//        Request.Builder requestBuilder = new Request.Builder().get().url(url);
+//        return send(requestBuilder, headers);
+//    }
 
     public ResponseInfo send(final Request.Builder requestBuilder, StringMap headers) {
         if (headers != null) {

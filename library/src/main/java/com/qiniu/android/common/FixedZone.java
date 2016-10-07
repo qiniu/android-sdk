@@ -19,4 +19,9 @@ public final class FixedZone extends Zone {
     public ServiceAddress upHostBackup(String token){
         return upBackup;
     }
+
+    @Override
+    public void preQuery(String token, QueryHandler complete) {
+        complete.onSuccess();
+    }
 }

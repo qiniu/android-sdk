@@ -1,6 +1,7 @@
 package com.qiniu.android.common;
 
 import com.qiniu.android.dns.DnsManager;
+import com.qiniu.android.http.CompletionHandler;
 
 /**
  * Created by bailong on 15/10/10.
@@ -17,16 +18,12 @@ public abstract class Zone {
     /**
      * 默认上传服务器
      */
-    public ServiceAddress upHost(String token){
-        throw new UnsupportedOperationException();
-    }
+    public abstract ServiceAddress upHost(String token);
 
     /**
      * 备用上传服务器，当默认服务器网络连接失败时使用
      */
-    public ServiceAddress upHostBackup(String token){
-        throw new UnsupportedOperationException();
-    }
+    public abstract ServiceAddress upHostBackup(String token);
 
     private static Zone createZone(String upHost, String upHostBackup, String upIp, String upIp2) {
         String[] upIps = {upIp, upIp2};
@@ -45,4 +42,11 @@ public abstract class Zone {
         zone2.upHost("").addIpToDns(dns);
         zone2.upHostBackup("").addIpToDns(dns);
     }
+
+    public interface QueryHandler{
+        void onSuccess();
+        void onFailure(int reason);
+    }
+
+    public abstract void preQuery(String token, QueryHandler complete);
 }

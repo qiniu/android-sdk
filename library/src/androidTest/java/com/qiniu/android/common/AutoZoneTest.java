@@ -6,6 +6,8 @@ import com.qiniu.android.TestConfig;
 
 import junit.framework.Assert;
 
+import java.util.concurrent.CountDownLatch;
+
 /**
  * Created by long on 2016/9/30.
  */
@@ -16,6 +18,24 @@ public class AutoZoneTest extends AndroidTestCase {
 
     public void testHttp() {
         AutoZone zone = new AutoZone(false, null);
+        final CountDownLatch countDownLatch = new CountDownLatch(1);
+        zone.preQueryIndex(new AutoZone.ZoneIndex(ak, bkt), new Zone.QueryHandler() {
+            @Override
+            public void onSuccess() {
+                countDownLatch.countDown();
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                countDownLatch.countDown();
+                fail();
+            }
+        });
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         AutoZone.ZoneInfo zoneInfo = zone.zoneInfo(ak, bkt);
         assertEquals(zoneInfo.upHost, "http://upload.qiniu.com");
         assertEquals(zoneInfo.upBackup, "http://up.qiniu.com");
@@ -36,6 +56,24 @@ public class AutoZoneTest extends AndroidTestCase {
 
     public void testC1() {
         AutoZone autoZone = new AutoZone(false, null);
+        final CountDownLatch countDownLatch = new CountDownLatch(1);
+        autoZone.preQueryIndex(new AutoZone.ZoneIndex(ak, bkt), new Zone.QueryHandler() {
+            @Override
+            public void onSuccess() {
+                countDownLatch.countDown();
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                countDownLatch.countDown();
+                fail();
+            }
+        });
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         AutoZone.ZoneInfo info = autoZone.zoneInfo(ak, bkt);
         System.out.println("zone0: " + info.toString());
 

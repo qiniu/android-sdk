@@ -1,5 +1,6 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.AsyncRun;
@@ -56,7 +57,7 @@ public final class UploadManager {
         }
         if (info != null) {
             final ResponseInfo info2 = info;
-            AsyncRun.run(new Runnable() {
+            AsyncRun.runInMain(new Runnable() {
                 @Override
                 public void run() {
                     completionHandler.complete(key, info2, null);
@@ -86,7 +87,7 @@ public final class UploadManager {
         final UpCompletionHandler completionHandler = new UpCompletionHandler() {
             @Override
             public void complete(final String key, final ResponseInfo info, final JSONObject response) {
-                AsyncRun.run(new Runnable() {
+                AsyncRun.runInMain(new Runnable() {
                     @Override
                     public void run() {
                         complete.complete(key, info, response);
@@ -101,12 +102,26 @@ public final class UploadManager {
             completionHandler.complete(key, info, null);
             return;
         }
-        AsyncRun.run(new Runnable() {
+
+        Zone z = config.zone;
+        z.preQuery(token, new Zone.QueryHandler() {
             @Override
-            public void run() {
-                FormUploader.upload(client, config, data, key, decodedToken, completionHandler, options);
+            public void onSuccess() {
+                AsyncRun.runInMain(new Runnable() {
+                    @Override
+                    public void run() {
+                        FormUploader.upload(client, config, data, key, decodedToken, completionHandler, options);
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
+                completionHandler.complete(key, info, null);
             }
         });
+
     }
 
     /**
@@ -132,7 +147,7 @@ public final class UploadManager {
      * @param complete 上传完成的后续处理动作
      * @param options  上传数据的可选参数
      */
-    public void put(File file, final String key, String token, final UpCompletionHandler complete,
+    public void put(final File file, final String key, String token, final UpCompletionHandler complete,
                     final UploadOptions options) {
         if (areInvalidArg(key, null, file, token, complete)) {
             return;
@@ -140,7 +155,7 @@ public final class UploadManager {
         final UpCompletionHandler completionHandler = new UpCompletionHandler() {
             @Override
             public void complete(final String key, final ResponseInfo info, final JSONObject response) {
-                AsyncRun.run(new Runnable() {
+                AsyncRun.runInMain(new Runnable() {
                     @Override
                     public void run() {
                         complete.complete(key, info, response);
@@ -149,21 +164,35 @@ public final class UploadManager {
             }
         };
 
-        UpToken decodedToken = UpToken.parse(token);
+        final UpToken decodedToken = UpToken.parse(token);
         if (decodedToken == null) {
             final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
             completionHandler.complete(key, info, null);
             return;
         }
-        long size = file.length();
-        if (size <= config.putThreshold) {
-            FormUploader.upload(client, config, file, key, decodedToken, completionHandler, options);
-            return;
-        }
-        String recorderKey = config.keyGen.gen(key, file);
-        ResumeUploader uploader = new ResumeUploader(client, config, file, key,
-                decodedToken, completionHandler, options, recorderKey);
 
-        AsyncRun.run(uploader);
+        Zone z = config.zone;
+        z.preQuery(token, new Zone.QueryHandler() {
+            @Override
+            public void onSuccess() {
+                long size = file.length();
+                if (size <= config.putThreshold) {
+                    FormUploader.upload(client, config, file, key, decodedToken, completionHandler, options);
+                    return;
+                }
+                String recorderKey = config.keyGen.gen(key, file);
+                ResumeUploader uploader = new ResumeUploader(client, config, file, key,
+                        decodedToken, completionHandler, options, recorderKey);
+
+                AsyncRun.runInMain(uploader);
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
+                completionHandler.complete(key, info, null);
+            }
+        });
+
     }
 }

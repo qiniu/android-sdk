@@ -156,28 +156,28 @@ public class HttpTest extends InstrumentationTestCase {
         Assert.assertEquals(ResponseInfo.UnknownHost, info.statusCode);
     }
 
-    @SmallTest
-    public void testPostNoPort() throws Throwable {
-
-        httpManager.asyncPost("http://up.qiniu.com:12345", "hello".getBytes(),
-                null, null, new CompletionHandler() {
-                    @Override
-                    public void complete(ResponseInfo rinfo, JSONObject response) {
-                        Log.d("qiniutest", rinfo.toString());
-                        info = rinfo;
-                        signal.countDown();
-                    }
-                }, null);
-
-        try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        Assert.assertEquals("", info.reqId);
-        Assert.assertTrue(ResponseInfo.CannotConnectToHost == info.statusCode ||
-                ResponseInfo.TimedOut == info.statusCode);
-    }
+//    @SmallTest
+//    public void testPostNoPort() throws Throwable {
+//
+//        httpManager.asyncPost("http://up.qiniu.com:12345", "hello".getBytes(),
+//                null, null, new CompletionHandler() {
+//                    @Override
+//                    public void complete(ResponseInfo rinfo, JSONObject response) {
+//                        Log.d("qiniutest", rinfo.toString());
+//                        info = rinfo;
+//                        signal.countDown();
+//                    }
+//                }, null);
+//
+//        try {
+//            signal.await(60, TimeUnit.SECONDS); // wait for callback
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        Assert.assertEquals("", info.reqId);
+//        Assert.assertTrue(ResponseInfo.CannotConnectToHost == info.statusCode ||
+//                ResponseInfo.TimedOut == info.statusCode);
+//    }
 
     @SmallTest
     public void testPostIP() throws Throwable {

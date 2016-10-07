@@ -1,8 +1,8 @@
 package com.qiniu.android.common;
 
 import com.qiniu.android.dns.DnsManager;
-import com.qiniu.android.dns.Domain;
 import com.qiniu.android.http.Client;
+import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.UrlSafeBase64;
 
@@ -12,7 +12,6 @@ import org.json.JSONObject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,9 +20,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 
 public final class AutoZone extends Zone {
-    private final String ucServer;
     private static Map<ZoneIndex, ZoneInfo> zones = new ConcurrentHashMap<>();
     private static Client client = new Client();
+    private final String ucServer;
     private final DnsManager dns;
     private final boolean https;
 
@@ -37,23 +36,28 @@ public final class AutoZone extends Zone {
         this.dns = dns;
     }
 
-    private ZoneInfo getZoneJson(ZoneIndex index) {
-        String address = ucServer + "/v1/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
+//    private ZoneInfo getZoneJson(ZoneIndex index) {
+//        String address = ucServer + "/v1/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
+//
+//        ResponseInfo r = client.syncGet(address, null);
+//        if (r.isOK()){
+//            try {
+//                return ZoneInfo.buildFromJson(r.response);
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//                return null;
+//            }
+//        }
+//        return null;
+//    }
 
-        ResponseInfo r = client.syncGet(address, null);
-        if (r.isOK()){
-            try {
-                return ZoneInfo.buildFromJson(r.response);
-            } catch (JSONException e) {
-                e.printStackTrace();
-                return null;
-            }
-        }
-        return null;
+    private void getZoneJsonAsync(ZoneIndex index, CompletionHandler handler) {
+        String address = ucServer + "/v1/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
+        client.asyncGet(address, null, handler);
     }
 
-    private void putHosts(ZoneInfo info){
-        if (dns != null){
+    private void putHosts(ZoneInfo info) {
+        if (dns != null) {
             try {
                 String httpDomain = new URI(info.upHost).getHost();
                 String httpsDomain = new URI(info.upHttps).getHost();
@@ -71,13 +75,13 @@ public final class AutoZone extends Zone {
     ZoneInfo zoneInfo(String ak, String bucket) {
         ZoneIndex index = new ZoneIndex(ak, bucket);
         ZoneInfo info = zones.get(index);
-        if (info == null) {
-            info = getZoneJson(index);
-            if (info != null) {
-                zones.put(index, info);
-                putHosts(info);
-            }
-        }
+//        if (info == null) {
+//            info = getZoneJson(index);
+//            if (info != null) {
+//                zones.put(index, info);
+//                putHosts(info);
+//            }
+//        }
         return info;
     }
 
@@ -104,7 +108,7 @@ public final class AutoZone extends Zone {
         if (info == null) {
             return null;
         }
-        if (https){
+        if (https) {
             return new ServiceAddress(info.upHttps);
         }
         return new ServiceAddress(info.upHost, new String[]{info.upIp});
@@ -115,10 +119,44 @@ public final class AutoZone extends Zone {
         if (info == null) {
             return null;
         }
-        if (https){
+        if (https) {
             return null;
         }
         return new ServiceAddress(info.upBackup, new String[]{info.upIp});
+    }
+
+    void preQueryIndex(final ZoneIndex index, final QueryHandler complete){
+        if (index == null) {
+            complete.onFailure(ResponseInfo.InvalidToken);
+            return;
+        }
+        ZoneInfo info = zones.get(index);
+        if (info != null) {
+            complete.onSuccess();
+            return;
+        }
+
+        getZoneJsonAsync(index, new CompletionHandler() {
+            @Override
+            public void complete(ResponseInfo info, JSONObject response) {
+                if (info.isOK() && response != null) {
+                    try {
+                        ZoneInfo info2 = ZoneInfo.buildFromJson(response);
+                        zones.put(index, info2);
+                        putHosts(info2);
+                        complete.onSuccess();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        complete.onFailure(ResponseInfo.NetworkError);
+                    }
+                }
+            }
+        });
+    }
+    @Override
+    public void preQuery(String token, QueryHandler complete) {
+        ZoneIndex index = ZoneIndex.getFromToken(token);
+        preQueryIndex(index, complete);
     }
 
     static class ZoneInfo {
@@ -146,13 +184,31 @@ public final class AutoZone extends Zone {
         }
     }
 
-    private static class ZoneIndex {
+    static class ZoneIndex {
         private final String accessKey;
         private final String bucket;
 
         ZoneIndex(String accessKey, String bucket) {
             this.accessKey = accessKey;
             this.bucket = bucket;
+        }
+
+        public static ZoneIndex getFromToken(String token) {
+            // http://developer.qiniu.com/article/developer/security/upload-token.html
+            // http://developer.qiniu.com/article/developer/security/put-policy.html
+            String[] strings = token.split(":");
+            String ak = strings[0];
+            String policy = null;
+            try {
+                policy = new String(UrlSafeBase64.decode(strings[2]), Constants.UTF_8);
+                JSONObject obj = new JSONObject(policy);
+                String scope = obj.getString("scope");
+                String bkt = scope.split(":")[0];
+                return new ZoneIndex(ak, bkt);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
         }
 
         public int hashCode() {
