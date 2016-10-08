@@ -114,7 +114,7 @@ final class ResumeUploader implements Runnable {
             completionHandler.complete(key, ResponseInfo.fileError(e), null);
             return;
         }
-        nextTask(offset, 0, config.up.address);
+        nextTask(offset, 0, config.zone.upHost(token.token).address);
     }
 
     /**
@@ -237,8 +237,10 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
 
-                    if ((info.isNotQiniu() && !token.hasReturnUrl() || info.needRetry()) && retried < config.retryMax) {
-                        nextTask(offset, retried + 1, config.upBackup.address);
+                    if (config.zone.upHostBackup(token.token) != null
+                            && ((info.isNotQiniu() && !token.hasReturnUrl() || info.needRetry())
+                            && retried < config.retryMax)) {
+                        nextTask(offset, retried + 1, config.zone.upHostBackup(token.token).address);
                         return;
                     }
                     completionHandler.complete(key, info, response);
@@ -277,8 +279,10 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
 
-                    if ((isNotChunkToQiniu(info, response) || info.needRetry()) && retried < config.retryMax) {
-                        nextTask(offset, retried + 1, config.upBackup.address);
+                    if (config.zone.upHostBackup(token.token) != null
+                            &&((isNotChunkToQiniu(info, response) || info.needRetry())
+                            && retried < config.retryMax)) {
+                        nextTask(offset, retried + 1, config.zone.upHostBackup(token.token).address);
                         return;
                     }
 
@@ -288,7 +292,7 @@ final class ResumeUploader implements Runnable {
                 String context = null;
 
                 if (response == null && retried < config.retryMax) {
-                    nextTask(offset, retried + 1, config.upBackup.address);
+                    nextTask(offset, retried + 1, config.zone.upHostBackup(token.token).address);
                     return;
                 }
                 long crc = 0;
@@ -299,7 +303,7 @@ final class ResumeUploader implements Runnable {
                     e.printStackTrace();
                 }
                 if ((context == null || crc != ResumeUploader.this.crc32) && retried < config.retryMax) {
-                    nextTask(offset, retried + 1, config.upBackup.address);
+                    nextTask(offset, retried + 1, config.zone.upHostBackup(token.token).address);
                     return;
                 }
                 contexts[(int) (offset / Configuration.BLOCK_SIZE)] = context;

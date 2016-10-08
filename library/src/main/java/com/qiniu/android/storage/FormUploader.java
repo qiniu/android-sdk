@@ -133,9 +133,10 @@ final class FormUploader {
                             completionHandler.complete(key, info, response);
                         }
                     };
-                    URI u = config.up.address;
-                    if (info.needSwitchServer() || info.isNotQiniu()) {
-                        u = config.upBackup.address;
+                    URI u = config.zone.upHost(token.token).address;
+                    if (config.zone.upHostBackup(token.token) != null
+                            &&(info.needSwitchServer() || info.isNotQiniu())) {
+                        u = config.zone.upHostBackup(token.token).address;
                     }
 
                     client.asyncMultipartPost(u.toString(), args, progress, retried, options.cancellationSignal);
@@ -145,6 +146,6 @@ final class FormUploader {
             }
         };
 
-        client.asyncMultipartPost(config.up.address.toString(), args, progress, completion, options.cancellationSignal);
+        client.asyncMultipartPost(config.zone.upHost(token.token).address.toString(), args, progress, completion, options.cancellationSignal);
     }
 }

@@ -5,6 +5,7 @@ import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
+import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.ServiceAddress;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
@@ -338,8 +339,8 @@ public class FormUploadTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testIpBack() throws Throwable {
-        ServiceAddress s = new ServiceAddress("http://upwelcome.qiniu.com", Zone.zone0.up.backupIps);
-        Zone z = new Zone(s, Zone.zone0.upBackup);
+        ServiceAddress s = new ServiceAddress("http://upwelcome.qiniu.com", Zone.zone0.upHost("").backupIps);
+        Zone z = new FixedZone(s, Zone.zone0.upHostBackup(""));
         Configuration c = new Configuration.Builder()
                 .zone(z)
                 .build();
@@ -377,7 +378,7 @@ public class FormUploadTest extends InstrumentationTestCase {
     @SmallTest
     public void testPortBackup() throws Throwable {
         ServiceAddress s = new ServiceAddress("http://upload.qiniu.com:9999", null);
-        Zone z = new Zone(s, Zone.zone0.upBackup);
+        Zone z = new FixedZone(s, Zone.zone0.upHostBackup(""));
         Configuration c = new Configuration.Builder()
                 .zone(z)
                 .build();
@@ -413,8 +414,8 @@ public class FormUploadTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testDnsHijacking() throws Throwable {
-        ServiceAddress s = new ServiceAddress("http://uphijacktest.qiniu.com", Zone.zone0.up.backupIps);
-        Zone z = new Zone(s, Zone.zone0.upBackup);
+        ServiceAddress s = new ServiceAddress("http://uphijacktest.qiniu.com", Zone.zone0.upHost("").backupIps);
+        Zone z = new FixedZone(s, Zone.zone0.upHostBackup(""));
         Configuration c = new Configuration.Builder()
                 .zone(z)
                 .build();
@@ -456,7 +457,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
         ServiceAddress s = new ServiceAddress("https://up.qbox.me", null);
-        Zone z = new Zone(s, Zone.zone0.upBackup);
+        Zone z = new FixedZone(s, Zone.zone0.upHostBackup(""));
         Configuration c = new Configuration.Builder()
                 .zone(z)
                 .build();
