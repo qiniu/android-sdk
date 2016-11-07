@@ -280,7 +280,7 @@ final class ResumeUploader implements Runnable {
                     }
 
                     if (config.zone.upHostBackup(token.token) != null
-                            &&((isNotChunkToQiniu(info, response) || info.needRetry())
+                            && ((isNotChunkToQiniu(info, response) || info.needRetry())
                             && retried < config.retryMax)) {
                         nextTask(offset, retried + 1, config.zone.upHostBackup(token.token).address);
                         return;

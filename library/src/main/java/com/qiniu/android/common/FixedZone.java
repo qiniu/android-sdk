@@ -13,10 +13,11 @@ public final class FixedZone extends Zone {
         this.upBackup = upBackup;
     }
 
-    public ServiceAddress upHost(String token){
+    public ServiceAddress upHost(String token) {
         return up;
     }
-    public ServiceAddress upHostBackup(String token){
+
+    public ServiceAddress upHostBackup(String token) {
         return upBackup;
     }
 

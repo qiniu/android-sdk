@@ -12,7 +12,7 @@ public final class AsyncRun {
         h.post(r);
     }
 
-    public static void runInBack(Runnable r){
+    public static void runInBack(Runnable r) {
 
     }
 }

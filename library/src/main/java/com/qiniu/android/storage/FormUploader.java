@@ -135,7 +135,7 @@ final class FormUploader {
                     };
                     URI u = config.zone.upHost(token.token).address;
                     if (config.zone.upHostBackup(token.token) != null
-                            &&(info.needSwitchServer() || info.isNotQiniu())) {
+                            && (info.needSwitchServer() || info.isNotQiniu())) {
                         u = config.zone.upHostBackup(token.token).address;
                     }
 
