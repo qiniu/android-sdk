@@ -1,7 +1,6 @@
 package com.qiniu.android.storage;
 
 
-import com.qiniu.android.common.ServiceAddress;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.dns.DnsManager;
 import com.qiniu.android.dns.IResolver;
@@ -83,13 +82,13 @@ public final class Configuration {
 
         urlConverter = builder.urlConverter;
 
-        zone = builder.zone == null? Zone.zone0 : builder.zone;
+        zone = builder.zone == null ? Zone.zone0 : builder.zone;
         dns = initDns(builder);
     }
 
     private static DnsManager initDns(Builder builder) {
         DnsManager d = builder.dns;
-        if (d != null){
+        if (d != null) {
             Zone.addDnsIp(d);
         }
 

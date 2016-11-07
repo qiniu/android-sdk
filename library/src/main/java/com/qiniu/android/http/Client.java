@@ -138,6 +138,51 @@ public final class Client {
         return new JSONObject(str);
     }
 
+    private static ResponseInfo buildResponseInfo(okhttp3.Response response, String ip, long duration) {
+        int code = response.code();
+        String reqId = response.header("X-Reqid");
+        reqId = (reqId == null) ? null : reqId.trim();
+        byte[] body = null;
+        String error = null;
+        try {
+            body = response.body().bytes();
+        } catch (IOException e) {
+            error = e.getMessage();
+        }
+        JSONObject json = null;
+        if (ctype(response).equals(Client.JsonMime) && body != null) {
+            try {
+                json = buildJsonResp(body);
+                if (response.code() != 200) {
+                    String err = new String(body, Constants.UTF_8);
+                    error = json.optString("error", err);
+                }
+            } catch (Exception e) {
+                if (response.code() < 300) {
+                    error = e.getMessage();
+                }
+            }
+        } else {
+            error = body == null ? "null body" : new String(body);
+        }
+
+        HttpUrl u = response.request().url();
+        return new ResponseInfo(json, code, reqId, response.header("X-Log"),
+                via(response), u.host(), u.encodedPath(), ip, u.port(), duration, 0, error);
+    }
+
+    private static void onRet(okhttp3.Response response, String ip, long duration,
+                              final CompletionHandler complete) {
+        final ResponseInfo info = buildResponseInfo(response, ip, duration);
+
+        AsyncRun.runInMain(new Runnable() {
+            @Override
+            public void run() {
+                complete.complete(info, info.response);
+            }
+        });
+    }
+
     public void asyncSend(final Request.Builder requestBuilder, StringMap headers, final CompletionHandler complete) {
         if (headers != null) {
             headers.forEach(new StringMap.Consumer() {
@@ -252,52 +297,7 @@ public final class Client {
         asyncSend(requestBuilder, null, completionHandler);
     }
 
-    private static ResponseInfo buildResponseInfo(okhttp3.Response response, String ip, long duration){
-        int code = response.code();
-        String reqId = response.header("X-Reqid");
-        reqId = (reqId == null) ? null : reqId.trim();
-        byte[] body = null;
-        String error = null;
-        try {
-            body = response.body().bytes();
-        } catch (IOException e) {
-            error = e.getMessage();
-        }
-        JSONObject json = null;
-        if (ctype(response).equals(Client.JsonMime) && body != null) {
-            try {
-                json = buildJsonResp(body);
-                if (response.code() != 200) {
-                    String err = new String(body, Constants.UTF_8);
-                    error = json.optString("error", err);
-                }
-            } catch (Exception e) {
-                if (response.code() < 300) {
-                    error = e.getMessage();
-                }
-            }
-        } else {
-            error = body == null ? "null body" : new String(body);
-        }
-
-        HttpUrl u = response.request().url();
-        return new ResponseInfo(json, code, reqId, response.header("X-Log"),
-                via(response), u.host(), u.encodedPath(), ip, u.port(), duration, 0, error);
-    }
-
-    private static void onRet(okhttp3.Response response, String ip, long duration,
-                       final CompletionHandler complete) {
-        final ResponseInfo info = buildResponseInfo(response, ip, duration);
-
-        AsyncRun.runInMain(new Runnable() {
-            @Override
-            public void run() {
-                complete.complete(info, info.response);
-            }
-        });
-    }
-
-    public void asyncGet(String url, StringMap headers, CompletionHandler completionHandler){
+    public void asyncGet(String url, StringMap headers, CompletionHandler completionHandler) {
         Request.Builder requestBuilder = new Request.Builder().get().url(url);
         asyncSend(requestBuilder, headers, completionHandler);
     }

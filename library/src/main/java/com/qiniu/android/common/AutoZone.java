@@ -14,7 +14,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * Created by long on 2016/9/29.
@@ -36,21 +35,6 @@ public final class AutoZone extends Zone {
         this.https = https;
         this.dns = dns;
     }
-
-//    private ZoneInfo getZoneJson(ZoneIndex index) {
-//        String address = ucServer + "/v1/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
-//
-//        ResponseInfo r = client.syncGet(address, null);
-//        if (r.isOK()){
-//            try {
-//                return ZoneInfo.buildFromJson(r.response);
-//            } catch (JSONException e) {
-//                e.printStackTrace();
-//                return null;
-//            }
-//        }
-//        return null;
-//    }
 
     private void getZoneJsonAsync(ZoneIndex index, CompletionHandler handler) {
         String address = ucServer + "/v1/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
@@ -76,13 +60,6 @@ public final class AutoZone extends Zone {
     ZoneInfo zoneInfo(String ak, String bucket) {
         ZoneIndex index = new ZoneIndex(ak, bucket);
         ZoneInfo info = zones.get(index);
-//        if (info == null) {
-//            info = getZoneJson(index);
-//            if (info != null) {
-//                zones.put(index, info);
-//                putHosts(info);
-//            }
-//        }
         return info;
     }
 
@@ -126,7 +103,7 @@ public final class AutoZone extends Zone {
         return new ServiceAddress(info.upBackup, new String[]{info.upIp});
     }
 
-    void preQueryIndex(final ZoneIndex index, final QueryHandler complete){
+    void preQueryIndex(final ZoneIndex index, final QueryHandler complete) {
         if (index == null) {
             complete.onFailure(ResponseInfo.InvalidToken);
             return;
@@ -154,6 +131,7 @@ public final class AutoZone extends Zone {
             }
         });
     }
+
     @Override
     public void preQuery(String token, QueryHandler complete) {
         ZoneIndex index = ZoneIndex.getFromToken(token);
