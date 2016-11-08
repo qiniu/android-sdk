@@ -7,7 +7,7 @@ import com.qiniu.android.dns.DnsManager;
  */
 public abstract class Zone {
     public static final Zone zone0 =
-            createZone("upload.qiniu.com", "up.qiniu.com", "183.136.139.10", "115.231.182.136");
+            createZone("upload.qbox.me", "up.qbox.me", "183.136.139.10", "115.231.182.136");
 
     public static final Zone zone1 =
             createZone("upload-z1.qiniu.com", "up-z1.qiniu.com", "106.38.227.27", "106.38.227.28");
