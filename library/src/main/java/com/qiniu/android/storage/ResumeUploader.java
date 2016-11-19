@@ -193,7 +193,7 @@ final class ResumeUploader implements Runnable {
 
     private void post(URI uri, byte[] data, int offset, int size, ProgressHandler progress,
                       CompletionHandler completion, UpCancellationSignal c) {
-        client.asyncPost(uri.toString(), data, offset, size, headers, progress, completion, c);
+        client.asyncPost(uri.toString(), data, offset, size, headers, token.accessKey, progress, completion, c);
     }
 
     private long calcPutSize(long offset) {

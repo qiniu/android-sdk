@@ -28,4 +28,9 @@ public final class PostArgs {
      * 上传文件或数据的MimeType
      */
     public String mimeType;
+
+    /**
+     * 根据用户,提供特定字符串,作为 UserAgent 的一部分,如 AK 的前 16 个字符
+     * */
+    public String userAgentPart;
 }

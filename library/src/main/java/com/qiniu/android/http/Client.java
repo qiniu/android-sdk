@@ -183,7 +183,7 @@ public final class Client {
         });
     }
 
-    public void asyncSend(final Request.Builder requestBuilder, StringMap headers, final CompletionHandler complete) {
+    public void asyncSend(final Request.Builder requestBuilder, StringMap headers, String userAgentPart, final CompletionHandler complete) {
         if (headers != null) {
             headers.forEach(new StringMap.Consumer() {
                 @Override
@@ -193,7 +193,7 @@ public final class Client {
             });
         }
 
-        requestBuilder.header("User-Agent", UserAgent.instance().toString());
+        requestBuilder.header("User-Agent", UserAgent.instance().getUa(userAgentPart));
         ResponseTag tag = new ResponseTag();
         httpClient.newCall(requestBuilder.tag(tag).build()).enqueue(new Callback() {
             @Override
@@ -228,13 +228,13 @@ public final class Client {
     }
 
     public void asyncPost(String url, byte[] body,
-                          StringMap headers, ProgressHandler progressHandler,
+                          StringMap headers, String userAgentPart, ProgressHandler progressHandler,
                           CompletionHandler completionHandler, UpCancellationSignal c) {
-        asyncPost(url, body, 0, body.length, headers, progressHandler, completionHandler, c);
+        asyncPost(url, body, 0, body.length, headers, userAgentPart, progressHandler, completionHandler, c);
     }
 
     public void asyncPost(String url, byte[] body, int offset, int size,
-                          StringMap headers, ProgressHandler progressHandler,
+                          StringMap headers, String userAgentPart, ProgressHandler progressHandler,
                           CompletionHandler completionHandler, CancellationHandler c) {
         if (converter != null) {
             url = converter.convert(url);
@@ -252,7 +252,7 @@ public final class Client {
         }
 
         Request.Builder requestBuilder = new Request.Builder().url(url).post(rbody);
-        asyncSend(requestBuilder, headers, completionHandler);
+        asyncSend(requestBuilder, headers, userAgentPart, completionHandler);
     }
 
     public void asyncMultipartPost(String url,
@@ -266,11 +266,12 @@ public final class Client {
         } else {
             file = RequestBody.create(MediaType.parse(args.mimeType), args.data);
         }
-        asyncMultipartPost(url, args.params, progressHandler, args.fileName, file, completionHandler, c);
+        asyncMultipartPost(url, args.params, args.userAgentPart, progressHandler, args.fileName, file, completionHandler, c);
     }
 
     private void asyncMultipartPost(String url,
                                     StringMap fields,
+                                    String userAgentPart,
                                     ProgressHandler progressHandler,
                                     String fileName,
                                     RequestBody file,
@@ -294,12 +295,12 @@ public final class Client {
             body = new CountingRequestBody(body, progressHandler, cancellationHandler);
         }
         Request.Builder requestBuilder = new Request.Builder().url(url).post(body);
-        asyncSend(requestBuilder, null, completionHandler);
+        asyncSend(requestBuilder, null, userAgentPart, completionHandler);
     }
 
-    public void asyncGet(String url, StringMap headers, CompletionHandler completionHandler) {
+    public void asyncGet(String url, StringMap headers, String userAgentPart, CompletionHandler completionHandler) {
         Request.Builder requestBuilder = new Request.Builder().get().url(url);
-        asyncSend(requestBuilder, headers, completionHandler);
+        asyncSend(requestBuilder, headers, userAgentPart, completionHandler);
     }
 
 //    public ResponseInfo syncGet(String url, StringMap headers){
@@ -307,7 +308,7 @@ public final class Client {
 //        return send(requestBuilder, headers);
 //    }
 
-    public ResponseInfo send(final Request.Builder requestBuilder, StringMap headers) {
+    public ResponseInfo send(final Request.Builder requestBuilder, StringMap headers, String userAgentPart) {
         if (headers != null) {
             headers.forEach(new StringMap.Consumer() {
                 @Override
@@ -317,7 +318,7 @@ public final class Client {
             });
         }
 
-        requestBuilder.header("User-Agent", UserAgent.instance().toString());
+        requestBuilder.header("User-Agent", UserAgent.instance().getUa(userAgentPart));
         long start = System.currentTimeMillis();
         okhttp3.Response res = null;
         ResponseTag tag = new ResponseTag();
