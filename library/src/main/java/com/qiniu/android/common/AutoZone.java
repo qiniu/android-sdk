@@ -38,7 +38,7 @@ public final class AutoZone extends Zone {
 
     private void getZoneJsonAsync(ZoneIndex index, CompletionHandler handler) {
         String address = ucServer + "/v1/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
-        client.asyncGet(address, null,index.accessKey, handler);
+        client.asyncGet(address, null, index.accessKey, handler);
     }
 
     private void putHosts(ZoneInfo info) {
