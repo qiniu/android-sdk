@@ -167,7 +167,7 @@ public final class Client {
         }
 
         HttpUrl u = response.request().url();
-        return new ResponseInfo(json, code, reqId, response.header("X-Log"),
+        return ResponseInfo.create(json, code, reqId, response.header("X-Log"),
                 via(response), u.host(), u.encodedPath(), ip, u.port(), duration, 0, error);
     }
 
@@ -214,7 +214,7 @@ public final class Client {
                 }
 
                 HttpUrl u = call.request().url();
-                ResponseInfo info = new ResponseInfo(null, statusCode, "", "", "", u.host(), u.encodedPath(), "", u.port(), 0, 0, e.getMessage());
+                ResponseInfo info = ResponseInfo.create(null, statusCode, "", "", "", u.host(), u.encodedPath(), "", u.port(), 0, 0, e.getMessage());
 
                 complete.complete(info, null);
             }
@@ -326,7 +326,7 @@ public final class Client {
             res = httpClient.newCall(req).execute();
         } catch (IOException e) {
             e.printStackTrace();
-            return new ResponseInfo(null, NetworkError, "", "", "",
+            return ResponseInfo.create(null, NetworkError, "", "", "",
                     req.url().host(), req.url().encodedPath(), tag.ip, req.url().port(),
                     tag.duration, 0, e.getMessage());
         }
