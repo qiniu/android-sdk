@@ -207,7 +207,7 @@ public class HttpTest extends InstrumentationTestCase {
         ProxyConfiguration p = new ProxyConfiguration("115.231.183.168", 80);
         Client c = new Client(p, 10, 30, null, null);
         c.asyncPost("http://upproxy1.qiniu.com", "hello".getBytes(),
-                x,TestConfig.ak, null, new CompletionHandler() {
+                x, TestConfig.ak, null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
                         Log.d("qiniutest", rinfo.toString());
