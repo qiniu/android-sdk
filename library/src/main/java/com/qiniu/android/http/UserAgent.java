@@ -34,7 +34,7 @@ public final class UserAgent {
     }
 
     private static String getUserAgent(String id) {
-        return format("QiniuAndroid/%s (%s; %s; %s)", Constants.VERSION,
+        return format("QiniuAndroid/%s (%s; %s; %s", Constants.VERSION,
                 osVersion(), device(), id);
     }
 
@@ -69,7 +69,10 @@ public final class UserAgent {
         return manufacturer;
     }
 
-    public String toString() {
-        return ua;
+    public String getUa(String part) {
+        String _part = ("" + part).trim();
+        _part = _part.substring(0, Math.min(16, _part.length()));
+        return ua + "; " + _part + ")";
     }
+
 }

@@ -10,11 +10,13 @@ import org.json.JSONObject;
  */
 public final class UpToken {
     public final String token;
+    public final String accessKey;
     private String returnUrl = null;
 
-    private UpToken(JSONObject obj, String token) {
+    private UpToken(JSONObject obj, String token, String accessKey) {
         returnUrl = obj.optString("returnUrl");
         this.token = token;
+        this.accessKey = accessKey;
     }
 
     public static UpToken parse(String token) {
@@ -43,7 +45,7 @@ public final class UpToken {
         if (deadline == 0) {
             return null;
         }
-        return new UpToken(obj, token);
+        return new UpToken(obj, token, t[0]);
     }
 
     public String toString() {

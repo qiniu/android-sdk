@@ -105,6 +105,7 @@ final class FormUploader {
         args.file = file;
         args.mimeType = options.mimeType;
         args.params = params;
+        args.userAgentPart = token.accessKey;
 
         CompletionHandler completion = new CompletionHandler() {
             @Override
