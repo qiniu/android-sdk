@@ -28,6 +28,9 @@ build/
 .DS_Store
 
 # Android Studio
+.idea/
 .idea/workspace.xml
 .idea/libraries
+.iml
+.pro
 

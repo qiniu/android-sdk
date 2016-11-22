@@ -5,12 +5,13 @@ import com.qiniu.android.common.Constants;
 
 import org.json.JSONObject;
 
+import java.lang.reflect.Constructor;
 import java.util.Locale;
 
 /**
  * 定义HTTP请求的日志信息和常规方法
  */
-public final class ResponseInfo {
+public class ResponseInfo {
     public static final int ZeroSizeFile = -6;
     public static final int InvalidToken = -5;
     public static final int InvalidArgument = -4;
@@ -25,6 +26,9 @@ public final class ResponseInfo {
     public static final int NetworkConnectionLost = -1005;
 
     // -->
+
+    private static Constructor responseInfoConstructor;
+
     /**
      * 回复状态码
      */
@@ -88,7 +92,23 @@ public final class ResponseInfo {
      */
     public final JSONObject response;
 
-    public ResponseInfo(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
+    {
+        try {
+            Class clazz = Class.forName("com.qiniu.android.collect.ResponseInfo");
+            if (clazz != null) {
+                Class[] paramType = {JSONObject.class, int.class, String.class, String.class, String.class, String.class,
+                        String.class, String.class, int.class, double.class, long.class, String.class};
+                responseInfoConstructor = clazz.getDeclaredConstructor(paramType);
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    protected ResponseInfo(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
                         String path, String ip, int port, double duration, long sent, String error) {
         response = json;
         this.statusCode = statusCode;
@@ -106,24 +126,39 @@ public final class ResponseInfo {
         this.sent = sent;
     }
 
+    public static ResponseInfo create(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
+                                      String path, String ip, int port, double duration, long sent, String error) {
+
+        if(responseInfoConstructor != null) {
+            try {
+                return (ResponseInfo) responseInfoConstructor.
+                        newInstance(json, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, error);
+            } catch (Exception e) {
+                return new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, error);
+            }
+        } else {
+            return new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, error);
+        }
+    }
+
     public static ResponseInfo zeroSize() {
-        return new ResponseInfo(null, ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero");
+        return create(null, ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero");
     }
 
     public static ResponseInfo cancelled() {
-        return new ResponseInfo(null, Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user");
+        return create(null, Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user");
     }
 
     public static ResponseInfo invalidArgument(String message) {
-        return new ResponseInfo(null, InvalidArgument, "", "", "", "", "", "", -1, 0, 0, message);
+        return create(null, InvalidArgument, "", "", "", "", "", "", -1, 0, 0, message);
     }
 
     public static ResponseInfo invalidToken(String message) {
-        return new ResponseInfo(null, InvalidToken, "", "", "", "", "", "", -1, 0, 0, message);
+        return create(null, InvalidToken, "", "", "", "", "", "", -1, 0, 0, message);
     }
 
     public static ResponseInfo fileError(Exception e) {
-        return new ResponseInfo(null, InvalidFile, "", "", "", "", "", "", -1, 0, 0, e.getMessage());
+        return create(null, InvalidFile, "", "", "", "", "", "", -1, 0, 0, e.getMessage());
     }
 
     public boolean isCancelled() {
@@ -168,3 +203,4 @@ public final class ResponseInfo {
     }
 
 }
+
