@@ -94,8 +94,7 @@ public class ResponseInfo {
 
     {
         try {
-            //Class clazz = Class.forName("com.qiniu.android.collect.ResponseInfo");
-            Class clazz = Class.forName("com.qiniu.android.http.ColletResponseInfo");
+            Class clazz = Class.forName("com.qiniu.android.collect.ResponseInfo");
             if (clazz != null) {
                 Class[] paramType = {JSONObject.class, int.class, String.class, String.class, String.class, String.class,
                         String.class, String.class, int.class, double.class, long.class, String.class};
@@ -207,17 +206,3 @@ public class ResponseInfo {
 
 }
 
-// 独立到的包: com.qiniu.android.collect.ResponseInfo
-// 收集上传信息的,新建一个包,和上传分开.可以单独使用上传 api,不影响上传 api 调用
-// 新的包依赖上传 sdk
- class ColletResponseInfo extends ResponseInfo {
-
-    protected ColletResponseInfo(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host, String path, String ip, int port, double duration, long sent, String error) {
-        super(json, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, error);
-        doSth();
-    }
-
-     protected void doSth() {
-         System.out.println("responseInfoConstructor: do something");
-     }
-}
