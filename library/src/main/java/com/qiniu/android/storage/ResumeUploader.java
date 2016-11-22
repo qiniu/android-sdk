@@ -111,7 +111,7 @@ final class ResumeUploader implements Runnable {
             file = new RandomAccessFile(f, "r");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            completionHandler.complete(key, ResponseInfo.fileError(e), null);
+            completionHandler.complete(key, ResponseInfo.fileError(e, token.accessKey), null);
             return;
         }
         nextTask(offset, 0, config.zone.upHost(token.token).address);
@@ -134,7 +134,7 @@ final class ResumeUploader implements Runnable {
             file.seek(offset);
             file.read(chunkBuffer, 0, chunkSize);
         } catch (IOException e) {
-            completionHandler.complete(key, ResponseInfo.fileError(e), null);
+            completionHandler.complete(key, ResponseInfo.fileError(e, token.accessKey), null);
             return;
         }
         this.crc32 = Crc32.bytes(chunkBuffer, 0, chunkSize);
@@ -150,7 +150,7 @@ final class ResumeUploader implements Runnable {
             file.seek(offset);
             file.read(chunkBuffer, 0, chunkSize);
         } catch (IOException e) {
-            completionHandler.complete(key, ResponseInfo.fileError(e), null);
+            completionHandler.complete(key, ResponseInfo.fileError(e, token.accessKey), null);
             return;
         }
         this.crc32 = Crc32.bytes(chunkBuffer, 0, chunkSize);

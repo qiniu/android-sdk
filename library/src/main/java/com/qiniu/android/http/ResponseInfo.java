@@ -126,24 +126,24 @@ public final class ResponseInfo {
         return res;
     }
 
-    public static ResponseInfo zeroSize() {
-        return create(null, ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero", null);
+    public static ResponseInfo zeroSize(String accessKey) {
+        return create(null, ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero", accessKey);
     }
 
     public static ResponseInfo cancelled(String accessKey) {
         return create(null, Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user", accessKey);
     }
 
-    public static ResponseInfo invalidArgument(String message) {
-        return create(null, InvalidArgument, "", "", "", "", "", "", -1, 0, 0, message, null);
+    public static ResponseInfo invalidArgument(String message, String accessKey) {
+        return create(null, InvalidArgument, "", "", "", "", "", "", -1, 0, 0, message, accessKey);
     }
 
     public static ResponseInfo invalidToken(String message) {
         return create(null, InvalidToken, "", "", "", "", "", "", -1, 0, 0, message, null);
     }
 
-    public static ResponseInfo fileError(Exception e) {
-        return create(null, InvalidFile, "", "", "", "", "", "", -1, 0, 0, e.getMessage(), null);
+    public static ResponseInfo fileError(Exception e, String accessKey) {
+        return create(null, InvalidFile, "", "", "", "", "", "", -1, 0, 0, e.getMessage(), accessKey);
     }
 
     public boolean isCancelled() {

@@ -36,8 +36,8 @@ public final class UploadManager {
         this(recorder, null);
     }
 
-    private static boolean areInvalidArg(final String key, byte[] data, File f,
-                                         String token, final UpCompletionHandler completionHandler) {
+    private static boolean areInvalidArg(final String key, byte[] data, File f, String token,
+                                         UpToken decodedToken, final UpCompletionHandler completionHandler) {
         if (completionHandler == null) {
             throw new IllegalArgumentException("no UpCompletionHandler");
         }
@@ -48,12 +48,16 @@ public final class UploadManager {
             message = "no token";
         }
 
+        String accessKey = null;
+        if (decodedToken != null) {
+            accessKey = decodedToken.accessKey;
+        }
         ResponseInfo info = null;
         if (message != null) {
-            info = ResponseInfo.invalidArgument(message);
+            info = ResponseInfo.invalidArgument(message, accessKey);
         }
         if ((f != null && f.length() == 0) || (data != null && data.length == 0)) {
-            info = ResponseInfo.zeroSize();
+            info = ResponseInfo.zeroSize(accessKey);
         }
         if (info != null) {
             final ResponseInfo info2 = info;
@@ -80,7 +84,8 @@ public final class UploadManager {
      */
     public void put(final byte[] data, final String key, final String token,
                     final UpCompletionHandler complete, final UploadOptions options) {
-        if (areInvalidArg(key, data, null, token, complete)) {
+        final UpToken decodedToken = UpToken.parse(token);
+        if (areInvalidArg(key, data, null, token, decodedToken, complete)) {
             return;
         }
 
@@ -96,7 +101,6 @@ public final class UploadManager {
             }
         };
 
-        final UpToken decodedToken = UpToken.parse(token);
         if (decodedToken == null) {
             final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
             completionHandler.complete(key, info, null);
@@ -149,7 +153,8 @@ public final class UploadManager {
      */
     public void put(final File file, final String key, String token, final UpCompletionHandler complete,
                     final UploadOptions options) {
-        if (areInvalidArg(key, null, file, token, complete)) {
+        final UpToken decodedToken = UpToken.parse(token);
+        if (areInvalidArg(key, null, file, token, decodedToken, complete)) {
             return;
         }
         final UpCompletionHandler completionHandler = new UpCompletionHandler() {
@@ -164,7 +169,6 @@ public final class UploadManager {
             }
         };
 
-        final UpToken decodedToken = UpToken.parse(token);
         if (decodedToken == null) {
             final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
             completionHandler.complete(key, info, null);
