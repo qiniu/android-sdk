@@ -3,6 +3,7 @@ package com.qiniu.android.http;
 
 import com.qiniu.android.collect.UploadInfoCollector;
 import com.qiniu.android.common.Constants;
+import com.qiniu.android.utils.UrlSafeBase64;
 
 import org.json.JSONObject;
 
@@ -110,8 +111,8 @@ public final class ResponseInfo {
         this.accessKey = accessKey;
     }
 
-    public static ResponseInfo create(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
-                                      String path, String ip, int port, double duration, long sent, String error, String accessKey) {
+    public static ResponseInfo create(final JSONObject json, final int statusCode, final String reqId, final String xlog, final String xvia, final String host,
+                                      final String path, final String ip, final int port, final double duration, final long sent, final String error, final String accessKey) {
         final ResponseInfo res = new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, error, accessKey);
         UploadInfoCollector.handle(
                 // 延迟序列化.如果判断不记录,则不执行序列化
@@ -119,8 +120,10 @@ public final class ResponseInfo {
 
                     @Override
                     public String toRecordMsg() {
-                        // TODO 格式化字符串. res error 信息可能含有分行,需要 base64 处理
-                        return res.toString();
+                        // error 信息可能含有分行,需要 base64 处理
+                        return String.format(Locale.ENGLISH, "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s",
+                                statusCode, reqId, xlog, xvia, host, path, ip, port, duration, accessKey,
+                                "qiniu-android-sdk:" + Constants.VERSION, res.id, res.timeStamp, sent, UrlSafeBase64.encodeToString(error+""));
                     }
                 });
         return res;
