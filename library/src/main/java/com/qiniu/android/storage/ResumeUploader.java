@@ -212,7 +212,7 @@ final class ResumeUploader implements Runnable {
 
     private void nextTask(final long offset, final int retried, final URI address) {
         if (isCancelled()) {
-            ResponseInfo i = ResponseInfo.cancelled();
+            ResponseInfo i = ResponseInfo.cancelled(token.accessKey);
             completionHandler.complete(key, i, null);
             return;
         }

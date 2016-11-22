@@ -105,7 +105,6 @@ final class FormUploader {
         args.file = file;
         args.mimeType = options.mimeType;
         args.params = params;
-        args.userAgentPart = token.accessKey;
 
         CompletionHandler completion = new CompletionHandler() {
             @Override
@@ -122,7 +121,7 @@ final class FormUploader {
                     options.progressHandler.progress(key, 1.0);
                     completionHandler.complete(key, info, response);
                 } else if (options.cancellationSignal.isCancelled()) {
-                    ResponseInfo i = ResponseInfo.cancelled();
+                    ResponseInfo i = ResponseInfo.cancelled(token.accessKey);
                     completionHandler.complete(key, i, null);
                 } else if (info.needRetry() || (info.isNotQiniu() && !token.hasReturnUrl())) {
                     CompletionHandler retried = new CompletionHandler() {
@@ -140,13 +139,13 @@ final class FormUploader {
                         u = config.zone.upHostBackup(token.token).address;
                     }
 
-                    client.asyncMultipartPost(u.toString(), args, progress, retried, options.cancellationSignal);
+                    client.asyncMultipartPost(u.toString(), args, token.accessKey, progress, retried, options.cancellationSignal);
                 } else {
                     completionHandler.complete(key, info, response);
                 }
             }
         };
 
-        client.asyncMultipartPost(config.zone.upHost(token.token).address.toString(), args, progress, completion, options.cancellationSignal);
+        client.asyncMultipartPost(config.zone.upHost(token.token).address.toString(), args, token.accessKey, progress, completion, options.cancellationSignal);
     }
 }

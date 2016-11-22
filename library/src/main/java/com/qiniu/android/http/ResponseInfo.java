@@ -84,13 +84,15 @@ public final class ResponseInfo {
      */
     public final long sent;
 
+    public final String accessKey;
+
     /**
      * hide, 内部使用
      */
     public final JSONObject response;
 
     private ResponseInfo(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
-                         String path, String ip, int port, double duration, long sent, String error) {
+                         String path, String ip, int port, double duration, long sent, String error, String accessKey) {
         response = json;
         this.statusCode = statusCode;
         this.reqId = reqId;
@@ -105,11 +107,12 @@ public final class ResponseInfo {
         this.id = UserAgent.instance().id;
         this.timeStamp = System.currentTimeMillis() / 1000;
         this.sent = sent;
+        this.accessKey = accessKey;
     }
 
     public static ResponseInfo create(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
-                                      String path, String ip, int port, double duration, long sent, String error) {
-        final ResponseInfo res = new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, error);
+                                      String path, String ip, int port, double duration, long sent, String error, String accessKey) {
+        final ResponseInfo res = new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, error, accessKey);
         UploadInfoCollector.handle(
                 // 延迟序列化.如果判断不记录,则不执行序列化
                 new UploadInfoCollector.RecordMsg() {
@@ -124,23 +127,23 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo zeroSize() {
-        return create(null, ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero");
+        return create(null, ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero", null);
     }
 
-    public static ResponseInfo cancelled() {
-        return create(null, Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user");
+    public static ResponseInfo cancelled(String accessKey) {
+        return create(null, Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user", accessKey);
     }
 
     public static ResponseInfo invalidArgument(String message) {
-        return create(null, InvalidArgument, "", "", "", "", "", "", -1, 0, 0, message);
+        return create(null, InvalidArgument, "", "", "", "", "", "", -1, 0, 0, message, null);
     }
 
     public static ResponseInfo invalidToken(String message) {
-        return create(null, InvalidToken, "", "", "", "", "", "", -1, 0, 0, message);
+        return create(null, InvalidToken, "", "", "", "", "", "", -1, 0, 0, message, null);
     }
 
     public static ResponseInfo fileError(Exception e) {
-        return create(null, InvalidFile, "", "", "", "", "", "", -1, 0, 0, e.getMessage());
+        return create(null, InvalidFile, "", "", "", "", "", "", -1, 0, 0, e.getMessage(), null);
     }
 
     public boolean isCancelled() {
