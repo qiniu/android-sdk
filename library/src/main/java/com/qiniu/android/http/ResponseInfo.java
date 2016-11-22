@@ -1,6 +1,7 @@
 package com.qiniu.android.http;
 
 
+import com.qiniu.android.collect.UploadInfoCollector;
 import com.qiniu.android.common.Constants;
 
 import org.json.JSONObject;
@@ -88,8 +89,8 @@ public final class ResponseInfo {
      */
     public final JSONObject response;
 
-    public ResponseInfo(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
-                        String path, String ip, int port, double duration, long sent, String error) {
+    private ResponseInfo(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
+                         String path, String ip, int port, double duration, long sent, String error) {
         response = json;
         this.statusCode = statusCode;
         this.reqId = reqId;
@@ -106,24 +107,40 @@ public final class ResponseInfo {
         this.sent = sent;
     }
 
+    public static ResponseInfo create(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
+                                      String path, String ip, int port, double duration, long sent, String error) {
+        final ResponseInfo res = new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, error);
+        UploadInfoCollector.handle(
+                // 延迟序列化.如果判断不记录,则不执行序列化
+                new UploadInfoCollector.RecordMsg() {
+
+                    @Override
+                    public String toRecordMsg() {
+                        // TODO 格式化字符串. res error 信息可能含有分行,需要 base64 处理
+                        return res.toString();
+                    }
+                });
+        return res;
+    }
+
     public static ResponseInfo zeroSize() {
-        return new ResponseInfo(null, ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero");
+        return create(null, ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero");
     }
 
     public static ResponseInfo cancelled() {
-        return new ResponseInfo(null, Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user");
+        return create(null, Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user");
     }
 
     public static ResponseInfo invalidArgument(String message) {
-        return new ResponseInfo(null, InvalidArgument, "", "", "", "", "", "", -1, 0, 0, message);
+        return create(null, InvalidArgument, "", "", "", "", "", "", -1, 0, 0, message);
     }
 
     public static ResponseInfo invalidToken(String message) {
-        return new ResponseInfo(null, InvalidToken, "", "", "", "", "", "", -1, 0, 0, message);
+        return create(null, InvalidToken, "", "", "", "", "", "", -1, 0, 0, message);
     }
 
     public static ResponseInfo fileError(Exception e) {
-        return new ResponseInfo(null, InvalidFile, "", "", "", "", "", "", -1, 0, 0, e.getMessage());
+        return create(null, InvalidFile, "", "", "", "", "", "", -1, 0, 0, e.getMessage());
     }
 
     public boolean isCancelled() {
