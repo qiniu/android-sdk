@@ -131,14 +131,12 @@ public class ResponseInfo {
 
         if(responseInfoConstructor != null) {
             try {
-                System.out.println("responseInfoConstructor: sub ResponseInfo");
                 return (ResponseInfo) responseInfoConstructor.
                         newInstance(json, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, error);
             } catch (Exception e) {
                 return new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, error);
             }
         } else {
-            System.out.println("responseInfoConstructor: ResponseInfo");
             return new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, error);
         }
     }
