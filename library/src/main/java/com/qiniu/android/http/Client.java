@@ -105,6 +105,10 @@ public final class Client {
 
     }
 
+    public OkHttpClient getHttpClient(){
+        return httpClient;
+    }
+
     private static String via(okhttp3.Response response) {
         String via;
         if (!(via = response.header("X-Via", "")).equals("")) {

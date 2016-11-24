@@ -12,6 +12,14 @@ import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
  * Created by Simon on 11/22/16.
@@ -24,27 +32,15 @@ public class UploadInfoCollector {
     private static final String recordFileName = "_qiniu_record_file_hu3z9lo7anx03";
     private static File recordFile = null;
     private static long lastUpload;// milliseconds
+    private static OkHttpClient httpClient = null;
+
 
     private UploadInfoCollector() throws IOException {
 
     }
 
-    /**
-     * 修改记录"是否记录上传信息: isRecord","记录信息所在文件夹: recordDir"配置后,调用此方法重置.
-     * 上传方式, 时间间隔,文件最大大小,上传阀值等参数修改不用调用此方法.
-     *
-     * @throws java.io.IOException
-     */
-    public static void reset() throws IOException {
-        if (Config.isRecord) {
-            setAndInitRecordDir(getRecordDir(Config.recordDir));
-        }
-        if (!Config.isRecord && singleServer != null) {
-            singleServer.shutdown();
-        }
-        if (Config.isRecord && (singleServer == null || singleServer.isShutdown())) {
-            singleServer = Executors.newSingleThreadExecutor();
-        }
+    public static void setHttpClient(OkHttpClient client) {
+        httpClient = client;
     }
 
     public static void clean() {
@@ -65,6 +61,24 @@ public class UploadInfoCollector {
         }
     }
 
+    /**
+     * 修改记录"是否记录上传信息: isRecord","记录信息所在文件夹: recordDir"配置后,调用此方法重置.
+     * 上传方式, 时间间隔,文件最大大小,上传阀值等参数修改不用调用此方法.
+     *
+     * @throws java.io.IOException
+     */
+    public static void reset() throws IOException {
+        if (Config.isRecord) {
+            setAndInitRecordDir(getRecordDir(Config.recordDir));
+        }
+        if (!Config.isRecord && singleServer != null) {
+            singleServer.shutdown();
+        }
+        if (Config.isRecord && (singleServer == null || singleServer.isShutdown())) {
+            singleServer = Executors.newSingleThreadExecutor();
+        }
+    }
+
     private static File getRecordDir(String recordDir) {
         if (recordDir != null) {
             return new File(recordDir);
@@ -81,7 +95,7 @@ public class UploadInfoCollector {
 
     private static void setAndInitRecordDir(File recordDir) throws IOException {
         if (recordDir == null) {
-            throw new IOException("record'dir is not setted");
+            throw new IOException("record's dir is not setted");
         }
         if (!recordDir.exists()) {
             boolean r = recordDir.mkdirs();
@@ -169,14 +183,57 @@ public class UploadInfoCollector {
         }
     }
 
-
+    //同步上传
     private static boolean upload() {
-        //TODO 同步上传
-        return false;
+        try {
+            String serverURL = Config.serverURL;
+            OkHttpClient client = getHttpClient();
+            RequestBody formBody = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("file", recordFile.getName(),
+                            RequestBody.create(MediaType.parse("text/plain"), recordFile))
+                    .build();
+            Request request = new Request.Builder().url(serverURL).post(formBody).build();
+
+            Response res = client.newCall(request).execute();
+            if (isOk(res)) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
-    public interface RecordMsg {
-        String toRecordMsg();
+    private static boolean isOk(Response res) {
+        return res.isSuccessful() && res.header("X-Reqid") != null;
+    }
+
+
+    private static OkHttpClient getHttpClient() {
+        if (httpClient == null) {
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            builder.connectTimeout(10, TimeUnit.SECONDS);
+            builder.readTimeout(10, TimeUnit.SECONDS);
+            builder.writeTimeout((Config.minInteval / 2 + 1) * 60, TimeUnit.SECONDS);
+            httpClient = builder.build();
+        }
+        return httpClient;
+    }
+
+    public static abstract class RecordMsg {
+        public abstract String  toRecordMsg();
+
+        public String replace(String o) {
+            if (o == null) {
+                return "";
+            }
+            return o.substring(0, Math.min(150, o.length())).replaceAll(",", ".")
+                    .replaceAll("(\r\n)+", "\\\\r\\\\n").replaceAll("\r+", "\\\\r")
+                    .replaceAll("\n+", "\\\\n").replaceAll("\t+", "\\\\t").replaceAll(" +", " ");
+        }
     }
 
 }

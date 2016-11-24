@@ -18,7 +18,7 @@ public class Config {
     /**
      * 记录上传信息文件最大值
      */
-    public static int maxRecordFileSize = 6 * 512 * 1024;
+    public static int maxRecordFileSize = 4 * 512 * 1024;
 
     /**
      * 记录文件大于 uploadThreshold 后才可能触发上传
@@ -44,4 +44,8 @@ public class Config {
      */
     public static boolean isUpload = false;
 
+    /**
+     * 上传信息收集文件的地址
+     * */
+    public static String serverURL = "http://";
 }

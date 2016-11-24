@@ -1,9 +1,10 @@
 package com.qiniu.android.http;
 
 
+import com.qiniu.android.collect.Config;
 import com.qiniu.android.collect.UploadInfoCollector;
 import com.qiniu.android.common.Constants;
-import com.qiniu.android.utils.UrlSafeBase64;
+import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONObject;
 
@@ -113,19 +114,25 @@ public final class ResponseInfo {
 
     public static ResponseInfo create(final JSONObject json, final int statusCode, final String reqId, final String xlog, final String xvia, final String host,
                                       final String path, final String ip, final int port, final double duration, final long sent, final String error, final String accessKey) {
-        final ResponseInfo res = new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, error, accessKey);
-        UploadInfoCollector.handle(
-                // 延迟序列化.如果判断不记录,则不执行序列化
-                new UploadInfoCollector.RecordMsg() {
 
-                    @Override
-                    public String toRecordMsg() {
-                        // error 信息可能含有分行,需要 base64 处理
-                        return String.format(Locale.ENGLISH, "%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s",
-                                statusCode, reqId, xlog, xvia, host, path, ip, port, duration, accessKey,
-                                "qiniu-android-sdk:" + Constants.VERSION, res.id, res.timeStamp, sent, UrlSafeBase64.encodeToString(error+""));
-                    }
-                });
+        ResponseInfo res = new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, error, accessKey);
+
+        if (Config.isRecord) {
+            final String _id = res.id;
+            final String _error = error + "";
+            final String _timeStamp = res.timeStamp + "";
+            UploadInfoCollector.handle(
+                    // 延迟序列化.如果判断不记录,则不执行序列化
+                    new UploadInfoCollector.RecordMsg() {
+
+                        @Override
+                        public String toRecordMsg() {
+                            String[] ss = {statusCode + "", reqId, replace(xlog), replace(xvia), host, path, ip, port + "", duration + "",
+                                    accessKey, "android:" + Constants.VERSION, _id, _timeStamp, sent + "", replace(_error)};
+                            return StringUtils.join(ss, ", ");
+                        }
+                    });
+        }
         return res;
     }
 

@@ -1,5 +1,6 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.collect.UploadInfoCollector;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.ResponseInfo;
@@ -26,6 +27,7 @@ public final class UploadManager {
         this.config = config;
         this.client = new Client(config.proxy, config.connectTimeout, config.responseTimeout,
                 config.urlConverter, config.dns);
+        UploadInfoCollector.setHttpClient(this.client.getHttpClient());
     }
 
     public UploadManager(Recorder recorder, KeyGenerator keyGen) {
