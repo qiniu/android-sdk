@@ -168,7 +168,15 @@ public final class Client {
 
         HttpUrl u = response.request().url();
         return new ResponseInfo(json, code, reqId, response.header("X-Log"),
-                via(response), u.host(), u.encodedPath(), ip, u.port(), duration, 0, error);
+                via(response), u.host(), u.encodedPath(), ip, u.port(), duration, getContentLength(response), error);
+    }
+
+    private static long getContentLength(okhttp3.Response response) {
+        try {
+            return response.request().body().contentLength();
+        } catch (IOException e) {
+            return -1;
+        }
     }
 
     private static void onRet(okhttp3.Response response, String ip, long duration,
