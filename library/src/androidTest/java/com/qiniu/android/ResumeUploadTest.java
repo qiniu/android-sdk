@@ -33,9 +33,12 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     public void setUp() throws Exception {
         Configuration config = new Configuration.Builder().build();
         uploadManager = new UploadManager(config);
+        ACollectUploadInfoTest.testInit();
     }
 
     private void template(int size) throws Throwable {
+        ACollectUploadInfoTest.showRecordFile();
+
         final String expectKey = "r=" + size + "k";
         final File f = TempFile.createFile(size);
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
@@ -68,9 +71,13 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         String hash = resp.getString("hash");
         Assert.assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
+
+        ACollectUploadInfoTest.showRecordFile();
     }
 
     private void template2(int size) throws Throwable {
+        ACollectUploadInfoTest.showRecordFile();
+
         final String expectKey = "r=" + size + "k";
         final File f = TempFile.createFile(size);
         ServiceAddress s = new ServiceAddress("https://up.qbox.me", null);
@@ -110,6 +117,8 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         String hash = resp.getString("hash");
         Assert.assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
+
+        ACollectUploadInfoTest.showRecordFile();
     }
 
     private void templateHijack(int size) throws Throwable {

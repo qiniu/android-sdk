@@ -37,6 +37,14 @@ public class UploadInfoCollector {
 
     }
 
+    static {
+        try {
+            reset();
+        } catch (Exception e) {
+            e.fillInStackTrace();
+        }
+    }
+
     /**
      * 清理操作。
      * 注意是否将   isRecord 、 isUpload 设置为  false
@@ -193,7 +201,8 @@ public class UploadInfoCollector {
             OkHttpClient client = getHttpClient();
             RequestBody reqBody = buildReqBody();
             Request request = new Request.Builder().url(serverURL).
-                    addHeader("Authorization", upToken.token).
+//                    addHeader("Authorization", "QBox " + upToken.token).
+                    addHeader("Authorization", "QBox 4_odedBxmrAHiu4Y0Qp0HPG0NANCf6VAsAjWL_k9:3_l3GuylGDVzoRVGLlbPE9lAxjU=").
                     addHeader("User-Agent", UserAgent.instance().getUa(upToken.accessKey)).
                     post(reqBody).build();
             Response res = client.newCall(request).execute();

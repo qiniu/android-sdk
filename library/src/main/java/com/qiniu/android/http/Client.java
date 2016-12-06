@@ -169,7 +169,15 @@ public final class Client {
 
         HttpUrl u = response.request().url();
         return ResponseInfo.create(json, code, reqId, response.header("X-Log"),
-                via(response), u.host(), u.encodedPath(), ip, u.port(), duration, 0, error, upToken);
+                via(response), u.host(), u.encodedPath(), ip, u.port(), duration, getContentLength(response), error, upToken);
+    }
+
+    private static long getContentLength(okhttp3.Response response) {
+        try {
+            return response.request().body().contentLength();
+        } catch (IOException e) {
+            return -1;
+        }
     }
 
     private static void onRet(okhttp3.Response response, String ip, long duration, final UpToken upToken,
@@ -195,7 +203,7 @@ public final class Client {
         }
 
         requestBuilder.header("User-Agent", UserAgent.instance().getUa(upToken.accessKey));
-        ResponseTag tag = new ResponseTag();
+        final ResponseTag tag = new ResponseTag();
         httpClient.newCall(requestBuilder.tag(tag).build()).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -216,7 +224,7 @@ public final class Client {
 
                 HttpUrl u = call.request().url();
                 ResponseInfo info = ResponseInfo.create(null, statusCode, "", "", "", u.host(),
-                        u.encodedPath(), "", u.port(), 0, 0, e.getMessage(), upToken);
+                        u.encodedPath(), "", u.port(), tag.duration, -1, e.getMessage(), upToken);
 
                 complete.complete(info, null);
             }
@@ -332,7 +340,7 @@ public final class Client {
             e.printStackTrace();
             return ResponseInfo.create(null, NetworkError, "", "", "",
                     req.url().host(), req.url().encodedPath(), tag.ip, req.url().port(),
-                    tag.duration, 0, e.getMessage(), upToken);
+                    tag.duration, -1, e.getMessage(), upToken);
         }
 
         return buildResponseInfo(res, tag.ip, tag.duration, upToken);
@@ -340,6 +348,6 @@ public final class Client {
 
     private static class ResponseTag {
         public String ip = "";
-        public long duration = 0;
+        public long duration = -1;
     }
 }

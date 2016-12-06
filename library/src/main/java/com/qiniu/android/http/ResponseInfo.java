@@ -129,7 +129,9 @@ public final class ResponseInfo {
                         @Override
                         public String toRecordMsg() {
                             // https://jira.qiniu.io/browse/KODO-1468
-                            String[] ss = {statusCode + "", reqId, host, path, ip, port + "", duration + "",
+                            // ip 形如  /115.231.97.46:80
+                            String remoteIp = (ip + "").split(":")[0].replace("/", "");
+                            String[] ss = {statusCode + "", reqId, host, remoteIp, port + "", duration + "",
                                     _timeStamp, sent + ""};
                             return StringUtils.join(ss, ",");
                         }
@@ -143,7 +145,7 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo cancelled(final UpToken upToken) {
-        return create(null, Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user", upToken);
+        return create(null, Cancelled, "", "", "", "", "", "", -1, -1, -1, "cancelled by user", upToken);
     }
 
     public static ResponseInfo invalidArgument(String message, final UpToken upToken) {

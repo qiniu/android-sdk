@@ -62,6 +62,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         Assert.assertEquals(info.toString(), expectKey, key);
         Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
+        System.out.println(info.ip);
         Assert.assertNotNull(resp);
 
         String hash = resp.getString("hash");

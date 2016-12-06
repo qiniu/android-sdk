@@ -16,7 +16,7 @@ public class Config {
      * 默认使用 ContextGetter.applicationContext().getCacheDir()
      */
     public static String recordDir = null;
-    {
+    static {
         try {
             recordDir = ContextGetter.applicationContext().getCacheDir().getAbsolutePath();
         } catch (Throwable e) {
@@ -25,7 +25,7 @@ public class Config {
     }
 
     /**
-     * 记录上传信息文件最大值
+     * 记录上传信息文件最大值tem.out
      */
     public static int maxRecordFileSize = 4 * 512 * 1024;
 
@@ -56,5 +56,5 @@ public class Config {
     /**
      * 上传信息收集文件的地址
      * */
-    public static String serverURL = "http://10.200.20.23:16536/log";
+    public static String serverURL = "http://115.236.16.114:16536/log";
 }
