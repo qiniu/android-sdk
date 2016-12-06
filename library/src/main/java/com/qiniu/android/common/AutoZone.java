@@ -4,6 +4,7 @@ import com.qiniu.android.dns.DnsManager;
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.UrlSafeBase64;
 
 import org.json.JSONArray;
@@ -38,7 +39,7 @@ public final class AutoZone extends Zone {
 
     private void getZoneJsonAsync(ZoneIndex index, CompletionHandler handler) {
         String address = ucServer + "/v1/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
-        client.asyncGet(address, null, index.accessKey, handler);
+        client.asyncGet(address, null, UpToken.NULL, handler);
     }
 
     private void putHosts(ZoneInfo info) {

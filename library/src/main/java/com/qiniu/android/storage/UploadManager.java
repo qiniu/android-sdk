@@ -1,6 +1,5 @@
 package com.qiniu.android.storage;
 
-import com.qiniu.android.collect.UploadInfoCollector;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.ResponseInfo;
@@ -27,7 +26,6 @@ public final class UploadManager {
         this.config = config;
         this.client = new Client(config.proxy, config.connectTimeout, config.responseTimeout,
                 config.urlConverter, config.dns);
-        UploadInfoCollector.setHttpClient(this.client.getHttpClient());
     }
 
     public UploadManager(Recorder recorder, KeyGenerator keyGen) {
@@ -49,17 +47,15 @@ public final class UploadManager {
         } else if (token == null || token.equals("")) {
             message = "no token";
         }
-
-        String accessKey = null;
-        if (decodedToken != null) {
-            accessKey = decodedToken.accessKey;
-        }
         ResponseInfo info = null;
+        if (decodedToken == null) {
+            info = ResponseInfo.invalidToken("invalid token");
+        }
         if (message != null) {
-            info = ResponseInfo.invalidArgument(message, accessKey);
+            info = ResponseInfo.invalidArgument(message, decodedToken);
         }
         if ((f != null && f.length() == 0) || (data != null && data.length == 0)) {
-            info = ResponseInfo.zeroSize(accessKey);
+            info = ResponseInfo.zeroSize(decodedToken);
         }
         if (info != null) {
             final ResponseInfo info2 = info;
@@ -102,12 +98,6 @@ public final class UploadManager {
                 });
             }
         };
-
-        if (decodedToken == null) {
-            final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
-            completionHandler.complete(key, info, null);
-            return;
-        }
 
         Zone z = config.zone;
         z.preQuery(token, new Zone.QueryHandler() {
@@ -170,13 +160,6 @@ public final class UploadManager {
                 });
             }
         };
-
-        if (decodedToken == null) {
-            final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
-            completionHandler.complete(key, info, null);
-            return;
-        }
-
         Zone z = config.zone;
         z.preQuery(token, new Zone.QueryHandler() {
             @Override
