@@ -30,7 +30,7 @@ public class ACollectUploadInfoTest  extends AndroidTestCase {
         Config.isRecord = true;
         Config.isUpload = true;
         Config.minInteval = 1;
-        Config.uploadThreshold = 12 * 1024;
+        Config.uploadThreshold = 7 * 1024;
     }
 
     public static void showRecordFile() {

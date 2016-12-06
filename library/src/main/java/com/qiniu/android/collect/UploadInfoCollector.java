@@ -26,30 +26,46 @@ public class UploadInfoCollector {
     /**
      * 单线程任务队列
      */
-    private static ExecutorService singleServer = null;
-    private static final String recordFileName = "_qiniu_record_file_hu3z9lo7anx03";
-    private static File recordFile = null;
-    private static long lastUpload;// milliseconds
-    private static OkHttpClient httpClient = null;
+    private ExecutorService singleServer = null;
+    private final String recordFileName = "_qiniu_record_file_hu3z9lo7anx03";
+    private File recordFile = null;
+    private long lastUpload;// milliseconds
+    private OkHttpClient httpClient = null;
+
+    private static UploadInfoCollector collector;
 
 
-    private UploadInfoCollector() throws IOException {
-
-    }
-
-    static {
+    private UploadInfoCollector() {
         try {
-            reset();
-        } catch (Exception e) {
-            e.fillInStackTrace();
+            reset0();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
+    private static UploadInfoCollector getCollector() {
+        if (collector == null) {
+            collector = new UploadInfoCollector();
+        }
+        return collector;
+    }
+
+
     /**
      * 清理操作。
-     * 注意是否将   isRecord 、 isUpload 设置为  false
+     * 若需将 isRecord 、 isUpload 设置为  false，在此方法调用前设置。
      */
     public static void clean() {
+        try{
+            getCollector().clean0();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        collector = null;
+    }
+
+
+    private void clean0() {
         try {
             if (recordFile != null) {
                 recordFile.delete();
@@ -78,7 +94,15 @@ public class UploadInfoCollector {
      *
      * @throws java.io.IOException
      */
-    public static void reset() throws IOException {
+    public static void reset() {
+        try{
+            getCollector().reset0();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void reset0() throws IOException {
         if (Config.isRecord) {
             setAndInitRecordDir(getRecordDir(Config.recordDir));
         }
@@ -90,12 +114,12 @@ public class UploadInfoCollector {
         }
     }
 
-    private static File getRecordDir(String recordDir) {
+    private File getRecordDir(String recordDir) {
         return new File(recordDir);
     }
 
 
-    private static void setAndInitRecordDir(File recordDir) throws IOException {
+    private void setAndInitRecordDir(File recordDir) throws IOException {
         if (recordDir == null) {
             throw new IOException("record's dir is not setted");
         }
@@ -116,14 +140,16 @@ public class UploadInfoCollector {
 
     public static void handle(final UpToken upToken, final RecordMsg record) {
         try {
-            handle0(upToken, record);
+            if(Config.isRecord) {
+                getCollector().handle0(upToken, record);
+            }
         } catch (Throwable t) {
             // do nothing
         }
     }
 
-    private static void handle0(final UpToken upToken, final RecordMsg record) {
-        if (Config.isRecord && (singleServer != null && !singleServer.isShutdown())) {
+    private void handle0(final UpToken upToken, final RecordMsg record) {
+        if (singleServer != null && !singleServer.isShutdown()) {
             Runnable taskRecord = new Runnable() {
                 @Override
                 public void run() {
@@ -150,7 +176,7 @@ public class UploadInfoCollector {
     }
 
 
-    private static boolean tryRecode(String msg) {
+    private boolean tryRecode(String msg) {
         if (recordFile.length() < Config.maxRecordFileSize) {
             // 追加到文件尾部并换行
             writeToFile(recordFile, msg + "\n", true);
@@ -158,7 +184,7 @@ public class UploadInfoCollector {
         return true;
     }
 
-    private static void tryUploadThenClean(final UpToken upToken) {
+    private void tryUploadThenClean(final UpToken upToken) {
         if (recordFile.length() > Config.uploadThreshold) {
             long now = new Date().getTime();
             // milliseconds
@@ -195,7 +221,7 @@ public class UploadInfoCollector {
     }
 
     //同步上传
-    private static boolean upload(final UpToken upToken) {
+    private boolean upload(final UpToken upToken) {
         try {
             String serverURL = Config.serverURL;
             OkHttpClient client = getHttpClient();
@@ -217,16 +243,16 @@ public class UploadInfoCollector {
         }
     }
 
-    private static RequestBody buildReqBody() {
+    private RequestBody buildReqBody() {
         return RequestBody.create(MediaType.parse("text/plain"), recordFile);
     }
 
-    private static boolean isOk(Response res) {
+    private boolean isOk(Response res) {
         return res.isSuccessful() && res.header("X-Reqid") != null;
     }
 
 
-    private static OkHttpClient getHttpClient() {
+    private OkHttpClient getHttpClient() {
         if (httpClient == null) {
             OkHttpClient.Builder builder = new OkHttpClient.Builder();
             builder.connectTimeout(10, TimeUnit.SECONDS);
