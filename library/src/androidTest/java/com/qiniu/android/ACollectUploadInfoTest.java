@@ -15,7 +15,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * Created by Simon on 12/6/16.
@@ -23,8 +27,8 @@ import java.util.Date;
 
 public class ACollectUploadInfoTest  extends AndroidTestCase {
 
-    private static long recordFileLastModified = 337;
-    private static long recordFileSize = 0;
+    private static long recordFileLastModified = 337l;
+    private static Queue<Long> queue = new LinkedList<Long>(){{ offer(1l); offer(2l); offer(3l); offer(4l);}};
 
     @Override
     protected void setUp() throws Exception {
@@ -39,18 +43,58 @@ public class ACollectUploadInfoTest  extends AndroidTestCase {
         Config.maxRecordFileSize = 6 * 1024;
     }
 
-    public static void testRecordFile0() {
+    public static void recordFile() {
         File recordFile = getRecordFile();
         if (recordFile.length() < Config.maxRecordFileSize && recordFile.length() > 10) {
             Assert.assertNotSame(recordFile.lastModified(), recordFileLastModified);
         }
         recordFileLastModified = recordFile.lastModified();
+
         int log = "200,CwIAAF4znMnpno0U,up.qiniu.com,183.131.7.18,80,383.0,1481014578,262144\n".length();
 
-        Assert.assertTrue(recordFile.length() < Config.maxRecordFileSize + log * 2);
+        long fileSize = recordFile.length();
+        putRecordFileSize(fileSize);
+        long avgSize = getRecordFileAvgSize();
 
-        Assert.assertTrue("文件大小平均值较大可能小于上传阀值", (recordFileSize + recordFile.length()) / 2 < Config.uploadThreshold + log * 2);
-        recordFileSize = recordFile.length();
+        Assert.assertTrue(fileSize < Config.maxRecordFileSize + log * 2);
+
+        Assert.assertTrue("有上传，上传后清理文件，文件大小平均值不大可能大于上传阀值", avgSize < Config.uploadThreshold + log * 2);
+        Assert.assertTrue("文件大小有变化，不大可能一直相同", !isRecordFileSizeAllSame());
+    }
+
+    private static void putRecordFileSize(long size) {
+        queue.offer(size);
+        if (queue.size() > 4) {
+            queue.poll();
+        }
+    }
+
+    private static long getRecordFileAvgSize() {
+        long sum = 0;
+        long count = 0;
+        Iterator<Long> it = queue.iterator();
+        while(it.hasNext()) {
+            count += 1;
+            sum += it.next();
+        }
+        return sum / count;
+    }
+
+    private static boolean isRecordFileSizeAllSame() {
+        System.out.print("\nRecordFileSize: ");
+        long size = -1;
+        boolean same = true;
+        Iterator<Long> it = queue.iterator();
+        while(it.hasNext()) {
+            long temp = it.next();
+            if (size > 0) {
+                same = same && (size == temp);
+            }
+            size = temp;
+            System.out.print(temp + ",  ");
+        }
+        System.out.println("\n");
+        return same;
     }
 
     public static File getRecordFile() {
@@ -59,9 +103,9 @@ public class ACollectUploadInfoTest  extends AndroidTestCase {
         return recordFile;
     }
 
-    public static void testRecordFile() {
+    public static void recordFileTest() {
         showRecordInfo();
-        testRecordFile0();
+        recordFile();
     }
 
     public static void showRecordInfo() {

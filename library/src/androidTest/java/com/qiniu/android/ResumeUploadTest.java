@@ -37,8 +37,6 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     }
 
     private void template(int size) throws Throwable {
-        ACollectUploadInfoTest.testRecordFile();
-
         final String expectKey = "r=" + size + "k";
         final File f = TempFile.createFile(size);
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
@@ -72,12 +70,10 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         Assert.assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
 
-        ACollectUploadInfoTest.testRecordFile();
+        ACollectUploadInfoTest.recordFileTest();
     }
 
     private void template2(int size) throws Throwable {
-        ACollectUploadInfoTest.testRecordFile();
-
         final String expectKey = "r=" + size + "k";
         final File f = TempFile.createFile(size);
         ServiceAddress s = new ServiceAddress("https://up.qbox.me", null);
@@ -118,7 +114,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         Assert.assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
 
-        ACollectUploadInfoTest.testRecordFile();
+        ACollectUploadInfoTest.recordFileTest();
     }
 
     private void templateHijack(int size) throws Throwable {
