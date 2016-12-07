@@ -48,7 +48,7 @@ public final class UploadManager {
             message = "no token";
         }
         ResponseInfo info = null;
-        if (decodedToken == null) {
+        if (decodedToken == UpToken.NULL) {
             info = ResponseInfo.invalidToken("invalid token");
         }
         if (message != null) {

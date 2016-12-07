@@ -50,7 +50,7 @@ public class TestFileRecorder extends InstrumentationTestCase {
     }
 
     private void template(final int size, final double pos) throws Throwable {
-        ACollectUploadInfoTest.showRecordFile();
+        ACollectUploadInfoTest.testRecordFile();
 
         final File tempFile = TempFile.createFile(size);
         final String expectKey = "rc=" + size + "k";
@@ -139,7 +139,7 @@ public class TestFileRecorder extends InstrumentationTestCase {
         Assert.assertEquals(hash, Etag.file(tempFile));
         TempFile.remove(tempFile);
 
-        ACollectUploadInfoTest.showRecordFile();
+        ACollectUploadInfoTest.testRecordFile();
     }
 
     public void test600k() throws Throwable {

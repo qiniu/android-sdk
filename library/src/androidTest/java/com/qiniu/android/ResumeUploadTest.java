@@ -37,7 +37,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     }
 
     private void template(int size) throws Throwable {
-        ACollectUploadInfoTest.showRecordFile();
+        ACollectUploadInfoTest.testRecordFile();
 
         final String expectKey = "r=" + size + "k";
         final File f = TempFile.createFile(size);
@@ -72,11 +72,11 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         Assert.assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
 
-        ACollectUploadInfoTest.showRecordFile();
+        ACollectUploadInfoTest.testRecordFile();
     }
 
     private void template2(int size) throws Throwable {
-        ACollectUploadInfoTest.showRecordFile();
+        ACollectUploadInfoTest.testRecordFile();
 
         final String expectKey = "r=" + size + "k";
         final File f = TempFile.createFile(size);
@@ -118,7 +118,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         Assert.assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
 
-        ACollectUploadInfoTest.showRecordFile();
+        ACollectUploadInfoTest.testRecordFile();
     }
 
     private void templateHijack(int size) throws Throwable {

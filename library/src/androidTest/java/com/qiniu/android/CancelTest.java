@@ -145,7 +145,7 @@ public class CancelTest extends InstrumentationTestCase {
 
         TempFile.remove(tempFile);
 
-        ACollectUploadInfoTest.showRecordFile();
+        ACollectUploadInfoTest.testRecordFile();
     }
 
     private void templateData(final int size, final double pos) throws Throwable {
@@ -208,6 +208,8 @@ public class CancelTest extends InstrumentationTestCase {
         Assert.assertEquals(info.toString(), expectKey, key);
         Assert.assertTrue(info.toString(), info.isCancelled());
         Assert.assertNull(resp);
+
+        ACollectUploadInfoTest.testRecordFile();
     }
 
 }

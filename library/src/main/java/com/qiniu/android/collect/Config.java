@@ -7,13 +7,32 @@ import com.qiniu.android.utils.ContextGetter;
  */
 public class Config {
     /**
-     * 是否记录上传信息
+     * 是否记录上传状态信息。 true 表示记录，false 表示不记录。
+     *
+     * 记录上传信息条件：
+     * isRecord 为 true,
+     * 记录文件大小 小于 maxRecordFileSize .
+     *
+     * 记录文件大小 大于 maxRecordFileSize 时, 则暂停记录信息。
      */
     public static boolean isRecord = true;
 
     /**
-     * 上传信息记录文件保存的目录. 绝对路径
-     * 默认使用 ContextGetter.applicationContext().getCacheDir()
+     * 是否上传记录的上传状态信息。true 表示上传，false 表示不上传。
+     *
+     * 上传条件:
+     * 增加一条上传记录时触发,
+     * isRecord 为 true, isUpload 为 true,
+     * 且 记录文件大小 大于 uploadThreshold,
+     * 且 距上次上传时间大于 minInteval .
+     *
+     * 上传成功后，清空记录文件文件
+     */
+    public static boolean isUpload = true;
+
+    /**
+     * 上传信息记录文件保存的目录， 绝对路径。
+     * 默认使用当前应用的缓存目录： getCacheDir()
      */
     public static String recordDir = null;
     static {
@@ -25,33 +44,22 @@ public class Config {
     }
 
     /**
-     * 记录上传信息文件最大值tem.out
+     * 记录上传信息文件最大值，单位：字节。
+     *
+     * 记录文件大于此值后暂停记录上传信息。
      */
     public static int maxRecordFileSize = 4 * 512 * 1024;
 
     /**
-     * 记录文件大于 uploadThreshold 后才可能触发上传
+     * 记录文件大于 uploadThreshold 后才可能触发上传，单位：字节。
      */
     public static int uploadThreshold = 128 * 1024;
-
 
     /**
      * 每次上传最小时间间隔.单位:分钟
      */
-    public static int minInteval = 3;
+    public static int interval = 3;
 
-    /**
-     * 上传方式,默认 false, 不上传.
-     * <p/>
-     * 为 true 时上传方式:
-     * 增加一条上传记录时触发,
-     * isRecord 为 true,
-     * 且 单个记录文件大小 大于 uploadThreshold
-     * 且 距上次上传时间大于 minInteval .
-     * <p/>
-     * 单个记录文件大小 大于 maxRecordFileSize, 则暂停记录信息
-     */
-    public static boolean isUpload = true;
 
     /**
      * 上传信息收集文件的地址
