@@ -214,6 +214,7 @@ public class UploadInfoCollector {
         try {
             fos = new FileOutputStream(file, isAppend);
             fos.write(msg.getBytes(Charset.forName("UTF-8")));
+            fos.flush();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
