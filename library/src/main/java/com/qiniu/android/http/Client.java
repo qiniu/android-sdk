@@ -174,7 +174,11 @@ public final class Client {
 
     private static long getContentLength(okhttp3.Response response) {
         try {
-            return response.request().body().contentLength();
+            RequestBody body = response.request().body();
+            if (body == null) {
+                return 0;
+            }
+            return body.contentLength();
         } catch (Throwable t) {
             return -1;
         }
