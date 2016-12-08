@@ -58,8 +58,10 @@ public class ACollectUploadInfoTest  extends AndroidTestCase {
 
         Assert.assertTrue(fileSize < Config.maxRecordFileSize + log * 2);
 
-        Assert.assertTrue("有上传，上传后清理文件，文件大小平均值不大可能大于上传阀值", avgSize < Config.uploadThreshold + log * 2);
-        Assert.assertTrue("文件大小有变化，不大可能一直相同", !isRecordFileSizeAllSame());
+        String sizes = getRecordFileSizes();
+        System.out.println("RecordFileSize: " + sizes);
+        Assert.assertTrue("文件大小有变化，不大可能一直相同。" + sizes, !isRecordFileSizeAllSame());
+        Assert.assertTrue("有上传，上传后清理文件，文件大小平均值不大可能大于上传阀值。" + sizes, avgSize < Config.uploadThreshold + log * 2);
     }
 
     private static void putRecordFileSize(long size) {
@@ -81,7 +83,6 @@ public class ACollectUploadInfoTest  extends AndroidTestCase {
     }
 
     private static boolean isRecordFileSizeAllSame() {
-        System.out.print("\nRecordFileSize: ");
         long size = -1;
         boolean same = true;
         Iterator<Long> it = queue.iterator();
@@ -91,10 +92,17 @@ public class ACollectUploadInfoTest  extends AndroidTestCase {
                 same = same && (size == temp);
             }
             size = temp;
-            System.out.print(temp + ",  ");
         }
-        System.out.println("\n");
         return same;
+    }
+
+    private static String getRecordFileSizes() {
+        StringBuilder ss = new StringBuilder("");
+        Iterator<Long> it = queue.iterator();
+        while(it.hasNext()) {
+            ss.append(it.next()).append(", ");
+        }
+        return ss.toString();
     }
 
     public static File getRecordFile() {

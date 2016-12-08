@@ -237,8 +237,7 @@ public class UploadInfoCollector {
             OkHttpClient client = getHttpClient();
             RequestBody reqBody = RequestBody.create(MediaType.parse("text/plain"), recordFile);
             Request request = new Request.Builder().url(serverURL).
-//                    addHeader("Authorization", "QBox " + upToken.token). // // TODO: 12/7/16
-                    addHeader("Authorization", "QBox 4_odedBxmrAHiu4Y0Qp0HPG0NANCf6VAsAjWL_k9:3_l3GuylGDVzoRVGLlbPE9lAxjU=").
+                    addHeader("Authorization", "UpToken " + upToken.token).
                     addHeader("User-Agent", UserAgent.instance().getUa(upToken.accessKey)).
                     post(reqBody).build();
             Response res = client.newCall(request).execute();
