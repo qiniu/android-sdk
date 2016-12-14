@@ -39,7 +39,7 @@ public final class FileRecorder implements Recorder {
      */
     @Override
     public void set(String key, byte[] data) {
-        File f = new File(directory, sha256(key));
+        File f = new File(directory, hash(key));
         FileOutputStream fo = null;
         try {
             fo = new FileOutputStream(f);
@@ -63,7 +63,7 @@ public final class FileRecorder implements Recorder {
      */
     @Override
     public byte[] get(String key) {
-        File f = new File(directory, sha256(key));
+        File f = new File(directory, hash(key));
         FileInputStream fi = null;
         byte[] data = null;
         int read = 0;
@@ -102,22 +102,19 @@ public final class FileRecorder implements Recorder {
      */
     @Override
     public void del(String key) {
-        File f = new File(directory, sha256(key));
+        File f = new File(directory, hash(key));
         f.delete();
     }
 
-    private static String sha256(String base) {
+    private static String hash(String base) {
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            MessageDigest digest = MessageDigest.getInstance("SHA-1");
             byte[] hash = digest.digest(base.getBytes());
             StringBuffer hexString = new StringBuffer();
 
             for (int i = 0; i < hash.length; i++) {
-                String hex = Integer.toHexString(0xff & hash[i]);
-                if (hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
+                hexString.append(Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1));
             }
-
             return hexString.toString();
         } catch (Exception ex) {
             ex.printStackTrace();
