@@ -1,12 +1,12 @@
 package com.qiniu.android.storage.persistent;
 
 import com.qiniu.android.storage.Recorder;
-import com.qiniu.android.utils.UrlSafeBase64;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.security.MessageDigest;
 import java.util.Date;
 
 /**
@@ -39,7 +39,7 @@ public final class FileRecorder implements Recorder {
      */
     @Override
     public void set(String key, byte[] data) {
-        File f = new File(directory, UrlSafeBase64.encodeToString(key));
+        File f = new File(directory, sha256(key));
         FileOutputStream fo = null;
         try {
             fo = new FileOutputStream(f);
@@ -63,7 +63,7 @@ public final class FileRecorder implements Recorder {
      */
     @Override
     public byte[] get(String key) {
-        File f = new File(directory, UrlSafeBase64.encodeToString(key));
+        File f = new File(directory, sha256(key));
         FileInputStream fi = null;
         byte[] data = null;
         int read = 0;
@@ -102,7 +102,26 @@ public final class FileRecorder implements Recorder {
      */
     @Override
     public void del(String key) {
-        File f = new File(directory, UrlSafeBase64.encodeToString(key));
+        File f = new File(directory, sha256(key));
         f.delete();
+    }
+
+    private static String sha256(String base) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(base.getBytes());
+            StringBuffer hexString = new StringBuffer();
+
+            for (int i = 0; i < hash.length; i++) {
+                String hex = Integer.toHexString(0xff & hash[i]);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
     }
 }
