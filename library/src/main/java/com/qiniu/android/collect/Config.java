@@ -58,6 +58,8 @@ public class Config {
      *
      * chunkSize = 256 * 1024；putThreshold = 512 * 1024
      * 分片上传， 1M，最好情况下 5 个请求；10M，最好情况下 41 个请求
+     *
+     * 可依据客户上传频率、文件大小做调整
      */
     public static int uploadThreshold = 4 * 1024;
 
