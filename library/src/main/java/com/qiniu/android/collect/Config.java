@@ -72,5 +72,5 @@ public class Config {
     /**
      * 上传信息收集文件的地址
      * */
-    public static String serverURL = "http://uplog.qiniukodo.com/log";
+    public static String serverURL = "https://api.qiniu.com/uplog";
 }

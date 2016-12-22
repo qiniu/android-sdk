@@ -141,23 +141,23 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo zeroSize(final UpToken upToken) {
-        return create(null, ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero", upToken);
+        return create(null, ZeroSizeFile, "", "", "", "", "", "", 80, 0, 0, "file or data size is zero", upToken);
     }
 
     public static ResponseInfo cancelled(final UpToken upToken) {
-        return create(null, Cancelled, "", "", "", "", "", "", -1, -1, -1, "cancelled by user", upToken);
+        return create(null, Cancelled, "", "", "", "", "", "", 80, -1, -1, "cancelled by user", upToken);
     }
 
     public static ResponseInfo invalidArgument(String message, final UpToken upToken) {
-        return create(null, InvalidArgument, "", "", "", "", "", "", -1, 0, 0, message, upToken);
+        return create(null, InvalidArgument, "", "", "", "", "", "", 80, 0, 0, message, upToken);
     }
 
     public static ResponseInfo invalidToken(String message) {
-        return create(null, InvalidToken, "", "", "", "", "", "", -1, 0, 0, message, null);
+        return create(null, InvalidToken, "", "", "", "", "", "", 80, 0, 0, message, null);
     }
 
     public static ResponseInfo fileError(Exception e, final UpToken upToken) {
-        return create(null, InvalidFile, "", "", "", "", "", "", -1, 0, 0, e.getMessage(), upToken);
+        return create(null, InvalidFile, "", "", "", "", "", "", 80, 0, 0, e.getMessage(), upToken);
     }
 
     public boolean isCancelled() {
