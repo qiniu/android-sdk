@@ -66,7 +66,7 @@ public class Config {
     /**
      * 每次上传最小时间间隔.单位:分钟
      */
-    public static int interval = 5;
+    public static int interval = 10;
 
 
     /**
@@ -75,7 +75,7 @@ public class Config {
     public static String serverURL = "https://uplog.qbox.me/log";
 
     /**
-     * 当网络切换到 wifi 下，使用此设置
+     * 当网络切换到 wifi 下，切换到此设置
      * */
     public static void quick() {
         uploadThreshold = 1 * 1024;
@@ -84,7 +84,7 @@ public class Config {
 
     public static void normal() {
         uploadThreshold = 4 * 1024;
-        interval = 5;
+        interval = 10;
     }
 
     /**
