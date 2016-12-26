@@ -72,5 +72,26 @@ public class Config {
     /**
      * 上传信息收集文件的地址
      * */
-    public static String serverURL = "https://api.qiniu.com/uplog";
+    public static String serverURL = "https://uplog.qbox.me/log";
+
+    /**
+     * 当网络切换到 wifi 下，使用此设置
+     * */
+    public static void quick() {
+        uploadThreshold = 1 * 1024;
+        interval = 2;
+    }
+
+    public static void normal() {
+        uploadThreshold = 4 * 1024;
+        interval = 5;
+    }
+
+    /**
+     * 网络走流量时，可切换到此设置
+     * */
+    public static void slow() {
+        uploadThreshold = 150 * 1024;
+        interval = 300;
+    }
 }
