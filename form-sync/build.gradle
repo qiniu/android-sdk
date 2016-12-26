@@ -1,0 +1,71 @@
+import java.util.regex.Matcher
+
+apply plugin: 'com.android.library'
+
+def versionName() {
+    String config = 'library/src/main/java/com/qiniu/android/common/Constants.java'
+    String fileContents = new File(config).text
+    Matcher myMatcher = fileContents =~ /VERSION = "(.+)";/
+    String version = myMatcher[0][1]
+    println(version)
+    return version
+}
+
+def versionNameToCode(String version) {
+    String v = version.replaceAll(/\./, '')
+    return v.toLong()
+}
+
+String version = versionName()
+int code = versionNameToCode(version)
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion '24.0.2'
+    defaultConfig {
+        //applicationId "com.qiniu.android"
+        minSdkVersion 9
+        targetSdkVersion 23
+        versionCode code
+        versionName version
+    }
+
+    lintOptions {
+        warning 'InvalidPackage'
+    }
+}
+
+dependencies {
+    compile 'com.squareup.okhttp3:okhttp:3.2.0'
+    compile 'com.qiniu:happy-dns:0.2.7'
+//    compile 'com.android.support:appcompat-v7:21.0.3'
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+
+}
+
+task releaseJar(type: Jar, dependsOn: 'build') {
+    //指定生成的jar名
+    baseName 'qiniu-android-sdk-' + version
+    //从哪里打包class文件
+    from('build/intermediates/classes/release/com/qiniu/android/dns/')
+    //打包到jar后的目录结构
+    into('com/qiniu/android/dns/')
+    //去掉不需要打包的目录和文件
+    exclude('test/', 'BuildConfig.class', 'R.class')
+    //去掉R$开头的文件
+    exclude { it.name.startsWith('R$'); }
+}
+
+android.libraryVariants.all { variant ->
+    def name = variant.buildType.name
+    def task = project.tasks.create "jar${name.capitalize()}", Jar
+    task.dependsOn variant.javaCompile
+    task.from variant.javaCompile.destinationDir
+    task.exclude '**/R.*', '**/R$*.*', '**/BuildConfig.class'
+    artifacts.add('archives', task);
+}
+
+setProperty('VERSION_NAME', version)
+setProperty('VERSION_CODE', code)
+
+apply from: '../mvn_push.gradle'
