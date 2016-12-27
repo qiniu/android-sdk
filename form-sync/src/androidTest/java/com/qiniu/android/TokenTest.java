@@ -17,10 +17,10 @@ public class TokenTest extends AndroidTestCase {
 
     public void testEmpty() {
         UpToken t = UpToken.parse(null);
-        Assert.assertNull(t);
+        Assert.assertEquals(UpToken.NULL, t);
 
         t = UpToken.parse("");
-        Assert.assertNull(t);
+        Assert.assertEquals(UpToken.NULL, t);
     }
 
     public void testReturnUrl() {

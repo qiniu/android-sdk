@@ -93,7 +93,6 @@ public class UploadInfoCollector {
      * 修改记录"是否记录上传信息: isRecord","记录信息所在文件夹: recordDir"配置后,调用此方法重置.
      * 上传方式, 时间间隔,文件最大大小,上传阀值等参数修改不用调用此方法.
      *
-     * @throws java.io.IOException
      */
     public static void reset() {
         try {
