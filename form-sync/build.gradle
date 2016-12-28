@@ -3,7 +3,7 @@ import java.util.regex.Matcher
 apply plugin: 'com.android.library'
 
 def versionName() {
-    String config = 'library/src/main/java/com/qiniu/android/common/Constants.java'
+    String config = 'form-sync/src/main/java/com/qiniu/android/common/Constants.java'
     String fileContents = new File(config).text
     Matcher myMatcher = fileContents =~ /VERSION = "(.+)";/
     String version = myMatcher[0][1]
@@ -45,7 +45,7 @@ dependencies {
 
 task releaseJar(type: Jar, dependsOn: 'build') {
     //指定生成的jar名
-    baseName 'qiniu-android-sdk-' + version
+    baseName 'qiniu-android-sdk-sync' + version
     //从哪里打包class文件
     from('build/intermediates/classes/release/com/qiniu/android/dns/')
     //打包到jar后的目录结构
