@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 
 public final class Configuration {
-    
+
     public static final int BLOCK_SIZE = 4 * 1024 * 1024;
 
     /**

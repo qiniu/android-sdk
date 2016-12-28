@@ -20,7 +20,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class FormUploadTest extends InstrumentationTestCase {
     private UploadManager uploadManager;
@@ -174,8 +173,6 @@ public class FormUploadTest extends InstrumentationTestCase {
         Assert.assertEquals(f.toString(), 0, f.length());
         Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
         Assert.assertNull(resp);
-//        key = resp.optString("key");
-//        Assert.assertEquals(info.toString(), expectKey, key);
         Assert.assertFalse(info.toString(), info.isOK());
         Assert.assertEquals(info.toString(), "", info.reqId);
         TempFile.remove(f);
