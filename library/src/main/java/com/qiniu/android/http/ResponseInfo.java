@@ -18,6 +18,8 @@ public final class ResponseInfo {
     public static final int Cancelled = -2;
     public static final int NetworkError = -1;
 
+    public static final int UnknownError = 0;
+
     // <-- error code copy from ios
     public static final int TimedOut = -1001;
     public static final int UnknownHost = -1003;
@@ -84,7 +86,7 @@ public final class ResponseInfo {
     public final long sent;
 
     /**
-     * hide, 内部使用
+     * 响应体，json 格式
      */
     public final JSONObject response;
 
