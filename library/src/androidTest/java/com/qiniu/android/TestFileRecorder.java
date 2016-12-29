@@ -12,7 +12,6 @@ import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.storage.persistent.FileRecorder;
 import com.qiniu.android.utils.Etag;
-import com.qiniu.android.utils.UrlSafeBase64;
 
 import junit.framework.Assert;
 

@@ -195,4 +195,47 @@ public final class UploadManager {
         });
 
     }
+
+    public ResponseInfo put(byte[] data, String key, String token, UploadOptions options) {
+        return put(data, null, key, token, options);
+    }
+
+    public ResponseInfo put(File file, String key, String token, UploadOptions options) {
+        return put(null, file, key, token, options);
+    }
+
+    public ResponseInfo put(String file, String key, String token, UploadOptions options) {
+        return put(new File(file), key, token, options);
+    }
+
+    private static ResponseInfo areInvalidArg(final String key, byte[] data, File f, String token,
+                                              UpToken decodedToken) {
+        String message = null;
+        if (f == null && data == null) {
+            message = "no input data";
+        } else if (token == null || token.equals("")) {
+            message = "no token";
+        }
+        ResponseInfo info = null;
+        if (decodedToken == null) {
+            info = ResponseInfo.invalidToken("invalid token");
+        }
+        if (message != null) {
+            info = ResponseInfo.invalidArgument(message);
+        }
+        if ((f != null && f.length() == 0) || (data != null && data.length == 0)) {
+            info = ResponseInfo.zeroSize();
+        }
+        return info;
+    }
+
+    private ResponseInfo put(final byte[] data, final File file, final String key, String token, final UploadOptions options) {
+        final UpToken decodedToken = UpToken.parse(token);
+        ResponseInfo info = areInvalidArg(key, data, file, token, decodedToken);
+        if (info != null) {
+            return info;
+        }
+        return FormUploader.upload(client, config, data, file, key, decodedToken, options);
+    }
+
 }

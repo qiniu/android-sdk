@@ -4,6 +4,7 @@ import com.qiniu.android.common.Constants;
 import com.qiniu.android.dns.DnsManager;
 import com.qiniu.android.dns.Domain;
 import com.qiniu.android.storage.UpCancellationSignal;
+import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringMap;
 import com.qiniu.android.utils.StringUtils;
@@ -345,6 +346,77 @@ public final class Client {
         }
 
         return buildResponseInfo(res, tag.ip, tag.duration);
+    }
+
+    public ResponseInfo syncMultipartPost(String url,
+                                          PostArgs args,
+                                          final UpToken upToken) {
+        RequestBody file;
+        if (args.file != null) {
+            file = RequestBody.create(MediaType.parse(args.mimeType), args.file);
+        } else {
+            file = RequestBody.create(MediaType.parse(args.mimeType), args.data);
+        }
+        return syncMultipartPost(url, args.params, upToken, args.fileName, file);
+    }
+
+    private ResponseInfo syncMultipartPost(String url,
+                                           StringMap fields,
+                                           final UpToken upToken,
+                                           String fileName,
+                                           RequestBody file) {
+        final MultipartBody.Builder mb = new MultipartBody.Builder();
+        mb.addFormDataPart("file", fileName, file);
+
+        fields.forEach(new StringMap.Consumer() {
+            @Override
+            public void accept(String key, Object value) {
+                mb.addFormDataPart(key, value.toString());
+            }
+        });
+        mb.setType(MediaType.parse("multipart/form-data"));
+        RequestBody body = mb.build();
+        Request.Builder requestBuilder = new Request.Builder().url(url).post(body);
+        return syncSend(requestBuilder, null, upToken);
+    }
+
+    public ResponseInfo syncSend(final Request.Builder requestBuilder, StringMap headers, final UpToken upToken) {
+        if (headers != null) {
+            headers.forEach(new StringMap.Consumer() {
+                @Override
+                public void accept(String key, Object value) {
+                    requestBuilder.header(key, value.toString());
+                }
+            });
+        }
+
+        requestBuilder.header("User-Agent", UserAgent.instance().getUa(upToken.accessKey));
+        final ResponseTag tag = new ResponseTag();
+        Request req = null;
+        try {
+            req = requestBuilder.tag(tag).build();
+            okhttp3.Response response = httpClient.newCall(req).execute();
+            return buildResponseInfo(response, tag.ip, tag.duration);
+        } catch (Exception e) {
+            e.printStackTrace();
+            int statusCode = NetworkError;
+            String msg = e.getMessage();
+            if (e instanceof UnknownHostException) {
+                statusCode = ResponseInfo.UnknownHost;
+            } else if (msg != null && msg.indexOf("Broken pipe") == 0) {
+                statusCode = ResponseInfo.NetworkConnectionLost;
+            } else if (e instanceof SocketTimeoutException) {
+                statusCode = ResponseInfo.TimedOut;
+            } else if (e instanceof java.net.ConnectException) {
+                statusCode = ResponseInfo.CannotConnectToHost;
+            }
+
+            HttpUrl u = req.url();
+            return new ResponseInfo(null, statusCode, "", "", "", u.host(), u.encodedPath(), "", u.port(), 0, 0, e.getMessage());
+            // TODO
+//            return ResponseInfo.create(null, statusCode, "", "", "", u.host(),
+//                    u.encodedPath(), "", u.port(), tag.duration, 0, e.getMessage(), upToken);
+        }
     }
 
     private static class ResponseTag {
