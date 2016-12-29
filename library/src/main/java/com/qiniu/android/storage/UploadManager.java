@@ -11,8 +11,9 @@ import java.io.File;
 
 /**
  * 七牛文件上传管理器
- * 一般默认可以使用这个类的方法来上传数据和文件。这个类自动检测文件的大小，
- * 只要超过了{@link Configuration#putThreshold}
+ * 一般默认可以使用这个类的方法来上传数据和文件。会自动检测文件的大小，
+ * 只要超过了{@link Configuration#putThreshold} 异步方法会使用分片方片上传。
+ * 同步上传方法使用表单方式上传，建议只对小文件使用同步方式
  */
 public final class UploadManager {
     private final Configuration config;
@@ -196,16 +197,56 @@ public final class UploadManager {
 
     }
 
-    public ResponseInfo put(byte[] data, String key, String token, UploadOptions options) {
-        return put(data, null, key, token, options);
+    /**
+     * 同步上传文件。使用 form 表单方式上传，建议只在数据较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     *
+     * @param data     上传的数据
+     * @param key      上传数据保存的文件名
+     * @param token    上传凭证
+     * @param options  上传数据的可选参数
+     *
+     * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
+     */
+    public ResponseInfo syncPut(byte[] data, String key, String token, UploadOptions options) {
+        final UpToken decodedToken = UpToken.parse(token);
+        ResponseInfo info = areInvalidArg(key, data, null, token, decodedToken);
+        if (info != null) {
+            return info;
+        }
+        return FormUploader.syncUpload(client, config, data, key, decodedToken, options);
     }
 
-    public ResponseInfo put(File file, String key, String token, UploadOptions options) {
-        return put(null, file, key, token, options);
+    /**
+     * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     *
+     * @param file     上传的文件对象
+     * @param key      上传数据保存的文件名
+     * @param token    上传凭证
+     * @param options  上传数据的可选参数
+     *
+     * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
+     */
+    public ResponseInfo syncPut(File file, String key, String token, UploadOptions options) {
+        final UpToken decodedToken = UpToken.parse(token);
+        ResponseInfo info = areInvalidArg(key, null, file, token, decodedToken);
+        if (info != null) {
+            return info;
+        }
+        return FormUploader.syncUpload(client, config, file, key, decodedToken, options);
     }
 
-    public ResponseInfo put(String file, String key, String token, UploadOptions options) {
-        return put(new File(file), key, token, options);
+    /**
+     * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     *
+     * @param file     上传的文件绝对路径
+     * @param key      上传数据保存的文件名
+     * @param token    上传凭证
+     * @param options  上传数据的可选参数
+     *
+     * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
+     */
+    public ResponseInfo syncPut(String file, String key, String token, UploadOptions options) {
+        return syncPut(new File(file), key, token, options);
     }
 
     private static ResponseInfo areInvalidArg(final String key, byte[] data, File f, String token,
@@ -227,15 +268,6 @@ public final class UploadManager {
             info = ResponseInfo.zeroSize();
         }
         return info;
-    }
-
-    private ResponseInfo put(final byte[] data, final File file, final String key, String token, final UploadOptions options) {
-        final UpToken decodedToken = UpToken.parse(token);
-        ResponseInfo info = areInvalidArg(key, data, file, token, decodedToken);
-        if (info != null) {
-            return info;
-        }
-        return FormUploader.upload(client, config, data, file, key, decodedToken, options);
     }
 
 }

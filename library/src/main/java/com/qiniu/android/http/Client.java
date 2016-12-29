@@ -413,9 +413,6 @@ public final class Client {
 
             HttpUrl u = req.url();
             return new ResponseInfo(null, statusCode, "", "", "", u.host(), u.encodedPath(), "", u.port(), 0, 0, e.getMessage());
-            // TODO
-//            return ResponseInfo.create(null, statusCode, "", "", "", u.host(),
-//                    u.encodedPath(), "", u.port(), tag.duration, 0, e.getMessage(), upToken);
         }
     }
 

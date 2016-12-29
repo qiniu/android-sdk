@@ -86,7 +86,7 @@ public final class ResponseInfo {
     public final long sent;
 
     /**
-     * hide, 内部使用
+     * 响应体，json 格式
      */
     public final JSONObject response;
 

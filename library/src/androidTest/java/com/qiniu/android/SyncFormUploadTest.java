@@ -38,7 +38,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
         byte[] b = "hello".getBytes();
-        info = uploadManager.put(b, expectKey, TestConfig.token, opt);
+        info = uploadManager.syncPut(b, expectKey, TestConfig.token, opt);
         resp = info.response;
 
         Assert.assertTrue(info.toString(), info.isOK());
@@ -57,7 +57,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
 
-        info = uploadManager.put("".getBytes(), expectKey, TestConfig.token, opt);
+        info = uploadManager.syncPut("".getBytes(), expectKey, TestConfig.token, opt);
         resp = info.response;
 
 //        key = resp.optString("key");
@@ -74,7 +74,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        info = uploadManager.put("hello".getBytes(), expectKey, TestConfig.token, opt);
+        info = uploadManager.syncPut("hello".getBytes(), expectKey, TestConfig.token, opt);
 
         resp = info.response;
         key = resp.optString("key");
@@ -88,7 +88,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
     @SmallTest
     public void testInvalidToken() throws Throwable {
         final String expectKey = "你好";
-        info = uploadManager.put("hello".getBytes(), expectKey, "invalid", null);
+        info = uploadManager.syncPut("hello".getBytes(), expectKey, "invalid", null);
 
         resp = info.response;
 //        key = resp.optString("key");
@@ -102,7 +102,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
     public void testNoData() throws Throwable {
         final String expectKey = "你好";
 
-        info = uploadManager.put((byte[]) null, expectKey, "invalid", null);
+        info = uploadManager.syncPut((byte[]) null, expectKey, "invalid", null);
 
         resp = info.response;
         Assert.assertEquals(info.toString(), ResponseInfo.InvalidArgument,
@@ -113,7 +113,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
     @SmallTest
     public void testNoToken() throws Throwable {
         final String expectKey = "你好";
-        info = uploadManager.put(new byte[1], expectKey, null, null);
+        info = uploadManager.syncPut(new byte[1], expectKey, null, null);
 
         resp = info.response;
         Assert.assertEquals(info.toString(), ResponseInfo.InvalidArgument, info.statusCode);
@@ -123,7 +123,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
     @SmallTest
     public void testEmptyToken() throws Throwable {
         final String expectKey = "你好";
-        info = uploadManager.put(new byte[1], expectKey, "", null);
+        info = uploadManager.syncPut(new byte[1], expectKey, "", null);
 
         resp = info.response;
         Assert.assertEquals(info.toString(), ResponseInfo.InvalidArgument,
@@ -138,7 +138,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        info = uploadManager.put(f, expectKey, TestConfig.token, opt);
+        info = uploadManager.syncPut(f, expectKey, TestConfig.token, opt);
 
         resp = info.response;
         key = resp.optString("key");
@@ -160,7 +160,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        info = uploadManager.put(f, expectKey, TestConfig.token, opt);
+        info = uploadManager.syncPut(f, expectKey, TestConfig.token, opt);
 
         resp = info.response;
         Assert.assertEquals(f.toString(), 0, f.length());
@@ -173,10 +173,10 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testNoComplete() {
-        info = uploadManager.put(new byte[0], null, null, null);
+        info = uploadManager.syncPut(new byte[0], null, null, null);
         Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
 
-        info = uploadManager.put("", null, null, null);
+        info = uploadManager.syncPut("", null, null, null);
         Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
     }
 
@@ -194,7 +194,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
 
-        info = uploadManager2.put("hello".getBytes(), expectKey, TestConfig.token, opt);
+        info = uploadManager2.syncPut("hello".getBytes(), expectKey, TestConfig.token, opt);
 
         Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
@@ -217,7 +217,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
 
-        info = uploadManager2.put("hello".getBytes(), expectKey, TestConfig.token, opt);
+        info = uploadManager2.syncPut("hello".getBytes(), expectKey, TestConfig.token, opt);
 
         Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertNotNull(info.reqId);
@@ -240,7 +240,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
 
-        info = uploadManager2.put("hello".getBytes(), expectKey, TestConfig.token, opt);
+        info = uploadManager2.syncPut("hello".getBytes(), expectKey, TestConfig.token, opt);
 
         resp = info.response;
         Assert.assertTrue(info.toString(), info.isOK());
@@ -261,7 +261,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
                 .zone(z)
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
-        info = uploadManager2.put("hello".getBytes(), expectKey, TestConfig.token, opt);
+        info = uploadManager2.syncPut("hello".getBytes(), expectKey, TestConfig.token, opt);
 
         resp = info.response;
         key = resp.optString("key");
