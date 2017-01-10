@@ -148,4 +148,109 @@ final class FormUploader {
 
         client.asyncMultipartPost(config.zone.upHost(token.token).address.toString(), args, token, progress, completion, options.cancellationSignal);
     }
+
+    /**
+     * 上传数据，并以指定的key保存文件
+     *
+     * @param client            HTTP连接管理器
+     * @param data              上传的数据
+     * @param key               上传的数据保存的文件名
+     * @param token             上传凭证
+     * @param options           上传时的可选参数
+     *
+     * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
+     */
+    public static ResponseInfo syncUpload(Client client, Configuration config, byte[] data, String key, UpToken token, UploadOptions options) {
+        try {
+            return syncUpload0(client, config, data, null, key, token, options);
+        } catch (Exception e) {
+            return new ResponseInfo(null, ResponseInfo.UnknownError, "", "", "", "", "", "", 0, 0, 0, e.getMessage()); // TODO
+        }
+    }
+
+    /**
+     * 上传文件，并以指定的key保存文件
+     *
+     * @param client            HTTP连接管理器
+     * @param file              上传的文件
+     * @param key               上传的数据保存的文件名
+     * @param token             上传凭证
+     * @param options           上传时的可选参数
+     *
+     * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
+     */
+    public static ResponseInfo syncUpload(Client client, Configuration config, File file, String key, UpToken token, UploadOptions options) {
+        try {
+            return syncUpload0(client, config, null, file, key, token, options);
+        } catch (Exception e) {
+            return new ResponseInfo(null, ResponseInfo.UnknownError, "", "", "", "", "", "", 0, 0, 0, e.getMessage()); // TODO
+        }
+    }
+
+    private static ResponseInfo syncUpload0(Client client, Configuration config, byte[] data, File file,
+                                        String key, UpToken token, UploadOptions optionsIn) {
+        StringMap params = new StringMap();
+        final PostArgs args = new PostArgs();
+        if (key != null) {
+            params.put("key", key);
+            args.fileName = key;
+        } else {
+            args.fileName = "?";
+        }
+
+        // data is null , or file is null
+        if (file != null) {
+            args.fileName = file.getName();
+        }
+
+        params.put("token", token.token);
+
+        final UploadOptions options = optionsIn != null ? optionsIn : UploadOptions.defaultOptions();
+        params.putFileds(options.params);
+
+        if (options.checkCrc) {
+            long crc = 0;
+            if (file != null) {
+                try {
+                    crc = Crc32.file(file);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                crc = Crc32.bytes(data);
+            }
+            params.put("crc32", "" + crc);
+        }
+
+        args.data = data;
+        args.file = file;
+        args.mimeType = options.mimeType;
+        args.params = params;
+        args.userAgentPart = token.accessKey;
+
+        ResponseInfo info = client.syncMultipartPost(config.zone.upHost(token.token).address.toString(), args, token);
+
+        if (info.isOK()) {
+            return info;
+        }
+
+        if (info.needRetry() || (info.isNotQiniu() && !token.hasReturnUrl())) {
+            if (info.isNetworkBroken() && !AndroidNetwork.isNetWorkReady()) {
+                options.netReadyHandler.waitReady();
+                if (!AndroidNetwork.isNetWorkReady()) {
+                    return info;
+                }
+            }
+
+            URI u = config.zone.upHost(token.token).address;
+            if (config.zone.upHostBackup(token.token) != null
+                    && (info.needSwitchServer() || info.isNotQiniu())) {
+                u = config.zone.upHostBackup(token.token).address;
+            }
+
+            return client.syncMultipartPost(u.toString(), args, token);
+        }
+
+        return info;
+    }
 }

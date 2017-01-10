@@ -12,7 +12,6 @@ import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.storage.persistent.FileRecorder;
 import com.qiniu.android.utils.Etag;
-import com.qiniu.android.utils.UrlSafeBase64;
 
 import junit.framework.Assert;
 
@@ -20,6 +19,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.MessageDigest;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -175,7 +175,7 @@ public class TestFileRecorder extends InstrumentationTestCase {
         fr.set(key, data);
         byte[] data2 = fr.get(key);
 
-        File recoderFile = new File(folder, UrlSafeBase64.encodeToString(key));
+        File recoderFile = new File(folder, hash(key));
 
         long m1 = recoderFile.lastModified();
 
@@ -187,10 +187,12 @@ public class TestFileRecorder extends InstrumentationTestCase {
         assertEquals(3, data2.length);
         assertEquals('8', data2[1]);
 
+        // 让记录文件过期，两天
         recoderFile.setLastModified(new Date().getTime() - 1000 * 3600 * 48 - 2300);
 
         long m2 = recoderFile.lastModified();
 
+        // 过期后，记录数据作废
         byte[] data3 = fr.get(key);
 
         assertNull(data3);
@@ -204,5 +206,22 @@ public class TestFileRecorder extends InstrumentationTestCase {
         fr.set(key, data);
         long m4 = recoderFile.lastModified();
         assertTrue(m4 > m1);
+    }
+
+    // copy from FileRecorder.
+    private static String hash(String base) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-1");
+            byte[] hash = digest.digest(base.getBytes());
+            StringBuffer hexString = new StringBuffer();
+
+            for (int i = 0; i < hash.length; i++) {
+                hexString.append(Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1));
+            }
+            return hexString.toString();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
     }
 }
