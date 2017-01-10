@@ -46,7 +46,7 @@ public class EtagTest extends AndroidTestCase {
     public void testLongToInt() {
         long len = 2323435710l;
         int b = (int) ((len + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE);
-        Assert.assertEquals("预计会溢出", 554, b);
+        Assert.assertEquals("不应该溢出", 554, b);
         int a = (int) (len + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE;
         Assert.assertNotSame("预计会溢出", 554, a);
     }
