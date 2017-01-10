@@ -398,7 +398,7 @@ public final class Client {
         try {
             req = requestBuilder.tag(tag).build();
             okhttp3.Response response = httpClient.newCall(req).execute();
-            return buildResponseInfo(response, tag.ip, tag.duration);
+            return buildResponseInfo(response, tag.ip, tag.duration, upToken);
         } catch (Exception e) {
             e.printStackTrace();
             int statusCode = NetworkError;
@@ -414,7 +414,7 @@ public final class Client {
             }
 
             HttpUrl u = req.url();
-            return new ResponseInfo(null, statusCode, "", "", "", u.host(), u.encodedPath(), "", u.port(), 0, 0, e.getMessage());
+            return ResponseInfo.create(null, statusCode, "", "", "", u.host(), u.encodedPath(), "", u.port(), 0, 0, e.getMessage(), upToken);
         }
     }
 

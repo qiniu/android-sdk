@@ -56,7 +56,7 @@ public class UploadInfoCollector {
      * 若需更改 isRecord、isUpload 的值，请在此方法调用前修改。
      */
     public static void clean() {
-        try{
+        try {
             getCollector().clean0();
         } catch (Exception e) {
             e.printStackTrace();
@@ -96,7 +96,7 @@ public class UploadInfoCollector {
      * @throws java.io.IOException
      */
     public static void reset() {
-        try{
+        try {
             getCollector().reset0();
         } catch (Exception e) {
             e.printStackTrace();
@@ -141,7 +141,7 @@ public class UploadInfoCollector {
 
     public static void handle(final UpToken upToken, final RecordMsg record) {
         try {
-            if(Config.isRecord) {
+            if (Config.isRecord) {
                 getCollector().handle0(upToken, record);
             }
         } catch (Throwable t) {

@@ -4,9 +4,6 @@ import android.test.AndroidTestCase;
 import android.util.Log;
 
 import com.qiniu.android.collect.Config;
-import com.qiniu.android.storage.UploadManager;
-import com.qiniu.android.storage.persistent.FileRecorder;
-import com.qiniu.android.utils.UrlSafeBase64;
 
 import junit.framework.Assert;
 
@@ -14,8 +11,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -25,10 +20,15 @@ import java.util.Queue;
  * Created by Simon on 12/6/16.
  */
 
-public class ACollectUploadInfoTest  extends AndroidTestCase {
+public class ACollectUploadInfoTest extends AndroidTestCase {
 
     private static long recordFileLastModified = 337l;
-    private static Queue<Long> queue = new LinkedList<Long>(){{ offer(1l); offer(2l); offer(3l); offer(4l);}};
+    private static Queue<Long> queue = new LinkedList<Long>() {{
+        offer(1l);
+        offer(2l);
+        offer(3l);
+        offer(4l);
+    }};
 
     @Override
     protected void setUp() throws Exception {
@@ -75,7 +75,7 @@ public class ACollectUploadInfoTest  extends AndroidTestCase {
         long sum = 0;
         long count = 0;
         Iterator<Long> it = queue.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             count += 1;
             sum += it.next();
         }
@@ -86,7 +86,7 @@ public class ACollectUploadInfoTest  extends AndroidTestCase {
         long size = -1;
         boolean same = true;
         Iterator<Long> it = queue.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             long temp = it.next();
             if (size > 0) {
                 same = same && (size == temp);
@@ -99,7 +99,7 @@ public class ACollectUploadInfoTest  extends AndroidTestCase {
     private static String getRecordFileSizes() {
         StringBuilder ss = new StringBuilder("");
         Iterator<Long> it = queue.iterator();
-        while(it.hasNext()) {
+        while (it.hasNext()) {
             ss.append(it.next()).append(", ");
         }
         return ss.toString();

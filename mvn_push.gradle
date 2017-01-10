@@ -93,6 +93,7 @@ afterEvaluate { project ->
     }
 
     task androidJavadocs(type: Javadoc) {
+        failOnError = false
         source = android.sourceSets.main.java.srcDirs
         options.encoding = "UTF-8"
         options.charSet = 'UTF-8'
