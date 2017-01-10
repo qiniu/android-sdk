@@ -304,7 +304,7 @@ public final class Client {
         });
         mb.setType(MediaType.parse("multipart/form-data"));
         RequestBody body = mb.build();
-        if (progressHandler != null) {
+        if (progressHandler != null || cancellationHandler != null) {
             body = new CountingRequestBody(body, progressHandler, cancellationHandler);
         }
         Request.Builder requestBuilder = new Request.Builder().url(url).post(body);
