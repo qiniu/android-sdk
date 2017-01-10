@@ -3,6 +3,7 @@ package com.qiniu.android;
 import android.test.AndroidTestCase;
 
 import com.qiniu.android.common.Constants;
+import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.utils.Etag;
 
 import junit.framework.Assert;
@@ -40,6 +41,13 @@ public class EtagTest extends AndroidTestCase {
         f = TempFile.createFile(9 * 1024);
         Assert.assertEquals("ljgVjMtyMsOgIySv79U8Qz4TrUO4", Etag.file(f));
         TempFile.remove(f);
+    }
 
+    public void testLongToInt() {
+        long len = 2323435710l;
+        int b = (int) ((len + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE);
+        Assert.assertEquals("预计会溢出", 554, b);
+        int a = (int) (len + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE;
+        Assert.assertNotSame("预计会溢出", 554, a);
     }
 }
