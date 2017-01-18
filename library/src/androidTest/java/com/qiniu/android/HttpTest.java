@@ -17,6 +17,7 @@ import org.json.JSONObject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -224,5 +225,36 @@ public class HttpTest extends InstrumentationTestCase {
         }
         Assert.assertTrue(!"".equals(info.reqId));
         Assert.assertEquals(400, info.statusCode);
+    }
+
+    @SmallTest
+    public void testHeader() {
+        // com.qiniu.android.http.UserAgent#getUa
+        // return new String((ua + "; " + _part + ")").getBytes(Charset.forName("ISO-8859-1")));
+
+        String name = new String(("电话☎️的の").getBytes(Charset.forName("ISO-8859-1")));
+        String value = new String(("sdf✈️he覆盖😁🆚9837-=/ df").getBytes(Charset.forName("ISO-8859-1")));
+        checkNameAndValue(name, value);
+    }
+
+    // copy from okhttp3.Headers
+    private void checkNameAndValue(String name, String value) {
+        if (name == null) throw new IllegalArgumentException("name == null");
+        if (name.isEmpty()) throw new IllegalArgumentException("name is empty");
+        for (int i = 0, length = name.length(); i < length; i++) {
+            char c = name.charAt(i);
+            if (c <= '\u001f' || c >= '\u007f') {
+                throw new IllegalArgumentException(String.format(
+                        "Unexpected char %#04x at %d in header name: %s", (int) c, i, name));
+            }
+        }
+        if (value == null) throw new IllegalArgumentException("value == null");
+        for (int i = 0, length = value.length(); i < length; i++) {
+            char c = value.charAt(i);
+            if (c <= '\u001f' || c >= '\u007f') {
+                throw new IllegalArgumentException(String.format(
+                        "Unexpected char %#04x at %d in %s value: %s", (int) c, i, name, value));
+            }
+        }
     }
 }
