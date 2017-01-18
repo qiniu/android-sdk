@@ -1,7 +1,11 @@
 package com.qiniu.android.http;
 
 
+import com.qiniu.android.collect.Config;
+import com.qiniu.android.collect.UploadInfoCollector;
 import com.qiniu.android.common.Constants;
+import com.qiniu.android.storage.UpToken;
+import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONObject;
 
@@ -85,13 +89,15 @@ public final class ResponseInfo {
      */
     public final long sent;
 
+    public final UpToken upToken;
+
     /**
      * 响应体，json 格式
      */
     public final JSONObject response;
 
-    public ResponseInfo(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
-                        String path, String ip, int port, double duration, long sent, String error) {
+    private ResponseInfo(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
+                         String path, String ip, int port, double duration, long sent, String error, UpToken upToken) {
         response = json;
         this.statusCode = statusCode;
         this.reqId = reqId;
@@ -106,26 +112,54 @@ public final class ResponseInfo {
         this.id = UserAgent.instance().id;
         this.timeStamp = System.currentTimeMillis() / 1000;
         this.sent = sent;
+        this.upToken = upToken;
     }
 
-    public static ResponseInfo zeroSize() {
-        return new ResponseInfo(null, ZeroSizeFile, "", "", "", "", "", "", -1, 0, 0, "file or data size is zero");
+    public static ResponseInfo create(final JSONObject json, final int statusCode, final String reqId, final String xlog, final String xvia, final String host,
+                                      final String path, final String ip, final int port, final double duration, final long sent, final String error, final UpToken upToken) {
+
+        ResponseInfo res = new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, error, upToken);
+
+        if (Config.isRecord) {
+            final String _id = res.id;
+            final String _error = error + "";
+            final String _timeStamp = res.timeStamp + "";
+            UploadInfoCollector.handle(upToken,
+                    // 延迟序列化.如果判断不记录,则不执行序列化
+                    new UploadInfoCollector.RecordMsg() {
+
+                        @Override
+                        public String toRecordMsg() {
+                            // https://jira.qiniu.io/browse/KODO-1468
+                            // ip 形如  /115.231.97.46:80
+                            String remoteIp = (ip + "").split(":")[0].replace("/", "");
+                            String[] ss = {statusCode + "", reqId, host, remoteIp, port + "", duration + "",
+                                    _timeStamp, sent + ""};
+                            return StringUtils.join(ss, ",");
+                        }
+                    });
+        }
+        return res;
     }
 
-    public static ResponseInfo cancelled() {
-        return new ResponseInfo(null, Cancelled, "", "", "", "", "", "", -1, 0, 0, "cancelled by user");
+    public static ResponseInfo zeroSize(final UpToken upToken) {
+        return create(null, ZeroSizeFile, "", "", "", "", "", "", 80, 0, 0, "file or data size is zero", upToken);
     }
 
-    public static ResponseInfo invalidArgument(String message) {
-        return new ResponseInfo(null, InvalidArgument, "", "", "", "", "", "", -1, 0, 0, message);
+    public static ResponseInfo cancelled(final UpToken upToken) {
+        return create(null, Cancelled, "", "", "", "", "", "", 80, -1, -1, "cancelled by user", upToken);
+    }
+
+    public static ResponseInfo invalidArgument(String message, final UpToken upToken) {
+        return create(null, InvalidArgument, "", "", "", "", "", "", 80, 0, 0, message, upToken);
     }
 
     public static ResponseInfo invalidToken(String message) {
-        return new ResponseInfo(null, InvalidToken, "", "", "", "", "", "", -1, 0, 0, message);
+        return create(null, InvalidToken, "", "", "", "", "", "", 80, 0, 0, message, null);
     }
 
-    public static ResponseInfo fileError(Exception e) {
-        return new ResponseInfo(null, InvalidFile, "", "", "", "", "", "", -1, 0, 0, e.getMessage());
+    public static ResponseInfo fileError(Exception e, final UpToken upToken) {
+        return create(null, InvalidFile, "", "", "", "", "", "", 80, 0, 0, e.getMessage(), upToken);
     }
 
     public boolean isCancelled() {

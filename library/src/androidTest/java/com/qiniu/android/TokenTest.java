@@ -12,15 +12,15 @@ import junit.framework.Assert;
 public class TokenTest extends AndroidTestCase {
     public void testRight() {
         UpToken t = UpToken.parse(TestConfig.token);
-        Assert.assertNotNull(t);
+        Assert.assertNotSame(t, UpToken.NULL);
     }
 
     public void testEmpty() {
         UpToken t = UpToken.parse(null);
-        Assert.assertNull(t);
+        Assert.assertEquals(t, UpToken.NULL);
 
         t = UpToken.parse("");
-        Assert.assertNull(t);
+        Assert.assertEquals(t, UpToken.NULL);
     }
 
     public void testReturnUrl() {

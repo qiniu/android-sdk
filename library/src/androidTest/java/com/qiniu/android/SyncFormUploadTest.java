@@ -172,11 +172,11 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
     }
 
     @SmallTest
-    public void testNoComplete() {
-        info = uploadManager.syncPut(new byte[0], null, null, null);
+    public void test0byte() {
+        info = uploadManager.syncPut(new byte[0], null, TestConfig.token, null);
         Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
 
-        info = uploadManager.syncPut("", null, null, null);
+        info = uploadManager.syncPut("", null, TestConfig.token, null);
         Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
     }
 

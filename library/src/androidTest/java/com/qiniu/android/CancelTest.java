@@ -43,6 +43,7 @@ public class CancelTest extends InstrumentationTestCase {
         String folder = f.getParent();
         FileRecorder fr = new FileRecorder(folder);
         uploadManager = new UploadManager(fr);
+        ACollectUploadInfoTest.testInit();
     }
 
     public void test400k() throws Throwable {
@@ -143,6 +144,8 @@ public class CancelTest extends InstrumentationTestCase {
         Assert.assertNull(resp);
 
         TempFile.remove(tempFile);
+
+        ACollectUploadInfoTest.recordFileTest();
     }
 
     private void templateData(final int size, final double pos) throws Throwable {
@@ -205,6 +208,8 @@ public class CancelTest extends InstrumentationTestCase {
         Assert.assertEquals(info.toString(), expectKey, key);
         Assert.assertTrue(info.toString(), info.isCancelled());
         Assert.assertNull(resp);
+
+        ACollectUploadInfoTest.recordFileTest();
     }
 
 }

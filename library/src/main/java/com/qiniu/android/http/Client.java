@@ -139,7 +139,7 @@ public final class Client {
         return new JSONObject(str);
     }
 
-    private static ResponseInfo buildResponseInfo(okhttp3.Response response, String ip, long duration) {
+    private static ResponseInfo buildResponseInfo(okhttp3.Response response, String ip, long duration, final UpToken upToken) {
         int code = response.code();
         String reqId = response.header("X-Reqid");
         reqId = (reqId == null) ? null : reqId.trim();
@@ -168,8 +168,8 @@ public final class Client {
         }
 
         HttpUrl u = response.request().url();
-        return new ResponseInfo(json, code, reqId, response.header("X-Log"),
-                via(response), u.host(), u.encodedPath(), ip, u.port(), duration, getContentLength(response), error);
+        return ResponseInfo.create(json, code, reqId, response.header("X-Log"),
+                via(response), u.host(), u.encodedPath(), ip, u.port(), duration, getContentLength(response), error, upToken);
     }
 
     private static long getContentLength(okhttp3.Response response) {
@@ -184,9 +184,9 @@ public final class Client {
         }
     }
 
-    private static void onRet(okhttp3.Response response, String ip, long duration,
+    private static void onRet(okhttp3.Response response, String ip, long duration, final UpToken upToken,
                               final CompletionHandler complete) {
-        final ResponseInfo info = buildResponseInfo(response, ip, duration);
+        final ResponseInfo info = buildResponseInfo(response, ip, duration, upToken);
 
         AsyncRun.runInMain(new Runnable() {
             @Override
@@ -196,7 +196,7 @@ public final class Client {
         });
     }
 
-    public void asyncSend(final Request.Builder requestBuilder, StringMap headers, String userAgentPart, final CompletionHandler complete) {
+    public void asyncSend(final Request.Builder requestBuilder, StringMap headers, final UpToken upToken, final CompletionHandler complete) {
         if (headers != null) {
             headers.forEach(new StringMap.Consumer() {
                 @Override
@@ -206,8 +206,8 @@ public final class Client {
             });
         }
 
-        requestBuilder.header("User-Agent", UserAgent.instance().getUa(userAgentPart));
-        ResponseTag tag = new ResponseTag();
+        requestBuilder.header("User-Agent", UserAgent.instance().getUa(upToken.accessKey));
+        final ResponseTag tag = new ResponseTag();
         httpClient.newCall(requestBuilder.tag(tag).build()).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -227,7 +227,8 @@ public final class Client {
                 }
 
                 HttpUrl u = call.request().url();
-                ResponseInfo info = new ResponseInfo(null, statusCode, "", "", "", u.host(), u.encodedPath(), "", u.port(), 0, 0, e.getMessage());
+                ResponseInfo info = ResponseInfo.create(null, statusCode, "", "", "", u.host(),
+                        u.encodedPath(), "", u.port(), tag.duration, -1, e.getMessage(), upToken);
 
                 complete.complete(info, null);
             }
@@ -235,19 +236,19 @@ public final class Client {
             @Override
             public void onResponse(Call call, okhttp3.Response response) throws IOException {
                 ResponseTag tag = (ResponseTag) response.request().tag();
-                onRet(response, tag.ip, tag.duration, complete);
+                onRet(response, tag.ip, tag.duration, upToken, complete);
             }
         });
     }
 
     public void asyncPost(String url, byte[] body,
-                          StringMap headers, String userAgentPart, ProgressHandler progressHandler,
+                          StringMap headers, final UpToken upToken, ProgressHandler progressHandler,
                           CompletionHandler completionHandler, UpCancellationSignal c) {
-        asyncPost(url, body, 0, body.length, headers, userAgentPart, progressHandler, completionHandler, c);
+        asyncPost(url, body, 0, body.length, headers, upToken, progressHandler, completionHandler, c);
     }
 
     public void asyncPost(String url, byte[] body, int offset, int size,
-                          StringMap headers, String userAgentPart, ProgressHandler progressHandler,
+                          StringMap headers, final UpToken upToken, ProgressHandler progressHandler,
                           CompletionHandler completionHandler, CancellationHandler c) {
         if (converter != null) {
             url = converter.convert(url);
@@ -265,11 +266,12 @@ public final class Client {
         }
 
         Request.Builder requestBuilder = new Request.Builder().url(url).post(rbody);
-        asyncSend(requestBuilder, headers, userAgentPart, completionHandler);
+        asyncSend(requestBuilder, headers, upToken, completionHandler);
     }
 
     public void asyncMultipartPost(String url,
                                    PostArgs args,
+                                   final UpToken upToken,
                                    ProgressHandler progressHandler,
                                    CompletionHandler completionHandler,
                                    CancellationHandler c) {
@@ -279,12 +281,12 @@ public final class Client {
         } else {
             file = RequestBody.create(MediaType.parse(args.mimeType), args.data);
         }
-        asyncMultipartPost(url, args.params, args.userAgentPart, progressHandler, args.fileName, file, completionHandler, c);
+        asyncMultipartPost(url, args.params, upToken, progressHandler, args.fileName, file, completionHandler, c);
     }
 
     private void asyncMultipartPost(String url,
                                     StringMap fields,
-                                    String userAgentPart,
+                                    final UpToken upToken,
                                     ProgressHandler progressHandler,
                                     String fileName,
                                     RequestBody file,
@@ -308,12 +310,12 @@ public final class Client {
             body = new CountingRequestBody(body, progressHandler, cancellationHandler);
         }
         Request.Builder requestBuilder = new Request.Builder().url(url).post(body);
-        asyncSend(requestBuilder, null, userAgentPart, completionHandler);
+        asyncSend(requestBuilder, null, upToken, completionHandler);
     }
 
-    public void asyncGet(String url, StringMap headers, String userAgentPart, CompletionHandler completionHandler) {
+    public void asyncGet(String url, StringMap headers, final UpToken upToken, CompletionHandler completionHandler) {
         Request.Builder requestBuilder = new Request.Builder().get().url(url);
-        asyncSend(requestBuilder, headers, userAgentPart, completionHandler);
+        asyncSend(requestBuilder, headers, upToken, completionHandler);
     }
 
 //    public ResponseInfo syncGet(String url, StringMap headers){
@@ -321,7 +323,7 @@ public final class Client {
 //        return send(requestBuilder, headers);
 //    }
 
-    public ResponseInfo send(final Request.Builder requestBuilder, StringMap headers, String userAgentPart) {
+    public ResponseInfo send(final Request.Builder requestBuilder, StringMap headers, final UpToken upToken) {
         if (headers != null) {
             headers.forEach(new StringMap.Consumer() {
                 @Override
@@ -331,7 +333,7 @@ public final class Client {
             });
         }
 
-        requestBuilder.header("User-Agent", UserAgent.instance().getUa(userAgentPart));
+        requestBuilder.header("User-Agent", UserAgent.instance().getUa(upToken.accessKey));
         long start = System.currentTimeMillis();
         okhttp3.Response res = null;
         ResponseTag tag = new ResponseTag();
@@ -340,12 +342,12 @@ public final class Client {
             res = httpClient.newCall(req).execute();
         } catch (IOException e) {
             e.printStackTrace();
-            return new ResponseInfo(null, NetworkError, "", "", "",
+            return ResponseInfo.create(null, NetworkError, "", "", "",
                     req.url().host(), req.url().encodedPath(), tag.ip, req.url().port(),
-                    tag.duration, 0, e.getMessage());
+                    tag.duration, -1, e.getMessage(), upToken);
         }
 
-        return buildResponseInfo(res, tag.ip, tag.duration);
+        return buildResponseInfo(res, tag.ip, tag.duration, upToken);
     }
 
     public ResponseInfo syncMultipartPost(String url,
@@ -396,7 +398,7 @@ public final class Client {
         try {
             req = requestBuilder.tag(tag).build();
             okhttp3.Response response = httpClient.newCall(req).execute();
-            return buildResponseInfo(response, tag.ip, tag.duration);
+            return buildResponseInfo(response, tag.ip, tag.duration, upToken);
         } catch (Exception e) {
             e.printStackTrace();
             int statusCode = NetworkError;
@@ -412,12 +414,12 @@ public final class Client {
             }
 
             HttpUrl u = req.url();
-            return new ResponseInfo(null, statusCode, "", "", "", u.host(), u.encodedPath(), "", u.port(), 0, 0, e.getMessage());
+            return ResponseInfo.create(null, statusCode, "", "", "", u.host(), u.encodedPath(), "", u.port(), 0, 0, e.getMessage(), upToken);
         }
     }
 
     private static class ResponseTag {
         public String ip = "";
-        public long duration = 0;
+        public long duration = -1;
     }
 }

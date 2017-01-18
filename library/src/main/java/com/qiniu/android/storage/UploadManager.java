@@ -37,8 +37,8 @@ public final class UploadManager {
         this(recorder, null);
     }
 
-    private static boolean areInvalidArg(final String key, byte[] data, File f,
-                                         String token, final UpCompletionHandler completionHandler) {
+    private static boolean areInvalidArg(final String key, byte[] data, File f, String token,
+                                         UpToken decodedToken, final UpCompletionHandler completionHandler) {
         if (completionHandler == null) {
             throw new IllegalArgumentException("no UpCompletionHandler");
         }
@@ -51,11 +51,13 @@ public final class UploadManager {
 
         ResponseInfo info = null;
         if (message != null) {
-            info = ResponseInfo.invalidArgument(message);
+            info = ResponseInfo.invalidArgument(message, decodedToken);
+        } else if (decodedToken == UpToken.NULL || decodedToken == null) {
+            info = ResponseInfo.invalidToken("invalid token");
+        } else if ((f != null && f.length() == 0) || (data != null && data.length == 0)) {
+            info = ResponseInfo.zeroSize(decodedToken);
         }
-        if ((f != null && f.length() == 0) || (data != null && data.length == 0)) {
-            info = ResponseInfo.zeroSize();
-        }
+
         if (info != null) {
             final ResponseInfo info2 = info;
             AsyncRun.runInMain(new Runnable() {
@@ -81,7 +83,8 @@ public final class UploadManager {
      */
     public void put(final byte[] data, final String key, final String token,
                     final UpCompletionHandler complete, final UploadOptions options) {
-        if (areInvalidArg(key, data, null, token, complete)) {
+        final UpToken decodedToken = UpToken.parse(token);
+        if (areInvalidArg(key, data, null, token, decodedToken, complete)) {
             return;
         }
 
@@ -96,13 +99,6 @@ public final class UploadManager {
                 });
             }
         };
-
-        final UpToken decodedToken = UpToken.parse(token);
-        if (decodedToken == null) {
-            final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
-            completionHandler.complete(key, info, null);
-            return;
-        }
 
         Zone z = config.zone;
         z.preQuery(token, new Zone.QueryHandler() {
@@ -150,7 +146,8 @@ public final class UploadManager {
      */
     public void put(final File file, final String key, String token, final UpCompletionHandler complete,
                     final UploadOptions options) {
-        if (areInvalidArg(key, null, file, token, complete)) {
+        final UpToken decodedToken = UpToken.parse(token);
+        if (areInvalidArg(key, null, file, token, decodedToken, complete)) {
             return;
         }
         final UpCompletionHandler completionHandler = new UpCompletionHandler() {
@@ -164,14 +161,6 @@ public final class UploadManager {
                 });
             }
         };
-
-        final UpToken decodedToken = UpToken.parse(token);
-        if (decodedToken == null) {
-            final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
-            completionHandler.complete(key, info, null);
-            return;
-        }
-
         Zone z = config.zone;
         z.preQuery(token, new Zone.QueryHandler() {
             @Override
@@ -200,11 +189,10 @@ public final class UploadManager {
     /**
      * 同步上传文件。使用 form 表单方式上传，建议只在数据较小情况下使用此方式，如 file.size() < 1024 * 1024。
      *
-     * @param data     上传的数据
-     * @param key      上传数据保存的文件名
-     * @param token    上传凭证
-     * @param options  上传数据的可选参数
-     *
+     * @param data    上传的数据
+     * @param key     上传数据保存的文件名
+     * @param token   上传凭证
+     * @param options 上传数据的可选参数
      * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
      */
     public ResponseInfo syncPut(byte[] data, String key, String token, UploadOptions options) {
@@ -219,11 +207,10 @@ public final class UploadManager {
     /**
      * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
      *
-     * @param file     上传的文件对象
-     * @param key      上传数据保存的文件名
-     * @param token    上传凭证
-     * @param options  上传数据的可选参数
-     *
+     * @param file    上传的文件对象
+     * @param key     上传数据保存的文件名
+     * @param token   上传凭证
+     * @param options 上传数据的可选参数
      * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
      */
     public ResponseInfo syncPut(File file, String key, String token, UploadOptions options) {
@@ -238,11 +225,10 @@ public final class UploadManager {
     /**
      * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
      *
-     * @param file     上传的文件绝对路径
-     * @param key      上传数据保存的文件名
-     * @param token    上传凭证
-     * @param options  上传数据的可选参数
-     *
+     * @param file    上传的文件绝对路径
+     * @param key     上传数据保存的文件名
+     * @param token   上传凭证
+     * @param options 上传数据的可选参数
      * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
      */
     public ResponseInfo syncPut(String file, String key, String token, UploadOptions options) {
@@ -257,17 +243,20 @@ public final class UploadManager {
         } else if (token == null || token.equals("")) {
             message = "no token";
         }
-        ResponseInfo info = null;
-        if (decodedToken == null) {
-            info = ResponseInfo.invalidToken("invalid token");
-        }
+
         if (message != null) {
-            info = ResponseInfo.invalidArgument(message);
+            return ResponseInfo.invalidArgument(message, decodedToken);
         }
+
+        if (decodedToken == UpToken.NULL || decodedToken == null) {
+            return ResponseInfo.invalidToken("invalid token");
+        }
+
         if ((f != null && f.length() == 0) || (data != null && data.length == 0)) {
-            info = ResponseInfo.zeroSize();
+            return ResponseInfo.zeroSize(decodedToken);
         }
-        return info;
+
+        return null;
     }
 
 }

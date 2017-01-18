@@ -45,6 +45,8 @@ public class TestFileRecorder extends InstrumentationTestCase {
         FileRecorder fr = new FileRecorder(folder);
         config = new Configuration.Builder().recorder(fr).build();
         uploadManager = new UploadManager(config);
+
+        ACollectUploadInfoTest.testInit();
     }
 
     private void template(final int size, final double pos) throws Throwable {
@@ -134,6 +136,8 @@ public class TestFileRecorder extends InstrumentationTestCase {
         String hash = resp.getString("hash");
         Assert.assertEquals(hash, Etag.file(tempFile));
         TempFile.remove(tempFile);
+
+        ACollectUploadInfoTest.recordFileTest();
     }
 
     public void test600k() throws Throwable {

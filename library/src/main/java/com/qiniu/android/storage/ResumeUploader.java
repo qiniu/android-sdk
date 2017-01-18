@@ -111,7 +111,7 @@ final class ResumeUploader implements Runnable {
             file = new RandomAccessFile(f, "r");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            completionHandler.complete(key, ResponseInfo.fileError(e), null);
+            completionHandler.complete(key, ResponseInfo.fileError(e, token), null);
             return;
         }
         nextTask(offset, 0, config.zone.upHost(token.token).address);
@@ -134,7 +134,7 @@ final class ResumeUploader implements Runnable {
             file.seek(offset);
             file.read(chunkBuffer, 0, chunkSize);
         } catch (IOException e) {
-            completionHandler.complete(key, ResponseInfo.fileError(e), null);
+            completionHandler.complete(key, ResponseInfo.fileError(e, token), null);
             return;
         }
         this.crc32 = Crc32.bytes(chunkBuffer, 0, chunkSize);
@@ -150,7 +150,7 @@ final class ResumeUploader implements Runnable {
             file.seek(offset);
             file.read(chunkBuffer, 0, chunkSize);
         } catch (IOException e) {
-            completionHandler.complete(key, ResponseInfo.fileError(e), null);
+            completionHandler.complete(key, ResponseInfo.fileError(e, token), null);
             return;
         }
         this.crc32 = Crc32.bytes(chunkBuffer, 0, chunkSize);
@@ -193,7 +193,7 @@ final class ResumeUploader implements Runnable {
 
     private void post(URI uri, byte[] data, int offset, int size, ProgressHandler progress,
                       CompletionHandler completion, UpCancellationSignal c) {
-        client.asyncPost(uri.toString(), data, offset, size, headers, token.accessKey, progress, completion, c);
+        client.asyncPost(uri.toString(), data, offset, size, headers, token, progress, completion, c);
     }
 
     private long calcPutSize(long offset) {
@@ -212,7 +212,7 @@ final class ResumeUploader implements Runnable {
 
     private void nextTask(final long offset, final int retried, final URI address) {
         if (isCancelled()) {
-            ResponseInfo i = ResponseInfo.cancelled();
+            ResponseInfo i = ResponseInfo.cancelled(token);
             completionHandler.complete(key, i, null);
             return;
         }

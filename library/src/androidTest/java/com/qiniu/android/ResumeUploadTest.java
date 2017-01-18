@@ -33,6 +33,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     public void setUp() throws Exception {
         Configuration config = new Configuration.Builder().build();
         uploadManager = new UploadManager(config);
+        ACollectUploadInfoTest.testInit();
     }
 
     private void template(int size) throws Throwable {
@@ -68,6 +69,8 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         String hash = resp.getString("hash");
         Assert.assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
+
+        ACollectUploadInfoTest.recordFileTest();
     }
 
     private void template2(int size) throws Throwable {
@@ -110,6 +113,8 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         String hash = resp.getString("hash");
         Assert.assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
+
+        ACollectUploadInfoTest.recordFileTest();
     }
 
     private void templateHijack(int size) throws Throwable {
