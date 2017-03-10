@@ -35,8 +35,12 @@ public final class UserAgent {
     }
 
     private static String getUserAgent(String id) {
-        return format("QiniuAndroid/%s (%s; %s; %s", Constants.VERSION,
-                osVersion(), device(), id);
+        try {
+            return format("QiniuAndroid/%s (%s; %s; %s", Constants.VERSION,
+                    osVersion(), device(), id);
+        } catch (Exception e) {
+            return format("QiniuAndroid/%s (%s", Constants.VERSION, id);
+        }
     }
 
     private static String osVersion() {

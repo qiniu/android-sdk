@@ -52,9 +52,9 @@ public final class ResponseInfo {
      */
     public final String error;
     /**
-     * 请求消耗时间，单位秒
+     * 请求消耗时间，单位毫秒
      */
-    public final double duration;
+    public final long duration;
     /**
      * 服务器域名
      */
@@ -97,7 +97,7 @@ public final class ResponseInfo {
     public final JSONObject response;
 
     private ResponseInfo(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
-                         String path, String ip, int port, double duration, long sent, String error, UpToken upToken) {
+                         String path, String ip, int port, long duration, long sent, String error, UpToken upToken) {
         response = json;
         this.statusCode = statusCode;
         this.reqId = reqId;
@@ -116,15 +116,13 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo create(final JSONObject json, final int statusCode, final String reqId, final String xlog, final String xvia, final String host,
-                                      final String path, final String ip, final int port, final double duration, final long sent, final String error, final UpToken upToken) {
+                                      final String path, final String ip, final int port, final long duration, final long sent, final String error, final UpToken upToken) {
 
         ResponseInfo res = new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, error, upToken);
 
         if (Config.isRecord) {
-            final String _id = res.id;
-            final String _error = error + "";
             final String _timeStamp = res.timeStamp + "";
-            UploadInfoCollector.handle(upToken,
+            UploadInfoCollector.handleHttp(upToken,
                     // 延迟序列化.如果判断不记录,则不执行序列化
                     new UploadInfoCollector.RecordMsg() {
 
@@ -133,7 +131,7 @@ public final class ResponseInfo {
                             // https://jira.qiniu.io/browse/KODO-1468
                             // ip 形如  /115.231.97.46:80
                             String remoteIp = (ip + "").split(":")[0].replace("/", "");
-                            String[] ss = {statusCode + "", reqId, host, remoteIp, port + "", duration + "",
+                            String[] ss = new String[]{statusCode + "", reqId, host, remoteIp, port + "", duration + "",
                                     _timeStamp, sent + ""};
                             return StringUtils.join(ss, ",");
                         }
@@ -195,7 +193,7 @@ public final class ResponseInfo {
     }
 
     public String toString() {
-        return String.format(Locale.ENGLISH, "{ver:%s,ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s, host:%s, path:%s, ip:%s, port:%d, duration:%f s, time:%d, sent:%d,error:%s}",
+        return String.format(Locale.ENGLISH, "{ver:%s,ResponseInfo:%s,status:%d, reqId:%s, xlog:%s, xvia:%s, host:%s, path:%s, ip:%s, port:%d, duration:%d s, time:%d, sent:%d,error:%s}",
                 Constants.VERSION, id, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, timeStamp, sent, error);
     }
 

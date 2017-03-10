@@ -1,9 +1,12 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.collect.Config;
+import com.qiniu.android.collect.UploadInfoCollector;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.AsyncRun;
+import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONObject;
 
@@ -38,8 +41,8 @@ public final class UploadManager {
     }
 
     private static boolean areInvalidArg(final String key, byte[] data, File f, String token,
-                                         UpToken decodedToken, final UpCompletionHandler completionHandler) {
-        if (completionHandler == null) {
+                                         UpToken decodedToken, final WarpHandler completionHandler) {
+        if (completionHandler.complete == null) {
             throw new IllegalArgumentException("no UpCompletionHandler");
         }
         String message = null;
@@ -59,13 +62,7 @@ public final class UploadManager {
         }
 
         if (info != null) {
-            final ResponseInfo info2 = info;
-            AsyncRun.runInMain(new Runnable() {
-                @Override
-                public void run() {
-                    completionHandler.complete(key, info2, null);
-                }
-            });
+            completionHandler.complete(key, info, null);
             return true;
         }
 
@@ -83,33 +80,17 @@ public final class UploadManager {
      */
     public void put(final byte[] data, final String key, final String token,
                     final UpCompletionHandler complete, final UploadOptions options) {
+        final WarpHandler completionHandler = warpHandler(complete, data != null ? data.length : 0, UpType.form);
         final UpToken decodedToken = UpToken.parse(token);
-        if (areInvalidArg(key, data, null, token, decodedToken, complete)) {
+        if (areInvalidArg(key, data, null, token, decodedToken, completionHandler)) {
             return;
         }
-
-        final UpCompletionHandler completionHandler = new UpCompletionHandler() {
-            @Override
-            public void complete(final String key, final ResponseInfo info, final JSONObject response) {
-                AsyncRun.runInMain(new Runnable() {
-                    @Override
-                    public void run() {
-                        complete.complete(key, info, response);
-                    }
-                });
-            }
-        };
 
         Zone z = config.zone;
         z.preQuery(token, new Zone.QueryHandler() {
             @Override
             public void onSuccess() {
-                AsyncRun.runInMain(new Runnable() {
-                    @Override
-                    public void run() {
-                        FormUploader.upload(client, config, data, key, decodedToken, completionHandler, options);
-                    }
-                });
+                FormUploader.upload(client, config, data, key, decodedToken, completionHandler, options);
             }
 
             @Override
@@ -146,31 +127,24 @@ public final class UploadManager {
      */
     public void put(final File file, final String key, String token, final UpCompletionHandler complete,
                     final UploadOptions options) {
+        final WarpHandler completionHandler = warpHandler(complete, file != null ? file.length() : 0, UpType.form);
         final UpToken decodedToken = UpToken.parse(token);
-        if (areInvalidArg(key, null, file, token, decodedToken, complete)) {
+        if (areInvalidArg(key, null, file, token, decodedToken, completionHandler)) {
             return;
         }
-        final UpCompletionHandler completionHandler = new UpCompletionHandler() {
-            @Override
-            public void complete(final String key, final ResponseInfo info, final JSONObject response) {
-                AsyncRun.runInMain(new Runnable() {
-                    @Override
-                    public void run() {
-                        complete.complete(key, info, response);
-                    }
-                });
-            }
-        };
+
         Zone z = config.zone;
         z.preQuery(token, new Zone.QueryHandler() {
             @Override
             public void onSuccess() {
                 long size = file.length();
                 if (size <= config.putThreshold) {
+                    completionHandler.type = UpType.form;
                     FormUploader.upload(client, config, file, key, decodedToken, completionHandler, options);
                     return;
                 }
                 String recorderKey = config.keyGen.gen(key, file);
+                completionHandler.type = UpType.block;
                 ResumeUploader uploader = new ResumeUploader(client, config, file, key,
                         decodedToken, completionHandler, options, recorderKey);
 
@@ -257,6 +231,55 @@ public final class UploadManager {
         }
 
         return null;
+    }
+
+    private static enum UpType {
+        form, block,
+    }
+
+    private static class WarpHandler implements UpCompletionHandler {
+        final UpCompletionHandler complete;
+        UpType type;
+        final long before = System.currentTimeMillis();
+        final long size;
+
+        WarpHandler(UpCompletionHandler complete, long size, UpType type) {
+            this.complete = complete;
+            this.type = type;
+            this.size = size;
+        }
+
+        @Override
+        public void complete(final String key, final ResponseInfo res, final JSONObject response) {
+            if (Config.isRecord) {
+                final long after = System.currentTimeMillis();
+                UploadInfoCollector.handleUpload(res.upToken,
+                        // 延迟序列化.如果判断不记录,则不执行序列化
+                        new UploadInfoCollector.RecordMsg() {
+
+                            @Override
+                            public String toRecordMsg() {
+                                // https://jira.qiniu.io/browse/KODO-1468
+                                // ip 形如  /115.231.97.46:80
+                                String remoteIp = (res.ip + "").split(":")[0].replace("/", "");
+                                String[] ss = new String[]{res.statusCode + "", res.reqId, res.host, remoteIp, res.port + "", (after - before) + "",
+                                        res.timeStamp + "", size + "", type.toString()};
+                                return StringUtils.join(ss, ",");
+                            }
+                        });
+            }
+
+            AsyncRun.runInMain(new Runnable() {
+                @Override
+                public void run() {
+                    complete.complete(key, res, response);
+                }
+            });
+        }
+    }
+
+    private static WarpHandler warpHandler(final UpCompletionHandler complete, final long size, final UpType type) {
+        return new WarpHandler(complete, size, type);
     }
 
 }

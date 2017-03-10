@@ -79,7 +79,11 @@ public class CancelTest extends InstrumentationTestCase {
     }
 
     public void testD4M() throws Throwable {
-        templateData(4 * 1024, 0.6);
+        templateData(4 * 1024 + 589, 0.6);
+    }
+
+    public void testD8M() throws Throwable {
+        templateData(8 * 1024 + 351, 0.3);
     }
 
     private void templateFile(final int size, final double pos) throws Throwable {

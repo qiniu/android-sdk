@@ -142,7 +142,7 @@ public final class Client {
     private static ResponseInfo buildResponseInfo(okhttp3.Response response, String ip, long duration, final UpToken upToken) {
         int code = response.code();
         String reqId = response.header("X-Reqid");
-        reqId = (reqId == null) ? null : reqId.trim();
+        reqId = (reqId == null) ? null : reqId.trim().split(",")[0];
         byte[] body = null;
         String error = null;
         try {
