@@ -261,7 +261,7 @@ public final class Client {
         } else {
             rbody = RequestBody.create(null, new byte[0]);
         }
-        if (progressHandler != null) {
+        if (progressHandler != null || c != null) {
             rbody = new CountingRequestBody(rbody, progressHandler, c);
         }
 

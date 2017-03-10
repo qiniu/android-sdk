@@ -12,7 +12,6 @@ public final class TempFile {
     public static void remove(File f) {
         f.delete();
     }
-//    public static Random r = new Random();
 
     public static File createFile(int kiloSize) throws IOException {
         FileOutputStream fos = null;
@@ -43,7 +42,6 @@ public final class TempFile {
 
     public static byte[] getByte(int len) {
         byte[] b = new byte[len];
-//        r.nextBytes(b);
         b[0] = 'A';
         for (int i = 1; i < len; i++) {
             b[i] = 'b';

@@ -26,15 +26,7 @@ import java.util.concurrent.TimeUnit;
  * Created by Simon on 2015/4/15.
  */
 public class CancelTest extends InstrumentationTestCase {
-
-    private final CountDownLatch signal = new CountDownLatch(1);
-    private final CountDownLatch signal2 = new CountDownLatch(1);
-    private volatile boolean cancelled;
-    private volatile boolean failed;
     private volatile UploadManager uploadManager;
-    private volatile String key;
-    private volatile ResponseInfo info = null;
-    private volatile JSONObject resp;
     private volatile UploadOptions options;
 
     @Override
@@ -46,60 +38,56 @@ public class CancelTest extends InstrumentationTestCase {
         ACollectUploadInfoTest.testInit();
     }
 
-    public void test400k() throws Throwable {
-        templateFile(400, 0.2);
+
+    public void testFile() throws Throwable {
+        Temp[] ts = new Temp[]{templateFile(400, 0.2), templateFile(700, 0.2), templateFile(1024, 0.51), templateFile(4 * 1024, 0.5), templateFile(8 * 1024 + 1, 0.6)};
+        checkTemp(ts, "testFile");
     }
 
-    public void test700k() throws Throwable {
-        templateFile(700, 0.2);
+    public void testData() throws Throwable {
+        Temp[] ts = new Temp[]{templateData(400, 0.2), templateData(700, 0.2), templateData(1024, 0.51), templateData(4 * 1024 + 785, 0.5), templateData(4 * 1024, 0.5), templateData(8 * 1024, 0.6)};
+        checkTemp(ts, "testData");
     }
 
-    public void test1M() throws Throwable {
-        templateFile(1024, 0.51);
+    private void checkTemp(Temp[] ts, String type) {
+        int failedCount = 0;
+        Temp tt = null;
+
+        for (int i = 0; i < ts.length; i++) {
+            Temp t = ts[i];
+            boolean b = t.expectKey.equals(t.key) && t.info.isCancelled() && (t.resp == null);
+            if (!b) {
+                tt = t;
+                failedCount++;
+            }
+        }
+
+        Log.d("qiniu_cancel", type + "   " + failedCount);
+        if (failedCount > ts.length / 2) {
+            String info = type + ": 共 " + ts.length + "个测试，至多允许 " + ts.length / 2 + " 失败，实际失败 " + failedCount + " 个： " + tt.info.toString();
+            Assert.assertEquals(info, tt.expectKey, tt.key);
+            Assert.assertTrue(info, tt.info.isCancelled());
+            Assert.assertNull(info, tt.resp);
+        }
     }
 
-    public void test4M() throws Throwable {
-        templateFile(4 * 1024, 0.8);
-    }
 
-    public void test8M1K() throws Throwable {
-        templateFile(8 * 1024 + 1, 0.6);
-    }
-
-//    public void testD400k() throws Throwable {
-//        templateData(400, 0.2);
-//    }
-
-    public void testD700k() throws Throwable {
-        templateData(700, 0.2);
-    }
-
-    public void testD1M() throws Throwable {
-        templateData(1024, 0.51);
-    }
-
-    public void testD4M() throws Throwable {
-        templateData(4 * 1024 + 589, 0.6);
-    }
-
-    public void testD8M() throws Throwable {
-        templateData(8 * 1024 + 351, 0.3);
-    }
-
-    private void templateFile(final int size, final double pos) throws Throwable {
+    private Temp templateFile(final int size, final double pos) throws Throwable {
+        final CountDownLatch signal = new CountDownLatch(1);
         final File tempFile = TempFile.createFile(size);
         final String expectKey = "file_" + UUID.randomUUID().toString();
-        cancelled = false;
-        failed = false;
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:a", "test");
         params.put("x:b", "test2");
+
+        final Temp temp = new Temp();
+        temp.cancelled = false;
 
         Thread t = new Thread() {
             public void run() {
                 try {
                     Thread.sleep(8 * 60 * 1000);
-                    cancelled = true;
+                    temp.cancelled = true;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -112,23 +100,24 @@ public class CancelTest extends InstrumentationTestCase {
             @Override
             public void progress(String key, double percent) {
                 if (percent >= pos) {
-                    cancelled = true;
+                    temp.cancelled = true;
                 }
                 Log.i("qiniutest", pos + ": progress " + percent);
             }
         }, new UpCancellationSignal() {
             @Override
             public boolean isCancelled() {
-                return cancelled;
+                return temp.cancelled;
             }
         });
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
                 uploadManager.put(tempFile, expectKey, TestConfig.token, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        key = k;
-                        info = rinfo;
-                        resp = response;
+                        temp.expectKey = expectKey;
+                        temp.key = k;
+                        temp.info = rinfo;
+                        temp.resp = response;
                         signal.countDown();
                         Log.i("qiniutest", k + rinfo);
                     }
@@ -138,34 +127,34 @@ public class CancelTest extends InstrumentationTestCase {
 
         try {
             signal.await(570, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
+            Assert.assertNotNull("timeout", temp.info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isCancelled());
-        Assert.assertNull(resp);
-
         TempFile.remove(tempFile);
 
         ACollectUploadInfoTest.recordFileTest();
+
+        return temp;
     }
 
-    private void templateData(final int size, final double pos) throws Throwable {
+    private Temp templateData(final int size, final double pos) throws Throwable {
+        final CountDownLatch signal = new CountDownLatch(1);
         final byte[] tempDate = TempFile.getByte(1024 * size);
         final String expectKey = "data_" + UUID.randomUUID().toString();
-        cancelled = false;
-        failed = false;
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:a", "test");
         params.put("x:b", "test2");
+
+        final Temp temp = new Temp();
+        temp.cancelled = false;
 
         Thread t = new Thread() {
             public void run() {
                 try {
                     Thread.sleep(8 * 60 * 1000);
-                    cancelled = true;
+                    temp.cancelled = true;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -178,23 +167,24 @@ public class CancelTest extends InstrumentationTestCase {
             @Override
             public void progress(String key, double percent) {
                 if (percent >= pos) {
-                    cancelled = true;
+                    temp.cancelled = true;
                 }
                 Log.i("qiniutest", pos + ": progress " + percent);
             }
         }, new UpCancellationSignal() {
             @Override
             public boolean isCancelled() {
-                return cancelled;
+                return temp.cancelled;
             }
         });
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
                 uploadManager.put(tempDate, expectKey, TestConfig.token, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        key = k;
-                        info = rinfo;
-                        resp = response;
+                        temp.expectKey = expectKey;
+                        temp.key = k;
+                        temp.info = rinfo;
+                        temp.resp = response;
                         signal.countDown();
                         Log.i("qiniutest", k + rinfo);
                     }
@@ -204,16 +194,21 @@ public class CancelTest extends InstrumentationTestCase {
 
         try {
             signal.await(570, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
+            Assert.assertNotNull("timeout", temp.info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isCancelled());
-        Assert.assertNull(resp);
-
         ACollectUploadInfoTest.recordFileTest();
+
+        return temp;
     }
 
+    private static class Temp {
+        volatile ResponseInfo info;
+        volatile JSONObject resp;
+        volatile String key;
+        volatile String expectKey;
+        volatile boolean cancelled;
+    }
 }
