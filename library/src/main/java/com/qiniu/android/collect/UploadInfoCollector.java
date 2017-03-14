@@ -1,5 +1,6 @@
 package com.qiniu.android.collect;
 
+
 import com.qiniu.android.http.UserAgent;
 import com.qiniu.android.storage.UpToken;
 
@@ -26,28 +27,40 @@ public class UploadInfoCollector {
     /**
      * 单线程任务队列
      */
-    private ExecutorService singleServer = null;
-    private final String recordFileName = "_qiniu_record_file_hu3z9lo7anx03";
+    private static ExecutorService singleServer = null;
+    private static OkHttpClient httpClient = null;
+
+    private final String serverURL;
+    private final String recordFileName;
     private File recordFile = null;
     private long lastUpload;// milliseconds
-    private OkHttpClient httpClient = null;
 
-    private static UploadInfoCollector collector;
+    private static UploadInfoCollector httpCollector;
+    private static UploadInfoCollector uploadCollector;
 
-
-    private UploadInfoCollector() {
-        try {
-            reset0();
-        } catch (IOException e) {
-            e.printStackTrace();
+    private static UploadInfoCollector getHttpCollector() {
+        if (httpCollector == null) {
+            httpCollector = new UploadInfoCollector("_qiniu_record_file_hu3z9lo7anx03", Config.serverURL);
         }
+        return httpCollector;
     }
 
-    private static UploadInfoCollector getCollector() {
-        if (collector == null) {
-            collector = new UploadInfoCollector();
+    private static UploadInfoCollector getUploadCollector() {
+        if (uploadCollector == null) {
+            uploadCollector = new UploadInfoCollector("_qiniu_record_file_upm6xola4sk3", Config.serverURL2);
         }
-        return collector;
+        return uploadCollector;
+    }
+
+
+    private UploadInfoCollector(String recordFileName, String serverURL) {
+        this.recordFileName = recordFileName;
+        this.serverURL = serverURL;
+        try {
+            reset0();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -57,16 +70,6 @@ public class UploadInfoCollector {
      */
     public static void clean() {
         try {
-            getCollector().clean0();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        collector = null;
-    }
-
-
-    private void clean0() {
-        try {
             if (singleServer != null) {
                 singleServer.shutdown();
             }
@@ -75,7 +78,23 @@ public class UploadInfoCollector {
         }
         singleServer = null;
         httpClient = null;
+        try {
+            getHttpCollector().clean0();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        httpCollector = null;
+        try {
+            getUploadCollector().clean0();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        uploadCollector = null;
 
+    }
+
+
+    private void clean0() {
         try {
             if (recordFile != null) {
                 recordFile.delete();
@@ -86,7 +105,6 @@ public class UploadInfoCollector {
             // do nothing
         }
         recordFile = null;
-
     }
 
     /**
@@ -97,7 +115,12 @@ public class UploadInfoCollector {
      */
     public static void reset() {
         try {
-            getCollector().reset0();
+            getHttpCollector().reset0();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            getUploadCollector().reset0();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -139,10 +162,20 @@ public class UploadInfoCollector {
     }
 
 
-    public static void handle(final UpToken upToken, final RecordMsg record) {
+    public static void handleHttp(final UpToken upToken, final RecordMsg record) {
         try {
             if (Config.isRecord) {
-                getCollector().handle0(upToken, record);
+                getHttpCollector().handle0(upToken, record);
+            }
+        } catch (Throwable t) {
+            // do nothing
+        }
+    }
+
+    public static void handleUpload(final UpToken upToken, final RecordMsg record) {
+        try {
+            if (Config.isRecord) {
+                getUploadCollector().handle0(upToken, record);
             }
         } catch (Throwable t) {
             // do nothing
@@ -156,7 +189,7 @@ public class UploadInfoCollector {
                 public void run() {
                     if (Config.isRecord) {
                         try {
-                            tryRecode(record.toRecordMsg());
+                            tryRecode(record.toRecordMsg(), recordFile);
                         } catch (Throwable t) {
                             // do nothing
                         }
@@ -172,7 +205,7 @@ public class UploadInfoCollector {
                     public void run() {
                         if (Config.isRecord && Config.isUpload) {
                             try {
-                                tryUploadAndClean(upToken);
+                                tryUploadAndClean(upToken, recordFile);
                             } catch (Throwable t) {
                                 // do nothing
                             }
@@ -185,21 +218,21 @@ public class UploadInfoCollector {
     }
 
 
-    private void tryRecode(String msg) {
+    private void tryRecode(String msg, File recordFile) {
         if (Config.isRecord && recordFile.length() < Config.maxRecordFileSize) {
             // 追加到文件尾部并换行
             writeToFile(recordFile, msg + "\n", true);
         }
     }
 
-    private void tryUploadAndClean(final UpToken upToken) {
+    private void tryUploadAndClean(final UpToken upToken, File recordFile) {
         if (Config.isUpload && recordFile.length() > Config.uploadThreshold) {
             long now = new Date().getTime();
             // Config.interval 单位为：分钟
             if (now > (lastUpload + Config.interval * 60 * 1000)) {
                 lastUpload = now;
                 //同步上传
-                boolean success = upload(upToken);
+                boolean success = upload(upToken, recordFile);
                 if (success) {
                     // 记录文件重置为空
                     writeToFile(recordFile, "", false);
@@ -231,9 +264,8 @@ public class UploadInfoCollector {
     }
 
     //同步上传
-    private boolean upload(final UpToken upToken) {
+    private boolean upload(final UpToken upToken, File recordFile) {
         try {
-            String serverURL = Config.serverURL;
             OkHttpClient client = getHttpClient();
             RequestBody reqBody = RequestBody.create(MediaType.parse("text/plain"), recordFile);
             Request request = new Request.Builder().url(serverURL).
@@ -241,7 +273,15 @@ public class UploadInfoCollector {
                     addHeader("User-Agent", UserAgent.instance().getUa(upToken.accessKey)).
                     post(reqBody).build();
             Response res = client.newCall(request).execute();
-            return isOk(res);
+            try {
+                return isOk(res);
+            } finally {
+                try {
+                    res.body().close();
+                } catch (Exception e) {
+
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -254,7 +294,7 @@ public class UploadInfoCollector {
     }
 
 
-    private OkHttpClient getHttpClient() {
+    private static OkHttpClient getHttpClient() {
         if (httpClient == null) {
             OkHttpClient.Builder builder = new OkHttpClient.Builder();
             builder.connectTimeout(10, TimeUnit.SECONDS);

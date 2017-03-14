@@ -20,7 +20,7 @@ import java.util.Queue;
  * Created by Simon on 12/6/16.
  */
 
-public class ACollectUploadInfoTest extends AndroidTestCase {
+public class ACollectUploadInfoUpTest extends AndroidTestCase {
 
     private static long recordFileLastModified = 337l;
     private static Queue<Long> queue = new LinkedList<Long>() {{
@@ -50,7 +50,7 @@ public class ACollectUploadInfoTest extends AndroidTestCase {
         }
         recordFileLastModified = recordFile.lastModified();
 
-        int log = "200,CwIAAF4znMnpno0U,up.qiniu.com,183.131.7.18,80,383.0,1481014578,262144\n".length();
+        int log = "200,CwIAAF4znMnpno0U,up.qiniu.com,183.131.7.18,80,383.0,1481014578,262144,form\n".length();
 
         long fileSize = recordFile.length();
         putRecordFileSize(fileSize);
@@ -106,7 +106,7 @@ public class ACollectUploadInfoTest extends AndroidTestCase {
     }
 
     public static File getRecordFile() {
-        String recordFileName = "_qiniu_record_file_hu3z9lo7anx03";
+        String recordFileName = "_qiniu_record_file_upm6xola4sk3";
         File recordFile = new File(Config.recordDir, recordFileName);
         return recordFile;
     }
@@ -114,7 +114,6 @@ public class ACollectUploadInfoTest extends AndroidTestCase {
     public static void recordFileTest() {
 //        showRecordInfo();
         recordFile();
-        ACollectUploadInfoUpTest.recordFileTest();
     }
 
     public static void showRecordInfo() {
