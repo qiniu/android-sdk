@@ -35,29 +35,33 @@ public final class UserAgent {
     }
 
     private static String getUserAgent(String id) {
-        try {
-            return format("QiniuAndroid/%s (%s; %s; %s", Constants.VERSION,
-                    osVersion(), device(), id);
-        } catch (Exception e) {
-            return format("QiniuAndroid/%s (%s", Constants.VERSION, id);
-        }
+        return format("QiniuAndroid/%s (%s; %s; %s", Constants.VERSION,
+                osVersion(), device(), id);
     }
 
     private static String osVersion() {
-        String v = android.os.Build.VERSION.RELEASE;
-        if (v == null) {
-            return "";
+        try {
+            String v = android.os.Build.VERSION.RELEASE;
+            if (v == null) {
+                return "-";
+            }
+            return StringUtils.strip(v.trim());
+        } catch (Throwable t) {
+            return "-";
         }
-        return StringUtils.strip(v.trim());
     }
 
     private static String device() {
-        String model = Build.MODEL.trim();
-        String device = deviceName(Build.MANUFACTURER.trim(), model);
-        if (TextUtils.isEmpty(device)) {
-            device = deviceName(Build.BRAND.trim(), model);
+        try {
+            String model = Build.MODEL.trim();
+            String device = deviceName(Build.MANUFACTURER.trim(), model);
+            if (TextUtils.isEmpty(device)) {
+                device = deviceName(Build.BRAND.trim(), model);
+            }
+            return StringUtils.strip((device == null ? "-" : device) + "-" + model);
+        } catch (Throwable t) {
+            return "-";
         }
-        return StringUtils.strip((device == null ? "" : device) + "-" + model);
     }
 
     private static String deviceName(String manufacturer, String model) {
