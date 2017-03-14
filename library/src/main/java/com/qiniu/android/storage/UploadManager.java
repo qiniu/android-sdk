@@ -272,7 +272,12 @@ public final class UploadManager {
             AsyncRun.runInMain(new Runnable() {
                 @Override
                 public void run() {
-                    complete.complete(key, res, response);
+                    try {
+                        complete.complete(key, res, response);
+                    } catch (Throwable t) {
+                        // do nothing
+                        t.printStackTrace();
+                    }
                 }
             });
         }
