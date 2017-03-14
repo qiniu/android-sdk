@@ -11,7 +11,7 @@ public abstract class Zone {
      * 华东机房, http
      */
     public static final Zone zone0 =
-            createZone("upload.qiniu.com", "up.qiniu.com", "183.136.139.10", "115.231.182.136");
+            createZone("upload.qbox.me", "up.qbox.me", "183.136.139.10", "115.231.182.136");
 
     /**
      * 华北机房, http
