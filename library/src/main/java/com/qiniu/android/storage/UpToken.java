@@ -10,11 +10,15 @@ import org.json.JSONObject;
  */
 public final class UpToken {
     public final String token;
+    public final String accessKey;
     private String returnUrl = null;
 
-    private UpToken(JSONObject obj, String token) {
-        returnUrl = obj.optString("returnUrl");
+    public static UpToken NULL = new UpToken("", "", "");
+
+    private UpToken(String returnUrl, String token, String accessKey) {
+        this.returnUrl = returnUrl;
         this.token = token;
+        this.accessKey = accessKey;
     }
 
     public static UpToken parse(String token) {
@@ -22,28 +26,28 @@ public final class UpToken {
         try {
             t = token.split(":");
         } catch (Exception e) {
-            return null;
+            return NULL;
         }
         if (t.length != 3) {
-            return null;
+            return NULL;
         }
         byte[] dtoken = UrlSafeBase64.decode(t[2]);
         JSONObject obj;
         try {
             obj = new JSONObject(new String(dtoken));
         } catch (JSONException e) {
-            return null;
+            return NULL;
         }
         String scope = obj.optString("scope");
         if (scope.equals("")) {
-            return null;
+            return NULL;
         }
 
         int deadline = obj.optInt("deadline");
         if (deadline == 0) {
-            return null;
+            return NULL;
         }
-        return new UpToken(obj, token);
+        return new UpToken(obj.optString("returnUrl"), token, t[0]);
     }
 
     public String toString() {

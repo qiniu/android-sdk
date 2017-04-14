@@ -1,12 +1,13 @@
 package com.qiniu.android.storage;
 
 
+import com.qiniu.android.common.Zone;
 import com.qiniu.android.dns.DnsManager;
 import com.qiniu.android.dns.IResolver;
 import com.qiniu.android.dns.NetworkInfo;
 import com.qiniu.android.dns.local.AndroidDnsServer;
 import com.qiniu.android.dns.local.Resolver;
-import com.qiniu.android.http.Proxy;
+import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.UrlConverter;
 
 import java.io.File;
@@ -20,31 +21,10 @@ public final class Configuration {
      */
     public static final int BLOCK_SIZE = 4 * 1024 * 1024;
 
-    /**
-     * 默认上传服务器
-     */
-    public final String upHost;
-
-    /**
-     * 备用上传服务器，当默认服务器网络连接失败时使用
-     */
-    public final String upHostBackup;
-
-    /**
-     * 备用上传服务器Ip，当默认服务器域名解析失败时使用
-     */
-    public final String upIp;
-    public final String upIp2;
-
-    /**
-     * 指定上传端口
-     */
-    public final int upPort;
-
     public final Recorder recorder;
     public final KeyGenerator keyGen;
 
-    public final Proxy proxy;
+    public final ProxyConfiguration proxy;
 
     /**
      * 断点上传时的分片大小(可根据网络情况适当调整)
@@ -76,15 +56,17 @@ public final class Configuration {
      */
     public UrlConverter urlConverter;
 
+    /**
+     * dns 解析客户端
+     */
     public DnsManager dns;
 
-    private Configuration(Builder builder) {
-        upHost = builder.upHost;
-        upHostBackup = builder.upHostBackup;
-        upIp = builder.upIp;
-        upIp2 = builder.upIp2;
-        upPort = getPort(builder);
+    /**
+     * 上传区域
+     */
+    public Zone zone;
 
+    private Configuration(Builder builder) {
         chunkSize = builder.chunkSize;
         putThreshold = builder.putThreshold;
 
@@ -100,33 +82,17 @@ public final class Configuration {
 
         urlConverter = builder.urlConverter;
 
+        zone = builder.zone == null ? Zone.zone0 : builder.zone;
         dns = initDns(builder);
     }
 
     private static DnsManager initDns(Builder builder) {
         DnsManager d = builder.dns;
-        if (d == null) {
-            IResolver r1 = AndroidDnsServer.defaultResolver();
-            IResolver r2 = null;
-            try {
-                r2 = new Resolver(InetAddress.getByName("223.6.6.6"));
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            d = new DnsManager(NetworkInfo.normal, new IResolver[]{r1, r2});
+        if (d != null) {
+            Zone.addDnsIp(d);
         }
-        d.putHosts("upload.qiniu.com", builder.upIp);
-        d.putHosts("upload.qiniu.com", builder.upIp2);
-        d.putHosts("up.qiniu.com", builder.upIp);
-        d.putHosts("up.qiniu.com", builder.upIp2);
-        return d;
-    }
 
-    private static int getPort(Builder builder) {
-        if (builder.urlConverter != null) {
-            return 80;
-        }
-        return builder.upPort;
+        return d;
     }
 
     private KeyGenerator getKeyGen(KeyGenerator keyGen) {
@@ -142,36 +108,32 @@ public final class Configuration {
     }
 
     public static class Builder {
-        private String upHost;
-        private String upHostBackup;
-        private String upIp;
-        private String upIp2;
-        private int upPort;
-
+        private Zone zone = null;
         private Recorder recorder = null;
         private KeyGenerator keyGen = null;
-        private Proxy proxy = null;
+        private ProxyConfiguration proxy = null;
 
         private int chunkSize = 256 * 1024;
         private int putThreshold = 512 * 1024;
         private int connectTimeout = 10;
         private int responseTimeout = 60;
-        private int retryMax = 5;
+        private int retryMax = 3;
         private UrlConverter urlConverter = null;
         private DnsManager dns = null;
 
         public Builder() {
-            this.upHost = Zone.zone0.upHost;
-            this.upHostBackup = Zone.zone0.upHostBackup;
-            this.upIp = Zone.zone0.upIp;
-            this.upIp2 = Zone.zone0.upIp2;
-            this.upPort = 8888;
+            IResolver r1 = AndroidDnsServer.defaultResolver();
+            IResolver r2 = null;
+            try {
+                r2 = new Resolver(InetAddress.getByName("119.29.29.29"));
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+            dns = new DnsManager(NetworkInfo.normal, new IResolver[]{r1, r2});
         }
 
         public Builder zone(Zone zone) {
-            this.upHost = zone.upHost;
-            this.upHostBackup = zone.upHostBackup;
-            this.upIp = zone.upIp;
+            this.zone = zone;
             return this;
         }
 
@@ -186,12 +148,7 @@ public final class Configuration {
             return this;
         }
 
-        public Builder upPort(int port) {
-            upPort = port;
-            return this;
-        }
-
-        public Builder proxy(Proxy proxy) {
+        public Builder proxy(ProxyConfiguration proxy) {
             this.proxy = proxy;
             return this;
         }

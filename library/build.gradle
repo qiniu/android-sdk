@@ -20,25 +20,28 @@ String version = versionName()
 int code = versionNameToCode(version)
 
 android {
-    compileSdkVersion 22
-    buildToolsVersion '22.0.1'
+    compileSdkVersion 24
+    buildToolsVersion '24.0.2'
     defaultConfig {
         //applicationId "com.qiniu.android"
-        minSdkVersion 8
-        targetSdkVersion 22
+        minSdkVersion 9
+        targetSdkVersion 24
         versionCode code
         versionName version
+    }
+
+    lintOptions {
+        warning 'InvalidPackage'
     }
 }
 
 dependencies {
-    compile 'com.loopj.android:android-async-http:1.4.+'
-    compile 'com.qiniu:happy-dns:0.2.+'
-//    compile 'com.android.support:appcompat-v7:21.0.3'
+    compile 'com.squareup.okhttp3:okhttp:3.2.0'
+    compile 'com.qiniu:happy-dns:0.2.7'
     compile fileTree(include: ['*.jar'], dir: 'libs')
 }
 
-task releaseJar(type:Jar, dependsOn: 'build') {
+task releaseJar(type: Jar, dependsOn: 'build') {
     //指定生成的jar名
     baseName 'qiniu-android-sdk-' + version
     //从哪里打包class文件
@@ -48,7 +51,7 @@ task releaseJar(type:Jar, dependsOn: 'build') {
     //去掉不需要打包的目录和文件
     exclude('test/', 'BuildConfig.class', 'R.class')
     //去掉R$开头的文件
-    exclude{ it.name.startsWith('R$');}
+    exclude { it.name.startsWith('R$'); }
 }
 
 android.libraryVariants.all { variant ->
@@ -56,7 +59,7 @@ android.libraryVariants.all { variant ->
     def task = project.tasks.create "jar${name.capitalize()}", Jar
     task.dependsOn variant.javaCompile
     task.from variant.javaCompile.destinationDir
-    task.exclude '**/R.*',  '**/R$*.*', '**/BuildConfig.class'
+    task.exclude '**/R.*', '**/R$*.*', '**/BuildConfig.class'
     artifacts.add('archives', task);
 }
 

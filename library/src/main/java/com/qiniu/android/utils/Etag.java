@@ -81,7 +81,7 @@ public final class Etag {
             return "Fto5o-5ea0sNMlW_75VgGJCv2AcJ";
         }
         byte[] buffer = new byte[64 * 1024];
-        byte[][] blocks = new byte[(int) (len + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE][];
+        byte[][] blocks = new byte[(int) ((len + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE)][];
         for (int i = 0; i < blocks.length; i++) {
             long left = len - (long) Configuration.BLOCK_SIZE * i;
             long read = left > Configuration.BLOCK_SIZE ? Configuration.BLOCK_SIZE : left;
