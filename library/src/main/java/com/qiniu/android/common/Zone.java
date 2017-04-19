@@ -1,5 +1,7 @@
 package com.qiniu.android.common;
 
+import java.net.URI;
+
 /**
  * Created by bailong on 15/10/10.
  */
@@ -7,15 +9,16 @@ public abstract class Zone {
     /**
      * 获取上传域名
      */
-    protected synchronized String upHost(ZoneInfo zoneInfo, boolean useHttps, String frozenDomain) {
+    protected synchronized String upHost(ZoneInfo zoneInfo, boolean useHttps, String lastUpHost) {
         String upHost = null;
         String upDomain = null;
 
-        //frozen domain
-        if(frozenDomain!=null) {
+        if (lastUpHost != null) {
+            URI uri = URI.create(lastUpHost);
+            //frozen domain
+            String frozenDomain = uri.getHost();
             zoneInfo.frozenDomain(frozenDomain);
         }
-
         //get backup domain
         for (int index = 0; index < zoneInfo.upDomainsList.size(); index++) {
             String domain = zoneInfo.upDomainsList.get(index);
