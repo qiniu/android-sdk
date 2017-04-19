@@ -6,7 +6,6 @@ import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
 import com.qiniu.android.common.FixedZone;
-import com.qiniu.android.common.ServiceAddress;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
@@ -16,6 +15,7 @@ import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.Etag;
 
 import junit.framework.Assert;
+import junit.framework.TestCase;
 
 import org.json.JSONObject;
 
@@ -338,117 +338,6 @@ public class FormUploadTest extends InstrumentationTestCase {
         Assert.assertEquals("no UpCompletionHandler", error.getMessage());
     }
 
-    @SmallTest
-    public void testIpBack() throws Throwable {
-        ServiceAddress s = new ServiceAddress("http://upwelcome.qiniu.com", Zone.zone0.upHost("").backupIps);
-        Zone z = new FixedZone(s, Zone.zone0.upHostBackup(""));
-        Configuration c = new Configuration.Builder()
-                .zone(z)
-                .build();
-
-        UploadManager uploadManager2 = new UploadManager(c);
-        final String expectKey = "你好;\"\r\n\r\n\r\n";
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "fooval");
-        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-
-        uploadManager2.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest", k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
-                signal.countDown();
-            }
-        }, opt);
-
-
-        try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isOK());
-        Assert.assertNotNull(info.reqId);
-        Assert.assertNotNull(resp);
-    }
-
-    @SmallTest
-    public void testPortBackup() throws Throwable {
-        ServiceAddress s = new ServiceAddress("http://upload.qiniu.com:9999", null);
-        Zone z = new FixedZone(s, Zone.zone0.upHostBackup(""));
-        Configuration c = new Configuration.Builder()
-                .zone(z)
-                .build();
-        UploadManager uploadManager2 = new UploadManager(c);
-        final String expectKey = "你好;\"\r\n\r\n\r\n";
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "fooval");
-        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-
-        uploadManager2.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest", k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
-                signal.countDown();
-            }
-        }, opt);
-
-
-        try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isOK());
-        Assert.assertNotNull(info.reqId);
-        Assert.assertNotNull(resp);
-    }
-
-    @SmallTest
-    public void testDnsHijacking() throws Throwable {
-        ServiceAddress s = new ServiceAddress("http://uphijacktest.qiniu.com", Zone.zone0.upHost("").backupIps);
-        Zone z = new FixedZone(s, Zone.zone0.upHostBackup(""));
-        Configuration c = new Configuration.Builder()
-                .zone(z)
-                .build();
-        UploadManager uploadManager2 = new UploadManager(c);
-        final String expectKey = "你好;\"\r\n\r\n\r\n";
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "fooval");
-        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-
-        uploadManager2.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest", k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
-                signal.countDown();
-            }
-        }, opt);
-
-
-        try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isOK());
-        Assert.assertNotNull(info.reqId);
-        Assert.assertNotNull(resp);
-    }
 
     @SmallTest
     public void testHttps() throws Throwable {
@@ -457,10 +346,10 @@ public class FormUploadTest extends InstrumentationTestCase {
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        ServiceAddress s = new ServiceAddress("https://up.qbox.me", null);
-        Zone z = new FixedZone(s, Zone.zone0.upHostBackup(""));
+        Zone z =  FixedZone.zone0;
         Configuration c = new Configuration.Builder()
                 .zone(z)
+                //.useHttps(true)
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
         uploadManager2.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
@@ -472,7 +361,6 @@ public class FormUploadTest extends InstrumentationTestCase {
                 signal.countDown();
             }
         }, opt);
-
 
         try {
             signal.await(120, TimeUnit.SECONDS); // wait for callback

@@ -6,7 +6,6 @@ import android.test.suitebuilder.annotation.MediumTest;
 import android.util.Log;
 
 import com.qiniu.android.common.FixedZone;
-import com.qiniu.android.common.ServiceAddress;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
@@ -76,8 +75,8 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     private void template2(int size) throws Throwable {
         final String expectKey = "r=" + size + "k";
         final File f = TempFile.createFile(size);
-        ServiceAddress s = new ServiceAddress("https://up.qbox.me", null);
-        Zone z = new FixedZone(s, Zone.zone0.upHostBackup(""));
+        String[] s = new String[]{"up.qbox.me"};
+        Zone z = new FixedZone(s);
         Configuration c = new Configuration.Builder()
                 .zone(z)
                 .build();
@@ -121,8 +120,8 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         final String expectKey = "r=" + size + "k";
         final File f = TempFile.createFile(size);
 
-        ServiceAddress s = new ServiceAddress("http://uphijacktest.qiniu.com", Zone.zone0.upHost("").backupIps);
-        Zone z = new FixedZone(s, Zone.zone0.upHostBackup(""));
+        String[] s = new String[]{"http://uphijacktest.qiniu.com"};
+        Zone z = new FixedZone(s);
         Configuration c = new Configuration.Builder()
                 .zone(z)
                 .build();

@@ -1,74 +1,57 @@
 package com.qiniu.android.common;
 
-import com.qiniu.android.dns.DnsManager;
-
 /**
  * Created by bailong on 15/10/10.
  */
 public abstract class Zone {
-
     /**
-     * 华东机房, http
+     * 获取上传域名
      */
-    public static final Zone zone0 =
-            createZone("upload.qiniu.com", "up.qiniu.com", "183.136.139.10", "115.231.182.136");
+    protected synchronized String upHost(ZoneInfo zoneInfo, boolean useHttps, String frozenDomain) {
+        String upHost = null;
+        String upDomain = null;
 
-    /**
-     * 华北机房, http
-     */
-    public static final Zone zone1 =
-            createZone("upload-z1.qiniu.com", "up-z1.qiniu.com", "106.38.227.27", "106.38.227.28");
+        //frozen domain
+        if(frozenDomain!=null) {
+            zoneInfo.frozenDomain(frozenDomain);
+        }
 
-    /**
-     * 华南机房, http
-     */
-    public static final Zone zone2 =
-            createZone("upload-z2.qiniu.com", "up-z2.qiniu.com", "183.60.214.197", "14.152.37.7");
+        //get backup domain
+        for (int index = 0; index < zoneInfo.upDomainsList.size(); index++) {
+            String domain = zoneInfo.upDomainsList.get(index);
+            long frozenTill = zoneInfo.upDomainsMap.get(domain);
+            if (frozenTill == 0 || frozenTill <= System.currentTimeMillis() / 1000) {
+                upDomain = domain;
+                break;
+            }
+        }
 
-    /**
-     * 北美机房, http
-     */
-    public static final Zone zoneNa0 =
-            createZone("upload-na0.qiniu.com", "up-na0.qiniu.com", "23.236.102.3", "23.236.102.2");
+        if (upDomain != null) {
+            //reset the selected domain
+            zoneInfo.upDomainsMap.put(upDomain, 0L);
+        } else {
+            //reset the up host frozen time
+            for (String domain : zoneInfo.upDomainsList) {
+                zoneInfo.upDomainsMap.put(domain, 0L);
+            }
+            //return the first one as default
+            if (zoneInfo.upDomainsList.size() > 0) {
+                upDomain = zoneInfo.upDomainsList.get(0);
+            }
+        }
 
-    /**
-     * 自动判断机房, http
-     */
-    public static final AutoZone httpAutoZone = new AutoZone(false, null);
+        if (upDomain != null) {
+            if (useHttps) {
+                upHost = String.format("https://%s", upDomain);
+            } else {
+                upHost = String.format("http://%s", upDomain);
+            }
+        }
 
-    /**
-     * 自动判断机房, https
-     */
-    public static final AutoZone httpsAutoZone = new AutoZone(true, null);
-
-
-    private static Zone createZone(String upHost, String upHostBackup, String upIp, String upIp2) {
-        String[] upIps = {upIp, upIp2};
-        ServiceAddress up = new ServiceAddress("http://" + upHost, upIps);
-        ServiceAddress upBackup = new ServiceAddress("http://" + upHostBackup, upIps);
-        return new FixedZone(up, upBackup);
+        return upHost;
     }
 
-    public static void addDnsIp(DnsManager dns) {
-        zone0.upHost("").addIpToDns(dns);
-        zone0.upHostBackup("").addIpToDns(dns);
-
-        zone1.upHost("").addIpToDns(dns);
-        zone1.upHostBackup("").addIpToDns(dns);
-
-        zone2.upHost("").addIpToDns(dns);
-        zone2.upHostBackup("").addIpToDns(dns);
-    }
-
-    /**
-     * 默认上传服务器
-     */
-    public abstract ServiceAddress upHost(String token);
-
-    /**
-     * 备用上传服务器，当默认服务器网络连接失败时使用
-     */
-    public abstract ServiceAddress upHostBackup(String token);
+    public abstract String upHost(String upToken, boolean useHttps, String frozenDomain);
 
     public abstract void preQuery(String token, QueryHandler complete);
 
