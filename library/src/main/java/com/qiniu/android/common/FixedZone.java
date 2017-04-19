@@ -14,7 +14,7 @@ public final class FixedZone extends Zone {
      * 华东机房
      */
     public static final Zone zone0 = new FixedZone(createZoneInfo(new String[]{
-            "upload1.qiniup.com", "upload-nb.qiniup.com",
+            "upload.qiniup.com", "upload-nb.qiniup.com",
             "upload-xs.qiniup.com", "up.qiniup.com",
             "up-nb.qiniup.com", "up-xs.qiniup.com",
             "upload.qbox.me", "up.qbox.me"
@@ -47,12 +47,13 @@ public final class FixedZone extends Zone {
     }));
 
     private ZoneInfo zoneInfo;
+
     public FixedZone(ZoneInfo zoneInfo) {
         this.zoneInfo = zoneInfo;
     }
 
-    public FixedZone(String[] upDomains){
-        this.zoneInfo=createZoneInfo(upDomains);
+    public FixedZone(String[] upDomains) {
+        this.zoneInfo = createZoneInfo(upDomains);
     }
 
     private static ZoneInfo createZoneInfo(String[] upDomains) {
@@ -66,8 +67,8 @@ public final class FixedZone extends Zone {
     }
 
     @Override
-    public synchronized String upHost(String upToken, boolean useHttps,String frozenDomain) {
-        return this.upHost(this.zoneInfo, useHttps,frozenDomain);
+    public synchronized String upHost(String upToken, boolean useHttps, String frozenDomain) {
+        return this.upHost(this.zoneInfo, useHttps, frozenDomain);
     }
 
     @Override
