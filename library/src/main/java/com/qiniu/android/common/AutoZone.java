@@ -24,8 +24,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 
 public final class AutoZone extends Zone {
-    private static Map<ZoneIndex, ZoneInfo> zones = new ConcurrentHashMap<>();
-    private static Client client = new Client();
+    private Map<ZoneIndex, ZoneInfo> zones = new ConcurrentHashMap<>();
+    private Client client = new Client();
     private final String ucServer;
     /**
      * 自动判断机房
@@ -43,6 +43,11 @@ public final class AutoZone extends Zone {
     private void getZoneJsonAsync(ZoneIndex index, CompletionHandler handler) {
         String address = ucServer + "/v2/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
         client.asyncGet(address, null, UpToken.NULL, handler);
+    }
+
+    private ResponseInfo getZoneJsonSync(ZoneIndex index) {
+        String address = ucServer + "/v2/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
+        return client.syncGet(address, null);
     }
 
     // only for test public
@@ -69,6 +74,7 @@ public final class AutoZone extends Zone {
         return null;
     }
 
+    //async
     void preQueryIndex(final ZoneIndex index, final QueryHandler complete) {
         if (index == null) {
             complete.onFailure(ResponseInfo.InvalidToken);
@@ -97,6 +103,27 @@ public final class AutoZone extends Zone {
         });
     }
 
+    //sync
+    boolean preQueryIndex(final ZoneIndex index) {
+        boolean success = false;
+        if (index != null) {
+            ZoneInfo info = zones.get(index);
+            if (info != null) {
+                success = true;
+            } else {
+                try {
+                    ResponseInfo responseInfo = getZoneJsonSync(index);
+                    ZoneInfo info2 = ZoneInfo.buildFromJson(responseInfo.response);
+                    zones.put(index, info2);
+                    success = true;
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return success;
+    }
+
     @Override
     public synchronized String upHost(String token, boolean useHttps, String frozenDomain) {
         ZoneInfo info = queryByToken(token);
@@ -111,6 +138,32 @@ public final class AutoZone extends Zone {
     public void preQuery(String token, QueryHandler complete) {
         ZoneIndex index = ZoneIndex.getFromToken(token);
         preQueryIndex(index, complete);
+    }
+
+    @Override
+    public boolean preQuery(String token) {
+        ZoneIndex index = ZoneIndex.getFromToken(token);
+        return preQueryIndex(index);
+    }
+
+    @Override
+    public synchronized void frozenDomain(String upHostUrl) {
+        if (upHostUrl != null) {
+            URI uri = URI.create(upHostUrl);
+            //frozen domain
+            String frozenDomain = uri.getHost();
+            ZoneInfo zoneInfo = null;
+            for (Map.Entry<ZoneIndex, ZoneInfo> entry : this.zones.entrySet()) {
+                ZoneInfo eachZoneInfo = entry.getValue();
+                if (eachZoneInfo.upDomainsList.contains(frozenDomain)) {
+                    zoneInfo = eachZoneInfo;
+                    break;
+                }
+            }
+            if (zoneInfo != null) {
+                zoneInfo.frozenDomain(frozenDomain);
+            }
+        }
     }
 
     static class ZoneIndex {
@@ -150,5 +203,6 @@ public final class AutoZone extends Zone {
                     && ((ZoneIndex) obj).accessKey.equals(accessKey) && ((ZoneIndex) obj).bucket.equals(bucket);
         }
     }
+
 
 }

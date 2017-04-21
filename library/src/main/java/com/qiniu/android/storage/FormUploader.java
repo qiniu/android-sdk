@@ -137,13 +137,15 @@ final class FormUploader {
                                 options.progressHandler.progress(key, 1.0);
                                 completionHandler.complete(key, info, response);
                             } else if (info.needRetry() || (info.isNotQiniu() && !token.hasReturnUrl())) {
-                                String upHostRetry2 = config.zone.upHost(token.token, config.useHttps, upHostRetry);
+                                final String upHostRetry2 = config.zone.upHost(token.token, config.useHttps, upHostRetry);
                                 Log.d("Qiniu.FormUploader", "retry upload second time use up host " + upHostRetry2);
                                 CompletionHandler retried2 = new CompletionHandler() {
                                     @Override
                                     public void complete(ResponseInfo info2, JSONObject response2) {
                                         if (info2.isOK()) {
                                             options.progressHandler.progress(key, 1.0);
+                                        } else if (info2.needRetry() || (info2.isNotQiniu() && !token.hasReturnUrl())) {
+                                            config.zone.frozenDomain(upHostRetry2);
                                         }
                                         completionHandler.complete(key, info2, response2);
                                     }
@@ -240,6 +242,11 @@ final class FormUploader {
         args.mimeType = options.mimeType;
         args.params = params;
 
+        boolean success = config.zone.preQuery(token.token);
+        if (!success) {
+            return ResponseInfo.invalidToken("failed to get up host");
+        }
+
         final String upHost = config.zone.upHost(token.token, config.useHttps, null);
         Log.d("Qiniu.FormUploader", "sync upload use up host " + upHost);
         ResponseInfo info = client.syncMultipartPost(upHost, args, token);
@@ -272,7 +279,10 @@ final class FormUploader {
 
                 String upHostRetry2 = config.zone.upHost(token.token, config.useHttps, upHostRetry);
                 Log.d("Qiniu.FormUploader", "sync upload retry second time use up host " + upHostRetry2);
-                return client.syncMultipartPost(upHostRetry2, args, token);
+                info = client.syncMultipartPost(upHostRetry2, args, token);
+                if (info.needRetry() || (info.isNotQiniu() && !token.hasReturnUrl())) {
+                    config.zone.frozenDomain(upHostRetry2);
+                }
             }
         }
 

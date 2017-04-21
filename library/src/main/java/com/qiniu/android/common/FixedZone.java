@@ -1,5 +1,8 @@
 package com.qiniu.android.common;
 
+import android.util.Log;
+
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -68,11 +71,30 @@ public final class FixedZone extends Zone {
 
     @Override
     public synchronized String upHost(String upToken, boolean useHttps, String frozenDomain) {
-        return this.upHost(this.zoneInfo, useHttps, frozenDomain);
+        String upHost = this.upHost(this.zoneInfo, useHttps, frozenDomain);
+        for (Map.Entry<String, Long> entry : this.zoneInfo.upDomainsMap.entrySet()) {
+            Log.d("Qiniu.FixedZone", entry.getKey() + ", " + entry.getValue());
+        }
+        return upHost;
     }
 
     @Override
     public void preQuery(String token, QueryHandler complete) {
         complete.onSuccess();
+    }
+
+    @Override
+    public boolean preQuery(String token) {
+        return true;
+    }
+
+    @Override
+    public synchronized void frozenDomain(String upHostUrl) {
+        if (upHostUrl != null) {
+            URI uri = URI.create(upHostUrl);
+            //frozen domain
+            String frozenDomain = uri.getHost();
+            zoneInfo.frozenDomain(frozenDomain);
+        }
     }
 }

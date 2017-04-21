@@ -56,7 +56,11 @@ public abstract class Zone {
 
     public abstract String upHost(String upToken, boolean useHttps, String frozenDomain);
 
+    public abstract void frozenDomain(String upHostUrl);
+
     public abstract void preQuery(String token, QueryHandler complete);
+
+    public abstract boolean preQuery(String token);
 
     public interface QueryHandler {
         void onSuccess();
