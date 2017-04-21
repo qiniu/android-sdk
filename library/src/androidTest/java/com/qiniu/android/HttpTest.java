@@ -47,7 +47,7 @@ public class HttpTest extends InstrumentationTestCase {
     @SmallTest
     public void testPost1() throws Throwable {
         httpManager.asyncPost("http://www.baidu.com",
-                "hello".getBytes(), null, UpToken.parse(TestConfig.token), null, new CompletionHandler() {
+                "hello".getBytes(), null, UpToken.parse(TestConfig.token_z0), null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
                         Assert.assertNotNull(rinfo);
@@ -68,14 +68,15 @@ public class HttpTest extends InstrumentationTestCase {
     @SmallTest
     public void testPost2() throws Throwable {
 
-        httpManager.asyncPost("http://up.qiniu.com", "hello".getBytes(), null, UpToken.parse(TestConfig.token), null, new CompletionHandler() {
-            @Override
-            public void complete(ResponseInfo rinfo, JSONObject response) {
-                Log.d("qiniutest", rinfo.toString());
-                info = rinfo;
-                signal.countDown();
-            }
-        }, null);
+        httpManager.asyncPost("http://up.qiniu.com", "hello".getBytes(), null,
+                UpToken.parse(TestConfig.token_z0), null, new CompletionHandler() {
+                    @Override
+                    public void complete(ResponseInfo rinfo, JSONObject response) {
+                        Log.d("qiniutest", rinfo.toString());
+                        info = rinfo;
+                        signal.countDown();
+                    }
+                }, null);
 
         try {
             signal.await(60, TimeUnit.SECONDS); // wait for callback
@@ -90,7 +91,7 @@ public class HttpTest extends InstrumentationTestCase {
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
                 httpManager.asyncPost("http://httpbin.org/status/500", "hello".getBytes(),
-                        null, UpToken.parse(TestConfig.token), null, new CompletionHandler() {
+                        null, UpToken.parse(TestConfig.token_z0), null, new CompletionHandler() {
                             @Override
                             public void complete(ResponseInfo rinfo, JSONObject response) {
                                 Log.d("qiniutest", rinfo.toString());
@@ -116,7 +117,7 @@ public class HttpTest extends InstrumentationTestCase {
             public void run() {
                 httpManager.asyncPost("http://httpbin.org/status/418",
                         "hello".getBytes(),
-                        null, UpToken.parse(TestConfig.token), null, new CompletionHandler() {
+                        null, UpToken.parse(TestConfig.token_z0), null, new CompletionHandler() {
                             @Override
                             public void complete(ResponseInfo rinfo, JSONObject response) {
                                 Log.d("qiniutest", rinfo.toString());
@@ -140,7 +141,7 @@ public class HttpTest extends InstrumentationTestCase {
     public void testPostNoDomain() throws Throwable {
 
         httpManager.asyncPost("http://no-domain.qiniu.com", "hello".getBytes(),
-                null, UpToken.parse(TestConfig.token), null, new CompletionHandler() {
+                null, UpToken.parse(TestConfig.token_z0), null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
                         Log.d("qiniutest", rinfo.toString());
@@ -185,7 +186,7 @@ public class HttpTest extends InstrumentationTestCase {
     public void testPostIP() throws Throwable {
         StringMap x = new StringMap().put("Host", "www.qiniu.com");
         httpManager.asyncPost("http://183.136.139.12/", "hello".getBytes(),
-                x, UpToken.parse(TestConfig.token), null, new CompletionHandler() {
+                x, UpToken.parse(TestConfig.token_z0), null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
                         Log.d("qiniutest", rinfo.toString());
@@ -209,7 +210,7 @@ public class HttpTest extends InstrumentationTestCase {
         ProxyConfiguration p = new ProxyConfiguration("115.231.183.168", 80);
         Client c = new Client(p, 10, 30, null, null);
         c.asyncPost("http://upproxy1.qiniu.com", "hello".getBytes(),
-                x, UpToken.parse(TestConfig.token), null, new CompletionHandler() {
+                x, UpToken.parse(TestConfig.token_z0), null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
                         Log.d("qiniutest", rinfo.toString());

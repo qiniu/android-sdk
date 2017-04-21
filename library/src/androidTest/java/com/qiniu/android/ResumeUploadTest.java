@@ -40,7 +40,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         final File f = TempFile.createFile(size);
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(f, expectKey, TestConfig.token, new UpCompletionHandler() {
+                uploadManager.put(f, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         Log.i("qiniutest", k + rinfo);
                         key = k;
@@ -81,7 +81,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
                 .zone(z)
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
-        uploadManager2.put(f, expectKey, TestConfig.token, new UpCompletionHandler() {
+        uploadManager2.put(f, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                 Log.i("qiniutest", k + rinfo);
                 key = k;
@@ -116,45 +116,6 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         ACollectUploadInfoTest.recordFileTest();
     }
 
-    private void templateHijack(int size) throws Throwable {
-        final String expectKey = "r=" + size + "k";
-        final File f = TempFile.createFile(size);
-
-        String[] s = new String[]{"http://uphijacktest.qiniu.com"};
-        Zone z = new FixedZone(s);
-        Configuration c = new Configuration.Builder()
-                .zone(z)
-                .build();
-        UploadManager uploadManager = new UploadManager(c);
-
-        uploadManager.put(f, expectKey, TestConfig.token, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest", k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
-                signal.countDown();
-            }
-        }, null);
-
-        try {
-            signal.await(500, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        Assert.assertEquals(info.toString(), expectKey, key);
-
-        Assert.assertTrue(info.toString(), info.isOK());
-
-        Assert.assertEquals(expectKey, key);
-        Assert.assertTrue(info.isOK());
-        Assert.assertNotNull(info.reqId);
-        Assert.assertNotNull(resp);
-        TempFile.remove(f);
-    }
-
     @MediumTest
     public void test600k() throws Throwable {
         template(600);
@@ -174,12 +135,6 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     public void test4M() throws Throwable {
         template(1024 * 4);
     }
-
-    @LargeTest
-    public void test2MHijack() throws Throwable {
-        templateHijack(1024 * 2);
-    }
-
 
 //    @LargeTest
 //    public void test8M1k() throws Throwable{

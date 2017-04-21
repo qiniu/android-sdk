@@ -37,7 +37,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
         byte[] b = "hello".getBytes();
-        info = uploadManager.syncPut(b, expectKey, TestConfig.token, opt);
+        info = uploadManager.syncPut(b, expectKey, TestConfig.token_z0, opt);
         resp = info.response;
 
         Assert.assertTrue(info.toString(), info.isOK());
@@ -56,7 +56,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
 
-        info = uploadManager.syncPut("".getBytes(), expectKey, TestConfig.token, opt);
+        info = uploadManager.syncPut("".getBytes(), expectKey, TestConfig.token_z0, opt);
         resp = info.response;
 
 //        key = resp.optString("key");
@@ -73,7 +73,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        info = uploadManager.syncPut("hello".getBytes(), expectKey, TestConfig.token, opt);
+        info = uploadManager.syncPut("hello".getBytes(), expectKey, TestConfig.token_z0, opt);
 
         resp = info.response;
         key = resp.optString("key");
@@ -85,7 +85,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
     }
 
     @SmallTest
-    public void testInvalidToken() throws Throwable {
+    public void testInvalidtoken_z0() throws Throwable {
         final String expectKey = "你好";
         info = uploadManager.syncPut("hello".getBytes(), expectKey, "invalid", null);
 
@@ -110,7 +110,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
     }
 
     @SmallTest
-    public void testNoToken() throws Throwable {
+    public void testNotoken_z0() throws Throwable {
         final String expectKey = "你好";
         info = uploadManager.syncPut(new byte[1], expectKey, null, null);
 
@@ -120,7 +120,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
     }
 
     @SmallTest
-    public void testEmptyToken() throws Throwable {
+    public void testEmptytoken_z0() throws Throwable {
         final String expectKey = "你好";
         info = uploadManager.syncPut(new byte[1], expectKey, "", null);
 
@@ -137,7 +137,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        info = uploadManager.syncPut(f, expectKey, TestConfig.token, opt);
+        info = uploadManager.syncPut(f, expectKey, TestConfig.token_z0, opt);
 
         resp = info.response;
         key = resp.optString("key");
@@ -159,7 +159,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        info = uploadManager.syncPut(f, expectKey, TestConfig.token, opt);
+        info = uploadManager.syncPut(f, expectKey, TestConfig.token_z0, opt);
 
         resp = info.response;
         Assert.assertEquals(f.toString(), 0, f.length());
@@ -172,98 +172,28 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
 
     @SmallTest
     public void test0byte() {
-        info = uploadManager.syncPut(new byte[0], null, TestConfig.token, null);
+        info = uploadManager.syncPut(new byte[0], null, TestConfig.token_z0, null);
         Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
 
-        info = uploadManager.syncPut("", null, TestConfig.token, null);
+        info = uploadManager.syncPut("", null, TestConfig.token_z0, null);
         Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
     }
 
-    @SmallTest
-    public void testIpBack() throws Throwable {
-        String[] s = new String[]{"upwelcome.qiniu.com"};
-        Zone z = new FixedZone(s);
-        Configuration c = new Configuration.Builder()
-                .zone(z)
-                .build();
 
-        UploadManager uploadManager2 = new UploadManager(c);
-        final String expectKey = "你好;\"\r\n\r\n\r\n";
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "fooval");
-        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-
-        info = uploadManager2.syncPut("hello".getBytes(), expectKey, TestConfig.token, opt);
-
-        Assert.assertTrue(info.toString(), info.isOK());
-        Assert.assertNotNull(info.reqId);
-        resp = info.response;
-        Assert.assertNotNull(resp);
-        key = resp.optString("key");
-        Assert.assertEquals(info.toString(), expectKey, key);
-    }
-
-    /*
-    @SmallTest
-    public void testPortBackup() throws Throwable {
-        ServiceAddress s = new ServiceAddress("http://upload.qiniu.com:9999", null);
-        Zone z = new FixedZone(s, Zone.zone0.upHostBackup(""));
-        Configuration c = new Configuration.Builder()
-                .zone(z)
-                .build();
-        UploadManager uploadManager2 = new UploadManager(c);
-        final String expectKey = "你好;\"\r\n\r\n\r\n";
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "fooval");
-        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-
-        info = uploadManager2.syncPut("hello".getBytes(), expectKey, TestConfig.token, opt);
-
-        Assert.assertTrue(info.toString(), info.isOK());
-        Assert.assertNotNull(info.reqId);
-        resp = info.response;
-        Assert.assertNotNull(resp);
-        key = resp.optString("key");
-        Assert.assertEquals(info.toString(), expectKey, key);
-    }
-
-
-        @SmallTest
-        public void testDnsHijacking() throws Throwable {
-            ServiceAddress s = new ServiceAddress("http://uphijacktest.qiniu.com", Zone.zone0.upHost("").backupIps);
-            Zone z = new FixedZone(s, Zone.zone0.upHostBackup(""));
-            Configuration c = new Configuration.Builder()
-                    .zone(z)
-                    .build();
-            UploadManager uploadManager2 = new UploadManager(c);
-            final String expectKey = "你好;\"\r\n\r\n\r\n";
-            Map<String, String> params = new HashMap<String, String>();
-            params.put("x:foo", "fooval");
-            final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-
-            info = uploadManager2.syncPut("hello".getBytes(), expectKey, TestConfig.token, opt);
-
-            resp = info.response;
-            Assert.assertTrue(info.toString(), info.isOK());
-            Assert.assertNotNull(info.reqId);
-            Assert.assertNotNull(resp);
-        }
-    */
     @SmallTest
     public void testHttps() throws Throwable {
-
         final String expectKey = "你好;\"\r\n\r\n\r\n";
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        String[] s = new String[]{"https://up.qbox.me"};
+        String[] s = new String[]{"up.qbox.me"};
         Zone z = new FixedZone(s);
         Configuration c = new Configuration.Builder()
                 .zone(z)
                 .useHttps(true)
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
-        info = uploadManager2.syncPut("hello".getBytes(), expectKey, TestConfig.token, opt);
+        info = uploadManager2.syncPut("hello".getBytes(), expectKey, TestConfig.token_z0, opt);
 
         resp = info.response;
         key = resp.optString("key");
