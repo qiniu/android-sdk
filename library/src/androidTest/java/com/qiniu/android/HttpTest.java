@@ -184,8 +184,8 @@ public class HttpTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testPostIP() throws Throwable {
-        StringMap x = new StringMap().put("Host", "www.qiniu.com");
-        httpManager.asyncPost("http://183.136.139.12/", "hello".getBytes(),
+        StringMap x = new StringMap().put("Host", "up.qiniu.com");
+        httpManager.asyncPost("http://183.131.7.18", "hello".getBytes(),
                 x, UpToken.parse(TestConfig.token_z0), null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
@@ -201,7 +201,7 @@ public class HttpTest extends InstrumentationTestCase {
             e.printStackTrace();
         }
         Assert.assertTrue(!"".equals(info.reqId));
-        Assert.assertEquals(200, info.statusCode);
+        Assert.assertEquals(400, info.statusCode);
     }
 
     @SmallTest

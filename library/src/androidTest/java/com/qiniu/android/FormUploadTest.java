@@ -25,6 +25,7 @@ public class FormUploadTest extends InstrumentationTestCase {
     private UploadManager uploadManager;
     private Map<String, String> bucketTokenMap;
     private Map<String, Zone> bucketZoneMap;
+    private Map<String, Zone> mockBucketZoneMap;
     private volatile JSONObject responseBody;
 
     public void setUp() throws Exception {
@@ -40,6 +41,14 @@ public class FormUploadTest extends InstrumentationTestCase {
         this.bucketZoneMap.put(TestConfig.bucket_z1, FixedZone.zone1);
         //this.bucketZoneMap.put(TestConfig.bucket_z2, FixedZone.zone2);
         //this.bucketZoneMap.put(TestConfig.bucket_na0, FixedZone.zoneNa0);
+
+
+        //mock
+        this.mockBucketZoneMap = new HashMap<>();
+        this.mockBucketZoneMap.put(TestConfig.bucket_z0, TestConfig.mock_bucket_zone0);
+        this.mockBucketZoneMap.put(TestConfig.bucket_z1, TestConfig.mock_bucket_zone1);
+        this.mockBucketZoneMap.put(TestConfig.bucket_z2, TestConfig.mock_bucket_zone2);
+        this.mockBucketZoneMap.put(TestConfig.bucket_na0, TestConfig.mock_bucket_zoneNa0);
 
     }
 
@@ -166,7 +175,7 @@ public class FormUploadTest extends InstrumentationTestCase {
         final UploadOptions options = new UploadOptions(params, mimeType, true, null, null);
         byte[] putData = "hello qiniu cloud storage".getBytes();
 
-        for (Map.Entry<String, Zone> bucketZone : this.bucketZoneMap.entrySet()) {
+        for (Map.Entry<String, Zone> bucketZone : this.mockBucketZoneMap.entrySet()) {
             final CountDownLatch signal = new CountDownLatch(1);
             final String bucket = bucketZone.getKey();
             final Zone zone = bucketZone.getValue();
@@ -199,8 +208,8 @@ public class FormUploadTest extends InstrumentationTestCase {
             Assert.assertNull(responseBody);
         }
 
-        //retry
-        for (Map.Entry<String, Zone> bucketZone : this.bucketZoneMap.entrySet()) {
+        //retry will success
+        for (Map.Entry<String, Zone> bucketZone : this.mockBucketZoneMap.entrySet()) {
             final CountDownLatch signal = new CountDownLatch(1);
             final String bucket = bucketZone.getKey();
             final Zone zone = bucketZone.getValue();
