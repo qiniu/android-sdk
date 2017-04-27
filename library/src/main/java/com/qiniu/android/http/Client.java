@@ -318,12 +318,12 @@ public final class Client {
         asyncSend(requestBuilder, headers, upToken, completionHandler);
     }
 
-//    public ResponseInfo syncGet(String url, StringMap headers){
-//        Request.Builder requestBuilder = new Request.Builder().get().url(url);
-//        return send(requestBuilder, headers);
-//    }
+    public ResponseInfo syncGet(String url, StringMap headers) {
+        Request.Builder requestBuilder = new Request.Builder().get().url(url);
+        return send(requestBuilder, headers);
+    }
 
-    public ResponseInfo send(final Request.Builder requestBuilder, StringMap headers, final UpToken upToken) {
+    private ResponseInfo send(final Request.Builder requestBuilder, StringMap headers) {
         if (headers != null) {
             headers.forEach(new StringMap.Consumer() {
                 @Override
@@ -333,7 +333,7 @@ public final class Client {
             });
         }
 
-        requestBuilder.header("User-Agent", UserAgent.instance().getUa(upToken.accessKey));
+        requestBuilder.header("User-Agent", UserAgent.instance().getUa(""));
         long start = System.currentTimeMillis();
         okhttp3.Response res = null;
         ResponseTag tag = new ResponseTag();
@@ -344,10 +344,10 @@ public final class Client {
             e.printStackTrace();
             return ResponseInfo.create(null, NetworkError, "", "", "",
                     req.url().host(), req.url().encodedPath(), tag.ip, req.url().port(),
-                    tag.duration, -1, e.getMessage(), upToken);
+                    tag.duration, -1, e.getMessage(), UpToken.NULL);
         }
 
-        return buildResponseInfo(res, tag.ip, tag.duration, upToken);
+        return buildResponseInfo(res, tag.ip, tag.duration, UpToken.NULL);
     }
 
     public ResponseInfo syncMultipartPost(String url,

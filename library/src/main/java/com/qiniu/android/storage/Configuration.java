@@ -1,6 +1,8 @@
 package com.qiniu.android.storage;
 
 
+import com.qiniu.android.common.AutoZone;
+import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.dns.DnsManager;
 import com.qiniu.android.dns.IResolver;
@@ -66,7 +68,15 @@ public final class Configuration {
      */
     public Zone zone;
 
+    /**
+     * 使用https域名
+     */
+    public boolean useHttps;
+
+
     private Configuration(Builder builder) {
+        useHttps = builder.useHttps;
+
         chunkSize = builder.chunkSize;
         putThreshold = builder.putThreshold;
 
@@ -82,16 +92,12 @@ public final class Configuration {
 
         urlConverter = builder.urlConverter;
 
-        zone = builder.zone == null ? Zone.zone0 : builder.zone;
+        zone = builder.zone == null ? AutoZone.autoZone : builder.zone;
         dns = initDns(builder);
     }
 
     private static DnsManager initDns(Builder builder) {
         DnsManager d = builder.dns;
-        if (d != null) {
-            Zone.addDnsIp(d);
-        }
-
         return d;
     }
 
@@ -113,6 +119,7 @@ public final class Configuration {
         private KeyGenerator keyGen = null;
         private ProxyConfiguration proxy = null;
 
+        private boolean useHttps = false;
         private int chunkSize = 256 * 1024;
         private int putThreshold = 512 * 1024;
         private int connectTimeout = 10;
@@ -185,6 +192,11 @@ public final class Configuration {
 
         public Builder dns(DnsManager dns) {
             this.dns = dns;
+            return this;
+        }
+
+        public Builder useHttps(boolean useHttps) {
+            this.useHttps = useHttps;
             return this;
         }
 

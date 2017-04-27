@@ -114,20 +114,20 @@ final class ResumeUploader implements Runnable {
             completionHandler.complete(key, ResponseInfo.fileError(e, token), null);
             return;
         }
-        nextTask(offset, 0, config.zone.upHost(token.token).address);
+        nextTask(offset, 0, config.zone.upHost(token.token, config.useHttps, null));
     }
 
     /**
      * 创建块，并上传第一个分片内容
      *
-     * @param address            上传主机
+     * @param upHost             上传主机
      * @param offset             本地文件偏移量
      * @param blockSize          分块的块大小
      * @param chunkSize          分片的片大小
      * @param progress           上传进度
      * @param _completionHandler 上传完成处理动作
      */
-    private void makeBlock(URI address, long offset, int blockSize, int chunkSize, ProgressHandler progress,
+    private void makeBlock(String upHost, long offset, int blockSize, int chunkSize, ProgressHandler progress,
                            CompletionHandler _completionHandler, UpCancellationSignal c) {
         String path = format(Locale.ENGLISH, "/mkblk/%d", blockSize);
         try {
@@ -138,11 +138,11 @@ final class ResumeUploader implements Runnable {
             return;
         }
         this.crc32 = Crc32.bytes(chunkBuffer, 0, chunkSize);
-        URI u = newURI(address, path);
-        post(u, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
+        String postUrl = String.format("%s%s", upHost, path);
+        post(postUrl, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
     }
 
-    private void putChunk(URI address, long offset, int chunkSize, String context, ProgressHandler progress,
+    private void putChunk(String upHost, long offset, int chunkSize, String context, ProgressHandler progress,
                           CompletionHandler _completionHandler, UpCancellationSignal c) {
         int chunkOffset = (int) (offset % Configuration.BLOCK_SIZE);
         String path = format(Locale.ENGLISH, "/bput/%s/%d", context, chunkOffset);
@@ -154,11 +154,12 @@ final class ResumeUploader implements Runnable {
             return;
         }
         this.crc32 = Crc32.bytes(chunkBuffer, 0, chunkSize);
-        URI u = newURI(address, path);
-        post(u, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
+
+        String postUrl = String.format("%s%s", upHost, path);
+        post(postUrl, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
     }
 
-    private void makeFile(URI uri, CompletionHandler _completionHandler, UpCancellationSignal c) {
+    private void makeFile(String upHost, CompletionHandler _completionHandler, UpCancellationSignal c) {
         String mime = format(Locale.ENGLISH, "/mimeType/%s/fname/%s",
                 UrlSafeBase64.encodeToString(options.mimeType), UrlSafeBase64.encodeToString(f.getName()));
 
@@ -177,23 +178,16 @@ final class ResumeUploader implements Runnable {
             paramStr = "/" + StringUtils.join(str, "/");
         }
         String path = format(Locale.ENGLISH, "/mkfile/%d%s%s%s", size, mime, keyStr, paramStr);
-        URI address = uri;
-        try {
-            address = new URI(uri.getScheme(), uri.getHost(), path, null);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-
 
         String bodyStr = StringUtils.join(contexts, ",");
         byte[] data = bodyStr.getBytes();
-
-        post(address, data, 0, data.length, null, _completionHandler, c);
+        String postUrl = String.format("%s%s", upHost, path);
+        post(postUrl, data, 0, data.length, null, _completionHandler, c);
     }
 
-    private void post(URI uri, byte[] data, int offset, int size, ProgressHandler progress,
+    private void post(String upHost, byte[] data, int offset, int size, ProgressHandler progress,
                       CompletionHandler completion, UpCancellationSignal c) {
-        client.asyncPost(uri.toString(), data, offset, size, headers, token, progress, completion, c);
+        client.asyncPost(upHost, data, offset, size, headers, token, progress, completion, c);
     }
 
     private long calcPutSize(long offset) {
@@ -210,7 +204,7 @@ final class ResumeUploader implements Runnable {
         return options.cancellationSignal.isCancelled();
     }
 
-    private void nextTask(final long offset, final int retried, final URI address) {
+    private void nextTask(final long offset, final int retried, final String upHost) {
         if (isCancelled()) {
             ResponseInfo i = ResponseInfo.cancelled(token);
             completionHandler.complete(key, i, null);
@@ -237,16 +231,17 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
 
-                    if (config.zone.upHostBackup(token.token) != null
+                    String upHostRetry = config.zone.upHost(token.token, config.useHttps, upHost);
+                    if (upHostRetry != null
                             && ((info.isNotQiniu() && !token.hasReturnUrl() || info.needRetry())
                             && retried < config.retryMax)) {
-                        nextTask(offset, retried + 1, config.zone.upHostBackup(token.token).address);
+                        nextTask(offset, retried + 1, upHostRetry);
                         return;
                     }
                     completionHandler.complete(key, info, response);
                 }
             };
-            makeFile(address, complete, options.cancellationSignal);
+            makeFile(upHost, complete, options.cancellationSignal);
             return;
         }
 
@@ -273,16 +268,18 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
                 }
+
+                String upHostRetry = config.zone.upHost(token.token, config.useHttps, upHost);
                 if (!isChunkOK(info, response)) {
                     if (info.statusCode == 701 && retried < config.retryMax) {
-                        nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried + 1, address);
+                        nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried + 1, upHost);
                         return;
                     }
 
-                    if (config.zone.upHostBackup(token.token) != null
+                    if (upHostRetry != null
                             && ((isNotChunkToQiniu(info, response) || info.needRetry())
                             && retried < config.retryMax)) {
-                        nextTask(offset, retried + 1, config.zone.upHostBackup(token.token).address);
+                        nextTask(offset, retried + 1, upHostRetry);
                         return;
                     }
 
@@ -292,7 +289,7 @@ final class ResumeUploader implements Runnable {
                 String context = null;
 
                 if (response == null && retried < config.retryMax) {
-                    nextTask(offset, retried + 1, config.zone.upHostBackup(token.token).address);
+                    nextTask(offset, retried + 1, upHostRetry);
                     return;
                 }
                 long crc = 0;
@@ -303,21 +300,21 @@ final class ResumeUploader implements Runnable {
                     e.printStackTrace();
                 }
                 if ((context == null || crc != ResumeUploader.this.crc32) && retried < config.retryMax) {
-                    nextTask(offset, retried + 1, config.zone.upHostBackup(token.token).address);
+                    nextTask(offset, retried + 1, upHostRetry);
                     return;
                 }
                 contexts[(int) (offset / Configuration.BLOCK_SIZE)] = context;
                 record(offset + chunkSize);
-                nextTask(offset + chunkSize, retried, address);
+                nextTask(offset + chunkSize, retried, upHost);
             }
         };
         if (offset % Configuration.BLOCK_SIZE == 0) {
             int blockSize = (int) calcBlockSize(offset);
-            makeBlock(address, offset, blockSize, chunkSize, progress, complete, options.cancellationSignal);
+            makeBlock(upHost, offset, blockSize, chunkSize, progress, complete, options.cancellationSignal);
             return;
         }
         String context = contexts[(int) (offset / Configuration.BLOCK_SIZE)];
-        putChunk(address, offset, chunkSize, context, progress, complete, options.cancellationSignal);
+        putChunk(upHost, offset, chunkSize, context, progress, complete, options.cancellationSignal);
     }
 
     private long recoveryFromRecord() {

@@ -56,7 +56,7 @@ public final class UploadOptions {
         this.progressHandler = progressHandler != null ? progressHandler : new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
-                Log.d("qiniu up progress", "" + percent);
+                Log.d("Qiniu.UploadProgress", "" + percent);
             }
         };
         this.cancellationSignal = cancellationSignal != null ? cancellationSignal : new UpCancellationSignal() {

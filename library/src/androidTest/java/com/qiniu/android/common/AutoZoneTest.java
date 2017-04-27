@@ -1,6 +1,7 @@
 package com.qiniu.android.common;
 
 import android.test.AndroidTestCase;
+import android.util.Log;
 
 import com.qiniu.android.TestConfig;
 
@@ -17,7 +18,7 @@ public class AutoZoneTest extends AndroidTestCase {
     private String bkt = "javasdk";
 
     public void testHttp() {
-        AutoZone zone = new AutoZone(false, null);
+        AutoZone zone = new AutoZone(null);
         final CountDownLatch countDownLatch = new CountDownLatch(1);
         zone.preQueryIndex(new AutoZone.ZoneIndex(ak, bkt), new Zone.QueryHandler() {
             @Override
@@ -36,15 +37,16 @@ public class AutoZoneTest extends AndroidTestCase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        AutoZone.ZoneInfo zoneInfo = zone.zoneInfo(ak, bkt);
-        assertEquals(zoneInfo.upHost, "http://upload.qiniu.com");
-        assertEquals(zoneInfo.upBackup, "http://up.qiniu.com");
-        assertEquals(zoneInfo.upHttps, "https://up.qbox.me");
+        ZoneInfo zoneInfo = zone.zoneInfo(ak, bkt);
+
+        assertTrue(zoneInfo.upDomainsList.contains("upload.qiniup.com"));
+        assertTrue(zoneInfo.upDomainsList.contains("up.qiniup.com"));
+        assertTrue(zoneInfo.upDomainsList.contains("upload-nb.qiniup.com"));
     }
 
     public void testHttpFail() {
-        AutoZone zone = new AutoZone(false, null);
-        AutoZone.ZoneInfo zoneInfo = zone.zoneInfo(ak + "_not_be_ak", bkt);
+        AutoZone zone = new AutoZone(null);
+        ZoneInfo zoneInfo = zone.zoneInfo(ak + "_not_be_ak", bkt);
         assertNull(zoneInfo);
     }
 
@@ -55,7 +57,7 @@ public class AutoZoneTest extends AndroidTestCase {
     }
 
     public void testC1() {
-        AutoZone autoZone = new AutoZone(false, null);
+        AutoZone autoZone = new AutoZone(null);
         final CountDownLatch countDownLatch = new CountDownLatch(1);
         autoZone.preQueryIndex(new AutoZone.ZoneIndex(ak, bkt), new Zone.QueryHandler() {
             @Override
@@ -74,10 +76,10 @@ public class AutoZoneTest extends AndroidTestCase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        AutoZone.ZoneInfo info = autoZone.zoneInfo(ak, bkt);
-        System.out.println("zone0: " + info.toString());
+        ZoneInfo info = autoZone.zoneInfo(ak, bkt);
+        Log.d("zone0: ", info.toString());
 
-        AutoZone.ZoneInfo info2 = autoZone.zoneInfo(ak, bkt);
+        ZoneInfo info2 = autoZone.zoneInfo(ak, bkt);
         Assert.assertSame(info, info2);
 
     }
