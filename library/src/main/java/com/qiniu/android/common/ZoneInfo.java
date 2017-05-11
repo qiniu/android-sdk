@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 
 public class ZoneInfo {
-    private static int DOMAIN_FROZEN_SECONDS = 10 * 600;
+    private static int DOMAIN_FROZEN_SECONDS = 10 * 60;
     private final int ttl;
     //upHost
     public final List<String> upDomainsList;
