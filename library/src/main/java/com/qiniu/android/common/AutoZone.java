@@ -13,6 +13,9 @@ import org.json.JSONObject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,47 +24,36 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 
 public final class AutoZone extends Zone {
-    private static Map<ZoneIndex, ZoneInfo> zones = new ConcurrentHashMap<>();
-    private static Client client = new Client();
+    private Map<ZoneIndex, ZoneInfo> zones = new ConcurrentHashMap<>();
+    private Client client = new Client();
     private final String ucServer;
-    private final DnsManager dns;
-    private final boolean https;
+    /**
+     * 自动判断机房
+     */
+    public static final AutoZone autoZone = new AutoZone(null);
 
-    public AutoZone(boolean https, DnsManager dns) {
-        this("https://uc.qbox.me", https, dns);
+    public AutoZone(DnsManager dns) {
+        this("https://uc.qbox.me", dns);
     }
 
-    AutoZone(String ucServer, boolean https, DnsManager dns) {
+    AutoZone(String ucServer, DnsManager dns) {
         this.ucServer = ucServer;
-        this.https = https;
-        this.dns = dns;
     }
 
     private void getZoneJsonAsync(ZoneIndex index, CompletionHandler handler) {
-        String address = ucServer + "/v1/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
+        String address = ucServer + "/v2/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
         client.asyncGet(address, null, UpToken.NULL, handler);
     }
 
-    private void putHosts(ZoneInfo info) {
-        if (dns != null) {
-            try {
-                String httpDomain = new URI(info.upHost).getHost();
-                String httpsDomain = new URI(info.upHttps).getHost();
-                String httpBackDomain = new URI(info.upBackup).getHost();
-                dns.putHosts(httpDomain, info.upIp);
-                dns.putHosts(httpsDomain, info.upIp);
-                dns.putHosts(httpBackDomain, info.upIp);
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            }
-        }
+    private ResponseInfo getZoneJsonSync(ZoneIndex index) {
+        String address = ucServer + "/v2/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
+        return client.syncGet(address, null);
     }
 
     // only for test public
     ZoneInfo zoneInfo(String ak, String bucket) {
         ZoneIndex index = new ZoneIndex(ak, bucket);
-        ZoneInfo info = zones.get(index);
-        return info;
+        return zones.get(index);
     }
 
     // only for test public
@@ -82,28 +74,7 @@ public final class AutoZone extends Zone {
         return null;
     }
 
-    public ServiceAddress upHost(String token) {
-        ZoneInfo info = queryByToken(token);
-        if (info == null) {
-            return null;
-        }
-        if (https) {
-            return new ServiceAddress(info.upHttps);
-        }
-        return new ServiceAddress(info.upHost, new String[]{info.upIp});
-    }
-
-    public ServiceAddress upHostBackup(String token) {
-        ZoneInfo info = queryByToken(token);
-        if (info == null) {
-            return null;
-        }
-        if (https) {
-            return null;
-        }
-        return new ServiceAddress(info.upBackup, new String[]{info.upIp});
-    }
-
+    //async
     void preQueryIndex(final ZoneIndex index, final QueryHandler complete) {
         if (index == null) {
             complete.onFailure(ResponseInfo.InvalidToken);
@@ -122,7 +93,6 @@ public final class AutoZone extends Zone {
                     try {
                         ZoneInfo info2 = ZoneInfo.buildFromJson(response);
                         zones.put(index, info2);
-                        putHosts(info2);
                         complete.onSuccess();
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -133,47 +103,80 @@ public final class AutoZone extends Zone {
         });
     }
 
+    //sync
+    boolean preQueryIndex(final ZoneIndex index) {
+        boolean success = false;
+        if (index != null) {
+            ZoneInfo info = zones.get(index);
+            if (info != null) {
+                success = true;
+            } else {
+                try {
+                    ResponseInfo responseInfo = getZoneJsonSync(index);
+                    ZoneInfo info2 = ZoneInfo.buildFromJson(responseInfo.response);
+                    zones.put(index, info2);
+                    success = true;
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return success;
+    }
+
+    @Override
+    public synchronized String upHost(String token, boolean useHttps, String frozenDomain) {
+        ZoneInfo info = queryByToken(token);
+        if (info != null) {
+            return super.upHost(info, useHttps, frozenDomain);
+        } else {
+            return null;
+        }
+    }
+
     @Override
     public void preQuery(String token, QueryHandler complete) {
         ZoneIndex index = ZoneIndex.getFromToken(token);
         preQueryIndex(index, complete);
     }
 
-    static class ZoneInfo {
-        final String upHost;
-        final String upIp;
-        final String upBackup;
-        final String upHttps;
+    @Override
+    public boolean preQuery(String token) {
+        ZoneIndex index = ZoneIndex.getFromToken(token);
+        return preQueryIndex(index);
+    }
 
-        private ZoneInfo(String upHost, String upIp, String upBackup, String upHttps) {
-            this.upHost = upHost;
-            this.upIp = upIp;
-            this.upBackup = upBackup;
-            this.upHttps = upHttps;
-        }
-
-        static ZoneInfo buildFromJson(JSONObject obj) throws JSONException {
-            JSONObject http = obj.getJSONObject("http");
-            JSONArray up = http.getJSONArray("up");
-            String upHost = up.getString(1);
-            String upBackup = up.getString(0);
-            String upIp = up.getString(2).split(" ")[2].split("//")[1];
-            JSONObject https = obj.getJSONObject("https");
-            String upHttps = https.getJSONArray("up").getString(0);
-            return new ZoneInfo(upHost, upIp, upBackup, upHttps);
+    @Override
+    public synchronized void frozenDomain(String upHostUrl) {
+        if (upHostUrl != null) {
+            URI uri = URI.create(upHostUrl);
+            //frozen domain
+            String frozenDomain = uri.getHost();
+            ZoneInfo zoneInfo = null;
+            for (Map.Entry<ZoneIndex, ZoneInfo> entry : this.zones.entrySet()) {
+                ZoneInfo eachZoneInfo = entry.getValue();
+                if (eachZoneInfo.upDomainsList.contains(frozenDomain)) {
+                    zoneInfo = eachZoneInfo;
+                    break;
+                }
+            }
+            if (zoneInfo != null) {
+                zoneInfo.frozenDomain(frozenDomain);
+            }
         }
     }
 
     static class ZoneIndex {
-        private final String accessKey;
-        private final String bucket;
+
+        final String accessKey;
+        final String bucket;
 
         ZoneIndex(String accessKey, String bucket) {
             this.accessKey = accessKey;
             this.bucket = bucket;
         }
 
-        public static ZoneIndex getFromToken(String token) {
+        static ZoneIndex getFromToken(String token) {
             // http://developer.qiniu.com/article/developer/security/upload-token.html
             // http://developer.qiniu.com/article/developer/security/put-policy.html
             String[] strings = token.split(":");
@@ -200,5 +203,6 @@ public final class AutoZone extends Zone {
                     && ((ZoneIndex) obj).accessKey.equals(accessKey) && ((ZoneIndex) obj).bucket.equals(bucket);
         }
     }
+
 
 }

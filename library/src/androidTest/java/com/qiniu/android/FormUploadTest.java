@@ -1,488 +1,259 @@
 package com.qiniu.android;
 
 import android.test.InstrumentationTestCase;
-import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
 import com.qiniu.android.common.FixedZone;
-import com.qiniu.android.common.ServiceAddress;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.utils.Etag;
 
 import junit.framework.Assert;
 
 import org.json.JSONObject;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class FormUploadTest extends InstrumentationTestCase {
-    final CountDownLatch signal = new CountDownLatch(1);
     private UploadManager uploadManager;
-    private volatile String key;
-    private volatile ResponseInfo info;
-    private volatile JSONObject resp;
+    private Map<String, String> bucketTokenMap;
+    private Map<String, Zone> bucketZoneMap;
+    private Map<String, Zone> mockBucketZoneMap;
+    private volatile JSONObject responseBody;
 
     public void setUp() throws Exception {
-        uploadManager = new UploadManager();
+        this.uploadManager = new UploadManager();
+        this.bucketTokenMap = new HashMap<>();
+        this.bucketTokenMap.put(TestConfig.bucket_z0, TestConfig.token_z0);
+        this.bucketTokenMap.put(TestConfig.bucket_z1, TestConfig.token_z1);
+        this.bucketTokenMap.put(TestConfig.bucket_z2, TestConfig.token_z2);
+        this.bucketTokenMap.put(TestConfig.bucket_na0, TestConfig.token_na0);
+
+        this.bucketZoneMap = new HashMap<>();
+        //this.bucketZoneMap.put(TestConfig.bucket_z0, FixedZone.zone0);
+        this.bucketZoneMap.put(TestConfig.bucket_z1, FixedZone.zone1);
+        //this.bucketZoneMap.put(TestConfig.bucket_z2, FixedZone.zone2);
+        //this.bucketZoneMap.put(TestConfig.bucket_na0, FixedZone.zoneNa0);
+
+
+        //mock
+        this.mockBucketZoneMap = new HashMap<>();
+        this.mockBucketZoneMap.put(TestConfig.bucket_z0, TestConfig.mock_bucket_zone0);
+        this.mockBucketZoneMap.put(TestConfig.bucket_z1, TestConfig.mock_bucket_zone1);
+        this.mockBucketZoneMap.put(TestConfig.bucket_z2, TestConfig.mock_bucket_zone2);
+        this.mockBucketZoneMap.put(TestConfig.bucket_na0, TestConfig.mock_bucket_zoneNa0);
+
     }
 
+    /**
+     * 1. 测试可选参数设置
+     * 2. 测试mimeType设置
+     * 3. 测试自动根据空间获取上传入口
+     * 4. 测试不同机房的上传
+     */
     @SmallTest
-    public void testHello() throws Throwable {
-        final String expectKey = "你好;\"\r\n\r\n\r\n";
+    public void testPutBytesWithAutoZone() throws Throwable {
+        //params
         Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "fooval");
-        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        byte[] b = "hello".getBytes();
-        uploadManager.put(b, expectKey, TestConfig.token, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest", k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
-                signal.countDown();
+        params.put("x:foo", "foo");
+        params.put("x:bar", "bar");
+        //mime type
+        final String mimeType = "text/plain";
+        final UploadOptions options = new UploadOptions(params, mimeType, true, null, null);
+        byte[] putData = "hello qiniu cloud storage".getBytes();
+
+        for (Map.Entry<String, String> bucketToken : this.bucketTokenMap.entrySet()) {
+            final CountDownLatch signal = new CountDownLatch(1);
+            final String bucket = bucketToken.getKey();
+            final String upToken = bucketToken.getValue();
+            final String expectKey = String.format("androidsdk/%s/qiniu_put_bytes_test.txt", bucket);
+
+            uploadManager.put(putData, expectKey, upToken, new UpCompletionHandler() {
+                public void complete(String key, ResponseInfo info, JSONObject response) {
+                    Log.i("Qiniu.TestPutBytes", "upload result of bucket " + bucket);
+                    Log.d("Qiniu.TestPutBytes", info.toString());
+                    Log.i("Qiniu.TestPutBytes", response.toString());
+
+                    responseBody = response;
+                    signal.countDown();
+                }
+            }, options);
+
+            signal.await(120, TimeUnit.SECONDS);
+
+            try {
+                Assert.assertEquals("Qiniu.TestPutBytes upload failed", expectKey,
+                        responseBody.getString("key"));
+                Assert.assertEquals("Qiniu.TestPutBytes mimetype failed", mimeType,
+                        responseBody.getString("mimeType"));
+                Assert.assertEquals("Qiniu.TestPutBytes optional params x:foo failed", "foo",
+                        responseBody.getString("foo"));
+                Assert.assertEquals("Qiniu.TestPutBytes optional params x:bar failed", "bar",
+                        responseBody.getString("bar"));
+            } catch (Exception ex) {
+                Assert.fail("Qiniu.TestPutBytes " + ex.getMessage());
             }
-        }, opt);
 
-        try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isOK());
-        Assert.assertNotNull(info.reqId);
-        System.out.println(info.ip);
-        Assert.assertNotNull(resp);
-
-        String hash = resp.getString("hash");
-        Assert.assertEquals(hash, Etag.data(b));
     }
 
+
+    ///////////////固定Zone测试/////////////////
     @SmallTest
-    public void test0Data() throws Throwable {
-        final String expectKey = "你好;\"\r\n\r\n\r\n";
+    public void testPutBytesWithFixedZone() {
+        //params
         Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "fooval");
-        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
+        params.put("x:foo", "foo");
+        params.put("x:bar", "bar");
+        //mime type
+        final String mimeType = "text/plain";
+        final UploadOptions options = new UploadOptions(params, mimeType, true, null, null);
+        byte[] putData = "hello qiniu cloud storage".getBytes();
 
-        uploadManager.put("".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest", k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
-                signal.countDown();
+        for (Map.Entry<String, Zone> bucketZone : this.bucketZoneMap.entrySet()) {
+            final CountDownLatch signal = new CountDownLatch(1);
+            final String bucket = bucketZone.getKey();
+            final Zone zone = bucketZone.getValue();
+            final String upToken = this.bucketTokenMap.get(bucket);
+
+            final String expectKey = String.format("androidsdk/%s/qiniu_put_bytes_test.txt", bucket);
+
+            Configuration cfg = new Configuration.Builder()
+                    .zone(zone)
+                    .useHttps(false)
+                    .build();
+            UploadManager uploadManagerWithCfg = new UploadManager(cfg);
+            uploadManagerWithCfg.put(putData, expectKey, upToken, new UpCompletionHandler() {
+                public void complete(String key, ResponseInfo info, JSONObject response) {
+                    Log.i("Qiniu.TestPutBytes", "upload result of bucket " + bucket);
+                    Log.d("Qiniu.TestPutBytes", info.toString());
+
+                    responseBody = response;
+                    signal.countDown();
+
+                }
+            }, options);
+
+            try {
+                signal.await(120, TimeUnit.SECONDS);
+            } catch (Exception ex) {
+                Assert.fail("Qiniu.TestPutBytes timeout");
             }
-        }, opt);
 
-        try {
-            signal.await(10, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            try {
+                Assert.assertEquals("Qiniu.TestPutBytes upload failed", expectKey,
+                        responseBody.getString("key"));
+                Assert.assertEquals("Qiniu.TestPutBytes mimetype failed", mimeType,
+                        responseBody.getString("mimeType"));
+                Assert.assertEquals("Qiniu.TestPutBytes optional params x:foo failed", "foo",
+                        responseBody.getString("foo"));
+                Assert.assertEquals("Qiniu.TestPutBytes optional params x:bar failed", "bar",
+                        responseBody.getString("bar"));
+            } catch (Exception ex) {
+                Assert.fail("Qiniu.TestPutBytes " + ex.getMessage());
+            }
         }
-        Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertFalse(info.toString(), info.isOK());
-        Assert.assertEquals(info.toString(), "", info.reqId);
-        Assert.assertNull(resp);
     }
 
+
+    /////模拟域名失败后，再重试的场景，需要手动修改zone域名无效来模拟/////
     @SmallTest
-    public void testNoKey() throws Throwable {
-        final String expectKey = null;
+    public void testPutBytesWithFixedZoneUseBackupDomains() {
+        //params
         Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "fooval");
-        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
-            public void run() {
-                uploadManager.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
-                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        Log.i("qiniutest", k + rinfo);
-                        key = k;
-                        info = rinfo;
-                        resp = response;
-                        signal.countDown();
-                    }
-                }, opt);
+        params.put("x:foo", "foo");
+        params.put("x:bar", "bar");
+        //mime type
+        final String mimeType = "text/plain";
+        final UploadOptions options = new UploadOptions(params, mimeType, true, null, null);
+        byte[] putData = "hello qiniu cloud storage".getBytes();
+
+        for (Map.Entry<String, Zone> bucketZone : this.mockBucketZoneMap.entrySet()) {
+            final CountDownLatch signal = new CountDownLatch(1);
+            final String bucket = bucketZone.getKey();
+            final Zone zone = bucketZone.getValue();
+            final String upToken = this.bucketTokenMap.get(bucket);
+
+            final String expectKey = String.format("androidsdk/%s/qiniu_put_bytes_test.txt", bucket);
+
+            Configuration cfg = new Configuration.Builder()
+                    .zone(zone)
+                    .useHttps(false)
+                    .build();
+            UploadManager uploadManagerWithCfg = new UploadManager(cfg);
+            uploadManagerWithCfg.put(putData, expectKey, upToken, new UpCompletionHandler() {
+                public void complete(String key, ResponseInfo info, JSONObject response) {
+                    Log.i("Qiniu.TestPutBytes", "upload result of bucket " + bucket);
+                    Log.d("Qiniu.TestPutBytes", info.toString());
+
+                    responseBody = response;
+                    signal.countDown();
+
+                }
+            }, options);
+
+            try {
+                signal.await(120, TimeUnit.SECONDS);
+            } catch (Exception ex) {
+                Assert.fail("Qiniu.TestPutBytes timeout");
             }
-        });
 
-        try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            Assert.assertNull(responseBody);
         }
 
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isOK());
+        //retry will success
+        for (Map.Entry<String, Zone> bucketZone : this.mockBucketZoneMap.entrySet()) {
+            final CountDownLatch signal = new CountDownLatch(1);
+            final String bucket = bucketZone.getKey();
+            final Zone zone = bucketZone.getValue();
+            final String upToken = this.bucketTokenMap.get(bucket);
 
-        Assert.assertNotNull(info.reqId);
-        Assert.assertNotNull(resp);
-        Assert.assertEquals("Fqr0xh3cxeii2r7eDztILNmuqUNN", resp.optString("key", ""));
-    }
+            final String expectKey = String.format("androidsdk/%s/qiniu_put_bytes_test.txt", bucket);
 
-    @SmallTest
-    public void testInvalidToken() throws Throwable {
-        final String expectKey = "你好";
-        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
-            public void run() {
-                uploadManager.put("hello".getBytes(), expectKey, "invalid", new UpCompletionHandler() {
-                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        Log.i("qiniutest", k + rinfo);
-                        key = k;
-                        info = rinfo;
-                        resp = response;
-                        signal.countDown();
-                    }
-                }, null);
+            Configuration cfg = new Configuration.Builder()
+                    .zone(zone)
+                    .useHttps(false)
+                    .build();
+            UploadManager uploadManagerWithCfg = new UploadManager(cfg);
+            uploadManagerWithCfg.put(putData, expectKey, upToken, new UpCompletionHandler() {
+                public void complete(String key, ResponseInfo info, JSONObject response) {
+                    Log.i("Qiniu.TestPutBytes", "upload result of bucket " + bucket);
+                    Log.d("Qiniu.TestPutBytes", info.toString());
+
+                    responseBody = response;
+                    signal.countDown();
+
+                }
+            }, options);
+
+            try {
+                signal.await(120, TimeUnit.SECONDS);
+            } catch (Exception ex) {
+                Assert.fail("Qiniu.TestPutBytes timeout");
             }
-        });
 
-        try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertEquals(info.toString(), ResponseInfo.InvalidToken, info.statusCode);
-        Assert.assertNotNull(info.reqId);
-        Assert.assertNull(resp);
-    }
-
-    @SmallTest
-    public void testNoData() throws Throwable {
-        final String expectKey = "你好";
-
-        uploadManager.put((byte[]) null, expectKey, "invalid", new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest", k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
-                signal.countDown();
+            try {
+                Assert.assertEquals("Qiniu.TestPutBytes upload failed", expectKey,
+                        responseBody.getString("key"));
+                Assert.assertEquals("Qiniu.TestPutBytes mimetype failed", mimeType,
+                        responseBody.getString("mimeType"));
+                Assert.assertEquals("Qiniu.TestPutBytes optional params x:foo failed", "foo",
+                        responseBody.getString("foo"));
+                Assert.assertEquals("Qiniu.TestPutBytes optional params x:bar failed", "bar",
+                        responseBody.getString("bar"));
+            } catch (Exception ex) {
+                Assert.fail("Qiniu.TestPutBytes " + ex.getMessage());
             }
-        }, null);
-
-
-        try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
-            assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertEquals(info.toString(), ResponseInfo.InvalidArgument,
-                info.statusCode);
-        Assert.assertNull(resp);
+
+
     }
 
-    @SmallTest
-    public void testNoToken() throws Throwable {
-        final String expectKey = "你好";
-        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
-            public void run() {
-                uploadManager.put(new byte[1], expectKey, null, new UpCompletionHandler() {
-                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        Log.i("qiniutest", k + rinfo);
-                        key = k;
-                        info = rinfo;
-                        resp = response;
-                        signal.countDown();
-                    }
-                }, null);
-            }
-        });
-
-        try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertEquals(info.toString(), ResponseInfo.InvalidArgument, info.statusCode);
-        Assert.assertNull(resp);
-    }
-
-    @SmallTest
-    public void testEmptyToken() throws Throwable {
-        final String expectKey = "你好";
-        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
-            public void run() {
-                uploadManager.put(new byte[1], expectKey, "", new UpCompletionHandler() {
-                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        Log.i("qiniutest", k + rinfo);
-                        key = k;
-                        info = rinfo;
-                        resp = response;
-                        signal.countDown();
-                    }
-                }, null);
-            }
-        });
-
-        try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertEquals(info.toString(), ResponseInfo.InvalidArgument,
-                info.statusCode);
-        Assert.assertNull(resp);
-    }
-
-    @MediumTest
-    public void testFile() throws Throwable {
-        final String expectKey = "世/界";
-        final File f = TempFile.createFile(1);
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "fooval");
-        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        uploadManager.put(f, expectKey, TestConfig.token, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest", k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
-                signal.countDown();
-            }
-        }, opt);
-
-        try {
-            signal.await(130, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isOK());
-        //上传策略含空格 \"fname\":\" $(fname) \"
-        Assert.assertEquals(f.getName(), resp.optString("fname", "res doesn't include the FNAME").trim());
-        Assert.assertNotNull(info.reqId);
-        Assert.assertNotNull(resp);
-
-        String hash = resp.getString("hash");
-        Assert.assertEquals(hash, Etag.file(f));
-        TempFile.remove(f);
-    }
-
-    @MediumTest
-    public void test0File() throws Throwable {
-        final String expectKey = "世/界";
-        final File f = TempFile.createFile(0);
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "fooval");
-        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        uploadManager.put(f, expectKey, TestConfig.token, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest", k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
-                signal.countDown();
-            }
-        }, opt);
-
-        try {
-            signal.await(10, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        Assert.assertEquals(f.toString(), 0, f.length());
-        Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertFalse(info.toString(), info.isOK());
-        Assert.assertEquals(info.toString(), "", info.reqId);
-        Assert.assertNull(resp);
-        TempFile.remove(f);
-    }
-
-    @SmallTest
-    public void testNoComplete() {
-        Exception error = null;
-        try {
-            uploadManager.put(new byte[0], null, null, null, null);
-        } catch (Exception e) {
-            error = e;
-        }
-        Assert.assertNotNull(error);
-        Assert.assertTrue(error instanceof IllegalArgumentException);
-        Assert.assertEquals("no UpCompletionHandler", error.getMessage());
-
-        error = null;
-        try {
-            uploadManager.put("", null, null, null, null);
-        } catch (Exception e) {
-            error = e;
-        }
-        Assert.assertNotNull(error);
-        Assert.assertTrue(error instanceof IllegalArgumentException);
-        Assert.assertEquals("no UpCompletionHandler", error.getMessage());
-    }
-
-    @SmallTest
-    public void testIpBack() throws Throwable {
-        ServiceAddress s = new ServiceAddress("http://upwelcome.qiniu.com", Zone.zone0.upHost("").backupIps);
-        Zone z = new FixedZone(s, Zone.zone0.upHostBackup(""));
-        Configuration c = new Configuration.Builder()
-                .zone(z)
-                .build();
-
-        UploadManager uploadManager2 = new UploadManager(c);
-        final String expectKey = "你好;\"\r\n\r\n\r\n";
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "fooval");
-        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-
-        uploadManager2.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest", k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
-                signal.countDown();
-            }
-        }, opt);
-
-
-        try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isOK());
-        Assert.assertNotNull(info.reqId);
-        Assert.assertNotNull(resp);
-    }
-
-    @SmallTest
-    public void testPortBackup() throws Throwable {
-        ServiceAddress s = new ServiceAddress("http://upload.qiniu.com:9999", null);
-        Zone z = new FixedZone(s, Zone.zone0.upHostBackup(""));
-        Configuration c = new Configuration.Builder()
-                .zone(z)
-                .build();
-        UploadManager uploadManager2 = new UploadManager(c);
-        final String expectKey = "你好;\"\r\n\r\n\r\n";
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "fooval");
-        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-
-        uploadManager2.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest", k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
-                signal.countDown();
-            }
-        }, opt);
-
-
-        try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isOK());
-        Assert.assertNotNull(info.reqId);
-        Assert.assertNotNull(resp);
-    }
-
-    @SmallTest
-    public void testDnsHijacking() throws Throwable {
-        ServiceAddress s = new ServiceAddress("http://uphijacktest.qiniu.com", Zone.zone0.upHost("").backupIps);
-        Zone z = new FixedZone(s, Zone.zone0.upHostBackup(""));
-        Configuration c = new Configuration.Builder()
-                .zone(z)
-                .build();
-        UploadManager uploadManager2 = new UploadManager(c);
-        final String expectKey = "你好;\"\r\n\r\n\r\n";
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "fooval");
-        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-
-        uploadManager2.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest", k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
-                signal.countDown();
-            }
-        }, opt);
-
-
-        try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isOK());
-        Assert.assertNotNull(info.reqId);
-        Assert.assertNotNull(resp);
-    }
-
-    @SmallTest
-    public void testHttps() throws Throwable {
-
-        final String expectKey = "你好;\"\r\n\r\n\r\n";
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "fooval");
-        final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        ServiceAddress s = new ServiceAddress("https://up.qbox.me", null);
-        Zone z = new FixedZone(s, Zone.zone0.upHostBackup(""));
-        Configuration c = new Configuration.Builder()
-                .zone(z)
-                .build();
-        UploadManager uploadManager2 = new UploadManager(c);
-        uploadManager2.put("hello".getBytes(), expectKey, TestConfig.token, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest", k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
-                signal.countDown();
-            }
-        }, opt);
-
-
-        try {
-            signal.await(120, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isOK());
-        Assert.assertNotNull(info.reqId);
-        Assert.assertNotNull(resp);
-    }
 }
