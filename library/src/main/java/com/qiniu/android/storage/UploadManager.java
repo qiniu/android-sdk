@@ -95,7 +95,9 @@ public final class UploadManager {
 
             @Override
             public void onFailure(int reason) {
-                final ResponseInfo info = ResponseInfo.invalidToken("invalid token");
+                final ResponseInfo info = ResponseInfo.isStatusCodeForBrokenNetwork(reason) ?
+                        ResponseInfo.networkError(reason, decodedToken) :
+                        ResponseInfo.invalidToken("invalid token");
                 completionHandler.complete(key, info, null);
             }
         });
