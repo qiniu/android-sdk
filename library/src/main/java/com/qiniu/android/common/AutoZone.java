@@ -98,6 +98,10 @@ public final class AutoZone extends Zone {
                         e.printStackTrace();
                         complete.onFailure(ResponseInfo.NetworkError);
                     }
+                } else {
+                    if (info.isNetworkBroken()) {
+                        complete.onFailure(info.statusCode);
+                    }
                 }
             }
         });
