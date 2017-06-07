@@ -15,7 +15,6 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 
 /**
  * 表单上传
@@ -124,10 +123,7 @@ final class FormUploader {
                 if (info.isOK()) {
                     options.progressHandler.progress(key, 1.0);
                     completionHandler.complete(key, info, response);
-                } else if (options.cancellationSignal.isCancelled()) {
-                    ResponseInfo i = ResponseInfo.cancelled(token);
-                    completionHandler.complete(key, i, null);
-                } else if (info.needRetry() || (info.isNotQiniu() && !token.hasReturnUrl())) {
+                } else if (info.needRetry()) {
                     final String upHostRetry = config.zone.upHost(token.token, config.useHttps, upHost);
                     Log.d("Qiniu.FormUploader", "retry upload first time use up host " + upHostRetry);
                     CompletionHandler retried = new CompletionHandler() {
@@ -136,7 +132,7 @@ final class FormUploader {
                             if (info.isOK()) {
                                 options.progressHandler.progress(key, 1.0);
                                 completionHandler.complete(key, info, response);
-                            } else if (info.needRetry() || (info.isNotQiniu() && !token.hasReturnUrl())) {
+                            } else if (info.needRetry()) {
                                 final String upHostRetry2 = config.zone.upHost(token.token, config.useHttps, upHostRetry);
                                 Log.d("Qiniu.FormUploader", "retry upload second time use up host " + upHostRetry2);
                                 CompletionHandler retried2 = new CompletionHandler() {
@@ -144,7 +140,7 @@ final class FormUploader {
                                     public void complete(ResponseInfo info2, JSONObject response2) {
                                         if (info2.isOK()) {
                                             options.progressHandler.progress(key, 1.0);
-                                        } else if (info2.needRetry() || (info2.isNotQiniu() && !token.hasReturnUrl())) {
+                                        } else if (info2.needRetry()) {
                                             config.zone.frozenDomain(upHostRetry2);
                                         }
                                         completionHandler.complete(key, info2, response2);
@@ -256,7 +252,7 @@ final class FormUploader {
         }
 
         //retry for the first time
-        if (info.needRetry() || (info.isNotQiniu() && !token.hasReturnUrl())) {
+        if (info.needRetry()) {
             if (info.isNetworkBroken() && !AndroidNetwork.isNetWorkReady()) {
                 options.netReadyHandler.waitReady();
                 if (!AndroidNetwork.isNetWorkReady()) {
@@ -269,7 +265,7 @@ final class FormUploader {
             Log.d("Qiniu.FormUploader", "sync upload retry first time use up host " + upHostRetry);
             info = client.syncMultipartPost(upHostRetry, args, token);
 
-            if (info.needRetry() || (info.isNotQiniu() && !token.hasReturnUrl())) {
+            if (info.needRetry()) {
                 if (info.isNetworkBroken() && !AndroidNetwork.isNetWorkReady()) {
                     options.netReadyHandler.waitReady();
                     if (!AndroidNetwork.isNetWorkReady()) {
@@ -280,7 +276,7 @@ final class FormUploader {
                 String upHostRetry2 = config.zone.upHost(token.token, config.useHttps, upHostRetry);
                 Log.d("Qiniu.FormUploader", "sync upload retry second time use up host " + upHostRetry2);
                 info = client.syncMultipartPost(upHostRetry2, args, token);
-                if (info.needRetry() || (info.isNotQiniu() && !token.hasReturnUrl())) {
+                if (info.needRetry()) {
                     config.zone.frozenDomain(upHostRetry2);
                 }
             }

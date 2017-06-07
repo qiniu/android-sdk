@@ -231,12 +231,13 @@ final class ResumeUploader implements Runnable {
                         return;
                     }
 
-                    String upHostRetry = config.zone.upHost(token.token, config.useHttps, upHost);
-                    if (upHostRetry != null
-                            && ((info.isNotQiniu() && !token.hasReturnUrl() || info.needRetry())
-                            && retried < config.retryMax)) {
-                        nextTask(offset, retried + 1, upHostRetry);
-                        return;
+                    // mkfile  ，允许多重试一次
+                    if (info.needRetry() && retried < config.retryMax + 1) {
+                        String upHostRetry = config.zone.upHost(token.token, config.useHttps, upHost);
+                        if (upHostRetry != null) {
+                            nextTask(offset, retried + 1, upHostRetry);
+                            return;
+                        }
                     }
                     completionHandler.complete(key, info, response);
                 }
@@ -267,6 +268,11 @@ final class ResumeUploader implements Runnable {
                         completionHandler.complete(key, info, response);
                         return;
                     }
+                }
+
+                if (info.isCancelled()) {
+                    completionHandler.complete(key, info, response);
+                    return;
                 }
 
                 String upHostRetry = config.zone.upHost(token.token, config.useHttps, upHost);

@@ -2,7 +2,6 @@ package com.qiniu.android.storage;
 
 
 import com.qiniu.android.common.AutoZone;
-import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.dns.DnsManager;
 import com.qiniu.android.dns.IResolver;
