@@ -94,12 +94,12 @@ public final class AutoZone extends Zone {
                         ZoneInfo info2 = ZoneInfo.buildFromJson(response);
                         zones.put(index, info2);
                         complete.onSuccess();
+                        return;
                     } catch (JSONException e) {
                         e.printStackTrace();
                         complete.onFailure(ResponseInfo.NetworkError);
+                        return;
                     }
-                } else {
-                    complete.onFailure(info.statusCode);
                 }
                 complete.onFailure(info.statusCode);
             }
