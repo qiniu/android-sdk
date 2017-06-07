@@ -194,8 +194,10 @@ public final class ResponseInfo {
     }
 
     public boolean needRetry() {
-        return !isCancelled() && (needSwitchServer() || statusCode == 406
-                || (statusCode == 200 && error != null));
+        return !isCancelled() && (
+                        needSwitchServer() || statusCode == 406 ||
+                        (statusCode == 200 && error != null) || (isNotQiniu() && !upToken.hasReturnUrl())
+        );
     }
 
     public boolean isNotQiniu() {
