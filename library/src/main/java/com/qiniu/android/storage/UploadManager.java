@@ -41,8 +41,8 @@ public final class UploadManager {
     }
 
     private static boolean areInvalidArg(final String key, byte[] data, File f, String token,
-                                         UpToken decodedToken, final WarpHandler completionHandler) {
-        if (completionHandler.complete == null) {
+                                         UpToken decodedToken, final UpCompletionHandler complete) {
+        if (complete == null) {
             throw new IllegalArgumentException("no UpCompletionHandler");
         }
         String message = null;
@@ -62,7 +62,7 @@ public final class UploadManager {
         }
 
         if (info != null) {
-            completionHandler.complete(key, info, null);
+            complete.complete(key, info, null);
             return true;
         }
 
@@ -80,9 +80,8 @@ public final class UploadManager {
      */
     public void put(final byte[] data, final String key, final String token,
                     final UpCompletionHandler complete, final UploadOptions options) {
-        final WarpHandler completionHandler = warpHandler(complete, data != null ? data.length : 0, UpType.form);
         final UpToken decodedToken = UpToken.parse(token);
-        if (areInvalidArg(key, data, null, token, decodedToken, completionHandler)) {
+        if (areInvalidArg(key, data, null, token, decodedToken, complete)) {
             return;
         }
 
@@ -90,7 +89,7 @@ public final class UploadManager {
         z.preQuery(token, new Zone.QueryHandler() {
             @Override
             public void onSuccess() {
-                FormUploader.upload(client, config, data, key, decodedToken, completionHandler, options);
+                FormUploader.upload(client, config, data, key, decodedToken, complete, options);
             }
 
             @Override
@@ -98,7 +97,7 @@ public final class UploadManager {
                 final ResponseInfo info = ResponseInfo.isStatusCodeForBrokenNetwork(reason) ?
                         ResponseInfo.networkError(reason, decodedToken) :
                         ResponseInfo.invalidToken("invalid token");
-                completionHandler.complete(key, info, null);
+                complete.complete(key, info, null);
             }
         });
 
@@ -129,9 +128,8 @@ public final class UploadManager {
      */
     public void put(final File file, final String key, String token, final UpCompletionHandler complete,
                     final UploadOptions options) {
-        final WarpHandler completionHandler = warpHandler(complete, file != null ? file.length() : 0, UpType.form);
         final UpToken decodedToken = UpToken.parse(token);
-        if (areInvalidArg(key, null, file, token, decodedToken, completionHandler)) {
+        if (areInvalidArg(key, null, file, token, decodedToken, complete)) {
             return;
         }
 
@@ -141,12 +139,11 @@ public final class UploadManager {
             public void onSuccess() {
                 long size = file.length();
                 if (size <= config.putThreshold) {
-                    completionHandler.type = UpType.form;
-                    FormUploader.upload(client, config, file, key, decodedToken, completionHandler, options);
+                    FormUploader.upload(client, config, file, key, decodedToken, complete, options);
                     return;
                 }
                 String recorderKey = config.keyGen.gen(key, file);
-                completionHandler.type = UpType.block;
+                final WarpHandler completionHandler = warpHandler(complete, file != null ? file.length() : 0);
                 ResumeUploader uploader = new ResumeUploader(client, config, file, key,
                         decodedToken, completionHandler, options, recorderKey);
 
@@ -158,7 +155,7 @@ public final class UploadManager {
                 final ResponseInfo info = ResponseInfo.isStatusCodeForBrokenNetwork(reason) ?
                         ResponseInfo.networkError(reason, decodedToken) :
                         ResponseInfo.invalidToken("invalid token");
-                completionHandler.complete(key, info, null);
+                complete.complete(key, info, null);
             }
         });
 
@@ -237,19 +234,14 @@ public final class UploadManager {
         return null;
     }
 
-    private static enum UpType {
-        form, block,
-    }
 
     private static class WarpHandler implements UpCompletionHandler {
         final UpCompletionHandler complete;
-        UpType type;
         final long before = System.currentTimeMillis();
         final long size;
 
-        WarpHandler(UpCompletionHandler complete, long size, UpType type) {
+        WarpHandler(UpCompletionHandler complete, long size) {
             this.complete = complete;
-            this.type = type;
             this.size = size;
         }
 
@@ -263,11 +255,8 @@ public final class UploadManager {
 
                             @Override
                             public String toRecordMsg() {
-                                // https://jira.qiniu.io/browse/KODO-1468
-                                // ip 形如  /115.231.97.46:80
-                                String remoteIp = (res.ip + "").split(":")[0].replace("/", "");
-                                String[] ss = new String[]{res.statusCode + "", res.reqId, res.host, remoteIp, res.port + "", (after - before) + "",
-                                        res.timeStamp + "", size + "", type.toString()};
+                                String[] ss = new String[]{res.statusCode + "", res.reqId, res.host, res.ip, res.port + "", (after - before) + "",
+                                        res.timeStamp + "", size + "", "block", size+""};
                                 return StringUtils.join(ss, ",");
                             }
                         });
@@ -287,8 +276,8 @@ public final class UploadManager {
         }
     }
 
-    private static WarpHandler warpHandler(final UpCompletionHandler complete, final long size, final UpType type) {
-        return new WarpHandler(complete, size, type);
+    private static WarpHandler warpHandler(final UpCompletionHandler complete, final long size) {
+        return new WarpHandler(complete, size);
     }
 
 }
