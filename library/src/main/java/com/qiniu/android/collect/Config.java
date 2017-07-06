@@ -73,9 +73,8 @@ public class Config {
     /**
      * 上传信息收集文件的地址
      */
-    public final static String serverURL = "https://uplog.qbox.me/log";
+    public final static String serverURL = "https://uplog.qbox.me/log/3";
 
-    public final static String serverURL2 = "https://uplog.qbox.me/log/2";
 
     /**
      * 当网络切换到 wifi 下，切换到此设置

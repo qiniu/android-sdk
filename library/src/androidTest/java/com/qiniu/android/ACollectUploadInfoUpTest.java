@@ -106,13 +106,13 @@ public class ACollectUploadInfoUpTest extends AndroidTestCase {
     }
 
     public static File getRecordFile() {
-        String recordFileName = "_qiniu_record_file_upm6xola4sk3";
+        String recordFileName = "_qiniu_record_file_hs5z9lo7anx03";
         File recordFile = new File(Config.recordDir, recordFileName);
         return recordFile;
     }
 
     public static void recordFileTest() {
-//        showRecordInfo();
+        showRecordInfo();
         recordFile();
     }
 
