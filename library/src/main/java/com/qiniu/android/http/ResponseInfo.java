@@ -91,13 +91,15 @@ public final class ResponseInfo {
 
     public final UpToken upToken;
 
+    public final long totalSize;
+
     /**
      * 响应体，json 格式
      */
     public final JSONObject response;
 
     private ResponseInfo(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
-                         String path, String ip, int port, long duration, long sent, String error, UpToken upToken) {
+                         String path, String ip, int port, long duration, long sent, String error, UpToken upToken, long totalSize) {
         response = json;
         this.statusCode = statusCode;
         this.reqId = reqId;
@@ -113,13 +115,18 @@ public final class ResponseInfo {
         this.timeStamp = System.currentTimeMillis() / 1000;
         this.sent = sent;
         this.upToken = upToken;
+        this.totalSize = totalSize;
     }
 
-    public static ResponseInfo create(final JSONObject json, final int statusCode, final String reqId, final String xlog, final String xvia, final String host,
-                                      final String path, final String ip, final int port, final long duration, final long sent, final String error, final UpToken upToken) {
+    public static ResponseInfo create(final JSONObject json, final int statusCode, final String reqId,
+                                      final String xlog, final String xvia, final String host,
+                                      final String path, final String oIp, final int port, final long duration,
+                                      final long sent, final String error, final UpToken upToken, final long totalSize) {
 
-        ResponseInfo res = new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip, port, duration, sent, error, upToken);
-
+        String _ip = (oIp + "").split(":")[0];
+        final String ip = _ip.substring(Math.max(0, _ip.indexOf("/") + 1));
+        ResponseInfo res = new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip,
+                port, duration, sent, error, upToken, totalSize);
         if (Config.isRecord) {
             final String _timeStamp = res.timeStamp + "";
             UploadInfoCollector.handleHttp(upToken,
@@ -128,11 +135,8 @@ public final class ResponseInfo {
 
                         @Override
                         public String toRecordMsg() {
-                            // https://jira.qiniu.io/browse/KODO-1468
-                            // ip 形如  /115.231.97.46:80
-                            String remoteIp = (ip + "").split(":")[0].replace("/", "");
-                            String[] ss = new String[]{statusCode + "", reqId, host, remoteIp, port + "", duration + "",
-                                    _timeStamp, sent + ""};
+                            String[] ss = new String[]{statusCode + "", reqId, host, ip, port + "", duration + "",
+                                    _timeStamp, sent + "", getUpType(path), totalSize +""};
                             return StringUtils.join(ss, ",");
                         }
                     });
@@ -140,28 +144,55 @@ public final class ResponseInfo {
         return res;
     }
 
+    // 通过path ，解析出是 form, mkblk, bput, mkfile
+    private static String getUpType(String path) {
+        if (path == null || !path.startsWith("/")) {
+            return "";
+        }
+        if ("/".equals(path)) {
+            return "form";
+        }
+        int l = path.indexOf('/', 1);
+        if (l < 1) {
+            return "";
+        }
+        String m = path.substring(1, l);
+        switch (m) {
+            case "mkblk":
+                return "mkblk";
+            case "bput":
+                return "bput";
+            case "mkfile":
+                return "mkfile";
+            case "put":
+                return "put";
+            default:
+                return "";
+        }
+    }
+
     public static ResponseInfo zeroSize(final UpToken upToken) {
-        return create(null, ZeroSizeFile, "", "", "", "", "", "", 80, 0, 0, "file or data size is zero", upToken);
+        return create(null, ZeroSizeFile, "", "", "", "", "", "", 80, 0, 0, "file or data size is zero", upToken, 0);
     }
 
     public static ResponseInfo cancelled(final UpToken upToken) {
-        return create(null, Cancelled, "", "", "", "", "", "", 80, -1, -1, "cancelled by user", upToken);
+        return create(null, Cancelled, "", "", "", "", "", "", 80, -1, -1, "cancelled by user", upToken, 0);
     }
 
     public static ResponseInfo invalidArgument(String message, final UpToken upToken) {
-        return create(null, InvalidArgument, "", "", "", "", "", "", 80, 0, 0, message, upToken);
+        return create(null, InvalidArgument, "", "", "", "", "", "", 80, 0, 0, message, upToken, 0);
     }
 
     public static ResponseInfo invalidToken(String message) {
-        return create(null, InvalidToken, "", "", "", "", "", "", 80, 0, 0, message, null);
+        return create(null, InvalidToken, "", "", "", "", "", "", 80, 0, 0, message, null, 0);
     }
 
     public static ResponseInfo fileError(Exception e, final UpToken upToken) {
-        return create(null, InvalidFile, "", "", "", "", "", "", 80, 0, 0, e.getMessage(), upToken);
+        return create(null, InvalidFile, "", "", "", "", "", "", 80, 0, 0, e.getMessage(), upToken, 0);
     }
 
     public static ResponseInfo networkError(int code, UpToken upToken) {
-        return create(null, code, "", "", "", "", "", "", 80, 0, 0, "Network error during preQuery", upToken);
+        return create(null, code, "", "", "", "", "", "", 80, 0, 0, "Network error during preQuery", upToken, 0);
     }
 
     public static boolean isStatusCodeForBrokenNetwork(int code) {

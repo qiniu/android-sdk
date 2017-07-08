@@ -36,8 +36,8 @@ android {
 }
 
 dependencies {
-    compile 'com.squareup.okhttp3:okhttp:3.2.0'
-    compile 'com.qiniu:happy-dns:0.2.7'
+    compile 'com.squareup.okhttp3:okhttp:3.8.1'
+    compile 'com.qiniu:happy-dns:0.2.13'
     compile fileTree(include: ['*.jar'], dir: 'libs')
 }
 
@@ -45,9 +45,9 @@ task releaseJar(type: Jar, dependsOn: 'build') {
     //指定生成的jar名
     baseName 'qiniu-android-sdk-' + version
     //从哪里打包class文件
-    from('build/intermediates/classes/release/com/qiniu/android/dns/')
+//    from('build/intermediates/classes/release/com/qiniu/android/dns/')
     //打包到jar后的目录结构
-    into('com/qiniu/android/dns/')
+//    into('com/qiniu/android/dns/')
     //去掉不需要打包的目录和文件
     exclude('test/', 'BuildConfig.class', 'R.class')
     //去掉R$开头的文件

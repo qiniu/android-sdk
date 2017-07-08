@@ -38,7 +38,7 @@ import static java.lang.String.format;
  */
 final class ResumeUploader implements Runnable {
 
-    private final long size;
+    private final long totalSize;
     private final String key;
     private final UpCompletionHandler completionHandler;
     private final UploadOptions options;
@@ -61,7 +61,7 @@ final class ResumeUploader implements Runnable {
         this.config = config;
         this.f = f;
         this.recorderKey = recorderKey;
-        this.size = f.length();
+        this.totalSize = f.length();
         this.key = key;
         this.headers = new StringMap().put("Authorization", "UpToken " + token.token);
         this.file = null;
@@ -80,7 +80,7 @@ final class ResumeUploader implements Runnable {
         };
         this.options = options != null ? options : UploadOptions.defaultOptions();
         chunkBuffer = new byte[config.chunkSize];
-        long count = (size + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE;
+        long count = (totalSize + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE;
         contexts = new String[(int) count];
         modifyTime = f.lastModified();
         this.token = token;
@@ -177,7 +177,7 @@ final class ResumeUploader implements Runnable {
             }
             paramStr = "/" + StringUtils.join(str, "/");
         }
-        String path = format(Locale.ENGLISH, "/mkfile/%d%s%s%s", size, mime, keyStr, paramStr);
+        String path = format(Locale.ENGLISH, "/mkfile/%d%s%s%s", totalSize, mime, keyStr, paramStr);
 
         String bodyStr = StringUtils.join(contexts, ",");
         byte[] data = bodyStr.getBytes();
@@ -185,18 +185,18 @@ final class ResumeUploader implements Runnable {
         post(postUrl, data, 0, data.length, null, _completionHandler, c);
     }
 
-    private void post(String upHost, byte[] data, int offset, int size, ProgressHandler progress,
+    private void post(String upHost, byte[] data, int offset, int dataSize, ProgressHandler progress,
                       CompletionHandler completion, UpCancellationSignal c) {
-        client.asyncPost(upHost, data, offset, size, headers, token, progress, completion, c);
+        client.asyncPost(upHost, data, offset, dataSize, headers, token, totalSize, progress, completion, c);
     }
 
     private long calcPutSize(long offset) {
-        long left = size - offset;
+        long left = totalSize - offset;
         return left < config.chunkSize ? left : config.chunkSize;
     }
 
     private long calcBlockSize(long offset) {
-        long left = size - offset;
+        long left = totalSize - offset;
         return left < Configuration.BLOCK_SIZE ? left : Configuration.BLOCK_SIZE;
     }
 
@@ -211,7 +211,7 @@ final class ResumeUploader implements Runnable {
             return;
         }
 
-        if (offset == size) {
+        if (offset == totalSize) {
             //完成操作,返回的内容不确定,是否真正成功逻辑让用户自己判断
             CompletionHandler complete = new CompletionHandler() {
                 @Override
@@ -250,7 +250,7 @@ final class ResumeUploader implements Runnable {
         ProgressHandler progress = new ProgressHandler() {
             @Override
             public void onProgress(int bytesWritten, int totalSize) {
-                double percent = (double) (offset + bytesWritten) / size;
+                double percent = (double) (offset + bytesWritten) / totalSize;
                 if (percent > 0.95) {
                     percent = 0.95;
                 }
@@ -343,7 +343,7 @@ final class ResumeUploader implements Runnable {
         long modify = obj.optLong("modify_time", 0);
         long fSize = obj.optLong("size", 0);
         JSONArray array = obj.optJSONArray("contexts");
-        if (offset == 0 || modify != modifyTime || fSize != size || array == null || array.length() == 0) {
+        if (offset == 0 || modify != modifyTime || fSize != totalSize || array == null || array.length() == 0) {
             return 0;
         }
         for (int i = 0; i < array.length(); i++) {
@@ -371,7 +371,7 @@ final class ResumeUploader implements Runnable {
             return;
         }
         String data = format(Locale.ENGLISH, "{\"size\":%d,\"offset\":%d, \"modify_time\":%d, \"contexts\":[%s]}",
-                size, offset, modifyTime, StringUtils.jsonJoin(contexts));
+                totalSize, offset, modifyTime, StringUtils.jsonJoin(contexts));
         config.recorder.set(recorderKey, data.getBytes());
     }
 

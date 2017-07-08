@@ -50,12 +50,13 @@ final class FormUploader {
      * @param completionHandler 上传完成后续处理动作
      * @param options           上传时的可选参数
      */
-    static void upload(Client client, Configuration config, File file, String key, UpToken token, UpCompletionHandler completionHandler,
-                       UploadOptions options) {
+    static void upload(Client client, Configuration config, File file, String key, UpToken token,
+                       UpCompletionHandler completionHandler, UploadOptions options) {
         post(null, file, key, token, completionHandler, options, client, config);
     }
 
-    private static void post(byte[] data, File file, String k, final UpToken token, final UpCompletionHandler completionHandler,
+    private static void post(byte[] data, File file, String k, final UpToken token,
+                             final UpCompletionHandler completionHandler,
                              final UploadOptions optionsIn, final Client client, final Configuration config) {
         final String key = k;
         StringMap params = new StringMap();
@@ -176,7 +177,9 @@ final class FormUploader {
         try {
             return syncUpload0(client, config, data, null, key, token, options);
         } catch (Exception e) {
-            return ResponseInfo.create(null, ResponseInfo.UnknownError, "", "", "", "", "", "", 0, 0, 0, e.getMessage(), token);
+
+            return ResponseInfo.create(null, ResponseInfo.UnknownError, "", "", "", "", "", "", 0, 0, 0,
+                    e.getMessage(), token, data != null ? data.length : 0);
         }
     }
 
@@ -194,7 +197,8 @@ final class FormUploader {
         try {
             return syncUpload0(client, config, null, file, key, token, options);
         } catch (Exception e) {
-            return ResponseInfo.create(null, ResponseInfo.UnknownError, "", "", "", "", "", "", 0, 0, 0, e.getMessage(), token);
+            return ResponseInfo.create(null, ResponseInfo.UnknownError, "", "", "", "", "", "", 0, 0, 0,
+                    e.getMessage(), token, file != null ? file.length() : 0);
         }
     }
 
@@ -242,6 +246,7 @@ final class FormUploader {
         if (!success) {
             return ResponseInfo.invalidToken("failed to get up host");
         }
+
 
         final String upHost = config.zone.upHost(token.token, config.useHttps, null);
         Log.d("Qiniu.FormUploader", "sync upload use up host " + upHost);

@@ -43,7 +43,7 @@ public class HttpsTest extends InstrumentationTestCase {
     @SmallTest
     public void testPost1() throws Throwable {
         httpManager.asyncPost("https://www.baidu.com/", "hello".getBytes(), null,
-                UpToken.parse(TestConfig.token_z0), null, new CompletionHandler() {
+                UpToken.parse(TestConfig.token_z0), "hello".getBytes().length, null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
                         Log.d("qiniutest", rinfo.toString());
@@ -64,7 +64,8 @@ public class HttpsTest extends InstrumentationTestCase {
     @SmallTest
     public void testPost2() throws Throwable {
         httpManager.asyncPost("https://static-fw.qbox.me/public/v28812/add-on/ga/analytics.js",
-                "hello".getBytes(), null, UpToken.parse(TestConfig.token_z0), null, new CompletionHandler() {
+                "hello".getBytes(), null, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
+                null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
                         Log.d("qiniutest", rinfo.toString());

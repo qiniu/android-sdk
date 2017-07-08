@@ -36,20 +36,12 @@ public class UploadInfoCollector {
     private long lastUpload;// milliseconds
 
     private static UploadInfoCollector httpCollector;
-    private static UploadInfoCollector uploadCollector;
 
     private static UploadInfoCollector getHttpCollector() {
         if (httpCollector == null) {
-            httpCollector = new UploadInfoCollector("_qiniu_record_file_hu3z9lo7anx03", Config.serverURL);
+            httpCollector = new UploadInfoCollector("_qiniu_record_file_hs5z9lo7anx03", Config.serverURL);
         }
         return httpCollector;
-    }
-
-    private static UploadInfoCollector getUploadCollector() {
-        if (uploadCollector == null) {
-            uploadCollector = new UploadInfoCollector("_qiniu_record_file_upm6xola4sk3", Config.serverURL2);
-        }
-        return uploadCollector;
     }
 
 
@@ -84,13 +76,6 @@ public class UploadInfoCollector {
             e.printStackTrace();
         }
         httpCollector = null;
-        try {
-            getUploadCollector().clean0();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        uploadCollector = null;
-
     }
 
 
@@ -116,11 +101,6 @@ public class UploadInfoCollector {
     public static void reset() {
         try {
             getHttpCollector().reset0();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            getUploadCollector().reset0();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -173,13 +153,7 @@ public class UploadInfoCollector {
     }
 
     public static void handleUpload(final UpToken upToken, final RecordMsg record) {
-        try {
-            if (Config.isRecord) {
-                getUploadCollector().handle0(upToken, record);
-            }
-        } catch (Throwable t) {
-            // do nothing
-        }
+        handleHttp(upToken, record);
     }
 
     private void handle0(final UpToken upToken, final RecordMsg record) {
