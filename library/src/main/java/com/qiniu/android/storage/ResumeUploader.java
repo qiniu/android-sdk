@@ -275,8 +275,9 @@ final class ResumeUploader implements Runnable {
                     return;
                 }
 
-                String upHostRetry = config.zone.upHost(token.token, config.useHttps, upHost);
+
                 if (!isChunkOK(info, response)) {
+                    String upHostRetry = config.zone.upHost(token.token, config.useHttps, upHost);
                     if (info.statusCode == 701 && retried < config.retryMax) {
                         nextTask((offset / Configuration.BLOCK_SIZE) * Configuration.BLOCK_SIZE, retried + 1, upHost);
                         return;
@@ -295,6 +296,7 @@ final class ResumeUploader implements Runnable {
                 String context = null;
 
                 if (response == null && retried < config.retryMax) {
+                    String upHostRetry = config.zone.upHost(token.token, config.useHttps, upHost);
                     nextTask(offset, retried + 1, upHostRetry);
                     return;
                 }
@@ -306,6 +308,7 @@ final class ResumeUploader implements Runnable {
                     e.printStackTrace();
                 }
                 if ((context == null || crc != ResumeUploader.this.crc32) && retried < config.retryMax) {
+                    String upHostRetry = config.zone.upHost(token.token, config.useHttps, upHost);
                     nextTask(offset, retried + 1, upHostRetry);
                     return;
                 }
