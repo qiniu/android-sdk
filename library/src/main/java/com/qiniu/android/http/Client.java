@@ -267,7 +267,7 @@ public final class Client {
             rbody = RequestBody.create(null, new byte[0]);
         }
         if (progressHandler != null || c != null) {
-            rbody = new CountingRequestBody(rbody, progressHandler, c);
+            rbody = new CountingRequestBody(rbody, progressHandler, totalSize, c);
         }
 
         Request.Builder requestBuilder = new Request.Builder().url(url).post(rbody);
@@ -289,7 +289,7 @@ public final class Client {
             file = RequestBody.create(MediaType.parse(args.mimeType), args.data);
             totalSize = args.data.length;
         }
-        asyncMultipartPost(url, args.params, upToken, totalSize,  progressHandler, args.fileName, file, completionHandler, c);
+        asyncMultipartPost(url, args.params, upToken, totalSize, progressHandler, args.fileName, file, completionHandler, c);
     }
 
     private void asyncMultipartPost(String url,
@@ -316,7 +316,7 @@ public final class Client {
         mb.setType(MediaType.parse("multipart/form-data"));
         RequestBody body = mb.build();
         if (progressHandler != null || cancellationHandler != null) {
-            body = new CountingRequestBody(body, progressHandler, cancellationHandler);
+            body = new CountingRequestBody(body, progressHandler, totalSize, cancellationHandler);
         }
         Request.Builder requestBuilder = new Request.Builder().url(url).post(body);
         asyncSend(requestBuilder, null, upToken, totalSize, completionHandler);

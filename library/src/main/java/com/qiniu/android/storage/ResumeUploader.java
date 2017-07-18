@@ -249,7 +249,7 @@ final class ResumeUploader implements Runnable {
         final int chunkSize = (int) calcPutSize(offset);
         ProgressHandler progress = new ProgressHandler() {
             @Override
-            public void onProgress(int bytesWritten, int totalSize) {
+            public void onProgress(long bytesWritten, long totalSize) {
                 double percent = (double) (offset + bytesWritten) / totalSize;
                 if (percent > 0.95) {
                     percent = 0.95;

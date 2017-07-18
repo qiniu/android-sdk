@@ -10,5 +10,5 @@ public interface ProgressHandler {
      * @param bytesWritten 已经写入字节
      * @param totalSize    总字节数
      */
-    void onProgress(int bytesWritten, int totalSize);
+    void onProgress(long bytesWritten, long totalSize);
 }
