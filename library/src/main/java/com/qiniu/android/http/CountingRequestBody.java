@@ -21,12 +21,14 @@ public final class CountingRequestBody extends RequestBody {
 
     private final RequestBody body;
     private final ProgressHandler progress;
+    private final long totalSize;
     private final CancellationHandler cancellationHandler;
 
-    public CountingRequestBody(RequestBody body, ProgressHandler progress,
+    public CountingRequestBody(RequestBody body, ProgressHandler progress, long totalSize,
                                CancellationHandler cancellationHandler) {
         this.body = body;
         this.progress = progress;
+        this.totalSize = totalSize;
         this.cancellationHandler = cancellationHandler;
     }
 
@@ -75,11 +77,7 @@ public final class CountingRequestBody extends RequestBody {
                 AsyncRun.runInMain(new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            progress.onProgress(bytesWritten, (int) contentLength());
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        progress.onProgress(bytesWritten, totalSize);
                     }
                 });
             }

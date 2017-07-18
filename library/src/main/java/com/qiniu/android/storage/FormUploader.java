@@ -94,7 +94,7 @@ final class FormUploader {
 
         final ProgressHandler progress = new ProgressHandler() {
             @Override
-            public void onProgress(int bytesWritten, int totalSize) {
+            public void onProgress(long bytesWritten, long totalSize) {
                 double percent = (double) bytesWritten / (double) totalSize;
                 if (percent > 0.95) {
                     percent = 0.95;
