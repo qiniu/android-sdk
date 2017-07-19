@@ -10,7 +10,9 @@ import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
+import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
+import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.Etag;
 
 import junit.framework.Assert;
@@ -18,16 +20,67 @@ import junit.framework.Assert;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class ResumeUploadTest extends InstrumentationTestCase {
-
+    String TAG = this.getClass().getSimpleName();
     final CountDownLatch signal = new CountDownLatch(1);
     private UploadManager uploadManager;
     private volatile String key;
     private volatile ResponseInfo info = null;
     private volatile JSONObject resp;
+    private Queue<Double> queue = new LinkedList<Double>() {{
+        offer(0.00000001);
+        offer(0.00000001);
+        offer(0.00000001);
+        offer(0.00000001);
+        offer(0.00000001);
+    }};
+
+    private void putProgress(double size) {
+        if (size > 0.94) {
+            return;
+        }
+        queue.offer(size);
+        if (queue.size() > 4) {
+            queue.poll();
+        }
+    }
+
+    private boolean isProgressAllSame() {
+        double size = 0.00000001;
+        double _lit = 0.0000000001;
+        boolean same = true;
+        Iterator<Double> it = queue.iterator();
+        while (it.hasNext()) {
+            double temp = it.next();
+            same = same && (Math.abs(size - temp) < _lit);
+            size = temp;
+        }
+        return same;
+    }
+
+    private String getProgress() {
+        StringBuilder ss = new StringBuilder("");
+        Iterator<Double> it = queue.iterator();
+        while (it.hasNext()) {
+            ss.append(it.next()).append(", ");
+        }
+        return ss.toString();
+    }
+
+    private UploadOptions getUploadOptions() {
+        return new UploadOptions(null, null, false, new UpProgressHandler() {
+            public void progress(String key, double percent) {
+                Log.d(TAG, percent + "");
+                putProgress(percent);
+            }
+        }, null);
+    }
 
     public void setUp() throws Exception {
         Configuration config = new Configuration.Builder().build();
@@ -38,6 +91,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     private void template(int size) throws Throwable {
         final String expectKey = "r=" + size + "k";
         final File f = TempFile.createFile(size);
+        final UploadOptions options = getUploadOptions();
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
                 uploadManager.put(f, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
@@ -48,7 +102,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
                         resp = response;
                         signal.countDown();
                     }
-                }, null);
+                }, options);
             }
         });
 
@@ -68,7 +122,8 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         String hash = resp.getString("hash");
         Assert.assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
-
+        Assert.assertTrue("进度有变化，不大可能一直相同。" + getProgress(), !isProgressAllSame());
+        Log.d(TAG, getProgress());
         ACollectUploadInfoTest.recordFileTest();
     }
 
@@ -81,6 +136,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
                 .zone(z).useHttps(true)
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
+        final UploadOptions options = getUploadOptions();
         uploadManager2.put(f, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                 Log.i("qiniutest", k + rinfo);
@@ -89,7 +145,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
                 resp = response;
                 signal.countDown();
             }
-        }, null);
+        }, options);
 
         try {
             signal.await(1200, TimeUnit.SECONDS); // wait for callback
@@ -113,6 +169,8 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         Assert.assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
 
+        Assert.assertTrue("进度有变化，不大可能一直相同。" + getProgress(), !isProgressAllSame());
+        Log.d(TAG, getProgress());
         ACollectUploadInfoTest.recordFileTest();
     }
 
