@@ -122,7 +122,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         String hash = resp.getString("hash");
         Assert.assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
-        Assert.assertTrue("进度大小有变化，不大可能一直相同。" + getProgress(), !isProgressAllSame());
+        Assert.assertTrue("进度有变化，不大可能一直相同。" + getProgress(), !isProgressAllSame());
         Log.d(TAG, getProgress());
         ACollectUploadInfoTest.recordFileTest();
     }
@@ -169,7 +169,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         Assert.assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
 
-        Assert.assertTrue("进度大小有变化，不大可能一直相同。" + getProgress(), !isProgressAllSame());
+        Assert.assertTrue("进度有变化，不大可能一直相同。" + getProgress(), !isProgressAllSame());
         Log.d(TAG, getProgress());
         ACollectUploadInfoTest.recordFileTest();
     }
