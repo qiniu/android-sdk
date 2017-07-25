@@ -34,7 +34,7 @@ public final class UserAgent {
         return System.currentTimeMillis() + "" + r.nextInt(999);
     }
 
-    private static String getUserAgent(String id) {
+    static String getUserAgent(String id) {
         return format("QiniuAndroid/%s (%s; %s; %s", Constants.VERSION,
                 osVersion(), device(), id);
     }

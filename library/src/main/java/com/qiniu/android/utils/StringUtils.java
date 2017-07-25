@@ -95,6 +95,10 @@ public final class StringUtils {
         return s == null || "".equals(s);
     }
 
+    public static boolean isBlank(String s) {
+        return s == null || s.trim().equals("");
+    }
+
     public static String strip(String s) {
         StringBuilder b = new StringBuilder();
         for (int i = 0, length = s.length(); i < length; i++) {

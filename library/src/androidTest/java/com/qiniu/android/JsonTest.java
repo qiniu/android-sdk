@@ -2,10 +2,17 @@ package com.qiniu.android;
 
 import android.test.AndroidTestCase;
 
+import com.qiniu.android.utils.Json;
+
 import junit.framework.Assert;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Simon on 3/3/16.
@@ -87,5 +94,19 @@ public class JsonTest extends AndroidTestCase {
         if (showContent) {
             Assert.assertEquals(str, ex.getMessage());
         }
+    }
+
+    public void testEncodeMap() {
+        Map<String, Object> m = new HashMap<>();
+        m.put("a", 1);
+        String s = Json.encodeMap(m);
+        Assert.assertEquals("{\"a\":1}", s);
+    }
+
+    public void testEncodeList() {
+        List<String> l = new ArrayList<>();
+        l.add("a");
+        String s = Json.encodeList(l);
+        Assert.assertEquals("[\"a\"]", s);
     }
 }

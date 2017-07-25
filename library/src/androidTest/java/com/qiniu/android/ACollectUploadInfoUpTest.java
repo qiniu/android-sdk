@@ -30,11 +30,6 @@ public class ACollectUploadInfoUpTest extends AndroidTestCase {
         offer(4l);
     }};
 
-    @Override
-    protected void setUp() throws Exception {
-        testInit();
-    }
-
     public static void testInit() {
         Config.isRecord = true;
         Config.isUpload = true;
@@ -154,5 +149,10 @@ public class ACollectUploadInfoUpTest extends AndroidTestCase {
                 }
             }
         }
+    }
+
+    @Override
+    protected void setUp() throws Exception {
+        testInit();
     }
 }

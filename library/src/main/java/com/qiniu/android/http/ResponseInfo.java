@@ -127,7 +127,7 @@ public final class ResponseInfo {
         final String ip = _ip.substring(Math.max(0, _ip.indexOf("/") + 1));
         ResponseInfo res = new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip,
                 port, duration, sent, error, upToken, totalSize);
-        if (Config.isRecord) {
+        if (Config.isRecord || upToken != null) {
             final String _timeStamp = res.timeStamp + "";
             UploadInfoCollector.handleHttp(upToken,
                     // 延迟序列化.如果判断不记录,则不执行序列化
@@ -136,7 +136,7 @@ public final class ResponseInfo {
                         @Override
                         public String toRecordMsg() {
                             String[] ss = new String[]{statusCode + "", reqId, host, ip, port + "", duration + "",
-                                    _timeStamp, sent + "", getUpType(path), totalSize +""};
+                                    _timeStamp, sent + "", getUpType(path), totalSize + ""};
                             return StringUtils.join(ss, ",");
                         }
                     });
@@ -226,7 +226,7 @@ public final class ResponseInfo {
 
     public boolean needRetry() {
         return !isCancelled() && (
-                        needSwitchServer() || statusCode == 406 ||
+                needSwitchServer() || statusCode == 406 ||
                         (statusCode == 200 && error != null) || (isNotQiniu() && !upToken.hasReturnUrl())
         );
     }

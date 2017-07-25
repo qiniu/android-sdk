@@ -209,7 +209,13 @@ public final class Client {
             });
         }
 
-        requestBuilder.header("User-Agent", UserAgent.instance().getUa(upToken.accessKey));
+        if (upToken != null) {
+            requestBuilder.header("User-Agent", UserAgent.instance().getUa(upToken.accessKey));
+        } else {
+            requestBuilder.header("User-Agent", UserAgent.getUserAgent("pandora"));
+        }
+
+
         final ResponseTag tag = new ResponseTag();
         httpClient.newCall(requestBuilder.tag(tag).build()).enqueue(new Callback() {
             @Override
