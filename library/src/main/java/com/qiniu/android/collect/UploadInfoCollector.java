@@ -23,27 +23,17 @@ import okhttp3.Response;
 /**
  * 收集上传信息，发送到后端
  */
-public class UploadInfoCollector {
+public final class UploadInfoCollector {
     /**
      * 单线程任务队列
      */
     private static ExecutorService singleServer = null;
     private static OkHttpClient httpClient = null;
-
+    private static UploadInfoCollector httpCollector;
     private final String serverURL;
     private final String recordFileName;
     private File recordFile = null;
     private long lastUpload;// milliseconds
-
-    private static UploadInfoCollector httpCollector;
-
-    private static UploadInfoCollector getHttpCollector() {
-        if (httpCollector == null) {
-            httpCollector = new UploadInfoCollector("_qiniu_record_file_hs5z9lo7anx03", Config.serverURL);
-        }
-        return httpCollector;
-    }
-
 
     private UploadInfoCollector(String recordFileName, String serverURL) {
         this.recordFileName = recordFileName;
@@ -55,6 +45,12 @@ public class UploadInfoCollector {
         }
     }
 
+    private static UploadInfoCollector getHttpCollector() {
+        if (httpCollector == null) {
+            httpCollector = new UploadInfoCollector("_qiniu_record_file_hs5z9lo7anx03", Config.serverURL);
+        }
+        return httpCollector;
+    }
 
     /**
      * 清理操作。
@@ -78,20 +74,6 @@ public class UploadInfoCollector {
         httpCollector = null;
     }
 
-
-    private void clean0() {
-        try {
-            if (recordFile != null) {
-                recordFile.delete();
-            } else {
-                new File(getRecordDir(Config.recordDir), recordFileName).delete();
-            }
-        } catch (Exception e) {
-            // do nothing
-        }
-        recordFile = null;
-    }
-
     /**
      * 修改记录"是否记录上传信息: isRecord","记录信息所在文件夹: recordDir"配置后,调用此方法重置.
      * 上传方式, 时间间隔,文件最大大小,上传阀值等参数修改不用调用此方法.
@@ -104,6 +86,65 @@ public class UploadInfoCollector {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void handleHttp(final UpToken upToken, final RecordMsg record) {
+        try {
+            if (Config.isRecord) {
+                getHttpCollector().handle0(upToken, record);
+            }
+        } catch (Throwable t) {
+            // do nothing
+        }
+    }
+
+    public static void handleUpload(final UpToken upToken, final RecordMsg record) {
+        handleHttp(upToken, record);
+    }
+
+    private static void writeToFile(File file, String msg, boolean isAppend) {
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(file, isAppend);
+            fos.write(msg.getBytes(Charset.forName("UTF-8")));
+            fos.flush();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    // do nothing
+                }
+            }
+        }
+    }
+
+    private static OkHttpClient getHttpClient() {
+        if (httpClient == null) {
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            builder.connectTimeout(10, TimeUnit.SECONDS);
+            builder.readTimeout(15, TimeUnit.SECONDS);
+            builder.writeTimeout((Config.interval / 2 + 1) * 60 - 10, TimeUnit.SECONDS);
+            httpClient = builder.build();
+        }
+        return httpClient;
+    }
+
+    private void clean0() {
+        try {
+            if (recordFile != null) {
+                recordFile.delete();
+            } else {
+                new File(getRecordDir(Config.recordDir), recordFileName).delete();
+            }
+        } catch (Exception e) {
+            // do nothing
+        }
+        recordFile = null;
     }
 
     private void reset0() throws IOException {
@@ -122,7 +163,6 @@ public class UploadInfoCollector {
         return new File(recordDir);
     }
 
-
     private void initRecordFile(File recordDir) throws IOException {
         if (recordDir == null) {
             throw new IOException("record's dir is not setted");
@@ -139,21 +179,6 @@ public class UploadInfoCollector {
         }
 
         recordFile = new File(recordDir, recordFileName);
-    }
-
-
-    public static void handleHttp(final UpToken upToken, final RecordMsg record) {
-        try {
-            if (Config.isRecord) {
-                getHttpCollector().handle0(upToken, record);
-            }
-        } catch (Throwable t) {
-            // do nothing
-        }
-    }
-
-    public static void handleUpload(final UpToken upToken, final RecordMsg record) {
-        handleHttp(upToken, record);
     }
 
     private void handle0(final UpToken upToken, final RecordMsg record) {
@@ -191,7 +216,6 @@ public class UploadInfoCollector {
         }
     }
 
-
     private void tryRecode(String msg, File recordFile) {
         if (Config.isRecord && recordFile.length() < Config.maxRecordFileSize) {
             // 追加到文件尾部并换行
@@ -211,27 +235,6 @@ public class UploadInfoCollector {
                     // 记录文件重置为空
                     writeToFile(recordFile, "", false);
                     writeToFile(recordFile, "", false);
-                }
-            }
-        }
-    }
-
-    private static void writeToFile(File file, String msg, boolean isAppend) {
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(file, isAppend);
-            fos.write(msg.getBytes(Charset.forName("UTF-8")));
-            fos.flush();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (IOException e) {
-                    // do nothing
                 }
             }
         }
@@ -262,21 +265,8 @@ public class UploadInfoCollector {
         }
     }
 
-
     private boolean isOk(Response res) {
         return res.isSuccessful() && res.header("X-Reqid") != null;
-    }
-
-
-    private static OkHttpClient getHttpClient() {
-        if (httpClient == null) {
-            OkHttpClient.Builder builder = new OkHttpClient.Builder();
-            builder.connectTimeout(10, TimeUnit.SECONDS);
-            builder.readTimeout(15, TimeUnit.SECONDS);
-            builder.writeTimeout((Config.interval / 2 + 1) * 60 - 10, TimeUnit.SECONDS);
-            httpClient = builder.build();
-        }
-        return httpClient;
     }
 
     public static abstract class RecordMsg {

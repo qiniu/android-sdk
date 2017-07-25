@@ -16,11 +16,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ZoneInfo {
     private static int DOMAIN_FROZEN_SECONDS = 10 * 60;
-    private final int ttl;
     //upHost
     public final List<String> upDomainsList;
     //upHost -> frozenTillTimestamp
     public final Map<String, Long> upDomainsMap;
+    private final int ttl;
 
     public ZoneInfo(int ttl, List<String> upDomainsList, Map<String, Long> upDomainsMap) {
         this.ttl = ttl;
