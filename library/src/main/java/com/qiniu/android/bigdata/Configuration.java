@@ -26,7 +26,7 @@ public final class Configuration implements Cloneable {
         return (Configuration)super.clone();
     }
 
-    static Configuration copy(Configuration config){
+    public static Configuration copy(Configuration config){
         if (config == null){
             return new Configuration();
         }
