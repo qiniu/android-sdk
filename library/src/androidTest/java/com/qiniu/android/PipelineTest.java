@@ -4,13 +4,15 @@ package com.qiniu.android;
 import android.test.InstrumentationTestCase;
 
 import com.qiniu.android.bigdata.pipeline.Pipeline;
-import com.qiniu.android.bigdata.pipeline.Point;
+import com.qiniu.android.bigdata.pipeline.Points;
 import com.qiniu.android.http.ResponseInfo;
 
 import junit.framework.Assert;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -24,11 +26,13 @@ public class PipelineTest extends InstrumentationTestCase {
     private volatile ResponseInfo info = null;
 
     public void testPoint() {
-        Point p = Point.fromPointObject(new A(3));
+        StringBuilder b1 = new StringBuilder();
+        Points.formatPoint(new A(3), b1);
+        StringBuilder b2 = new StringBuilder();
         Map<String, Integer> m = new HashMap<>();
         m.put("a", 3);
-        Point p2 = Point.fromPointMap(m);
-        Assert.assertEquals(p.toString(), p2.toString());
+        Points.formatPoint(m, b2);
+        Assert.assertEquals(b1.toString(), b2.toString());
     }
 
     public void testPump() {
@@ -60,6 +64,57 @@ public class PipelineTest extends InstrumentationTestCase {
     public void testPump2() {
         Pipeline pipe = new Pipeline(null);
         pipe.pump("testsdk", new tsdk(), "Pandora le0xKwjp2_9ZGZMkCok7Gko6aG5GnIHValG82deI:yIl-J0zNjJCUii_7jag6-U79DPY=:eyJyZXNvdXJjZSI6Ii92Mi9yZXBvcy90ZXN0c2RrL2RhdGEiLCJleHBpcmVzIjo1MTAxMDQ1Njg0LCJjb250ZW50TUQ1IjoiIiwiY29udGVudFR5cGUiOiJ0ZXh0L3BsYWluIiwiaGVhZGVycyI6IiIsIm1ldGhvZCI6IlBPU1QifQ==", new Pipeline.PumpCompleteHandler() {
+            @Override
+            public void complete(ResponseInfo inf) {
+                info = inf;
+                signal.countDown();
+            }
+        });
+
+        try {
+            signal.await(1200, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Assert.assertTrue(info.isOK());
+    }
+
+    public void testPump3() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("platform", "android");
+        map.put("tl", 1L);
+        map.put("tf", 1.0);
+        map.put("tb", true);
+        map.put("td", new Date());
+        Pipeline pipe = new Pipeline(null);
+        List<Map<String, Object>> list = new ArrayList<>();
+        list.add(map);
+        list.add(map);
+        pipe.pumpMulti("testsdk", list, "Pandora le0xKwjp2_9ZGZMkCok7Gko6aG5GnIHValG82deI:yIl-J0zNjJCUii_7jag6-U79DPY=:eyJyZXNvdXJjZSI6Ii92Mi9yZXBvcy90ZXN0c2RrL2RhdGEiLCJleHBpcmVzIjo1MTAxMDQ1Njg0LCJjb250ZW50TUQ1IjoiIiwiY29udGVudFR5cGUiOiJ0ZXh0L3BsYWluIiwiaGVhZGVycyI6IiIsIm1ldGhvZCI6IlBPU1QifQ==", new Pipeline.PumpCompleteHandler() {
+            @Override
+            public void complete(ResponseInfo inf) {
+                info = inf;
+                signal.countDown();
+            }
+        });
+
+        try {
+            signal.await(1200, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println(info);
+        Assert.assertTrue(info.isOK());
+    }
+
+    public void testPump4() {
+        Pipeline pipe = new Pipeline(null);
+        List<Object> list = new ArrayList<>();
+        list.add(new tsdk());
+        list.add(new tsdk());
+        pipe.pumpMultiObjects("testsdk", list, "Pandora le0xKwjp2_9ZGZMkCok7Gko6aG5GnIHValG82deI:yIl-J0zNjJCUii_7jag6-U79DPY=:eyJyZXNvdXJjZSI6Ii92Mi9yZXBvcy90ZXN0c2RrL2RhdGEiLCJleHBpcmVzIjo1MTAxMDQ1Njg0LCJjb250ZW50TUQ1IjoiIiwiY29udGVudFR5cGUiOiJ0ZXh0L3BsYWluIiwiaGVhZGVycyI6IiIsIm1ldGhvZCI6IlBPU1QifQ==", new Pipeline.PumpCompleteHandler() {
             @Override
             public void complete(ResponseInfo inf) {
                 info = inf;

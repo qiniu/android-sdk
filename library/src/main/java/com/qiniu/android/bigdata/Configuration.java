@@ -22,12 +22,8 @@ public final class Configuration implements Cloneable {
      */
     public int responseTimeout = 10;
 
-    public Configuration clone() throws CloneNotSupportedException{
-        return (Configuration)super.clone();
-    }
-
-    public static Configuration copy(Configuration config){
-        if (config == null){
+    public static Configuration copy(Configuration config) {
+        if (config == null) {
             return new Configuration();
         }
         try {
@@ -35,5 +31,9 @@ public final class Configuration implements Cloneable {
         } catch (CloneNotSupportedException e) {
             return new Configuration();
         }
+    }
+
+    public Configuration clone() throws CloneNotSupportedException {
+        return (Configuration) super.clone();
     }
 }

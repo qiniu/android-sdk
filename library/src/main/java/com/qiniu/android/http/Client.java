@@ -216,7 +216,6 @@ public final class Client {
         }
 
 
-
         final ResponseTag tag = new ResponseTag();
         httpClient.newCall(requestBuilder.tag(tag).build()).enqueue(new Callback() {
             @Override
@@ -269,9 +268,9 @@ public final class Client {
         RequestBody rbody;
         if (body != null && body.length > 0) {
             MediaType t = MediaType.parse(DefaultMime);
-            if (headers != null){
+            if (headers != null) {
                 Object ct = headers.get(ContentTypeHeader);
-                if (ct != null){
+                if (ct != null) {
                     t = MediaType.parse(ct.toString());
                 }
             }
