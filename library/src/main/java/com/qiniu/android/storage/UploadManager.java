@@ -69,6 +69,34 @@ public final class UploadManager {
         return false;
     }
 
+    private static ResponseInfo areInvalidArg(final String key, byte[] data, File f, String token,
+                                              UpToken decodedToken) {
+        String message = null;
+        if (f == null && data == null) {
+            message = "no input data";
+        } else if (token == null || token.equals("")) {
+            message = "no token";
+        }
+
+        if (message != null) {
+            return ResponseInfo.invalidArgument(message, decodedToken);
+        }
+
+        if (decodedToken == UpToken.NULL || decodedToken == null) {
+            return ResponseInfo.invalidToken("invalid token");
+        }
+
+        if ((f != null && f.length() == 0) || (data != null && data.length == 0)) {
+            return ResponseInfo.zeroSize(decodedToken);
+        }
+
+        return null;
+    }
+
+    private static WarpHandler warpHandler(final UpCompletionHandler complete, final long size) {
+        return new WarpHandler(complete, size);
+    }
+
     /**
      * 上传数据
      *
@@ -210,31 +238,6 @@ public final class UploadManager {
         return syncPut(new File(file), key, token, options);
     }
 
-    private static ResponseInfo areInvalidArg(final String key, byte[] data, File f, String token,
-                                              UpToken decodedToken) {
-        String message = null;
-        if (f == null && data == null) {
-            message = "no input data";
-        } else if (token == null || token.equals("")) {
-            message = "no token";
-        }
-
-        if (message != null) {
-            return ResponseInfo.invalidArgument(message, decodedToken);
-        }
-
-        if (decodedToken == UpToken.NULL || decodedToken == null) {
-            return ResponseInfo.invalidToken("invalid token");
-        }
-
-        if ((f != null && f.length() == 0) || (data != null && data.length == 0)) {
-            return ResponseInfo.zeroSize(decodedToken);
-        }
-
-        return null;
-    }
-
-
     private static class WarpHandler implements UpCompletionHandler {
         final UpCompletionHandler complete;
         final long before = System.currentTimeMillis();
@@ -256,7 +259,7 @@ public final class UploadManager {
                             @Override
                             public String toRecordMsg() {
                                 String[] ss = new String[]{res.statusCode + "", res.reqId, res.host, res.ip, res.port + "", (after - before) + "",
-                                        res.timeStamp + "", size + "", "block", size+""};
+                                        res.timeStamp + "", size + "", "block", size + ""};
                                 return StringUtils.join(ss, ",");
                             }
                         });
@@ -274,10 +277,6 @@ public final class UploadManager {
                 }
             });
         }
-    }
-
-    private static WarpHandler warpHandler(final UpCompletionHandler complete, final long size) {
-        return new WarpHandler(complete, size);
     }
 
 }

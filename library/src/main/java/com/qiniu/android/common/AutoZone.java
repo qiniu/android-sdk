@@ -19,13 +19,13 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 
 public final class AutoZone extends Zone {
-    private Map<ZoneIndex, ZoneInfo> zones = new ConcurrentHashMap<>();
-    private Client client = new Client();
-    private final String ucServer;
     /**
      * 自动判断机房
      */
     public static final AutoZone autoZone = new AutoZone(null);
+    private final String ucServer;
+    private Map<ZoneIndex, ZoneInfo> zones = new ConcurrentHashMap<>();
+    private Client client = new Client();
 
     public AutoZone(DnsManager dns) {
         this("https://uc.qbox.me", dns);

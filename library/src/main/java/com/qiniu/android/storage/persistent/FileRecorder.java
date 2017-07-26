@@ -31,6 +31,22 @@ public final class FileRecorder implements Recorder {
         }
     }
 
+    private static String hash(String base) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-1");
+            byte[] hash = digest.digest(base.getBytes());
+            StringBuffer hexString = new StringBuffer();
+
+            for (int i = 0; i < hash.length; i++) {
+                hexString.append(Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1));
+            }
+            return hexString.toString();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
     /**
      * 纪录分片上传进度
      *
@@ -104,21 +120,5 @@ public final class FileRecorder implements Recorder {
     public void del(String key) {
         File f = new File(directory, hash(key));
         f.delete();
-    }
-
-    private static String hash(String base) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-1");
-            byte[] hash = digest.digest(base.getBytes());
-            StringBuffer hexString = new StringBuffer();
-
-            for (int i = 0; i < hash.length; i++) {
-                hexString.append(Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1));
-            }
-            return hexString.toString();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return null;
     }
 }

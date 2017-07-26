@@ -38,6 +38,23 @@ public class TestFileRecorder extends InstrumentationTestCase {
     private volatile JSONObject resp;
     private volatile UploadOptions options;
 
+    // copy from FileRecorder.
+    private static String hash(String base) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-1");
+            byte[] hash = digest.digest(base.getBytes());
+            StringBuffer hexString = new StringBuffer();
+
+            for (int i = 0; i < hash.length; i++) {
+                hexString.append(Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1));
+            }
+            return hexString.toString();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
     @Override
     protected void setUp() throws Exception {
         File f = File.createTempFile("qiniutest", "b");
@@ -160,7 +177,6 @@ public class TestFileRecorder extends InstrumentationTestCase {
         template(8 * 1024 + 1, 0.8);
     }
 
-
     public void testLastModify() throws IOException {
         File f = File.createTempFile("qiniutest", "b");
         String folder = f.getParent();
@@ -206,22 +222,5 @@ public class TestFileRecorder extends InstrumentationTestCase {
         fr.set(key, data);
         long m4 = recoderFile.lastModified();
         assertTrue(m4 > m1);
-    }
-
-    // copy from FileRecorder.
-    private static String hash(String base) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-1");
-            byte[] hash = digest.digest(base.getBytes());
-            StringBuffer hexString = new StringBuffer();
-
-            for (int i = 0; i < hash.length; i++) {
-                hexString.append(Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1));
-            }
-            return hexString.toString();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return null;
     }
 }

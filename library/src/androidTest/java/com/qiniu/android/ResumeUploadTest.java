@@ -27,8 +27,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class ResumeUploadTest extends InstrumentationTestCase {
-    String TAG = this.getClass().getSimpleName();
     final CountDownLatch signal = new CountDownLatch(1);
+    String TAG = this.getClass().getSimpleName();
     private UploadManager uploadManager;
     private volatile String key;
     private volatile ResponseInfo info = null;
