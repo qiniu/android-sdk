@@ -5,6 +5,7 @@ import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.StringMap;
+import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONObject;
 
@@ -46,6 +47,15 @@ public final class Pipeline {
     }
 
     private void send(String repo, Batch b, String token, final PumpCompleteHandler handler) {
+        if (handler == null) {
+            throw new IllegalArgumentException("no CompletionHandler");
+        }
+        if (StringUtils.isBlank(token)) {
+            throw new IllegalArgumentException("no token");
+        }
+        if (StringUtils.isBlank(repo)) {
+            throw new IllegalArgumentException("no repo");
+        }
         byte[] data = b.toString().getBytes();
         StringMap headers = new StringMap();
         headers.put(HTTPHeaderAuthorization, token);
