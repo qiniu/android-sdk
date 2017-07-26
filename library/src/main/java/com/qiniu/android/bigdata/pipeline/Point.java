@@ -13,6 +13,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -114,8 +115,8 @@ public final class Point {
             append(new Point.Field(k, v));
         } else if (v instanceof String) {
             append(k, (String) v);
-        } else if (v instanceof List) {
-            append(k, (List) v);
+        } else if (v instanceof Collection) {
+            append(k, (Collection) v);
         } else if (v instanceof Map) {
             append(k, (Map) v);
         } else if (v instanceof Date) {
@@ -188,7 +189,7 @@ public final class Point {
      * @param value 数组型字段值
      * @param <V>   数组元素类型
      */
-    public <V> void append(String key, List<V> value) {
+    public <V> void append(String key, Collection<V> value) {
         Field field = new Field(key, Json.encodeList(value));
         append(field);
     }
