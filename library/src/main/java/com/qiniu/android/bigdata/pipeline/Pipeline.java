@@ -50,7 +50,7 @@ public final class Pipeline {
         StringMap headers = new StringMap();
         headers.put(HTTPHeaderAuthorization, token);
         headers.put(Client.ContentTypeHeader, TEXT_PLAIN);
-        client.asyncPost(url(repo), data, new StringMap(), null, data.length, null, new CompletionHandler() {
+        client.asyncPost(url(repo), data, headers, null, data.length, null, new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
                 handler.complete(info);
@@ -61,7 +61,6 @@ public final class Pipeline {
     private String url(String repo) {
         return config.pipelineHost + "/v2/repos/" + repo + "/data";
     }
-
 
     private void sendPoint(String repo, Point p, String token, PumpCompleteHandler handler) {
         Batch b = new Batch();
