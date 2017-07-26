@@ -117,6 +117,8 @@ public final class Point {
             append(k, (Map) v);
         } else if (v instanceof Date) {
             append(k, (Date) v);
+        } else {
+            append(k, v.toString());
         }
     }
 
