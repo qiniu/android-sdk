@@ -21,7 +21,7 @@ public final class Pipeline {
     private final Client client;
 
     public Pipeline(Configuration config) {
-        this.config = (config == null ? new Configuration() : config);
+        this.config = Configuration.copy(config);
         this.client = new Client(this.config.proxy, this.config.connectTimeout, this.config.responseTimeout, null, null);
     }
 
