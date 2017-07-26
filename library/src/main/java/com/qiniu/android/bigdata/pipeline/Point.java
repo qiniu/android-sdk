@@ -106,6 +106,9 @@ public final class Point {
     }
 
     void appendAny(String k, Object v) {
+        if (v == null) {
+            return;
+        }
         if (v instanceof Integer || v instanceof Long
                 || v instanceof Float || v instanceof Double || v instanceof Boolean) {
             append(new Point.Field(k, v));
