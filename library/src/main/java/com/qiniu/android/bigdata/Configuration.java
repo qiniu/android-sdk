@@ -22,10 +22,18 @@ public final class Configuration implements Cloneable {
      */
     public int responseTimeout = 10;
 
-    /**
-     * 上传失败重试次数
-     */
-    public int retryMax = 3;
+    public Configuration clone() throws CloneNotSupportedException{
+        return (Configuration)super.clone();
+    }
 
-
+    static Configuration copy(Configuration config){
+        if (config == null){
+            return new Configuration();
+        }
+        try {
+            return config.clone();
+        } catch (CloneNotSupportedException e) {
+            return new Configuration();
+        }
+    }
 }
