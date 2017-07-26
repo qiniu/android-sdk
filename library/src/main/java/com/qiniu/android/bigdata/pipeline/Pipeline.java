@@ -9,6 +9,7 @@ import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONObject;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,27 +27,39 @@ public final class Pipeline {
         this.client = new Client(this.config.proxy, this.config.connectTimeout, this.config.responseTimeout, null, null);
     }
 
-    public void pump(String repo, Map<String, Object> data, String token, PumpCompleteHandler handler) {
-        Point p = Point.fromPointMap(data);
-        sendPoint(repo, p, token, handler);
+    public <V> void pump(String repo, Map<String, V> data, String token, PumpCompleteHandler handler) {
+        StringBuilder b = new StringBuilder();
+        Points.formatPoint(data, b);
+        send(repo, b, token, handler);
     }
 
     public void pump(String repo, Object data, String token, PumpCompleteHandler handler) {
-        Point p = Point.fromPointObject(data);
-        sendPoint(repo, p, token, handler);
-    }
-
-    public void pumpArray(String repo, Map<String, Object>[] data, String token, PumpCompleteHandler handler) {
-        Batch b = Batch.fromMapArray(data);
+        StringBuilder b = new StringBuilder();
+        Points.formatPoint(data, b);
         send(repo, b, token, handler);
     }
 
-    public void pumpArray(String repo, Object[] data, String token, PumpCompleteHandler handler) {
-        Batch b = Batch.fromObjectArray(data);
+    public <V> void pumpMulti(String repo, Map<String, V>[] data, String token, PumpCompleteHandler handler) {
+        StringBuilder b = Points.formatPoints(data);
         send(repo, b, token, handler);
     }
 
-    private void send(String repo, Batch b, String token, final PumpCompleteHandler handler) {
+    public void pumpMultiObjects(String repo, Object[] data, String token, PumpCompleteHandler handler) {
+        StringBuilder b = Points.formatPoints(data);
+        send(repo, b, token, handler);
+    }
+
+    public void pumpMultiObjects(String repo, List<Object> data, String token, PumpCompleteHandler handler) {
+        StringBuilder b = Points.formatPointsObjects(data);
+        send(repo, b, token, handler);
+    }
+
+    public void pumpMulti(String repo, List<Map<String, Object>> data, String token, PumpCompleteHandler handler) {
+        StringBuilder b = Points.formatPoints(data);
+        send(repo, b, token, handler);
+    }
+
+    private void send(String repo, StringBuilder builder, String token, final PumpCompleteHandler handler) {
         if (handler == null) {
             throw new IllegalArgumentException("no CompletionHandler");
         }
@@ -56,7 +69,7 @@ public final class Pipeline {
         if (StringUtils.isBlank(repo)) {
             throw new IllegalArgumentException("no repo");
         }
-        byte[] data = b.toString().getBytes();
+        byte[] data = builder.toString().getBytes();
         StringMap headers = new StringMap();
         headers.put(HTTPHeaderAuthorization, token);
         headers.put(Client.ContentTypeHeader, TEXT_PLAIN);
@@ -71,13 +84,6 @@ public final class Pipeline {
     private String url(String repo) {
         return config.pipelineHost + "/v2/repos/" + repo + "/data";
     }
-
-    private void sendPoint(String repo, Point p, String token, PumpCompleteHandler handler) {
-        Batch b = new Batch();
-        b.add(p);
-        send(repo, b, token, handler);
-    }
-
 
     public interface PumpCompleteHandler {
         void complete(ResponseInfo info);
