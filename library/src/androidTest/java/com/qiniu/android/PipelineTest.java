@@ -39,7 +39,7 @@ public class PipelineTest extends InstrumentationTestCase {
         map.put("tb", true);
         map.put("td", new Date());
         Pipeline pipe = new Pipeline(null);
-        pipe.pump("testsdk", map, "Pandora le0xKwjp2_9ZGZMkCok7Gko6aG5GnIHValG82deI:jKvdbVvLHWMLaVt6KdlrNWmAsrM=:eyJyZXNvdXJjZSI6Ii92Mi9yZXBvcy90ZXN0c2RrL2RhdGEiLCJleHBpcmVzIjoiMTUwMTAwMTQ4OTYwMDAwMDAwMDAwIiwiY29udGVudE1ENSI6IiIsImNvbnRlbnRUeXBlIjoidGV4dC9wbGFpbiIsImhlYWRlcnMiOiIiLCJtZXRob2QiOiJQT1NUIn0=", new Pipeline.PumpCompleteHandler() {
+        pipe.pump("testsdk", map, "Pandora le0xKwjp2_9ZGZMkCok7Gko6aG5GnIHValG82deI:w-Ro_Gc1E-S_IX6CnWLw_to9xt0=:eyJyZXNvdXJjZSI6Ii92Mi9yZXBvcy90ZXN0c2RrL2RhdGEiLCJleHBpcmVzIjoxNTAxMDM2MzM2LCJjb250ZW50TUQ1IjoiIiwiY29udGVudFR5cGUiOiJ0ZXh0L3BsYWluIiwiaGVhZGVycyI6IiIsIm1ldGhvZCI6IlBPU1QifQ==", new Pipeline.PumpCompleteHandler() {
             @Override
             public void complete(ResponseInfo inf) {
                 info = inf;
@@ -59,7 +59,7 @@ public class PipelineTest extends InstrumentationTestCase {
 
     public void testPump2() {
         Pipeline pipe = new Pipeline(null);
-        pipe.pump("testsdk", new tsdk(), "Pandora le0xKwjp2_9ZGZMkCok7Gko6aG5GnIHValG82deI:mU9_bisKLOSOWRP6BTwDMXBzwWY=", new Pipeline.PumpCompleteHandler() {
+        pipe.pump("testsdk", new tsdk(), "Pandora le0xKwjp2_9ZGZMkCok7Gko6aG5GnIHValG82deI:meB-yJH6nA27OOt0N3SP4wfpbJs=", new Pipeline.PumpCompleteHandler() {
             @Override
             public void complete(ResponseInfo inf) {
                 info = inf;

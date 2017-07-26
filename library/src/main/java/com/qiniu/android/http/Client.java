@@ -212,8 +212,9 @@ public final class Client {
         if (upToken != null) {
             requestBuilder.header("User-Agent", UserAgent.instance().getUa(upToken.accessKey));
         } else {
-            requestBuilder.header("User-Agent", UserAgent.getUserAgent("pandora"));
+            requestBuilder.header("User-Agent", UserAgent.instance().getUa("pandora"));
         }
+
 
 
         final ResponseTag tag = new ResponseTag();
@@ -268,6 +269,12 @@ public final class Client {
         RequestBody rbody;
         if (body != null && body.length > 0) {
             MediaType t = MediaType.parse(DefaultMime);
+            if (headers != null){
+                Object ct = headers.get(ContentTypeHeader);
+                if (ct != null){
+                    t = MediaType.parse(ct.toString());
+                }
+            }
             rbody = RequestBody.create(t, body, offset, size);
         } else {
             rbody = RequestBody.create(null, new byte[0]);
