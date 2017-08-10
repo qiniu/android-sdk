@@ -558,8 +558,8 @@ public static final int NetworkConnectionLost = -1005;
 **7).为什么进度会在95% 停很久:**
 因为上传进度是用sdk写入socket的 字节数/总字节数 作为进度，但写入socket不等于服务器收到并且处理完成，中间还有一段时间，如果只是用字节数就会出现更怪异的情况，在100% 停留很久，所以综合考虑就使用了 95%这个值.
 
-**8).如何对文件名字做多维度查询:**
-如果前缀查询满足不了需求，想做多维度的查询，比如日期，userid, 文件名中的字段进行查询，可以通过开通Pandora 日志查询服务来满足。具体做法如下
+**8).如何对文件名字做模糊查询:**
+如果前缀查询满足不了需求，想做多维度的查询，比如日期，userid, 文件名中的字段进行查询，可以通过开通Pandora 日志查询服务来满足。下面的例子里面需要在工作流上创建key, user, etag, mime, 四个字段的repo, 具体客户端做法如下，在上传结束后，再把结果打点到pandora 服务
 ```java
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.bigdata.pipeline.Pipeline;
@@ -587,6 +587,8 @@ import com.qiniu.android.bigdata.pipeline.Pipeline;
     }, null);
 ...
 ```
+
+
 ## 运行环境
 
 Android 最低要求 2.3
