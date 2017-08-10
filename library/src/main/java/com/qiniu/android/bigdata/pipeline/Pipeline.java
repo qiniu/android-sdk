@@ -49,12 +49,12 @@ public final class Pipeline {
         send(repo, b, token, handler);
     }
 
-    public void pumpMultiObjects(String repo, List<Object> data, String token, PumpCompleteHandler handler) {
+    public <V> void pumpMultiObjects(String repo, List<V> data, String token, PumpCompleteHandler handler) {
         StringBuilder b = Points.formatPointsObjects(data);
         send(repo, b, token, handler);
     }
 
-    public void pumpMulti(String repo, List<Map<String, Object>> data, String token, PumpCompleteHandler handler) {
+    public <V> void pumpMulti(String repo, List<Map<String, V>> data, String token, PumpCompleteHandler handler) {
         StringBuilder b = Points.formatPoints(data);
         send(repo, b, token, handler);
     }

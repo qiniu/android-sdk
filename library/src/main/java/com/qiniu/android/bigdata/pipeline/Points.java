@@ -93,7 +93,7 @@ public final class Points {
     }
 
 
-    public static StringBuilder formatPointsObjects(List<Object> data) {
+    public static <V> StringBuilder formatPointsObjects(List<V> data) {
         StringBuilder builder = new StringBuilder();
         for (Object aData : data) {
             formatPoint(aData, builder);
