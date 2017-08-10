@@ -131,6 +131,28 @@ public class PipelineTest extends InstrumentationTestCase {
         Assert.assertTrue(info.isOK());
     }
 
+    public void testPump5() {
+        Pipeline pipe = new Pipeline(null);
+        tsdk[] t = new tsdk[2];
+        t[0] = new tsdk();
+        t[1] = new tsdk();
+        pipe.pumpMultiObjects("testsdk", t, "Pandora le0xKwjp2_9ZGZMkCok7Gko6aG5GnIHValG82deI:yIl-J0zNjJCUii_7jag6-U79DPY=:eyJyZXNvdXJjZSI6Ii92Mi9yZXBvcy90ZXN0c2RrL2RhdGEiLCJleHBpcmVzIjo1MTAxMDQ1Njg0LCJjb250ZW50TUQ1IjoiIiwiY29udGVudFR5cGUiOiJ0ZXh0L3BsYWluIiwiaGVhZGVycyI6IiIsIm1ldGhvZCI6IlBPU1QifQ==", new Pipeline.PumpCompleteHandler() {
+            @Override
+            public void complete(ResponseInfo inf) {
+                info = inf;
+                signal.countDown();
+            }
+        });
+
+        try {
+            signal.await(1200, TimeUnit.SECONDS); // wait for callback
+            Assert.assertNotNull("timeout", info);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        Assert.assertTrue(info.isOK());
+    }
+
     static class A {
         public Integer a;
 
