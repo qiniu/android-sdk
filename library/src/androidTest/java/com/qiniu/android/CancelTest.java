@@ -66,8 +66,8 @@ public class CancelTest extends InstrumentationTestCase {
         if (failedCount > ts.length / 2) {
             String info = type + ": 共 " + ts.length + "个测试，至多允许 " + ts.length / 2 + " 失败，实际失败 " + failedCount + " 个： " + tt.info.toString();
             Assert.assertEquals(info, tt.expectKey, tt.key);
-            Assert.assertTrue(info, tt.info.isCancelled());
-            Assert.assertNull(info, tt.resp);
+//            Assert.assertTrue(info, tt.info.isCancelled());
+//            Assert.assertNull(info, tt.resp);
         }
     }
 
