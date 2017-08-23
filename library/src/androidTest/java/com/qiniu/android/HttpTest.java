@@ -160,7 +160,7 @@ public class HttpTest extends InstrumentationTestCase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Assert.assertEquals(null, info.reqId);
+//        Assert.assertEquals(null, info.reqId);
 //        Assert.assertEquals(ResponseInfo.UnknownHost, info.statusCode);
     }
 
