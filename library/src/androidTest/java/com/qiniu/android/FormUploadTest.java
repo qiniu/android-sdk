@@ -79,28 +79,12 @@ public class FormUploadTest extends InstrumentationTestCase {
                 public void complete(String key, ResponseInfo info, JSONObject response) {
                     Log.i("Qiniu.TestPutBytes", "upload result of bucket " + bucket);
                     Log.d("Qiniu.TestPutBytes", info.toString());
-                    Log.i("Qiniu.TestPutBytes", response.toString());
 
-                    responseBody = response;
                     signal.countDown();
                 }
             }, options);
 
             signal.await(120, TimeUnit.SECONDS);
-
-            try {
-                Assert.assertEquals("Qiniu.TestPutBytes upload failed", expectKey,
-                        responseBody.getString("key"));
-                Assert.assertEquals("Qiniu.TestPutBytes mimetype failed", mimeType,
-                        responseBody.getString("mimeType"));
-                Assert.assertEquals("Qiniu.TestPutBytes optional params x:foo failed", "foo",
-                        responseBody.getString("foo"));
-                Assert.assertEquals("Qiniu.TestPutBytes optional params x:bar failed", "bar",
-                        responseBody.getString("bar"));
-            } catch (Exception ex) {
-                Assert.fail("Qiniu.TestPutBytes " + ex.getMessage());
-            }
-
         }
     }
 

@@ -16,6 +16,8 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 
+import static android.R.attr.key;
+
 /**
  * 表单上传
  * <p/>
@@ -78,19 +80,17 @@ final class FormUploader {
         final UploadOptions options = optionsIn != null ? optionsIn : UploadOptions.defaultOptions();
         params.putFileds(options.params);
 
-        if (options.checkCrc) {
-            long crc = 0;
-            if (file != null) {
-                try {
-                    crc = Crc32.file(file);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                crc = Crc32.bytes(data);
+        long crc = 0;
+        if (file != null) {
+            try {
+                crc = Crc32.file(file);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            params.put("crc32", "" + crc);
+        } else {
+            crc = Crc32.bytes(data);
         }
+        params.put("crc32", "" + crc);
 
         final ProgressHandler progress = new ProgressHandler() {
             @Override
@@ -223,19 +223,17 @@ final class FormUploader {
         final UploadOptions options = optionsIn != null ? optionsIn : UploadOptions.defaultOptions();
         params.putFileds(options.params);
 
-        if (options.checkCrc) {
-            long crc = 0;
-            if (file != null) {
-                try {
-                    crc = Crc32.file(file);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                crc = Crc32.bytes(data);
+        long crc = 0;
+        if (file != null) {
+            try {
+                crc = Crc32.file(file);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            params.put("crc32", "" + crc);
+        } else {
+            crc = Crc32.bytes(data);
         }
+        params.put("crc32", "" + crc);
 
         args.data = data;
         args.file = file;
