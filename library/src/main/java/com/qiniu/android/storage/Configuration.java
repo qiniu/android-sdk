@@ -119,8 +119,8 @@ public final class Configuration {
         private ProxyConfiguration proxy = null;
 
         private boolean useHttps = false;
-        private int chunkSize = 256 * 1024;
-        private int putThreshold = 512 * 1024;
+        private int chunkSize = 2 * 1024 * 1024;
+        private int putThreshold = 4 * 1024 * 1024;
         private int connectTimeout = 10;
         private int responseTimeout = 60;
         private int retryMax = 3;
