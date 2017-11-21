@@ -20,8 +20,9 @@ https://github.com/qiniudemo/qiniu-lab-android
 |  7.0.7        |  Android 2.2+     | android-async-http 1.4.8 |
 
 ### 直接安装
-将sdk jar文件 复制到项目中去，[下载地址](http://search.maven.org/remotecontent?filepath=com/qiniu/qiniu-android-sdk/) 还有对应的依赖库
- 还有 happy-dns [下载地址](https://repo1.maven.org/maven2/com/qiniu/happy-dns/)
+将sdk jar文件 复制到项目中去，[jar包下载地址](http://search.maven.org/#search%7Cga%7C1%7Ccom%2Fqiniu%2Fqiniu-android-sdk) , 下载对应的jar包，以及搜索下载对应的依赖库
+
+[happy-dns下载地址](https://repo1.maven.org/maven2/com/qiniu/happy-dns/)
 
 ### 通过maven
 * 如果在Adroid Studio中使用，添加dependencies `compile 'com.qiniu:qiniu-android-sdk:7.2.+'` 或在项目中添加maven依赖
