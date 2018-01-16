@@ -25,10 +25,20 @@ public final class Etag {
      * @return 二进制数据的etag
      */
     public static String data(byte[] data, int offset, int length) {
+        InputStream in = null;
         try {
-            return stream(new ByteArrayInputStream(data, offset, length), length);
+            in = new ByteArrayInputStream(data, offset, length);
+            return stream(in, length);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
         // never reach
         return null;
@@ -52,8 +62,19 @@ public final class Etag {
      * @throws IOException 文件读取异常
      */
     public static String file(File file) throws IOException {
-        FileInputStream fi = new FileInputStream(file);
-        return stream(fi, file.length());
+        InputStream in = null;
+        try {
+            in = new FileInputStream(file);
+            return stream(in, file.length());
+        } finally {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     /**
