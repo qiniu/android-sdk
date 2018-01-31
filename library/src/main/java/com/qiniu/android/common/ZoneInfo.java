@@ -34,36 +34,43 @@ public class ZoneInfo {
         ConcurrentHashMap<String, Long> domainsMap = new ConcurrentHashMap<>();
         JSONObject upObj = obj.getJSONObject("up");
 
-        String[] upDomainTags = new String[]{"acc", "src", "old_acc", "old_src"};
-        for (String tag : upDomainTags) {
+        String[] upDomainTags = new String[]{"acc.main", "src.main", "acc.backup", "src.backup",
+                "old_acc.main", "old_src.main", "old_acc.backup", "old_src.backup"};
+        for (String tagC : upDomainTags) {
+            String[] tmp = tagC.split("\\.");
+            String tag = tmp[0];
+            String scope = tmp[1];
             JSONObject tagRootObj = upObj.getJSONObject(tag);
-            JSONArray tagMainObj = tagRootObj.getJSONArray("main");
-            for (int i = 0; i < tagMainObj.length(); i++) {
-                String upDomain = tagMainObj.getString(i);
-                domainsList.add(upDomain);
-                domainsMap.put(upDomain, 0L);
-            }
-
             try {
-                JSONArray tagBackupObj = tagRootObj.getJSONArray("backup");
-                if (tagBackupObj != null) {
-                    //this backup tag is optional
-                    for (int i = 0; i < tagBackupObj.length(); i++) {
-                        String upHost = tagBackupObj.getString(i);
-                        domainsList.add(upHost);
-                        domainsMap.put(upHost, 0L);
-                    }
+                JSONArray tagScopeObj = tagRootObj.getJSONArray(scope);
+                // if scope is main and tagScopeObj is null, that means something wrong.
+                // the next step will throw exception.
+                if (tagScopeObj == null && "backup".equals(scope)) {
+                    continue;
+                }
+                for (int i = 0; i < tagScopeObj.length(); i++) {
+                    String upDomain = tagScopeObj.getString(i);
+                    domainsList.add(upDomain);
+                    domainsMap.put(upDomain, 0L);
                 }
             } catch (JSONException ex) {
+                if ("main".equals(scope)) {
+                    throw ex;
+                }
                 //some zone has not backup domain, just ignore here
             }
         }
+
         return new ZoneInfo(ttl, domainsList, domainsMap);
     }
 
-    public void frozenDomain(String domain) {
+
+    public synchronized void frozenDomain(String domain) {
+        // synchronized is ok.
         //frozen for 10 minutes
         upDomainsMap.put(domain, System.currentTimeMillis() / 1000 + DOMAIN_FROZEN_SECONDS);
+        upDomainsList.remove(domain);
+        upDomainsList.add(domain);
     }
 
     @Override
