@@ -78,7 +78,17 @@ public class AutoZoneTest extends AndroidTestCase {
         }
         ZoneInfo info = autoZone.zoneInfo(ak, bkt);
 //        Log.d("zone0: ", info.toString());
-
+        Assert.assertNotNull(info);
+        String d = info.upDomainsList.get(1);
+        if(d.contains("-")) {
+            // up-na0.qiniup.com up-z0.qiniup.com up-z1.qiniup.com
+            Assert.assertTrue("shoud be origin up host: " + d,
+                    d.length() < "up-na0.qiniup.com".length() + 1);
+        } else {
+            // up.qiniup.com
+            Assert.assertTrue("shoud be origin up host: " + d,
+                    d.length() < "up.qiniup.com".length() + 1);
+        }
         ZoneInfo info2 = autoZone.zoneInfo(ak, bkt);
         Assert.assertSame(info, info2);
 

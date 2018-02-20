@@ -11,7 +11,6 @@ import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.storage.persistent.FileRecorder;
-import com.qiniu.android.utils.Etag;
 
 import junit.framework.Assert;
 
@@ -117,7 +116,8 @@ public class TestFileRecorder extends InstrumentationTestCase {
         options = new UploadOptions(null, null, false, new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
-                if (percent < pos - config.chunkSize / (size * 1024.0)) {
+                if (size * 1024 > config.putThreshold &&
+                        (percent < pos - config.chunkSize / (size * 1024.0))) {
                     failed = true;
                 }
                 Log.i("qiniutest", "continue progress " + percent);
@@ -126,15 +126,16 @@ public class TestFileRecorder extends InstrumentationTestCase {
 
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(tempFile, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
-                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        Log.i("qiniutest", k + rinfo);
-                        key = k;
-                        info = rinfo;
-                        resp = response;
-                        signal2.countDown();
-                    }
-                }, options);
+                uploadManager.put(tempFile, expectKey, TestConfig.token_z0,
+                        new UpCompletionHandler() {
+                            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                                Log.i("qiniutest", k + rinfo);
+                                key = k;
+                                info = rinfo;
+                                resp = response;
+                                signal2.countDown();
+                            }
+                        }, options);
             }
         });
 
