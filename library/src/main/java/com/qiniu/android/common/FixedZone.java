@@ -17,9 +17,9 @@ public final class FixedZone extends Zone {
      * 华东机房
      */
     public static final Zone zone0 = new FixedZone(new String[]{
-            "upload.qiniup.com", "upload-nb.qiniup.com",
+            "upload.qiniup.com", "upload-jjh.qiniup.com",
             "upload-xs.qiniup.com", "up.qiniup.com",
-            "up-nb.qiniup.com", "up-xs.qiniup.com",
+            "up-jjh.qiniup.com", "up-xs.qiniup.com",
             "upload.qbox.me", "up.qbox.me"
     });
 
@@ -35,9 +35,9 @@ public final class FixedZone extends Zone {
      * 华南机房
      */
     public static final Zone zone2 = new FixedZone(new String[]{
-            "upload-z2.qiniup.com", "upload-gz.qiniup.com",
+            "upload-z2.qiniup.com", "upload-dg.qiniup.com",
             "upload-fs.qiniup.com", "up-z2.qiniup.com",
-            "up-gz.qiniup.com", "up-fs.qiniup.com",
+            "up-dg.qiniup.com", "up-fs.qiniup.com",
             "upload-z2.qbox.me", "up-z2.qbox.me"
     });
 
@@ -47,6 +47,14 @@ public final class FixedZone extends Zone {
     public static final Zone zoneNa0 = new FixedZone(new String[]{
             "upload-na0.qiniu.com", "up-na0.qiniup.com",
             "upload-na0.qbox.me", "up-na0.qbox.me"
+    });
+
+    /**
+     * 新加坡机房
+     */
+    public static final Zone zoneAs0 = new FixedZone(new String[]{
+            "upload-as0.qiniup.com","up-as0.qiniup.com",
+            "upload-as0.qbox.me","up-as0.qbox.me"
     });
 
     private ZoneInfo zoneInfo;
