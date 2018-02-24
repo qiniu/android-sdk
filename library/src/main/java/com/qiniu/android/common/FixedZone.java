@@ -45,7 +45,7 @@ public final class FixedZone extends Zone {
      * 北美机房
      */
     public static final Zone zoneNa0 = new FixedZone(new String[]{
-            "upload-na0.qiniu.com", "up-na0.qiniup.com",
+            "upload-na0.qiniup.com", "up-na0.qiniup.com",
             "upload-na0.qbox.me", "up-na0.qbox.me"
     });
 
