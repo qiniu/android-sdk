@@ -4,16 +4,22 @@ package com.qiniu.android.storage;
 import com.qiniu.android.common.AutoZone;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.dns.DnsManager;
+import com.qiniu.android.dns.Domain;
 import com.qiniu.android.dns.IResolver;
 import com.qiniu.android.dns.NetworkInfo;
 import com.qiniu.android.dns.local.AndroidDnsServer;
 import com.qiniu.android.dns.local.Resolver;
+import com.qiniu.android.http.Dns;
 import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.UrlConverter;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public final class Configuration {
 
@@ -60,7 +66,7 @@ public final class Configuration {
     /**
      * dns 解析客户端
      */
-    public DnsManager dns;
+    public Dns dns;
 
     /**
      * 上传区域
@@ -92,12 +98,7 @@ public final class Configuration {
         urlConverter = builder.urlConverter;
 
         zone = builder.zone == null ? AutoZone.autoZone : builder.zone;
-        dns = initDns(builder);
-    }
-
-    private static DnsManager initDns(Builder builder) {
-        DnsManager d = builder.dns;
-        return d;
+        dns = builder.dns;
     }
 
     private KeyGenerator getKeyGen(KeyGenerator keyGen) {
@@ -125,9 +126,13 @@ public final class Configuration {
         private int responseTimeout = 60;
         private int retryMax = 3;
         private UrlConverter urlConverter = null;
-        private DnsManager dns = null;
+        private Dns dns = null;
 
         public Builder() {
+            buildDefaultDns();
+        }
+
+        private void buildDefaultDns() {
             IResolver r1 = AndroidDnsServer.defaultResolver();
             IResolver r2 = null;
             try {
@@ -135,7 +140,26 @@ public final class Configuration {
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
-            dns = new DnsManager(NetworkInfo.normal, new IResolver[]{r1, r2});
+            final DnsManager happlyDns = new DnsManager(NetworkInfo.normal, new IResolver[]{r1, r2});
+
+            dns = new Dns() {
+                @Override
+                public List<InetAddress> lookup(String hostname) throws UnknownHostException {
+                    InetAddress[] ips;
+                    try {
+                        ips = happlyDns.queryInetAdress(new Domain(hostname));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        throw new UnknownHostException(e.getMessage());
+                    }
+                    if (ips == null) {
+                        throw new UnknownHostException(hostname + " resolve failed.");
+                    }
+                    List<InetAddress> l = new ArrayList<>();
+                    Collections.addAll(l, ips);
+                    return l;
+                }
+            };
         }
 
         public Builder zone(Zone zone) {
@@ -189,7 +213,7 @@ public final class Configuration {
             return this;
         }
 
-        public Builder dns(DnsManager dns) {
+        public Builder dns(Dns dns) {
             this.dns = dns;
             return this;
         }
