@@ -62,6 +62,15 @@ public final class Client {
             builder.dns(new Dns() {
                 @Override
                 public List<InetAddress> lookup(String hostname) throws UnknownHostException {
+                    try {
+                        return userDnsLookup(hostname);
+                    } catch (Exception e) {
+
+                    }
+                    return Dns.SYSTEM.lookup(hostname);
+                }
+
+                private List<InetAddress> userDnsLookup(String hostname) throws UnknownHostException {
                     InetAddress[] ips;
                     try {
                         ips = dns.queryInetAdress(new Domain(hostname));
@@ -70,7 +79,7 @@ public final class Client {
                         throw new UnknownHostException(e.getMessage());
                     }
                     if (ips == null) {
-                        throw new UnknownHostException(hostname + " resolve failed");
+                        throw new UnknownHostException(hostname + " resolve failed.");
                     }
                     List<InetAddress> l = new ArrayList<>();
                     Collections.addAll(l, ips);
