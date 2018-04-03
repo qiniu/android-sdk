@@ -62,6 +62,15 @@ public final class Client {
             builder.dns(new Dns() {
                 @Override
                 public List<InetAddress> lookup(String hostname) throws UnknownHostException {
+                    try {
+                        return userDnsLookup(hostname);
+                    } catch (Exception e) {
+
+                    }
+                    return Dns.SYSTEM.lookup(hostname);
+                }
+
+                private List<InetAddress> userDnsLookup(String hostname) throws UnknownHostException {
                     InetAddress[] ips;
                     try {
                         ips = dns.queryInetAdress(new Domain(hostname));
