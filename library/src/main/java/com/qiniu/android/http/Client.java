@@ -79,7 +79,7 @@ public final class Client {
                         throw new UnknownHostException(e.getMessage());
                     }
                     if (ips == null) {
-                        throw new UnknownHostException(hostname + " resolve failed");
+                        throw new UnknownHostException(hostname + " resolve failed.");
                     }
                     List<InetAddress> l = new ArrayList<>();
                     Collections.addAll(l, ips);
