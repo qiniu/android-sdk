@@ -1,8 +1,6 @@
 package com.qiniu.android.http;
 
 import com.qiniu.android.common.Constants;
-import com.qiniu.android.dns.DnsManager;
-import com.qiniu.android.dns.Domain;
 import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.AsyncRun;
@@ -15,14 +13,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.Dns;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
@@ -48,7 +43,7 @@ public final class Client {
         this(null, 10, 30, null, null);
     }
 
-    public Client(ProxyConfiguration proxy, int connectTimeout, int responseTimeout, UrlConverter converter, final DnsManager dns) {
+    public Client(ProxyConfiguration proxy, int connectTimeout, int responseTimeout, UrlConverter converter, final Dns dns) {
         this.converter = converter;
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
 
@@ -59,22 +54,15 @@ public final class Client {
             }
         }
         if (dns != null) {
-            builder.dns(new Dns() {
+            builder.dns(new okhttp3.Dns() {
                 @Override
                 public List<InetAddress> lookup(String hostname) throws UnknownHostException {
-                    InetAddress[] ips;
                     try {
-                        ips = dns.queryInetAdress(new Domain(hostname));
-                    } catch (IOException e) {
+                        return dns.lookup(hostname);
+                    } catch (Exception e) {
                         e.printStackTrace();
-                        throw new UnknownHostException(e.getMessage());
                     }
-                    if (ips == null) {
-                        throw new UnknownHostException(hostname + " resolve failed");
-                    }
-                    List<InetAddress> l = new ArrayList<>();
-                    Collections.addAll(l, ips);
-                    return l;
+                    return okhttp3.Dns.SYSTEM.lookup(hostname);
                 }
             });
         }
