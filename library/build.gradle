@@ -36,7 +36,7 @@ android {
 }
 
 dependencies {
-    compile 'com.squareup.okhttp3:okhttp:3.8.1'
+    compile 'com.squareup.okhttp3:okhttp:3.10.0'
     compile 'com.qiniu:happy-dns:0.2.13'
     compile fileTree(include: ['*.jar'], dir: 'libs')
 }
