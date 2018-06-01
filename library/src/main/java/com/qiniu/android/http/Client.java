@@ -121,7 +121,7 @@ public final class Client {
     private static JSONObject buildJsonResp(byte[] body) throws Exception {
         String str = new String(body, Constants.UTF_8);
         // 允许 空 字符串
-        if (StringUtils.isNullOrEmpty(str)) {
+        if (StringUtils.isNullOrEmpty(str) || "null".equals(str)) {
             return new JSONObject();
         }
         return new JSONObject(str);
