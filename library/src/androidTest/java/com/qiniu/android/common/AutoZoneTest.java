@@ -18,7 +18,7 @@ public class AutoZoneTest extends AndroidTestCase {
     private String bkt = "javasdk";
 
 //    public void testHttp() {
-//        AutoZone zone = new AutoZone(null);
+//        AutoZone zone = new AutoZone();
 //        final CountDownLatch countDownLatch = new CountDownLatch(1);
 //        zone.preQueryIndex(new AutoZone.ZoneIndex(ak, bkt), new Zone.QueryHandler() {
 //            @Override
@@ -45,7 +45,7 @@ public class AutoZoneTest extends AndroidTestCase {
 //    }
 
 //    public void testHttpFail() {
-//        AutoZone zone = new AutoZone(null);
+//        AutoZone zone = new AutoZone();
 //        ZoneInfo zoneInfo = zone.zoneInfo(ak + "_not_be_ak", bkt);
 //        assertNull(zoneInfo);
 //    }
@@ -57,7 +57,7 @@ public class AutoZoneTest extends AndroidTestCase {
     }
 
     public void testC1() {
-        AutoZone autoZone = new AutoZone(null);
+        AutoZone autoZone = new AutoZone();
         final CountDownLatch countDownLatch = new CountDownLatch(1);
         autoZone.preQueryIndex(new AutoZone.ZoneIndex(ak, bkt), new Zone.QueryHandler() {
             @Override
