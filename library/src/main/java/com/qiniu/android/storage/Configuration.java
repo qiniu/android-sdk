@@ -2,23 +2,11 @@ package com.qiniu.android.storage;
 
 import com.qiniu.android.common.AutoZone;
 import com.qiniu.android.common.Zone;
-import com.qiniu.android.dns.DnsManager;
-import com.qiniu.android.dns.Domain;
-import com.qiniu.android.dns.IResolver;
-import com.qiniu.android.dns.NetworkInfo;
-import com.qiniu.android.dns.local.AndroidDnsServer;
-import com.qiniu.android.dns.local.Resolver;
 import com.qiniu.android.http.Dns;
 import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.UrlConverter;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public final class Configuration {
 
@@ -126,40 +114,6 @@ public final class Configuration {
         private int retryMax = 3;
         private UrlConverter urlConverter = null;
         private Dns dns = null;
-
-        public Builder() {
-            buildDefaultDns();
-        }
-
-        private void buildDefaultDns() {
-            IResolver r1 = AndroidDnsServer.defaultResolver();
-            IResolver r2 = null;
-            try {
-                r2 = new Resolver(InetAddress.getByName("119.29.29.29"));
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            final DnsManager happlyDns = new DnsManager(NetworkInfo.normal, new IResolver[]{r1, r2});
-
-            dns = new Dns() {
-                @Override
-                public List<InetAddress> lookup(String hostname) throws UnknownHostException {
-                    InetAddress[] ips;
-                    try {
-                        ips = happlyDns.queryInetAdress(new Domain(hostname));
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        throw new UnknownHostException(e.getMessage());
-                    }
-                    if (ips == null) {
-                        throw new UnknownHostException(hostname + " resolve failed.");
-                    }
-                    List<InetAddress> l = new ArrayList<>();
-                    Collections.addAll(l, ips);
-                    return l;
-                }
-            };
-        }
 
         public Builder zone(Zone zone) {
             this.zone = zone;
