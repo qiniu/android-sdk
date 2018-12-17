@@ -301,15 +301,32 @@ final class ResumeUploader implements Runnable {
                     return;
                 }
                 long crc = 0;
+                Exception tempE = null;
                 try {
                     context = response.getString("ctx");
                     crc = response.getLong("crc32");
                 } catch (Exception e) {
+                    tempE = e;
                     e.printStackTrace();
                 }
                 if ((context == null || crc != ResumeUploader.this.crc32) && retried < config.retryMax) {
                     String upHostRetry = config.zone.upHost(token.token, config.useHttps, upHost);
                     nextTask(offset, retried + 1, upHostRetry);
+                    return;
+                }
+                if (crc != ResumeUploader.this.crc32) {
+                    ResponseInfo info2 = ResponseInfo.errorInfo(info, ResponseInfo.Crc32NotMatch, "block's crc32 is not match");
+                    completionHandler.complete(key, info2, response);
+                    return;
+                }
+                if (context == null) {
+                    String error = "get context failed.";
+                    if (tempE != null) {
+                        error += "\n";
+                        error += tempE.getMessage();
+                    }
+                    ResponseInfo info2 = ResponseInfo.errorInfo(info, ResponseInfo.UnknownError, error);
+                    completionHandler.complete(key, info2, response);
                     return;
                 }
                 contexts[(int) (offset / Configuration.BLOCK_SIZE)] = context;
