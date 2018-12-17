@@ -314,11 +314,6 @@ final class ResumeUploader implements Runnable {
                     nextTask(offset, retried + 1, upHostRetry);
                     return;
                 }
-                if (crc != ResumeUploader.this.crc32) {
-                    ResponseInfo info2 = ResponseInfo.errorInfo(info, ResponseInfo.Crc32NotMatch, "block's crc32 is not match");
-                    completionHandler.complete(key, info2, response);
-                    return;
-                }
                 if (context == null) {
                     String error = "get context failed.";
                     if (tempE != null) {
@@ -329,6 +324,13 @@ final class ResumeUploader implements Runnable {
                     completionHandler.complete(key, info2, response);
                     return;
                 }
+                if (crc != ResumeUploader.this.crc32) {
+                    String error = "block's crc32 is not match. local: " + ResumeUploader.this.crc32 + ", remote: " + crc;
+                    ResponseInfo info2 = ResponseInfo.errorInfo(info, ResponseInfo.Crc32NotMatch, error);
+                    completionHandler.complete(key, info2, response);
+                    return;
+                }
+
                 contexts[(int) (offset / Configuration.BLOCK_SIZE)] = context;
                 record(offset + chunkSize);
                 nextTask(offset + chunkSize, retried, upHost);
