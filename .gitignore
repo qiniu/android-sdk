@@ -30,4 +30,4 @@ build/
 # Android Studio
 .idea/workspace.xml
 .idea/libraries
-
+.idea/kotlinc.xml
