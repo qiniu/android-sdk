@@ -29,6 +29,16 @@ android {
         versionCode code
         versionName version
     }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            testCoverageEnabled true
+        }
+
+    }
 
     lintOptions {
         warning 'InvalidPackage'
