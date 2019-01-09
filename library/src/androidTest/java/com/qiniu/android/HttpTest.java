@@ -213,7 +213,7 @@ public class HttpTest extends InstrumentationTestCase {
     @SmallTest
     public void testProxy() throws Throwable {
         StringMap x = new StringMap();
-        ProxyConfiguration p = new ProxyConfiguration("115.231.183.168", 80);
+        ProxyConfiguration p = new ProxyConfiguration("115.238.101.32", 80);
         Client c = new Client(p, 10, 30, null, null);
         c.asyncPost("http://upproxy1.qiniu.com", "hello".getBytes(),
                 x, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,

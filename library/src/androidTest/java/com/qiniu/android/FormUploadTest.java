@@ -73,7 +73,7 @@ public class FormUploadTest extends InstrumentationTestCase {
             final CountDownLatch signal = new CountDownLatch(1);
             final String bucket = bucketToken.getKey();
             final String upToken = bucketToken.getValue();
-            final String expectKey = String.format("androidsdk/%s/qiniu_put_bytes_test.txt", bucket);
+            final String expectKey = String.format("androidsdk/%s/qiniu_put_bytes_测试.txt", bucket);
 
             uploadManager.put(putData, expectKey, upToken, new UpCompletionHandler() {
                 public void complete(String key, ResponseInfo info, JSONObject response) {
