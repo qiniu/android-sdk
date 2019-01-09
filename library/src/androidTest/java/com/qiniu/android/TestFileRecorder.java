@@ -170,7 +170,7 @@ public class TestFileRecorder extends InstrumentationTestCase {
     }
 
     public void test4M() throws Throwable {
-        template(4 * 1024, 0.6);
+        template(4 * 1024, 0.5);
     }
 
     public void test8M1K() throws Throwable {
