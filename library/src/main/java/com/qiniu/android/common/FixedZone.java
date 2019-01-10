@@ -53,8 +53,8 @@ public final class FixedZone extends Zone {
      * 新加坡机房
      */
     public static final Zone zoneAs0 = new FixedZone(new String[]{
-            "upload-as0.qiniup.com","up-as0.qiniup.com",
-            "upload-as0.qbox.me","up-as0.qbox.me"
+            "upload-as0.qiniup.com", "up-as0.qiniup.com",
+            "upload-as0.qbox.me", "up-as0.qbox.me"
     });
 
     private ZoneInfo zoneInfo;

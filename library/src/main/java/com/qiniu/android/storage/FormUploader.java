@@ -16,8 +16,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 
-import static android.R.attr.key;
-
 /**
  * 表单上传
  * <p/>
