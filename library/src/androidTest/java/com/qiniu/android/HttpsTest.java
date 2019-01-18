@@ -9,8 +9,6 @@ import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.UpToken;
 
-import junit.framework.Assert;
-
 import org.json.JSONObject;
 
 import java.net.URI;
