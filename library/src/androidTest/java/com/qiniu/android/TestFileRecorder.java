@@ -11,7 +11,6 @@ import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.storage.persistent.FileRecorder;
-import com.qiniu.android.utils.Etag;
 
 import junit.framework.Assert;
 
@@ -170,7 +169,7 @@ public class TestFileRecorder extends InstrumentationTestCase {
     }
 
     public void test4M() throws Throwable {
-        template(4 * 1024, 0.6);
+        template(4 * 1024, 0.5);
     }
 
     public void test8M1K() throws Throwable {

@@ -21,12 +21,13 @@ import okhttp3.Callback;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
-import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 
 import static com.qiniu.android.http.ResponseInfo.NetworkError;
+
+//import okhttp3.MultipartBody;
 
 /**
  * Created by bailong on 15/11/12.

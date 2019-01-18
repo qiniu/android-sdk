@@ -2,7 +2,6 @@ package com.qiniu.android;
 
 
 import android.test.InstrumentationTestCase;
-import android.util.Log;
 
 import com.qiniu.android.bigdata.pipeline.Pipeline;
 import com.qiniu.android.bigdata.pipeline.Points;
