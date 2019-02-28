@@ -55,7 +55,7 @@ public final class UploadManager {
         ResponseInfo info = null;
         if (message != null) {
             info = ResponseInfo.invalidArgument(message, decodedToken);
-        } else if (decodedToken == UpToken.NULL || decodedToken == null) {
+        } else if (UpToken.isInvalid(decodedToken)) {
             info = ResponseInfo.invalidToken("invalid token");
         } else if ((f != null && f.length() == 0) || (data != null && data.length == 0)) {
             info = ResponseInfo.zeroSize(decodedToken);
@@ -82,7 +82,7 @@ public final class UploadManager {
             return ResponseInfo.invalidArgument(message, decodedToken);
         }
 
-        if (decodedToken == UpToken.NULL || decodedToken == null) {
+        if (UpToken.isInvalid(decodedToken)) {
             return ResponseInfo.invalidToken("invalid token");
         }
 

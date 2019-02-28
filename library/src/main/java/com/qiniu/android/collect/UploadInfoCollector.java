@@ -1,6 +1,5 @@
 package com.qiniu.android.collect;
 
-
 import com.qiniu.android.http.UserAgent;
 import com.qiniu.android.storage.UpToken;
 
@@ -198,7 +197,7 @@ public final class UploadInfoCollector {
             singleServer.submit(taskRecord);
 
             // 少几次上传没有影响
-            if (Config.isUpload && upToken != UpToken.NULL) {
+            if (Config.isUpload && !UpToken.isInvalid(upToken)) {
                 Runnable taskUpload = new Runnable() {
                     @Override
                     public void run() {
