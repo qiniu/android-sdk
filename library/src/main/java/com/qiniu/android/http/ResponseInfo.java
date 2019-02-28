@@ -22,7 +22,7 @@ public final class ResponseInfo {
     public static final int Cancelled = -2;
     public static final int NetworkError = -1;
 
-    public static final int Crc32NotMatch = 701701;
+    public static final int Crc32NotMatch = -406;
 
     public static final int UnknownError = 0;
 
