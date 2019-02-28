@@ -22,6 +22,8 @@ public final class ResponseInfo {
     public static final int Cancelled = -2;
     public static final int NetworkError = -1;
 
+    public static final int Crc32NotMatch = -406;
+
     public static final int UnknownError = 0;
 
     // <-- error code copy from ios
@@ -169,6 +171,12 @@ public final class ResponseInfo {
             default:
                 return "";
         }
+    }
+
+    public static ResponseInfo errorInfo(ResponseInfo old, int statusCode, String error) {
+        ResponseInfo _new = new ResponseInfo(old.response, statusCode, old.reqId, old.xlog, old.xvia, old.host,
+                old.path, old.ip, old.port, old.duration, old.sent, error, old.upToken, old.totalSize);
+        return _new;
     }
 
     public static ResponseInfo zeroSize(final UpToken upToken) {
