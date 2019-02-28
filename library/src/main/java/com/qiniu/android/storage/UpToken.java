@@ -49,6 +49,10 @@ public final class UpToken {
         return new UpToken(obj.optString("returnUrl"), token, t[0]);
     }
 
+    public static boolean isInvalid(UpToken token) {
+        return token == null || token == NULL;
+    }
+
     public String toString() {
         return token;
     }
