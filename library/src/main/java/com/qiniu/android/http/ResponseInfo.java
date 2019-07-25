@@ -100,8 +100,9 @@ public final class ResponseInfo {
      */
     public final JSONObject response;
 
-    private ResponseInfo(JSONObject json, int statusCode, String reqId, String xlog, String xvia, String host,
-                         String path, String ip, int port, long duration, long sent, String error, UpToken upToken, long totalSize) {
+    private ResponseInfo(JSONObject json, final int statusCode, final String reqId, String xlog,
+                         String xvia, final String host, final String path, final String ip, final int port,
+                         final long duration, final long sent, String error, UpToken upToken, final long totalSize) {
         response = json;
         this.statusCode = statusCode;
         this.reqId = reqId;
@@ -118,19 +119,9 @@ public final class ResponseInfo {
         this.sent = sent;
         this.upToken = upToken;
         this.totalSize = totalSize;
-    }
 
-    public static ResponseInfo create(final JSONObject json, final int statusCode, final String reqId,
-                                      final String xlog, final String xvia, final String host,
-                                      final String path, final String oIp, final int port, final long duration,
-                                      final long sent, final String error, final UpToken upToken, final long totalSize) {
-
-        String _ip = (oIp + "").split(":")[0];
-        final String ip = _ip.substring(Math.max(0, _ip.indexOf("/") + 1));
-        ResponseInfo res = new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip,
-                port, duration, sent, error, upToken, totalSize);
         if (Config.isRecord) {
-            final String _timeStamp = res.timeStamp + "";
+            final String _timeStamp = this.timeStamp + "";
             UploadInfoCollector.handleHttp(upToken,
                     // 延迟序列化.如果判断不记录,则不执行序列化
                     new UploadInfoCollector.RecordMsg() {
@@ -143,6 +134,17 @@ public final class ResponseInfo {
                         }
                     });
         }
+    }
+
+    public static ResponseInfo create(final JSONObject json, final int statusCode, final String reqId,
+                                      final String xlog, final String xvia, final String host,
+                                      final String path, final String oIp, final int port, long duration,
+                                      final long sent, String error, UpToken upToken, long totalSize) {
+
+        String _ip = (oIp + "").split(":")[0];
+        final String ip = _ip.substring(Math.max(0, _ip.indexOf("/") + 1));
+        ResponseInfo res = new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip,
+                port, duration, sent, error, upToken, totalSize);
         return res;
     }
 
