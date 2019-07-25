@@ -250,6 +250,11 @@ public final class UploadManager {
 
         @Override
         public void complete(final String key, final ResponseInfo res, final JSONObject response) {
+            // 搜集整个文件的上传信息
+            /*
+             mkblk, bput, mkfile 失败后，会包装为 找那个文件失败，多一个 block ； 
+            mkfile 成功后，会包装一个 block ， 也多一个 block ；
+             */
             if (Config.isRecord) {
                 final long after = System.currentTimeMillis();
                 UploadInfoCollector.handleUpload(res.upToken,
