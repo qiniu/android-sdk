@@ -21,17 +21,23 @@ public final class AutoZone extends Zone {
     /**
      * 自动判断机房
      */
-    public static final AutoZone autoZone = new AutoZone();
     private final String ucServer;
     private Map<ZoneIndex, ZoneInfo> zones = new ConcurrentHashMap<>();
     private Client client = new Client();
 
+    /**
+     * default useHttps to req autoZone
+     */
     public AutoZone() {
-        this("https://uc.qbox.me");
+        this(true);
     }
 
-    AutoZone(String ucServer) {
-        this.ucServer = ucServer;
+    public AutoZone(boolean useHttps){
+        if(useHttps){
+            this.ucServer = "https://uc.qbox.me";
+        }else{
+            this.ucServer = "http://uc.qbox.me";
+        }
     }
 
     private void getZoneJsonAsync(ZoneIndex index, CompletionHandler handler) {

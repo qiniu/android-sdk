@@ -51,6 +51,7 @@ public final class StringUtils {
         return buf.toString();
     }
 
+
     /**
      * 以json元素的方式连接字符串中元素
      * <p>
@@ -81,6 +82,28 @@ public final class StringUtils {
             buf.append('"');
         }
         return buf.toString();
+    }
+
+
+    public static String jsonJoin(Long[] array) {
+        return jsonJoin(longToString(array));
+    }
+
+    public static String[] longToString(Long longArray[]) {
+        if (longArray == null || longArray.length < 1) {
+            return null;
+        }
+        String stringArray[] = new String[longArray.length];
+        for (int i = 0; i < stringArray.length; i++) {
+            try {
+                stringArray[i] = String.valueOf(longArray[i]);
+            } catch (NumberFormatException e) {
+                stringArray[i] = null;
+                continue;
+            }
+        }
+        return stringArray;
+
     }
 
     public static byte[] utf8Bytes(String data) {

@@ -83,7 +83,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
 
     public void setUp() throws Exception {
         Configuration config = new Configuration.Builder().build();
-        uploadManager = new UploadManager(config);
+        uploadManager = new UploadManager(config,3);
         ACollectUploadInfoTest.testInit();
     }
 
@@ -189,8 +189,8 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     }
 
     @LargeTest
-    public void test4M() throws Throwable {
-        template(1024 * 4);
+    public void testResumeUploadFast() throws Throwable {
+        template(1024 * 98);
     }
 
 //    @LargeTest

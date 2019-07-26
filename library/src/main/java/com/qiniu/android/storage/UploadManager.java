@@ -21,23 +21,46 @@ import java.io.File;
 public final class UploadManager {
     private final Configuration config;
     private final Client client;
+    private  int multitread = 0;
+    private static int DEF_THREAD_NUM=3;
 
+    /**
+     * default 3 Threads
+     */
     public UploadManager() {
-        this(new Configuration.Builder().build());
+        this(new Configuration.Builder().build(),DEF_THREAD_NUM);
     }
 
+    /**
+     *
+     * @param config Configuration, default 1 Threads
+     */
     public UploadManager(Configuration config) {
         this.config = config;
         this.client = new Client(config.proxy, config.connectTimeout, config.responseTimeout,
                 config.urlConverter, config.dns);
     }
 
-    public UploadManager(Recorder recorder, KeyGenerator keyGen) {
-        this(new Configuration.Builder().recorder(recorder, keyGen).build());
+    public UploadManager(Configuration config, int multitread) {
+        this.config = config;
+        this.multitread = multitread>=0?multitread:DEF_THREAD_NUM;
+        this.client = new Client(config.proxy, config.connectTimeout, config.responseTimeout,
+                config.urlConverter, config.dns);
     }
 
     public UploadManager(Recorder recorder) {
         this(recorder, null);
+    }
+
+    public UploadManager(Recorder recorder, KeyGenerator keyGen) {
+        this(new Configuration.Builder().recorder(recorder, keyGen).build());
+    }
+
+    public UploadManager(Recorder recorder,int multitread) {
+        this(recorder, null,multitread);
+    }
+    public UploadManager(Recorder recorder, KeyGenerator keyGen,int multitread) {
+        this(new Configuration.Builder().recorder(recorder, keyGen).build(),multitread);
     }
 
     private static boolean areInvalidArg(final String key, byte[] data, File f, String token,
@@ -172,10 +195,15 @@ public final class UploadManager {
                 }
                 String recorderKey = config.keyGen.gen(key, file);
                 final WarpHandler completionHandler = warpHandler(complete, file != null ? file.length() : 0);
-                ResumeUploader uploader = new ResumeUploader(client, config, file, key,
-                        decodedToken, completionHandler, options, recorderKey);
-
-                AsyncRun.runInMain(uploader);
+                if(multitread==0) {
+                    ResumeUploader uploader = new ResumeUploader(client, config, file, key,
+                            decodedToken, completionHandler, options, recorderKey);
+                    AsyncRun.runInMain(uploader);
+                }else{
+                    ResumeUploaderFast uploader = new ResumeUploaderFast(client, config, file, key,
+                            decodedToken, completionHandler, options, recorderKey,multitread);
+                    AsyncRun.runInMain(uploader);
+                }
             }
 
             @Override

@@ -1,0 +1,566 @@
+package com.qiniu.android.storage;
+
+import com.qiniu.android.http.Client;
+import com.qiniu.android.http.CompletionHandler;
+import com.qiniu.android.http.ProgressHandler;
+import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.utils.AndroidNetwork;
+import com.qiniu.android.utils.Crc32;
+import com.qiniu.android.utils.StringMap;
+import com.qiniu.android.utils.StringUtils;
+import com.qiniu.android.utils.UrlSafeBase64;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
+
+import static java.lang.String.format;
+
+/**
+ * Created by jemy on 2019/7/9.
+ */
+
+/**
+ * 线程不安全：contexts，crc32，getBlockInfo()
+ * 需要它不安全的有：upHost
+ * progress回调不能根据offset，要根据已经上传的总大小
+ * 修正了preQurey err
+ * update AutoZone construct to query zone use http or https
+ */
+public class ResumeUploaderFast implements Runnable {
+
+    /**
+     * 文件总大小
+     */
+    private final long totalSize;
+
+    private final String key;
+
+    private final UpCompletionHandler completionHandler;
+
+    private final UploadOptions options;
+
+    private final Client client;
+
+    private final Configuration config;
+    /**
+     * 保存每一块上传返回的ctx
+     */
+    private final String[] contexts;
+    /**
+     * headers
+     */
+    private final StringMap headers;
+    /**
+     * 修改时间
+     */
+    private final long modifyTime;
+    /**
+     * 断点续传记录文件
+     */
+    private final String recorderKey;
+    /**
+     * 文件对象
+     */
+    private RandomAccessFile file;
+    /**
+     * 待上传文件
+     */
+    private File f;
+    /**
+     * 上传token
+     */
+    private UpToken token;
+    /**
+     * 分块数据
+     */
+    private Map<Long, Integer> blockInfo;
+    /**
+     * 上传域名
+     */
+    private String upHost;
+    /**
+     * 总块数
+     */
+    private int tblock;
+    /**
+     * 重传域名数
+     */
+    private int retried = 0;
+    /**
+     * 单域名检测次数
+     */
+    private int singleDomainRetry = 1;
+    /**
+     * 线程数量
+     */
+    private int multithread;
+    /**
+     * 第一个任务
+     */
+    private boolean firsttask = true;
+    /**
+     * 每块偏移位子
+     * use 断点续传
+     */
+    private Long[] offsets;
+    private int h = 0;
+    /**
+     * 重传过程，确认能成功上传的host之后，update checkDomainSuccess status
+     */
+    private boolean checkDomainSuccess = false;
+    private int upRetry = 0;
+
+    ResumeUploaderFast(Client client, Configuration config, File f, String key, UpToken token,
+                       final UpCompletionHandler completionHandler, UploadOptions options, String recorderKey, int multithread) {
+        this.client = client;
+        this.config = config;
+        this.f = f;
+        this.recorderKey = recorderKey;
+        this.totalSize = f.length();
+        this.key = key;
+        this.headers = new StringMap().put("Authorization", "UpToken " + token.token);
+        this.file = null;
+        this.multithread = multithread;
+        this.completionHandler = new UpCompletionHandler() {
+            @Override
+            public void complete(String key, ResponseInfo info, JSONObject response) {
+                if (file != null) {
+                    try {
+                        file.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                completionHandler.complete(key, info, response);
+            }
+        };
+        this.options = options != null ? options : UploadOptions.defaultOptions();
+        int totalBlock = (int) totalSize / Configuration.BLOCK_SIZE;
+        tblock = ((totalSize % Configuration.BLOCK_SIZE) == 0) ? totalBlock : totalBlock + 1;
+        this.offsets = new Long[tblock];
+        contexts = new String[tblock];
+        modifyTime = f.lastModified();
+        this.token = token;
+        this.blockInfo = new LinkedHashMap<>();
+    }
+
+    @Override
+    public void run() {
+        try {
+            file = new RandomAccessFile(f, "r");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            completionHandler.complete(key, ResponseInfo.fileError(e, token), null);
+            return;
+        }
+        putBlockInfo();
+        upHost = config.zone.upHost(token.token, config.useHttps, null);
+        BlockElement fblock = getBlockInfo();
+        mkblk(fblock.getOffset(), fblock.getBlocksize(), upHost);
+    }
+
+
+    /**
+     * cut file to blockInfo
+     */
+    private void putBlockInfo() {
+        Long[] offsets = recoveryFromRecord();
+        int lastBlock = tblock - 1;
+        if (offsets == null) {
+            for (int i = 0; i < lastBlock; i++) {
+                blockInfo.put((long) i * Configuration.BLOCK_SIZE, Configuration.BLOCK_SIZE);
+            }
+            blockInfo.put((long) lastBlock * Configuration.BLOCK_SIZE, (int) (totalSize - lastBlock * Configuration.BLOCK_SIZE));
+        } else {//有断点文件
+            HashSet<Long> set = new HashSet<Long>(Arrays.asList(offsets));
+            for (int i = 0; i < lastBlock; i++) {
+                Long offset = (long) i * Configuration.BLOCK_SIZE;
+                if (!set.contains(offset)) {
+                    blockInfo.put(offset, Configuration.BLOCK_SIZE);
+                } else {
+                    offsets[i] = offset;
+                    h += 1;
+                }
+            }
+            Long offset = (long) lastBlock * Configuration.BLOCK_SIZE;
+            if (!set.contains(offset)) {
+                blockInfo.put(offset, (int) (totalSize - lastBlock * Configuration.BLOCK_SIZE));
+            } else {
+                offsets[lastBlock] = offset;
+                h += 1;
+            }
+        }
+
+    }
+
+    /**
+     * get next block use to upload
+     *
+     * @return
+     */
+    private synchronized BlockElement getBlockInfo() {
+        Iterator<Map.Entry<Long, Integer>> it = blockInfo.entrySet().iterator();
+        long offset = 0;
+        int blockSize = 0;
+        while (it.hasNext()) {
+            Map.Entry<Long, Integer> entry = it.next();
+            offset = entry.getKey();
+            blockSize = entry.getValue();
+            blockInfo.remove(offset);
+            break;
+        }
+        return new BlockElement(offset, blockSize);
+    }
+
+    class UploadTread extends Thread {
+        private long offset;
+        private int blockSize;
+        private String upHost;
+
+        UploadTread(long offset, int blockSize, String upHost) {
+            this.offset = offset;
+            this.blockSize = blockSize;
+            this.upHost = upHost;
+        }
+
+        @Override
+        public void run() {
+            super.run();
+            mkblk(offset, blockSize, upHost);
+        }
+    }
+
+    /**
+     * 创建块，并上传内容
+     *
+     * @param upHost    上传主机
+     * @param offset    本地文件偏移量
+     * @param blockSize 分块的块大小
+     */
+    private void mkblk(long offset, int blockSize, String upHost) {
+        String path = format(Locale.ENGLISH, "/mkblk/%d", blockSize);
+        byte[] chunkBuffer = new byte[blockSize];
+        try {
+            file.seek(offset);
+            file.read(chunkBuffer, 0, blockSize);
+        } catch (IOException e) {
+            completionHandler.complete(key, ResponseInfo.fileError(e, token), null);
+            return;
+        }
+
+        long crc32 = Crc32.bytes(chunkBuffer, 0, blockSize);
+        String postUrl = String.format("%s%s", upHost, path);
+
+        post(postUrl, chunkBuffer, 0, blockSize, getProgressHandler(),
+                getCompletionHandler(offset, blockSize, crc32), options.cancellationSignal);
+    }
+
+    private void makeFile(String upHost, CompletionHandler _completionHandler, UpCancellationSignal c) {
+        String mime = format(Locale.ENGLISH, "/mimeType/%s/fname/%s",
+                UrlSafeBase64.encodeToString(options.mimeType), UrlSafeBase64.encodeToString(f.getName()));
+
+        String keyStr = "";
+        if (key != null) {
+            keyStr = format("/key/%s", UrlSafeBase64.encodeToString(key));
+        }
+
+        String paramStr = "";
+        if (options.params.size() != 0) {
+            String str[] = new String[options.params.size()];
+            int j = 0;
+            for (Map.Entry<String, String> i : options.params.entrySet()) {
+                str[j++] = format(Locale.ENGLISH, "%s/%s", i.getKey(), UrlSafeBase64.encodeToString(i.getValue()));
+            }
+            paramStr = "/" + StringUtils.join(str, "/");
+        }
+        String path = format(Locale.ENGLISH, "/mkfile/%d%s%s%s", totalSize, mime, keyStr, paramStr);
+        String bodyStr = StringUtils.join(contexts, ",");
+        byte[] data = bodyStr.getBytes();
+        String postUrl = String.format("%s%s", upHost, path);
+        post(postUrl, data, 0, data.length, null, _completionHandler, c);
+    }
+
+    private void post(String upHost, byte[] data, int offset, int dataSize, ProgressHandler progress,
+                      CompletionHandler completion, UpCancellationSignal c) {
+        client.asyncPost(upHost, data, offset, dataSize, headers, token, totalSize, progress, completion, c);
+    }
+
+    private ProgressHandler getProgressHandler() {
+        return new ProgressHandler() {
+            @Override
+            public void onProgress(long bytesWritten, long totalSize) {
+                long size = 0;
+                for (int i = 0; i < offsets.length; i++) {
+                    if (offsets[i] != null && offsets[i] > 0) {
+                        size += 1;
+                    }
+                }
+                double percent = (double) size * Configuration.BLOCK_SIZE / totalSize;
+                if (percent > 0.95) {
+                    percent = 0.95;
+                }
+                options.progressHandler.progress(key, percent);
+            }
+        };
+
+    }
+
+    private CompletionHandler getMkfileCompletionHandler() {
+        return new CompletionHandler() {
+            @Override
+            public void complete(ResponseInfo info, JSONObject response) {
+                if (info.isNetworkBroken() && !AndroidNetwork.isNetWorkReady()) {
+                    options.netReadyHandler.waitReady();
+                    if (!AndroidNetwork.isNetWorkReady()) {
+                        completionHandler.complete(key, info, response);
+                        return;
+                    }
+                }
+
+                if (info.isOK()) {
+                    removeRecord();
+                    options.progressHandler.progress(key, 1.0);
+                    completionHandler.complete(key, info, response);
+                    return;
+                }
+
+                // mkfile  ，允许多重试一次
+                if (info.needRetry() && retried < config.retryMax + 1) {
+                    makeFile(upHost, getMkfileCompletionHandler(), options.cancellationSignal);
+                }
+                completionHandler.complete(key, info, response);
+            }
+        };
+    }
+
+    private CompletionHandler getCompletionHandler(final long offset, final int blockSize, final long crc32) {
+        return new CompletionHandler() {
+            @Override
+            public void complete(ResponseInfo info, JSONObject response) {
+                //网络断开或者无状态，检查3s，直接返回
+                if (info.isNetworkBroken() && !AndroidNetwork.isNetWorkReady()) {
+                    options.netReadyHandler.waitReady();
+                    if (!AndroidNetwork.isNetWorkReady()) {
+                        completionHandler.complete(key, info, response);
+                        return;
+                    }
+                }
+
+                //取消
+                if (info.isCancelled()) {
+                    completionHandler.complete(key, info, response);
+                    return;
+                }
+
+                //上传失败：重试
+                //单个域名检测，重试3次
+                //下一个域名进行重试
+                //701 ctx不正确或者已经过期
+                if (!isChunkOK(info, response)) {
+                    if ((info.statusCode == 701 && checkRetried()) ||
+                            ((isNotChunkToQiniu(info, response) || info.needRetry()) && checkRetried())) {//三次，一个域名
+                        mkblk(offset, blockSize, upHost);
+                        return;
+                    }
+
+                    if (upHost != null
+                            && ((isNotChunkToQiniu(info, response) || info.needRetry())
+                            && checkRetried())) {
+                        mkblk(offset, blockSize, upHost);
+                        return;
+                    }
+                    completionHandler.complete(key, info, response);
+                    return;
+                }
+
+
+                //上传成功(伪成功)：检查response
+                String context = null;
+
+                if (response == null && retried < config.retryMax) {
+                    mkblk(offset, blockSize, upHost);
+                    return;
+                }
+                long crc = 0;
+                Exception tempE = null;
+                try {
+                    context = response.getString("ctx");
+                    crc = response.getLong("crc32");
+                } catch (Exception e) {
+                    tempE = e;
+                    e.printStackTrace();
+                }
+                if ((context == null || crc != crc32) && retried < config.retryMax) {
+                    mkblk(offset, blockSize, upHost);
+                    return;
+                }
+                if (context == null) {
+                    String error = "get context failed.";
+                    if (tempE != null) {
+                        error += "\n";
+                        error += tempE.getMessage();
+                    }
+                    ResponseInfo info2 = ResponseInfo.errorInfo(info, ResponseInfo.UnknownError, error);
+                    completionHandler.complete(key, info2, response);
+                    return;
+                }
+                if (crc != crc32) {
+                    String error = "block's crc32 is not match. local: " + crc32 + ", remote: " + crc;
+                    ResponseInfo info2 = ResponseInfo.errorInfo(info, ResponseInfo.Crc32NotMatch, error);
+                    completionHandler.complete(key, info2, response);
+                    return;
+                }
+
+                synchronized (this) {
+                    contexts[(int) (offset / Configuration.BLOCK_SIZE)] = context;
+                    offsets[(int) (offset / Configuration.BLOCK_SIZE)] = offset;
+                    record(offsets);
+                }
+                h += 1;
+                if (h >= tblock) {
+                    makeFile(upHost, getMkfileCompletionHandler(), options.cancellationSignal);
+                }
+
+                if (firsttask) {
+                    if (blockInfo.size() < multithread) {
+                        multithread = blockInfo.size();
+                    }
+                    for (int i = 0; i < multithread; i++) {
+                        BlockElement mblock = getBlockInfo();
+                        Thread t = new UploadTread(mblock.getOffset(), mblock.getBlocksize(), upHost);
+                        t.start();
+                    }
+                    firsttask = false;
+                } else {
+                    BlockElement mblock = getBlockInfo();
+                    if (mblock.getOffset() != 0 && mblock.getBlocksize() != 0)
+                        new UploadTread(mblock.getOffset(), mblock.getBlocksize(), upHost).start();
+                }
+
+
+            }
+        };
+    }
+
+    private boolean checkRetried() {
+        boolean retry = singleDomainRetry < config.retryMax && retried < config.retryMax;
+        if (checkDomainSuccess && upRetry < config.retryMax) {
+            upRetry = +1;
+            return true;
+        }
+        if (retry) {
+            singleDomainRetry += 1;
+            return true;
+        } else if (retried < config.retryMax - 1) {
+            singleDomainRetry = 1;
+            retried += 1;
+            upHost = config.zone.upHost(token.token, config.useHttps, upHost);
+            return true;
+        }
+        return retry;
+    }
+
+    private boolean isChunkOK(ResponseInfo info, JSONObject response) {
+        return info.statusCode == 200 && info.error == null && (info.hasReqId() || isChunkResOK(response));
+    }
+
+    private boolean isChunkResOK(JSONObject response) {
+        try {
+            // getXxxx 若获取不到值,会抛出异常
+            response.getString("ctx");
+            response.getLong("crc32");
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isNotChunkToQiniu(ResponseInfo info, JSONObject response) {
+        return info.statusCode < 500 && info.statusCode >= 200 && (!info.hasReqId() && !isChunkResOK(response));
+    }
+
+    private Long[] recoveryFromRecord() {
+
+        if (config.recorder == null) {
+            return null;
+        }
+        byte[] data = config.recorder.get(recorderKey);
+        if (data == null) {
+            return null;
+        }
+        String jsonStr = new String(data);
+        JSONObject obj;
+        try {
+            obj = new JSONObject(jsonStr);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+        JSONArray offsetsArray = obj.optJSONArray("offsets");
+        long modify = obj.optLong("modify_time", 0);
+        long fSize = obj.optLong("size", 0);
+        JSONArray array = obj.optJSONArray("contexts");
+        if (offsetsArray.length() == 0 || modify != modifyTime || fSize != totalSize || array == null || array.length() == 0) {
+            return null;
+        }
+        for (int i = 0; i < array.length(); i++) {
+            contexts[i] = array.optString(i);
+        }
+        for (int i = 0; i < array.length(); i++) {
+            String offset = offsetsArray.optString(i);
+            if (offset != null && !offset.equals("null")) {
+                offsets[i] = Long.parseLong(offset);
+            }
+        }
+        return offsets;
+    }
+
+    private void removeRecord() {
+        if (config.recorder != null) {
+            config.recorder.del(recorderKey);
+        }
+    }
+
+
+    private void record(Long[] offsets) {
+        if (config.recorder == null || offsets.length == 0) {
+            return;
+        }
+        String data = format(Locale.ENGLISH, "{\"size\":%d,\"offsets\":[%s], \"modify_time\":%d, \"contexts\":[%s]}",
+                totalSize, StringUtils.jsonJoin(offsets), modifyTime, StringUtils.jsonJoin(contexts));
+        config.recorder.set(recorderKey, data.getBytes());
+    }
+
+
+    class BlockElement {
+        private long offset;
+        private int blocksize;
+
+        BlockElement(long offset, int blocksize) {
+            this.offset = offset;
+            this.blocksize = blocksize;
+        }
+
+        public long getOffset() {
+            return offset;
+        }
+
+        public int getBlocksize() {
+            return blocksize;
+        }
+    }
+
+
+}

@@ -83,8 +83,14 @@ public final class Configuration {
         proxy = builder.proxy;
 
         urlConverter = builder.urlConverter;
+        AutoZone aotuZone=null;
+        if(builder.useHttps){
+            aotuZone= new AutoZone();
+        }else {
+            aotuZone= new AutoZone(false);
+        }
 
-        zone = builder.zone == null ? AutoZone.autoZone : builder.zone;
+        zone = builder.zone == null ? aotuZone : builder.zone;
         dns = builder.dns;
     }
 
