@@ -32,10 +32,10 @@ public final class AutoZone extends Zone {
         this(true);
     }
 
-    public AutoZone(boolean useHttps){
-        if(useHttps){
+    public AutoZone(boolean useHttps) {
+        if (useHttps) {
             this.ucServer = "https://uc.qbox.me";
-        }else{
+        } else {
             this.ucServer = "http://uc.qbox.me";
         }
     }

@@ -83,7 +83,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
 
     public void setUp() throws Exception {
         Configuration config = new Configuration.Builder().build();
-        uploadManager = new UploadManager(config,3);
+        uploadManager = new UploadManager(config, 3);
         ACollectUploadInfoTest.testInit();
     }
 
