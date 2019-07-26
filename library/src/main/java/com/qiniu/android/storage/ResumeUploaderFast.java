@@ -336,9 +336,11 @@ public class ResumeUploaderFast implements Runnable {
                     return;
                 }
 
-                // mkfile  ，允许多重试一次
+                // mkfile  ，允许多重试一次，这里不需要重试时，成功与否都complete回调给客户端
                 if (info.needRetry() && retried < config.retryMax + 1) {
                     makeFile(upHost, getMkfileCompletionHandler(), options.cancellationSignal);
+                    retried += 1;
+                    return;
                 }
                 completionHandler.complete(key, info, response);
             }
@@ -391,6 +393,7 @@ public class ResumeUploaderFast implements Runnable {
 
                 if (response == null && retried < config.retryMax) {
                     mkblk(offset, blockSize, upHost);
+                    retried += 1;
                     return;
                 }
                 long crc = 0;
@@ -403,6 +406,7 @@ public class ResumeUploaderFast implements Runnable {
                     e.printStackTrace();
                 }
                 if ((context == null || crc != crc32) && retried < config.retryMax) {
+                    retried += 1;
                     mkblk(offset, blockSize, upHost);
                     return;
                 }
