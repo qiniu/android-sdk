@@ -21,7 +21,7 @@ import java.io.File;
 public final class UploadManager {
     private final Configuration config;
     private final Client client;
-    private int multithread = 0;
+    private int multithreads = 0;
     private static int DEF_THREAD_NUM = 3;
 
     /**
@@ -42,7 +42,7 @@ public final class UploadManager {
 
     public UploadManager(Configuration config, int multitread) {
         this.config = config;
-        this.multithread = multitread >= 1 ? multitread : DEF_THREAD_NUM;
+        this.multithreads = multitread >= 1 ? multitread : DEF_THREAD_NUM;
         this.client = new Client(config.proxy, config.connectTimeout, config.responseTimeout,
                 config.urlConverter, config.dns);
     }
@@ -195,13 +195,13 @@ public final class UploadManager {
                 }
                 String recorderKey = config.keyGen.gen(key, file);
                 final WarpHandler completionHandler = warpHandler(complete, file != null ? file.length() : 0);
-                if (multithread == 0) {
+                if (multithreads == 1) {
                     ResumeUploader uploader = new ResumeUploader(client, config, file, key,
                             decodedToken, completionHandler, options, recorderKey);
                     AsyncRun.runInMain(uploader);
                 } else {
                     ResumeUploaderFast uploader = new ResumeUploaderFast(client, config, file, key,
-                            decodedToken, completionHandler, options, recorderKey, multithread);
+                            decodedToken, completionHandler, options, recorderKey, multithreads);
                     AsyncRun.runInMain(uploader);
                 }
             }
