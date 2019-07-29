@@ -32,7 +32,7 @@ public final class UploadManager {
     }
 
     /**
-     * @param config Configuration, default 1 Threads
+     * @param config Configuration, default 1 Thread
      */
     public UploadManager(Configuration config) {
         this.config = config;
@@ -42,7 +42,7 @@ public final class UploadManager {
 
     public UploadManager(Configuration config, int multitread) {
         this.config = config;
-        this.multithread = multitread >= 0 ? multitread : DEF_THREAD_NUM;
+        this.multithread = multitread >= 1 ? multitread : DEF_THREAD_NUM;
         this.client = new Client(config.proxy, config.connectTimeout, config.responseTimeout,
                 config.urlConverter, config.dns);
     }

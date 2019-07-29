@@ -109,18 +109,14 @@ public class ResumeUploaderFast implements Runnable {
     /**
      * 第一个任务
      */
-    private boolean firsttask = true;
+    private boolean isFirstTask = true;
     /**
      * 每块偏移位子
      * use 断点续传
      */
     private Long[] offsets;
     private int h = 0;
-    /**
-     * 重传过程，确认能成功上传的host之后，update checkDomainSuccess status
-     */
-    private boolean checkDomainSuccess = false;
-    private int upRetry = 0;
+    private final int domainRetry = 3;
 
     ResumeUploaderFast(Client client, Configuration config, File f, String key, UpToken token,
                        final UpCompletionHandler completionHandler, UploadOptions options, String recorderKey, int multithread) {
@@ -176,15 +172,16 @@ public class ResumeUploaderFast implements Runnable {
      * cut file to blockInfo
      */
     private void putBlockInfo() {
-        Long[] offsets = recoveryFromRecord();
+        Long[] offs = recoveryFromRecord();
+
         int lastBlock = tblock - 1;
-        if (offsets == null) {
+        if (offs == null) {
             for (int i = 0; i < lastBlock; i++) {
                 blockInfo.put((long) i * Configuration.BLOCK_SIZE, Configuration.BLOCK_SIZE);
             }
             blockInfo.put((long) lastBlock * Configuration.BLOCK_SIZE, (int) (totalSize - lastBlock * Configuration.BLOCK_SIZE));
         } else {//有断点文件
-            HashSet<Long> set = new HashSet<Long>(Arrays.asList(offsets));
+            HashSet<Long> set = new HashSet<Long>(Arrays.asList(offs));
             for (int i = 0; i < lastBlock; i++) {
                 Long offset = (long) i * Configuration.BLOCK_SIZE;
                 if (!set.contains(offset)) {
@@ -202,7 +199,6 @@ public class ResumeUploaderFast implements Runnable {
                 h += 1;
             }
         }
-
     }
 
     /**
@@ -367,33 +363,30 @@ public class ResumeUploaderFast implements Runnable {
                 }
 
                 //上传失败：重试
-                //单个域名检测，重试3次
-                //下一个域名进行重试
-                //701 ctx不正确或者已经过期
+                //701: ctx不正确或者已经过期
                 if (!isChunkOK(info, response)) {
-                    if ((info.statusCode == 701 && checkRetried()) ||
-                            ((isNotChunkToQiniu(info, response) || info.needRetry()) && checkRetried())) {//三次，一个域名
+                    if (info.statusCode == 701 && checkRetried()) {
                         mkblk(offset, blockSize, upHost);
+                        updateRetried();
                         return;
                     }
-
                     if (upHost != null
                             && ((isNotChunkToQiniu(info, response) || info.needRetry())
                             && checkRetried())) {
                         mkblk(offset, blockSize, upHost);
+                        updateRetried();
                         return;
                     }
                     completionHandler.complete(key, info, response);
                     return;
                 }
 
-
                 //上传成功(伪成功)：检查response
                 String context = null;
 
-                if (response == null && retried < config.retryMax) {
+                if (response == null && checkRetried()) {
                     mkblk(offset, blockSize, upHost);
-                    retried += 1;
+                    updateRetried();
                     return;
                 }
                 long crc = 0;
@@ -405,9 +398,10 @@ public class ResumeUploaderFast implements Runnable {
                     tempE = e;
                     e.printStackTrace();
                 }
-                if ((context == null || crc != crc32) && retried < config.retryMax) {
+                if ((context == null || crc != crc32) && checkRetried()) {
                     retried += 1;
                     mkblk(offset, blockSize, upHost);
+                    updateRetried();
                     return;
                 }
                 if (context == null) {
@@ -431,13 +425,14 @@ public class ResumeUploaderFast implements Runnable {
                     contexts[(int) (offset / Configuration.BLOCK_SIZE)] = context;
                     offsets[(int) (offset / Configuration.BLOCK_SIZE)] = offset;
                     record(offsets);
+                    h += 1;
                 }
-                h += 1;
                 if (h >= tblock) {
                     makeFile(upHost, getMkfileCompletionHandler(), options.cancellationSignal);
+                    return;
                 }
 
-                if (firsttask) {
+                if (isFirstTask) {
                     if (blockInfo.size() < multithread) {
                         multithread = blockInfo.size();
                     }
@@ -446,34 +441,28 @@ public class ResumeUploaderFast implements Runnable {
                         Thread t = new UploadTread(mblock.getOffset(), mblock.getBlocksize(), upHost);
                         t.start();
                     }
-                    firsttask = false;
+                    isFirstTask = false;
                 } else {
                     BlockElement mblock = getBlockInfo();
                     if (mblock.getOffset() != 0 && mblock.getBlocksize() != 0)
                         new UploadTread(mblock.getOffset(), mblock.getBlocksize(), upHost).start();
                 }
-
-
             }
         };
     }
 
-    private boolean checkRetried() {
-        boolean retry = singleDomainRetry < config.retryMax && retried < config.retryMax;
-        if (checkDomainSuccess && upRetry < config.retryMax) {
-            upRetry = +1;
-            return true;
-        }
-        if (retry) {
+    private synchronized void updateRetried() {
+        if (singleDomainRetry < config.retryMax) {
             singleDomainRetry += 1;
-            return true;
-        } else if (retried < config.retryMax - 1) {
+        } else if (retried < domainRetry) {
             singleDomainRetry = 1;
             retried += 1;
             upHost = config.zone.upHost(token.token, config.useHttps, upHost);
-            return true;
         }
-        return retry;
+    }
+
+    private boolean checkRetried() {
+        return retried < domainRetry;
     }
 
     private boolean isChunkOK(ResponseInfo info, JSONObject response) {
@@ -537,7 +526,6 @@ public class ResumeUploaderFast implements Runnable {
         }
     }
 
-
     private void record(Long[] offsets) {
         if (config.recorder == null || offsets.length == 0) {
             return;
@@ -546,7 +534,6 @@ public class ResumeUploaderFast implements Runnable {
                 totalSize, StringUtils.jsonJoin(offsets), modifyTime, StringUtils.jsonJoin(contexts));
         config.recorder.set(recorderKey, data.getBytes());
     }
-
 
     class BlockElement {
         private long offset;

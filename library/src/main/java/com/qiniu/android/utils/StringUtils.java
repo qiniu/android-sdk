@@ -51,7 +51,6 @@ public final class StringUtils {
         return buf.toString();
     }
 
-
     /**
      * 以json元素的方式连接字符串中元素
      * <p>
