@@ -115,7 +115,10 @@ public class ResumeUploaderFast implements Runnable {
      * use 断点续传
      */
     private Long[] offsets;
-    private int h = 0;
+    /**
+     * 已上传块
+     */
+    private int upBlock = 0;
     private final int domainRetry = 3;
 
     ResumeUploaderFast(Client client, Configuration config, File f, String key, UpToken token,
@@ -143,8 +146,8 @@ public class ResumeUploaderFast implements Runnable {
             }
         };
         this.options = options != null ? options : UploadOptions.defaultOptions();
-        int totalBlock = (int) totalSize / Configuration.BLOCK_SIZE;
-        tblock = ((totalSize % Configuration.BLOCK_SIZE) == 0) ? totalBlock : totalBlock + 1;
+        tblock = (int) (totalSize + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE;
+        ;
         this.offsets = new Long[tblock];
         contexts = new String[tblock];
         modifyTime = f.lastModified();
@@ -188,7 +191,7 @@ public class ResumeUploaderFast implements Runnable {
                     blockInfo.put(offset, Configuration.BLOCK_SIZE);
                 } else {
                     offsets[i] = offset;
-                    h += 1;
+                    upBlock += 1;
                 }
             }
             Long offset = (long) lastBlock * Configuration.BLOCK_SIZE;
@@ -196,7 +199,7 @@ public class ResumeUploaderFast implements Runnable {
                 blockInfo.put(offset, (int) (totalSize - lastBlock * Configuration.BLOCK_SIZE));
             } else {
                 offsets[lastBlock] = offset;
-                h += 1;
+                upBlock += 1;
             }
         }
     }
@@ -210,12 +213,11 @@ public class ResumeUploaderFast implements Runnable {
         Iterator<Map.Entry<Long, Integer>> it = blockInfo.entrySet().iterator();
         long offset = 0;
         int blockSize = 0;
-        while (it.hasNext()) {
+        if (it.hasNext()) {
             Map.Entry<Long, Integer> entry = it.next();
             offset = entry.getKey();
             blockSize = entry.getValue();
             blockInfo.remove(offset);
-            break;
         }
         return new BlockElement(offset, blockSize);
     }
@@ -425,9 +427,9 @@ public class ResumeUploaderFast implements Runnable {
                     contexts[(int) (offset / Configuration.BLOCK_SIZE)] = context;
                     offsets[(int) (offset / Configuration.BLOCK_SIZE)] = offset;
                     record(offsets);
-                    h += 1;
+                    upBlock += 1;
                 }
-                if (h >= tblock) {
+                if (upBlock >= tblock) {
                     makeFile(upHost, getMkfileCompletionHandler(), options.cancellationSignal);
                     return;
                 }
