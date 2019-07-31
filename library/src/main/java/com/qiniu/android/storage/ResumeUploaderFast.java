@@ -1,5 +1,7 @@
 package com.qiniu.android.storage;
 
+import android.util.Log;
+
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.ProgressHandler;
@@ -89,7 +91,7 @@ public class ResumeUploaderFast implements Runnable {
     /**
      * 上传域名
      */
-    private String upHost;
+    volatile String upHost;
     /**
      * 总块数
      */
@@ -97,11 +99,11 @@ public class ResumeUploaderFast implements Runnable {
     /**
      * 重传域名数
      */
-    private int retried = 0;
+    volatile int retried = 0;
     /**
      * 单域名检测次数
      */
-    private int singleDomainRetry = 1;
+    volatile int singleDomainRetry = 1;
     /**
      * 线程数量
      */
@@ -120,6 +122,10 @@ public class ResumeUploaderFast implements Runnable {
      */
     private int upBlock = 0;
     private final int domainRetry = 3;
+    /**
+     * 避免多个任务同时回调
+     */
+    private boolean isInterrupted = false;
 
     ResumeUploaderFast(Client client, Configuration config, File f, String key, UpToken token,
                        final UpCompletionHandler completionHandler, UploadOptions options, String recorderKey, int multithread) {
@@ -142,12 +148,19 @@ public class ResumeUploaderFast implements Runnable {
                         e.printStackTrace();
                     }
                 }
-                completionHandler.complete(key, info, response);
+                //第一个回调出来之后通知其他线程停止这个事件的回调
+                synchronized (this) {
+                    if (!isInterrupted) {
+                        isInterrupted = true;
+                        completionHandler.complete(key, info, response);
+                    } else {
+                        return;
+                    }
+                }
             }
         };
         this.options = options != null ? options : UploadOptions.defaultOptions();
         tblock = (int) (totalSize + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE;
-        ;
         this.offsets = new Long[tblock];
         contexts = new String[tblock];
         modifyTime = f.lastModified();
@@ -165,9 +178,15 @@ public class ResumeUploaderFast implements Runnable {
             return;
         }
         putBlockInfo();
+
         upHost = config.zone.upHost(token.token, config.useHttps, null);
-        BlockElement fblock = getBlockInfo();
-        mkblk(fblock.getOffset(), fblock.getBlocksize(), upHost);
+        if (blockInfo.size() < multithread) {
+            multithread = blockInfo.size();
+        }
+        for (int i = 0; i < multithread; i++) {
+            BlockElement mblock = getBlockInfo();
+            new UploadTread(mblock.getOffset(), mblock.getBlocksize(), upHost).start();
+        }
     }
 
 
@@ -176,7 +195,6 @@ public class ResumeUploaderFast implements Runnable {
      */
     private void putBlockInfo() {
         Long[] offs = recoveryFromRecord();
-
         int lastBlock = tblock - 1;
         if (offs == null) {
             for (int i = 0; i < lastBlock; i++) {
@@ -250,12 +268,15 @@ public class ResumeUploaderFast implements Runnable {
     private void mkblk(long offset, int blockSize, String upHost) {
         String path = format(Locale.ENGLISH, "/mkblk/%d", blockSize);
         byte[] chunkBuffer = new byte[blockSize];
-        try {
-            file.seek(offset);
-            file.read(chunkBuffer, 0, blockSize);
-        } catch (IOException e) {
-            completionHandler.complete(key, ResponseInfo.fileError(e, token), null);
-            return;
+        synchronized (this) {
+            try {
+                //多线程时file.read可能会在seek时被篡改
+                file.seek(offset);
+                file.read(chunkBuffer, 0, blockSize);
+            } catch (IOException e) {
+                completionHandler.complete(key, ResponseInfo.fileError(e, token), null);
+                return;
+            }
         }
 
         long crc32 = Crc32.bytes(chunkBuffer, 0, blockSize);
@@ -345,6 +366,7 @@ public class ResumeUploaderFast implements Runnable {
         };
     }
 
+
     private CompletionHandler getCompletionHandler(final long offset, final int blockSize, final long crc32) {
         return new CompletionHandler() {
             @Override
@@ -366,19 +388,22 @@ public class ResumeUploaderFast implements Runnable {
 
                 //上传失败：重试
                 //701: ctx不正确或者已经过期
+                //checkRetried之后应该立即updateRetried，否则每个线程进来checkRetried判定都是跟第一个一样
                 if (!isChunkOK(info, response)) {
                     if (info.statusCode == 701 && checkRetried()) {
-                        mkblk(offset, blockSize, upHost);
+
                         updateRetried();
+                        mkblk(offset, blockSize, upHost);
                         return;
                     }
                     if (upHost != null
                             && ((isNotChunkToQiniu(info, response) || info.needRetry())
                             && checkRetried())) {
-                        mkblk(offset, blockSize, upHost);
                         updateRetried();
+                        mkblk(offset, blockSize, upHost);
                         return;
                     }
+
                     completionHandler.complete(key, info, response);
                     return;
                 }
@@ -387,8 +412,9 @@ public class ResumeUploaderFast implements Runnable {
                 String context = null;
 
                 if (response == null && checkRetried()) {
-                    mkblk(offset, blockSize, upHost);
                     updateRetried();
+                    mkblk(offset, blockSize, upHost);
+
                     return;
                 }
                 long crc = 0;
@@ -401,9 +427,8 @@ public class ResumeUploaderFast implements Runnable {
                     e.printStackTrace();
                 }
                 if ((context == null || crc != crc32) && checkRetried()) {
-                    retried += 1;
-                    mkblk(offset, blockSize, upHost);
                     updateRetried();
+                    mkblk(offset, blockSize, upHost);
                     return;
                 }
                 if (context == null) {
@@ -434,17 +459,7 @@ public class ResumeUploaderFast implements Runnable {
                     return;
                 }
 
-                if (isFirstTask) {
-                    if (blockInfo.size() < multithread) {
-                        multithread = blockInfo.size();
-                    }
-                    for (int i = 0; i < multithread; i++) {
-                        BlockElement mblock = getBlockInfo();
-                        Thread t = new UploadTread(mblock.getOffset(), mblock.getBlocksize(), upHost);
-                        t.start();
-                    }
-                    isFirstTask = false;
-                } else {
+                if (blockInfo.size() > 0) {
                     BlockElement mblock = getBlockInfo();
                     if (mblock.getOffset() != 0 && mblock.getBlocksize() != 0)
                         new UploadTread(mblock.getOffset(), mblock.getBlocksize(), upHost).start();
@@ -461,9 +476,10 @@ public class ResumeUploaderFast implements Runnable {
             retried += 1;
             upHost = config.zone.upHost(token.token, config.useHttps, upHost);
         }
+
     }
 
-    private boolean checkRetried() {
+    private synchronized boolean checkRetried() {
         return retried < domainRetry;
     }
 

@@ -1,5 +1,7 @@
 package com.qiniu.android.utils;
 
+import android.util.Log;
+
 import com.qiniu.android.common.Constants;
 
 import java.io.UnsupportedEncodingException;
@@ -69,6 +71,9 @@ public final class StringUtils {
      */
     public static String jsonJoin(String[] array) {
         int arraySize = array.length;
+        if (array[0] == null) {
+            array[0] = "";
+        }
         int bufSize = arraySize * (array[0].length() + 3);
         StringBuilder buf = new StringBuilder(bufSize);
         for (int i = 0; i < arraySize; i++) {
@@ -89,15 +94,12 @@ public final class StringUtils {
     }
 
     public static String[] longToString(Long longArray[]) {
-        if (longArray == null || longArray.length < 1) {
-            return null;
-        }
         String stringArray[] = new String[longArray.length];
         for (int i = 0; i < stringArray.length; i++) {
             try {
                 stringArray[i] = String.valueOf(longArray[i]);
             } catch (NumberFormatException e) {
-                stringArray[i] = null;
+                stringArray[i] = "null";
                 continue;
             }
         }

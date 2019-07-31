@@ -9,10 +9,12 @@ import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
+import com.qiniu.android.storage.Recorder;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
+import com.qiniu.android.storage.persistent.FileRecorder;
 
 import junit.framework.Assert;
 
@@ -120,7 +122,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
 //        Assert.assertNotNull(resp);
 //        String hash = resp.getString("hash");
 //        Assert.assertEquals(hash, Etag.file(f));
-        TempFile.remove(f);
+        //TempFile.remove(f);
 //        Assert.assertTrue("进度有变化，不大可能一直相同。" + getProgress(), !isProgressAllSame());
         Log.d(TAG, getProgress());
         ACollectUploadInfoTest.recordFileTest();
