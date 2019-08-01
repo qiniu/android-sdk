@@ -21,7 +21,7 @@ import java.io.File;
 public final class UploadManager {
     private final Configuration config;
     private final Client client;
-    private int multithreads = 0;
+    private int multithreads = 1;
     private static int DEF_THREAD_NUM = 3;
 
     /**
