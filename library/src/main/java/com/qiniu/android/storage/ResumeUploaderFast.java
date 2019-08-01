@@ -1,7 +1,5 @@
 package com.qiniu.android.storage;
 
-import android.util.Log;
-
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.ProgressHandler;
@@ -33,13 +31,6 @@ import static java.lang.String.format;
  * Created by jemy on 2019/7/9.
  */
 
-/**
- * 线程不安全：contexts，crc32，getBlockInfo()
- * 需要它不安全的有：upHost
- * progress回调不能根据offset，要根据已经上传的总大小
- * 修正了preQurey err
- * update AutoZone construct to query zone use http or https
- */
 public class ResumeUploaderFast implements Runnable {
 
     /**
@@ -201,7 +192,7 @@ public class ResumeUploaderFast implements Runnable {
                 blockInfo.put((long) i * Configuration.BLOCK_SIZE, Configuration.BLOCK_SIZE);
             }
             blockInfo.put((long) lastBlock * Configuration.BLOCK_SIZE, (int) (totalSize - lastBlock * Configuration.BLOCK_SIZE));
-        } else {//有断点文件
+        } else {
             HashSet<Long> set = new HashSet<Long>(Arrays.asList(offs));
             for (int i = 0; i < lastBlock; i++) {
                 Long offset = (long) i * Configuration.BLOCK_SIZE;
@@ -225,7 +216,7 @@ public class ResumeUploaderFast implements Runnable {
     /**
      * get next block use to upload
      *
-     * @return
+     * @return BlockElement
      */
     private synchronized BlockElement getBlockInfo() {
         Iterator<Map.Entry<Long, Integer>> it = blockInfo.entrySet().iterator();
@@ -270,7 +261,7 @@ public class ResumeUploaderFast implements Runnable {
         byte[] chunkBuffer = new byte[blockSize];
         synchronized (this) {
             try {
-                //多线程时file.read可能会在seek时被篡改
+                //多线程时file.read可能会在seek时被篡改，导致上传buffer紊乱
                 file.seek(offset);
                 file.read(chunkBuffer, 0, blockSize);
             } catch (IOException e) {
@@ -391,7 +382,6 @@ public class ResumeUploaderFast implements Runnable {
                 //checkRetried之后应该立即updateRetried，否则每个线程进来checkRetried判定都是跟第一个一样
                 if (!isChunkOK(info, response)) {
                     if (info.statusCode == 701 && checkRetried()) {
-
                         updateRetried();
                         mkblk(offset, blockSize, upHost);
                         return;
@@ -410,7 +400,6 @@ public class ResumeUploaderFast implements Runnable {
 
                 //上传成功(伪成功)：检查response
                 String context = null;
-
                 if (response == null && checkRetried()) {
                     updateRetried();
                     mkblk(offset, blockSize, upHost);
@@ -570,6 +559,5 @@ public class ResumeUploaderFast implements Runnable {
             return blocksize;
         }
     }
-
 
 }
