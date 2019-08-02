@@ -443,7 +443,7 @@ public class ResumeUploaderFast implements Runnable {
                     record(offsets);
                     upBlock += 1;
                 }
-                if (upBlock >= tblock) {
+                if (upBlock == tblock) {
                     makeFile(upHost, getMkfileCompletionHandler(), options.cancellationSignal);
                     return;
                 }
