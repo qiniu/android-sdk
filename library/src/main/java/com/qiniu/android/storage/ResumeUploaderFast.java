@@ -176,7 +176,7 @@ public class ResumeUploaderFast implements Runnable {
         }
         for (int i = 0; i < multithread; i++) {
             BlockElement mblock = getBlockInfo();
-            new UploadTread(mblock.getOffset(), mblock.getBlocksize(), upHost).start();
+            new UploadThread(mblock.getOffset(), mblock.getBlocksize(), upHost).start();
         }
     }
 
@@ -231,12 +231,12 @@ public class ResumeUploaderFast implements Runnable {
         return new BlockElement(offset, blockSize);
     }
 
-    class UploadTread extends Thread {
+    class UploadThread extends Thread {
         private long offset;
         private int blockSize;
         private String upHost;
 
-        UploadTread(long offset, int blockSize, String upHost) {
+        UploadThread(long offset, int blockSize, String upHost) {
             this.offset = offset;
             this.blockSize = blockSize;
             this.upHost = upHost;
@@ -451,7 +451,7 @@ public class ResumeUploaderFast implements Runnable {
                 if (blockInfo.size() > 0) {
                     BlockElement mblock = getBlockInfo();
                     if (mblock.getOffset() != 0 && mblock.getBlocksize() != 0)
-                        new UploadTread(mblock.getOffset(), mblock.getBlocksize(), upHost).start();
+                        new UploadThread(mblock.getOffset(), mblock.getBlocksize(), upHost).start();
                 }
             }
         };
