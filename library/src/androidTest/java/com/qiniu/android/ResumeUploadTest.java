@@ -192,7 +192,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
 
     @LargeTest
     public void testResumeUploadFast() throws Throwable {
-        template(1024 * 98);
+        template(1024 * 8);
     }
 
 //    @LargeTest

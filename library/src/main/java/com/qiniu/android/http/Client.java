@@ -1,8 +1,13 @@
 package com.qiniu.android.http;
 
+import android.util.Log;
+
+import com.qiniu.android.collect.Config;
 import com.qiniu.android.common.Constants;
+import com.qiniu.android.storage.Recorder;
 import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.storage.UpToken;
+import com.qiniu.android.storage.persistent.FileRecorder;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringMap;
 import com.qiniu.android.utils.StringUtils;
@@ -13,6 +18,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -47,26 +54,29 @@ public final class Client {
     public Client(ProxyConfiguration proxy, int connectTimeout, int responseTimeout, UrlConverter converter, final Dns dns) {
         this.converter = converter;
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
-
         if (proxy != null) {
             builder.proxy(proxy.proxy());
             if (proxy.user != null && proxy.password != null) {
                 builder.proxyAuthenticator(proxy.authenticator());
             }
         }
-        if (dns != null) {
-            builder.dns(new okhttp3.Dns() {
-                @Override
-                public List<InetAddress> lookup(String hostname) throws UnknownHostException {
+
+        builder.dns(new okhttp3.Dns() {
+            @Override
+            public List<InetAddress> lookup(String hostname) throws UnknownHostException {
+                if (dns != null) {
                     try {
                         return dns.lookup(hostname);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                    return okhttp3.Dns.SYSTEM.lookup(hostname);
+                } else if (DnsPrefetcher.getDnsPrefetcher().getInetAddressByHost(hostname) != null) {
+                    return DnsPrefetcher.getDnsPrefetcher().getInetAddressByHost(hostname);
                 }
-            });
-        }
+                return okhttp3.Dns.SYSTEM.lookup(hostname);
+            }
+        });
+
         builder.networkInterceptors().add(new Interceptor() {
             @Override
             public okhttp3.Response intercept(Chain chain) throws IOException {
@@ -434,7 +444,7 @@ public final class Client {
         }
     }
 
-    private static class ResponseTag {
+    public static class ResponseTag {
         public String ip = "";
         public long duration = -1;
     }

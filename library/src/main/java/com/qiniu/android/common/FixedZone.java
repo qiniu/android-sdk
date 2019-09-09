@@ -4,6 +4,7 @@ import android.util.Log;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,48 +17,63 @@ public final class FixedZone extends Zone {
     /**
      * 华东机房
      */
-    public static final Zone zone0 = new FixedZone(new String[]{
+    static String[] arrayzone0 = new String[]{
             "upload.qiniup.com", "upload-jjh.qiniup.com",
             "upload-xs.qiniup.com", "up.qiniup.com",
             "up-jjh.qiniup.com", "up-xs.qiniup.com",
             "upload.qbox.me", "up.qbox.me"
-    });
+    };
+    public static final Zone zone0 = new FixedZone(arrayzone0);
 
     /**
      * 华北机房
      */
-    public static final Zone zone1 = new FixedZone(new String[]{
+    static String[] arrayzone1 = new String[]{
             "upload-z1.qiniup.com", "up-z1.qiniup.com",
             "upload-z1.qbox.me", "up-z1.qbox.me"
-    });
+    };
+    public static final Zone zone1 = new FixedZone(arrayzone1);
 
     /**
      * 华南机房
      */
-    public static final Zone zone2 = new FixedZone(new String[]{
+    static String[] arrayzone2 = new String[]{
             "upload-z2.qiniup.com", "upload-dg.qiniup.com",
             "upload-fs.qiniup.com", "up-z2.qiniup.com",
             "up-dg.qiniup.com", "up-fs.qiniup.com",
             "upload-z2.qbox.me", "up-z2.qbox.me"
-    });
+    };
+    public static final Zone zone2 = new FixedZone(arrayzone2);
 
     /**
      * 北美机房
      */
-    public static final Zone zoneNa0 = new FixedZone(new String[]{
+    static String[] arrayzoneNa0 = new String[]{
             "upload-na0.qiniup.com", "up-na0.qiniup.com",
             "upload-na0.qbox.me", "up-na0.qbox.me"
-    });
+    };
+    public static final Zone zoneNa0 = new FixedZone(arrayzoneNa0);
 
     /**
      * 新加坡机房
      */
-    public static final Zone zoneAs0 = new FixedZone(new String[]{
+    static String[] arrayZoneAs0 = new String[]{
             "upload-as0.qiniup.com", "up-as0.qiniup.com",
             "upload-as0.qbox.me", "up-as0.qbox.me"
-    });
+    };
+    public static final Zone zoneAs0 = new FixedZone(arrayZoneAs0);
 
     private ZoneInfo zoneInfo;
+
+    public static List<ZoneInfo> getZoneInfos() {
+        List<ZoneInfo> listZoneInfo = new ArrayList<ZoneInfo>();
+        listZoneInfo.add(createZoneInfo(arrayzone0));
+        listZoneInfo.add(createZoneInfo(arrayzone1));
+        listZoneInfo.add(createZoneInfo(arrayzone2));
+        listZoneInfo.add(createZoneInfo(arrayzoneNa0));
+        listZoneInfo.add(createZoneInfo(arrayZoneAs0));
+        return listZoneInfo;
+    }
 
     public FixedZone(ZoneInfo zoneInfo) {
         this.zoneInfo = zoneInfo;
@@ -76,6 +92,7 @@ public final class FixedZone extends Zone {
         }
         return new ZoneInfo(0, upDomainsList, upDomainsMap);
     }
+
 
     @Override
     public synchronized String upHost(String upToken, boolean useHttps, String frozenDomain) {

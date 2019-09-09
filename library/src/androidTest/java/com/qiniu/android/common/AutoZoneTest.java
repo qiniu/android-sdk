@@ -1,11 +1,15 @@
 package com.qiniu.android.common;
 
 import android.test.AndroidTestCase;
+import android.util.Log;
 
 import com.qiniu.android.TestConfig;
+import com.qiniu.android.http.DnsPrefetcher;
 
 import junit.framework.Assert;
 
+import java.net.UnknownHostException;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -76,10 +80,11 @@ public class AutoZoneTest extends AndroidTestCase {
             e.printStackTrace();
         }
         ZoneInfo info = autoZone.zoneInfo(ak, bkt);
-//        Log.d("zone0: ", info.toString());
+        Log.d("qiniutest: ", info.toString());
 
         ZoneInfo info2 = autoZone.zoneInfo(ak, bkt);
         Assert.assertSame(info, info2);
 
     }
+
 }

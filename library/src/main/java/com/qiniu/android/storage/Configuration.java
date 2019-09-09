@@ -65,6 +65,11 @@ public final class Configuration {
      */
     public boolean useHttps;
 
+    /**
+     * dns预取缓存时间
+     */
+    public long dnsCacheTimeMs;
+
 
     private Configuration(Builder builder) {
         useHttps = builder.useHttps;
@@ -81,6 +86,8 @@ public final class Configuration {
         retryMax = builder.retryMax;
 
         proxy = builder.proxy;
+
+        dnsCacheTimeMs = builder.dnsCacheTimeMs;
 
         urlConverter = builder.urlConverter;
         AutoZone autoZone = null;
@@ -120,6 +127,7 @@ public final class Configuration {
         private int retryMax = 3;
         private UrlConverter urlConverter = null;
         private Dns dns = null;
+        private long dnsCacheTimeMs = 60 * 60 * 24 * 1000;
 
         public Builder zone(Zone zone) {
             this.zone = zone;
@@ -179,6 +187,11 @@ public final class Configuration {
 
         public Builder useHttps(boolean useHttps) {
             this.useHttps = useHttps;
+            return this;
+        }
+
+        public Builder dnsCacheTimeMs(long dnsCacheTimeMs) {
+            this.dnsCacheTimeMs = dnsCacheTimeMs;
             return this;
         }
 

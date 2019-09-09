@@ -1,16 +1,35 @@
 package com.qiniu.android.storage;
 
+import android.content.SharedPreferences;
+import android.util.Log;
+
 import com.qiniu.android.collect.Config;
 import com.qiniu.android.collect.UploadInfoCollector;
 import com.qiniu.android.common.Zone;
+import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.Client;
+import com.qiniu.android.http.DnsPrefetcher;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.storage.persistent.FileRecorder;
+import com.qiniu.android.utils.AndroidNetwork;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringUtils;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+
+import static java.lang.String.format;
 
 /**
  * 七牛文件上传管理器
@@ -136,6 +155,15 @@ public final class UploadManager {
             return;
         }
 
+        if (checkRePrefetchDns(token)) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    startPrefetchDns(token);
+                }
+            }).start();
+        }
+
         Zone z = config.zone;
         z.preQuery(token, new Zone.QueryHandler() {
             @Override
@@ -177,11 +205,20 @@ public final class UploadManager {
      * @param complete 上传完成的后续处理动作
      * @param options  上传数据的可选参数
      */
-    public void put(final File file, final String key, String token, final UpCompletionHandler complete,
+    public void put(final File file, final String key, final String token, final UpCompletionHandler complete,
                     final UploadOptions options) {
         final UpToken decodedToken = UpToken.parse(token);
         if (areInvalidArg(key, null, file, token, decodedToken, complete)) {
             return;
+        }
+
+        if (checkRePrefetchDns(token)) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    startPrefetchDns(token);
+                }
+            }).start();
         }
 
         Zone z = config.zone;
@@ -305,6 +342,103 @@ public final class UploadManager {
                 }
             });
         }
+    }
+
+
+    /**
+     * <p>
+     * ip changed, the network has changed
+     * ak:scope变化，prequery（v2）自动获取域名接口发生变化，存储区域可能变化
+     * cacheTime>config.cacheTime（默认24H）
+     * </p>
+     *
+     * @return true:重新预期并缓存, false:不需要重新预取和缓存
+     */
+    public boolean checkRePrefetchDns(String token) {
+        Recorder recorder = null;
+        try {
+            recorder = new FileRecorder(Config.dnscacheDir);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        byte[] data = recorder.get("lastcache");
+        if (data == null) {
+            return true;
+        }
+        String jsonStr = new String(data);
+        JSONObject obj;
+        try {
+            obj = new JSONObject(jsonStr);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return true;
+        }
+        String time = obj.optString("time");
+        String ip = obj.optString("ip");
+        String ak = obj.optString("ak");
+
+        String currentTime = String.valueOf(System.currentTimeMillis());
+        String localip = AndroidNetwork.getHostIP();
+        String akAndScope = StringUtils.getAkAndScope(token);
+
+        long cacheTime = (Long.parseLong(currentTime) - Long.parseLong(time)) / 1000;
+        if (!localip.equals(ip) || cacheTime > config.dnsCacheTimeMs || !akAndScope.equals(ak)) {
+            return true;
+        }
+
+        return recoverDnsCache(recorder);
+    }
+
+    /**
+     * start preFetchDns: Time-consuming operation, in a thread
+     * @param token
+     */
+    public void startPrefetchDns(String token) {
+        String currentTime = String.valueOf(System.currentTimeMillis());
+        String localip = AndroidNetwork.getHostIP();
+        String akAndScope = StringUtils.getAkAndScope(token);
+        String data = format(Locale.ENGLISH, "{\"time\":%s,\"ip\":%s,\"ak\":%s}", currentTime, localip, akAndScope);
+        Recorder recorder = null;
+        DnsPrefetcher dnsPrefetcher = null;
+        try {
+            recorder = new FileRecorder(Config.dnscacheDir);
+            dnsPrefetcher = DnsPrefetcher.getDnsPrefetcher().init(token);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (config.dns != null) {
+            DnsPrefetcher.getDnsPrefetcher().dnsPreByCustom(config.dns);
+        }
+        HashMap<String, List<InetAddress>> concurrentHashMap = dnsPrefetcher.getConcurrentHashMap();
+        byte[] dnscache = StringUtils.toByteArray(concurrentHashMap);
+
+        recorder.set("lastcache", data.getBytes());
+        recorder.set("dnscache", dnscache);
+    }
+
+    /**
+     *
+     * @param recorder
+     * @return
+     */
+    public boolean recoverDnsCache(Recorder recorder) {
+        HashMap<String, List<InetAddress>> concurrentHashMap = (HashMap<String, List<InetAddress>>) StringUtils.toObject(recorder.get("dnscache"));
+        if (concurrentHashMap == null) {
+            return true;
+        }
+        DnsPrefetcher.getDnsPrefetcher().setConcurrentHashMap(concurrentHashMap);
+
+        ArrayList<String> list = new ArrayList<String>();
+        Iterator iter = concurrentHashMap.keySet().iterator();
+        while (iter.hasNext()) {
+            String tmpkey = (String) iter.next();
+            if (tmpkey == null || tmpkey.length() == 0)
+                continue;
+            list.add(tmpkey);
+        }
+        DnsPrefetcher.getDnsPrefetcher().setHosts(list);
+        return false;
     }
 
 }
