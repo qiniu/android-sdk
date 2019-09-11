@@ -3,9 +3,7 @@ package com.qiniu.android.http;
 import com.qiniu.android.collect.Config;
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.common.FixedZone;
-import com.qiniu.android.common.Zone;
 import com.qiniu.android.common.ZoneInfo;
-import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.UrlSafeBase64;
 
 import org.json.JSONException;
@@ -19,7 +17,6 @@ import java.util.HashSet;
 import java.util.List;
 
 /**
- *
  * <p>
  * Created by jemy on 2019/8/20.
  */
@@ -27,9 +24,9 @@ import java.util.List;
 public class DnsPrefetcher {
 
     public static DnsPrefetcher dnsPrefetcher = null;
-    private String token;
+    private static String token;
 
-    private HashMap<String, List<InetAddress>> mConcurrentHashMap = new HashMap<String, List<InetAddress>>();
+    private static HashMap<String, List<InetAddress>> mConcurrentHashMap = new HashMap<String, List<InetAddress>>();
     private List<String> mHosts = new ArrayList<String>();
 
 
@@ -37,8 +34,15 @@ public class DnsPrefetcher {
 
     }
 
-    public void setConcurrentHashMap(HashMap<String, List<InetAddress>> mConcurrentHashMap) {
-        this.mConcurrentHashMap = mConcurrentHashMap;
+    public static DnsPrefetcher getDnsPrefetcher() {
+        if (dnsPrefetcher == null) {
+            synchronized (dnsPrefetcher) {
+                if (dnsPrefetcher == null) {
+                    dnsPrefetcher = new DnsPrefetcher();
+                }
+            }
+        }
+        return dnsPrefetcher;
     }
 
     public DnsPrefetcher init(String token) throws UnknownHostException {
@@ -48,6 +52,9 @@ public class DnsPrefetcher {
         return this;
     }
 
+    public void setConcurrentHashMap(HashMap<String, List<InetAddress>> mConcurrentHashMap) {
+        this.mConcurrentHashMap = mConcurrentHashMap;
+    }
 
     //use for test
     public List<String> getHosts() {
@@ -69,23 +76,9 @@ public class DnsPrefetcher {
     }
 
     public List<InetAddress> getInetAddressByHost(String host) {
-        if (mConcurrentHashMap != null) {
-            return mConcurrentHashMap.get(host);
-        }
-        return null;
+        return mConcurrentHashMap.get(host);
     }
 
-    public static DnsPrefetcher getDnsPrefetcher() {
-        if (dnsPrefetcher == null) {
-            dnsPrefetcher = new DnsPrefetcher();
-            synchronized (dnsPrefetcher) {
-                if (dnsPrefetcher == null) {
-                    dnsPrefetcher = new DnsPrefetcher();
-                }
-            }
-        }
-        return dnsPrefetcher;
-    }
 
     public void preHosts() {
         HashSet<String> set = new HashSet<String>();
@@ -110,10 +103,16 @@ public class DnsPrefetcher {
     }
 
 
-    public void preFetch() throws UnknownHostException {
+    public void preFetch() {
         for (int i = 0; i < mHosts.size(); i++) {
-            List<InetAddress> inetAddresses = getDnsBySystem().lookup(mHosts.get(i));
-            mConcurrentHashMap.put(mHosts.get(i), inetAddresses);
+            List<InetAddress> inetAddresses = null;
+            try {
+                inetAddresses = getDnsBySystem().lookup(mHosts.get(i));
+                mConcurrentHashMap.put(mHosts.get(i), inetAddresses);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+
         }
     }
 
@@ -170,9 +169,6 @@ public class DnsPrefetcher {
      * query host sync
      */
     public ZoneInfo getPreQueryZone() {
-        if (token == null) {
-            return null;
-        }
         DnsPrefetcher.ZoneIndex index = DnsPrefetcher.ZoneIndex.getFromToken(token);
         ZoneInfo zoneInfo = preQueryIndex(index);
         return zoneInfo;
@@ -185,6 +181,7 @@ public class DnsPrefetcher {
             info = ZoneInfo.buildFromJson(responseInfo.response);
         } catch (JSONException e) {
             e.printStackTrace();
+            return null;
         }
         return info;
     }
@@ -193,52 +190,6 @@ public class DnsPrefetcher {
         Client client = new Client();
         String address = "http://" + Config.preQueryHost + "/v2/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
         return client.syncGet(address, null);
-    }
-
-
-    /**
-     * query host async
-     */
-    public void getPreQueryZone(String token, final Zone.QueryHandler complete) {
-        DnsPrefetcher.ZoneIndex index = DnsPrefetcher.ZoneIndex.getFromToken(token);
-
-        preQueryIndex(index, new CompletionHandler() {
-            @Override
-            public void complete(ResponseInfo info, JSONObject response) {
-                if (info.isOK() && response != null) {
-                    try {
-                        ZoneInfo zoneInfo = ZoneInfo.buildFromJson(response);
-                        for (int i = 0; i < zoneInfo.upDomainsList.size(); i++) {
-                            mHosts.add(zoneInfo.upDomainsList.get(i));
-                        }
-                        complete.onSuccess();
-                        return;
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        complete.onFailure(ResponseInfo.NetworkError);
-                        return;
-                    }
-                }
-            }
-        });
-    }
-
-    ZoneInfo preQueryIndex(DnsPrefetcher.ZoneIndex index, CompletionHandler handler) {
-        ZoneInfo info = null;
-        try {
-            ResponseInfo responseInfo = getZoneJsonAsync(index, handler);
-            info = ZoneInfo.buildFromJson(responseInfo.response);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return info;
-    }
-
-    private ResponseInfo getZoneJsonAsync(ZoneIndex index, CompletionHandler handler) {
-        Client client = new Client();
-        String address = "http://" + Config.preQueryHost + "/v2/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
-        client.asyncGet(address, null, UpToken.NULL, handler);
-        return null;
     }
 
 

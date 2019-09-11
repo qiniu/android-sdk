@@ -1,12 +1,8 @@
 package com.qiniu.android.storage;
 
-import android.content.SharedPreferences;
-import android.util.Log;
-
 import com.qiniu.android.collect.Config;
 import com.qiniu.android.collect.UploadInfoCollector;
 import com.qiniu.android.common.Zone;
-import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.DnsPrefetcher;
 import com.qiniu.android.http.ResponseInfo;
@@ -15,14 +11,12 @@ import com.qiniu.android.utils.AndroidNetwork;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringUtils;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -360,7 +354,7 @@ public final class UploadManager {
             recorder = new FileRecorder(Config.dnscacheDir);
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
+            return true;
         }
         byte[] data = recorder.get("lastcache");
         if (data == null) {
@@ -392,6 +386,7 @@ public final class UploadManager {
 
     /**
      * start preFetchDns: Time-consuming operation, in a thread
+     *
      * @param token
      */
     public void startPrefetchDns(String token) {
@@ -418,7 +413,6 @@ public final class UploadManager {
     }
 
     /**
-     *
      * @param recorder
      * @return
      */

@@ -4,7 +4,6 @@ import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.UpToken;
-import com.qiniu.android.utils.StringMap;
 import com.qiniu.android.utils.UrlSafeBase64;
 
 import org.json.JSONException;
@@ -25,7 +24,6 @@ public final class AutoZone extends Zone {
     private final String ucServer;
     private Map<ZoneIndex, ZoneInfo> zones = new ConcurrentHashMap<>();
     private Client client = new Client();
-    private ZoneInfo zoneInfo;
 
     /**
      * default useHttps to req autoZone
@@ -83,7 +81,6 @@ public final class AutoZone extends Zone {
             return;
         }
         ZoneInfo info = zones.get(index);
-        zoneInfo = info;
         if (info != null) {
             complete.onSuccess();
             return;
@@ -95,7 +92,6 @@ public final class AutoZone extends Zone {
                 if (info.isOK() && response != null) {
                     try {
                         ZoneInfo info2 = ZoneInfo.buildFromJson(response);
-                        zoneInfo = info2;
                         zones.put(index, info2);
                         complete.onSuccess();
                         return;
@@ -116,13 +112,11 @@ public final class AutoZone extends Zone {
         if (index != null) {
             ZoneInfo info = zones.get(index);
             if (info != null) {
-                zoneInfo = info;
                 success = true;
             } else {
                 try {
                     ResponseInfo responseInfo = getZoneJsonSync(index);
                     ZoneInfo info2 = ZoneInfo.buildFromJson(responseInfo.response);
-                    zoneInfo = info2;
                     zones.put(index, info2);
                     success = true;
                 } catch (JSONException e) {
