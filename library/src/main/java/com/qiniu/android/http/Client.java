@@ -1,13 +1,8 @@
 package com.qiniu.android.http;
 
-import android.util.Log;
-
-import com.qiniu.android.collect.Config;
 import com.qiniu.android.common.Constants;
-import com.qiniu.android.storage.Recorder;
 import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.storage.UpToken;
-import com.qiniu.android.storage.persistent.FileRecorder;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringMap;
 import com.qiniu.android.utils.StringUtils;
@@ -18,8 +13,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -444,7 +437,7 @@ public final class Client {
         }
     }
 
-    public static class ResponseTag {
+    private static class ResponseTag {
         public String ip = "";
         public long duration = -1;
     }

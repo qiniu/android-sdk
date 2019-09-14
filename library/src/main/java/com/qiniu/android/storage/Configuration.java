@@ -91,11 +91,8 @@ public final class Configuration {
 
         urlConverter = builder.urlConverter;
         AutoZone autoZone = null;
-        if (builder.useHttps) {
-            autoZone = new AutoZone();
-        } else {
-            autoZone = new AutoZone(false);
-        }
+
+        autoZone = new AutoZone(builder.useHttps);
 
         zone = builder.zone == null ? autoZone : builder.zone;
         dns = builder.dns;

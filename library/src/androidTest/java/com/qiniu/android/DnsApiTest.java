@@ -1,31 +1,30 @@
 package com.qiniu.android;
 
-import android.graphics.LinearGradient;
-import android.test.AndroidTestCase;
+
 import android.test.InstrumentationTestCase;
 import android.util.Log;
 
 import com.qiniu.android.collect.Config;
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.DnsPrefetcher;
+import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.Recorder;
+import com.qiniu.android.storage.UpCompletionHandler;
+import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
+import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.storage.persistent.FileRecorder;
 import com.qiniu.android.utils.AndroidNetwork;
 import com.qiniu.android.utils.StringUtils;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Hashtable;
 import java.util.List;
 
 /**
@@ -134,7 +133,7 @@ public class DnsApiTest extends InstrumentationTestCase {
         }
         //预取或者recover success
         List<String> list = DnsPrefetcher.getDnsPrefetcher().getHosts();
-        HashMap<String, List<InetAddress>> map = DnsPrefetcher.getDnsPrefetcher().getConcurrentHashMap();
+        Hashtable<String, List<InetAddress>> map = DnsPrefetcher.getDnsPrefetcher().getConcurrentHashMap();
         Log.e("qiniutest: ", "list size: " + list.size());
         for (String s : list) {
             Log.e("qiniutest: ", "uphost: " + s);
@@ -159,7 +158,7 @@ public class DnsApiTest extends InstrumentationTestCase {
         new UploadManager().recoverDnsCache(recorder);
 
 
-        HashMap<String, List<InetAddress>> map1 = DnsPrefetcher.getDnsPrefetcher().getConcurrentHashMap();
+        Hashtable<String, List<InetAddress>> map1 = DnsPrefetcher.getDnsPrefetcher().getConcurrentHashMap();
         List<String> list = DnsPrefetcher.getDnsPrefetcher().getHosts();
         for (String s : list) {
             Log.e("qiniutest: ", "uphost for cache: " + s);
@@ -171,5 +170,51 @@ public class DnsApiTest extends InstrumentationTestCase {
         }
     }
 
+    int time = 0;
+    final Object lock = new Object();
+
+    public void testAtomic() {
+        final int size = 6 * 1024;
+        for (int i = 0; i < 3; i++) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Configuration config = new Configuration.Builder().build();
+                        final UploadManager uploadManager = new UploadManager(config, 3);
+                        final String expectKey = "r=" + size + "k";
+                        final File f;
+                        f = TempFile.createFile(size);
+                        final UploadOptions uploadoption = new UploadOptions(null, null, false, new UpProgressHandler() {
+                            public void progress(String key, double percent) {
+                                Log.e("qiniutest", percent + "");
+                            }
+                        }, null);
+
+                        uploadManager.put(f, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
+                            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                                Log.e("qiniutest", k + rinfo);
+                                time += 1;
+                                if (time == 3) {
+                                    lock.notify();
+                                }
+                            }
+                        }, uploadoption);
+
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        }
+        synchronized (lock) {
+            try {
+                lock.wait();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
 }

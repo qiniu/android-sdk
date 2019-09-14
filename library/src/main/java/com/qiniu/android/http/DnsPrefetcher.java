@@ -12,8 +12,8 @@ import org.json.JSONObject;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
 
 /**
@@ -26,9 +26,8 @@ public class DnsPrefetcher {
     public static DnsPrefetcher dnsPrefetcher = null;
     private static String token;
 
-    private static HashMap<String, List<InetAddress>> mConcurrentHashMap = new HashMap<String, List<InetAddress>>();
-    private List<String> mHosts = new ArrayList<String>();
-
+    private static Hashtable<String, List<InetAddress>> mConcurrentHashMap = new Hashtable<String, List<InetAddress>>();
+    private static List<String> mHosts = new ArrayList<String>();
 
     private DnsPrefetcher() {
 
@@ -36,7 +35,7 @@ public class DnsPrefetcher {
 
     public static DnsPrefetcher getDnsPrefetcher() {
         if (dnsPrefetcher == null) {
-            synchronized (dnsPrefetcher) {
+            synchronized (DnsPrefetcher.class) {
                 if (dnsPrefetcher == null) {
                     dnsPrefetcher = new DnsPrefetcher();
                 }
@@ -52,7 +51,7 @@ public class DnsPrefetcher {
         return this;
     }
 
-    public void setConcurrentHashMap(HashMap<String, List<InetAddress>> mConcurrentHashMap) {
+    public void setConcurrentHashMap(Hashtable<String, List<InetAddress>> mConcurrentHashMap) {
         this.mConcurrentHashMap = mConcurrentHashMap;
     }
 
@@ -66,7 +65,7 @@ public class DnsPrefetcher {
     }
 
     //use for test
-    public HashMap<String, List<InetAddress>> getConcurrentHashMap() {
+    public Hashtable<String, List<InetAddress>> getConcurrentHashMap() {
         return this.mConcurrentHashMap;
     }
 
@@ -79,8 +78,7 @@ public class DnsPrefetcher {
         return mConcurrentHashMap.get(host);
     }
 
-
-    public void preHosts() {
+    private void preHosts() {
         HashSet<String> set = new HashSet<String>();
 
         //preQuery sync
@@ -99,23 +97,58 @@ public class DnsPrefetcher {
                     mHosts.add(zone.upDomainsList.get(i));
             }
         }
-        mHosts.add(Config.preQueryHost);
+        if (set.add(Config.preQueryHost))
+            mHosts.add(Config.preQueryHost);
     }
 
 
-    public void preFetch() {
+    private void preFetch() {
+        List<String> rePreHosts = new ArrayList<String>();
         for (int i = 0; i < mHosts.size(); i++) {
             List<InetAddress> inetAddresses = null;
             try {
-                inetAddresses = getDnsBySystem().lookup(mHosts.get(i));
+                inetAddresses = okhttp3.Dns.SYSTEM.lookup(mHosts.get(i));
                 mConcurrentHashMap.put(mHosts.get(i), inetAddresses);
             } catch (UnknownHostException e) {
                 e.printStackTrace();
+                rePreHosts.add(mHosts.get(i));
             }
+        }
+        rePreFetch(rePreHosts, null);
+    }
 
+    /**
+     * 对hosts预取失败对进行重新预取，deafult retryNum = 2
+     *
+     * @param rePreHosts 用于重试的hosts
+     * @param customeDns 是否自定义dns
+     */
+    private void rePreFetch(List<String> rePreHosts, Dns customeDns) {
+        for (int i = 0; i < rePreHosts.size(); i++) {
+            int rePreNum = 0;
+            while (rePreNum < Config.rePreHost) {
+                rePreNum += 1;
+                if (rePreFetch(rePreHosts.get(i), customeDns))
+                    break;
+            }
         }
     }
 
+    private boolean rePreFetch(String host, Dns customeDns) {
+        List<InetAddress> inetAddresses = null;
+        try {
+            if (customeDns == null) {
+                inetAddresses = okhttp3.Dns.SYSTEM.lookup(host);
+            } else {
+                inetAddresses = customeDns.lookup(host);
+            }
+            mConcurrentHashMap.put(host, inetAddresses);
+            return true;
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     /**
      * 自定义dns预取
@@ -125,36 +158,19 @@ public class DnsPrefetcher {
      * @throws UnknownHostException
      */
     public void dnsPreByCustom(Dns dns) {
+        List<String> rePreHosts = new ArrayList<String>();
         for (int i = 0; i < mHosts.size(); i++) {
             List<InetAddress> inetAddresses = null;
             try {
                 inetAddresses = dns.lookup(mHosts.get(i));
+                mConcurrentHashMap.put(mHosts.get(i), inetAddresses);
             } catch (UnknownHostException e) {
                 e.printStackTrace();
+                rePreHosts.add(mHosts.get(i));
             }
-            mConcurrentHashMap.put(mHosts.get(i), inetAddresses);
         }
+        rePreFetch(rePreHosts, dns);
     }
-
-
-    /**
-     * 系统DNS解析预取
-     *
-     * @return
-     * @throws UnknownHostException
-     */
-    public Dns getDnsBySystem() throws UnknownHostException {
-        return new SystemDns();
-    }
-
-
-    class SystemDns implements Dns {
-        @Override
-        public List<InetAddress> lookup(String hostname) throws UnknownHostException {
-            return okhttp3.Dns.SYSTEM.lookup(hostname);
-        }
-    }
-
 
     /**
      * look local host

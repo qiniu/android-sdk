@@ -77,9 +77,11 @@ public final class Config {
     public static String dnscacheDir = "/sdcard/dnschache";
 
     /**
-     *
+     * preQuery host
      */
     public static String preQueryHost = "uc.qbox.me";
+
+    public static int rePreHost = 2;
 
     /**
      * 当网络切换到 wifi 下，切换到此设置
