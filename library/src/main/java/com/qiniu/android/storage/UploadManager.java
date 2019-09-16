@@ -18,10 +18,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.String.format;
@@ -410,7 +410,7 @@ public final class UploadManager {
         if (config.dns != null) {
             DnsPrefetcher.getDnsPrefetcher().dnsPreByCustom(config.dns);
         }
-        Hashtable<String, List<InetAddress>> concurrentHashMap = dnsPrefetcher.getConcurrentHashMap();
+        ConcurrentHashMap<String, List<InetAddress>> concurrentHashMap = dnsPrefetcher.getConcurrentHashMap();
         byte[] dnscache = StringUtils.toByteArray(concurrentHashMap);
 
         recorder.set("lastcache", data.getBytes());
@@ -422,7 +422,7 @@ public final class UploadManager {
      * @return
      */
     public boolean recoverDnsCache(Recorder recorder) {
-        Hashtable<String, List<InetAddress>> concurrentHashMap = (Hashtable<String, List<InetAddress>>) StringUtils.toObject(recorder.get("dnscache"));
+        ConcurrentHashMap<String, List<InetAddress>> concurrentHashMap = (ConcurrentHashMap<String, List<InetAddress>>) StringUtils.toObject(recorder.get("dnscache"));
         if (concurrentHashMap == null) {
             return true;
         }

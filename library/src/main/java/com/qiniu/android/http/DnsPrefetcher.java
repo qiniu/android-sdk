@@ -13,8 +13,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * <p>
@@ -26,7 +26,7 @@ public class DnsPrefetcher {
     public static DnsPrefetcher dnsPrefetcher = null;
     private static String token;
 
-    private static Hashtable<String, List<InetAddress>> mConcurrentHashMap = new Hashtable<String, List<InetAddress>>();
+    private static ConcurrentHashMap<String, List<InetAddress>> mConcurrentHashMap = new ConcurrentHashMap<String, List<InetAddress>>();
     private static List<String> mHosts = new ArrayList<String>();
 
     private DnsPrefetcher() {
@@ -51,7 +51,7 @@ public class DnsPrefetcher {
         return this;
     }
 
-    public void setConcurrentHashMap(Hashtable<String, List<InetAddress>> mConcurrentHashMap) {
+    public void setConcurrentHashMap(ConcurrentHashMap<String, List<InetAddress>> mConcurrentHashMap) {
         this.mConcurrentHashMap = mConcurrentHashMap;
     }
 
@@ -65,7 +65,7 @@ public class DnsPrefetcher {
     }
 
     //use for test
-    public Hashtable<String, List<InetAddress>> getConcurrentHashMap() {
+    public ConcurrentHashMap<String, List<InetAddress>> getConcurrentHashMap() {
         return this.mConcurrentHashMap;
     }
 

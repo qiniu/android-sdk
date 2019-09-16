@@ -24,8 +24,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Hashtable;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by jemy on 2019/8/20.
@@ -133,7 +133,7 @@ public class DnsApiTest extends InstrumentationTestCase {
         }
         //预取或者recover success
         List<String> list = DnsPrefetcher.getDnsPrefetcher().getHosts();
-        Hashtable<String, List<InetAddress>> map = DnsPrefetcher.getDnsPrefetcher().getConcurrentHashMap();
+        ConcurrentHashMap<String, List<InetAddress>> map = DnsPrefetcher.getDnsPrefetcher().getConcurrentHashMap();
         Log.e("qiniutest: ", "list size: " + list.size());
         for (String s : list) {
             Log.e("qiniutest: ", "uphost: " + s);
@@ -158,7 +158,7 @@ public class DnsApiTest extends InstrumentationTestCase {
         new UploadManager().recoverDnsCache(recorder);
 
 
-        Hashtable<String, List<InetAddress>> map1 = DnsPrefetcher.getDnsPrefetcher().getConcurrentHashMap();
+        ConcurrentHashMap<String, List<InetAddress>> map1 = DnsPrefetcher.getDnsPrefetcher().getConcurrentHashMap();
         List<String> list = DnsPrefetcher.getDnsPrefetcher().getHosts();
         for (String s : list) {
             Log.e("qiniutest: ", "uphost for cache: " + s);
