@@ -122,11 +122,11 @@ public class DnsApiTest extends InstrumentationTestCase {
     }
 
     public void testDnsPreAndcache() {
-        UploadManager up = new UploadManager();
-        boolean needPrefetch = up.checkRePrefetchDns(Config.dnscacheDir);
+        Configuration config = new Configuration.Builder().build();
+        boolean needPrefetch = DnsPrefetcher.checkRePrefetchDns(TestConfig.uptoken_prefetch, config);
         Log.e("qiniutest", "check:" + needPrefetch);
         if (needPrefetch) {
-            up.startPrefetchDns(TestConfig.uptoken_prefetch);
+            DnsPrefetcher.startPrefetchDns(TestConfig.uptoken_prefetch, config);
         } else {
             testRecoverCache();
             return;
@@ -155,7 +155,7 @@ public class DnsApiTest extends InstrumentationTestCase {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        new UploadManager().recoverDnsCache(recorder);
+        DnsPrefetcher.recoverDnsCache(recorder);
 
 
         ConcurrentHashMap<String, List<InetAddress>> map1 = DnsPrefetcher.getDnsPrefetcher().getConcurrentHashMap();
