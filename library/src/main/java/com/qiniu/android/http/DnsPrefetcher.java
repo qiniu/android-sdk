@@ -304,7 +304,7 @@ public class DnsPrefetcher {
         String currentTime = String.valueOf(System.currentTimeMillis());
         String localip = AndroidNetwork.getHostIP();
         String akAndScope = StringUtils.getAkAndScope(token);
-        String cacheKey = format(Locale.ENGLISH, "\"time:\":%s\"ip:\":%s\"ak\":%s", currentTime, localip, akAndScope);
+        String cacheKey = format(Locale.ENGLISH, "%s:%s:%s", currentTime, localip, akAndScope);
         Recorder recorder = null;
         DnsPrefetcher dnsPrefetcher = null;
         try {

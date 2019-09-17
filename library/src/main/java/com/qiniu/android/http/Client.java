@@ -27,8 +27,6 @@ import okhttp3.RequestBody;
 
 import static com.qiniu.android.http.ResponseInfo.NetworkError;
 
-//import okhttp3.MultipartBody;
-
 /**
  * Created by bailong on 15/11/12.
  */
@@ -57,13 +55,7 @@ public final class Client {
         builder.dns(new okhttp3.Dns() {
             @Override
             public List<InetAddress> lookup(String hostname) throws UnknownHostException {
-                if (dns != null) {
-                    try {
-                        return dns.lookup(hostname);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                } else if (DnsPrefetcher.getDnsPrefetcher().getInetAddressByHost(hostname) != null) {
+               if (DnsPrefetcher.getDnsPrefetcher().getInetAddressByHost(hostname) != null) {
                     return DnsPrefetcher.getDnsPrefetcher().getInetAddressByHost(hostname);
                 }
                 return okhttp3.Dns.SYSTEM.lookup(hostname);
