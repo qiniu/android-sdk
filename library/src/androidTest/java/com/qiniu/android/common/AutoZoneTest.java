@@ -4,12 +4,9 @@ import android.test.AndroidTestCase;
 import android.util.Log;
 
 import com.qiniu.android.TestConfig;
-import com.qiniu.android.http.DnsPrefetcher;
 
 import junit.framework.Assert;
 
-import java.net.UnknownHostException;
-import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**

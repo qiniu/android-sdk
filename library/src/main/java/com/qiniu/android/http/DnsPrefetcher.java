@@ -6,7 +6,7 @@ import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.Recorder;
-import com.qiniu.android.storage.persistent.FileRecorder;
+import com.qiniu.android.storage.persistent.DnsCacheFile;
 import com.qiniu.android.utils.AndroidNetwork;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.UrlSafeBase64;
@@ -266,37 +266,33 @@ public class DnsPrefetcher {
     public static boolean checkRePrefetchDns(String token, Configuration config) {
         Recorder recorder = null;
         try {
-            recorder = new FileRecorder(Config.dnscacheDir);
+            recorder = new DnsCacheFile(Config.dnscacheDir);
         } catch (IOException e) {
             e.printStackTrace();
             return true;
         }
-        byte[] data = recorder.get("lastcache");
-        if (data == null) {
+        String dnscache = recorder.getFileName();
+        if (dnscache == null)
             return true;
-        }
-        String jsonStr = new String(data);
-        JSONObject obj;
-        try {
-            obj = new JSONObject(jsonStr);
-        } catch (JSONException e) {
-            e.printStackTrace();
+
+        byte[] data = recorder.get(dnscache);
+        if (data == null)
             return true;
-        }
-        String time = obj.optString("time");
-        String ip = obj.optString("ip");
-        String ak = obj.optString("ak");
+
+        String[] cacheKey = dnscache.split(":");
+        if (cacheKey.length < 3)
+            return true;
 
         String currentTime = String.valueOf(System.currentTimeMillis());
         String localip = AndroidNetwork.getHostIP();
         String akAndScope = StringUtils.getAkAndScope(token);
 
-        long cacheTime = (Long.parseLong(currentTime) - Long.parseLong(time)) / 1000;
-        if (!localip.equals(ip) || cacheTime > config.dnsCacheTimeMs || !akAndScope.equals(ak)) {
+        long cacheTime = (Long.parseLong(currentTime) - Long.parseLong(cacheKey[0])) / 1000;
+        if (!localip.equals(cacheKey[1]) || cacheTime > config.dnsCacheTimeMs || !akAndScope.equals(cacheKey[2])) {
             return true;
         }
 
-        return recoverDnsCache(recorder);
+        return recoverDnsCache(data);
     }
 
     /**
@@ -308,11 +304,11 @@ public class DnsPrefetcher {
         String currentTime = String.valueOf(System.currentTimeMillis());
         String localip = AndroidNetwork.getHostIP();
         String akAndScope = StringUtils.getAkAndScope(token);
-        String data = format(Locale.ENGLISH, "{\"time\":%s,\"ip\":%s,\"ak\":%s}", currentTime, localip, akAndScope);
+        String cacheKey = format(Locale.ENGLISH, "\"time:\":%s\"ip:\":%s\"ak\":%s", currentTime, localip, akAndScope);
         Recorder recorder = null;
         DnsPrefetcher dnsPrefetcher = null;
         try {
-            recorder = new FileRecorder(Config.dnscacheDir);
+            recorder = new DnsCacheFile(Config.dnscacheDir);
             dnsPrefetcher = DnsPrefetcher.getDnsPrefetcher().init(token);
         } catch (IOException e) {
             e.printStackTrace();
@@ -323,16 +319,15 @@ public class DnsPrefetcher {
         ConcurrentHashMap<String, List<InetAddress>> concurrentHashMap = dnsPrefetcher.getConcurrentHashMap();
         byte[] dnscache = StringUtils.toByteArray(concurrentHashMap);
 
-        recorder.set("lastcache", data.getBytes());
-        recorder.set("dnscache", dnscache);
+        recorder.set(cacheKey, dnscache);
     }
 
     /**
-     * @param recorder
+     * @param data
      * @return
      */
-    public static boolean recoverDnsCache(Recorder recorder) {
-        ConcurrentHashMap<String, List<InetAddress>> concurrentHashMap = (ConcurrentHashMap<String, List<InetAddress>>) StringUtils.toObject(recorder.get("dnscache"));
+    public static boolean recoverDnsCache(byte[] data) {
+        ConcurrentHashMap<String, List<InetAddress>> concurrentHashMap = (ConcurrentHashMap<String, List<InetAddress>>) StringUtils.toObject(data);
         if (concurrentHashMap == null) {
             return true;
         }

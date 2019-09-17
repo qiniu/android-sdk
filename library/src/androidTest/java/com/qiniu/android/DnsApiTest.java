@@ -14,9 +14,8 @@ import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.storage.persistent.FileRecorder;
+import com.qiniu.android.storage.persistent.DnsCacheFile;
 import com.qiniu.android.utils.AndroidNetwork;
-import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONObject;
 
@@ -92,41 +91,12 @@ public class DnsApiTest extends InstrumentationTestCase {
         Log.e("qiniutest", s);
     }
 
-
-    public void testSerializeCache() {
-        String recordKey = "/sdcard/dnschache";
-        try {
-            Recorder recorder = new FileRecorder(Config.dnscacheDir);
-
-            String s = String.valueOf(System.currentTimeMillis());
-            TestCompany company = new TestCompany("qiniu", 8);
-            byte[] com = StringUtils.toByteArray(company);
-            Log.e("qiniutest", s);
-            recorder.set("time", s.getBytes());
-            recorder.set("compant", com);
-
-            try {
-                Thread.sleep(900);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            byte[] time = recorder.get("time");
-            byte[] getcom = recorder.get("compant");
-            Log.e("qiniutest", new String(time));
-            TestCompany company1 = (TestCompany) StringUtils.toObject(getcom);
-            Log.e("qiniutest", "name: " + company1.getName() + " ,age: " + company1.getAge());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public void testDnsPreAndcache() {
         Configuration config = new Configuration.Builder().build();
-        boolean needPrefetch = DnsPrefetcher.checkRePrefetchDns(TestConfig.uptoken_prefetch, config);
+        boolean needPrefetch = DnsPrefetcher.checkRePrefetchDns("MP_Ebql_lSsUrDr7WrXn_5vKocQDLvTPCNEFeVmp:5mVFMc75Yy4nWYJ8E5j5ESW51Rs=:eyJzY29wZSI6ImFuZHJvaWR0ZXN0IiwiZGVhZGxpbmUiOjE1Njg3MDcxOTl9", config);
         Log.e("qiniutest", "check:" + needPrefetch);
         if (needPrefetch) {
-            DnsPrefetcher.startPrefetchDns(TestConfig.uptoken_prefetch, config);
+            DnsPrefetcher.startPrefetchDns("MP_Ebql_lSsUrDr7WrXn_5vKocQDLvTPCNEFeVmp:5mVFMc75Yy4nWYJ8E5j5ESW51Rs=:eyJzY29wZSI6ImFuZHJvaWR0ZXN0IiwiZGVhZGxpbmUiOjE1Njg3MDcxOTl9", config);
         } else {
             testRecoverCache();
             return;
@@ -151,15 +121,17 @@ public class DnsApiTest extends InstrumentationTestCase {
 
         Recorder recorder = null;
         try {
-            recorder = new FileRecorder(Config.dnscacheDir);
+            recorder = new DnsCacheFile(Config.dnscacheDir);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        DnsPrefetcher.recoverDnsCache(recorder);
+        byte[] data = recorder.get(recorder.getFileName());
+        DnsPrefetcher.recoverDnsCache(data);
 
 
         ConcurrentHashMap<String, List<InetAddress>> map1 = DnsPrefetcher.getDnsPrefetcher().getConcurrentHashMap();
         List<String> list = DnsPrefetcher.getDnsPrefetcher().getHosts();
+        Log.e("qiniutest: ", "size for cache: " + list.size());
         for (String s : list) {
             Log.e("qiniutest: ", "uphost for cache: " + s);
             List<InetAddress> list1 = map1.get(s);

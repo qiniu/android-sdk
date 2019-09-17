@@ -139,8 +139,8 @@ public final class UploadManager {
             return;
         }
 
-        if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
-            if (atomic.compareAndSet(false, true)) {
+        if (atomic.compareAndSet(false, true)) {
+            if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -198,8 +198,8 @@ public final class UploadManager {
             return;
         }
 
-        if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
-            if (atomic.compareAndSet(false, true)) {
+        if (atomic.compareAndSet(false, true)) {
+            if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
