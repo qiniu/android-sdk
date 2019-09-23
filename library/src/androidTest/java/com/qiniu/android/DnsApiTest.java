@@ -95,10 +95,10 @@ public class DnsApiTest extends InstrumentationTestCase {
 
     public void testDnsPreAndcache() {
         Configuration config = new Configuration.Builder().build();
-        boolean needPrefetch = DnsPrefetcher.checkRePrefetchDns("MP_Ebql_lSsUrDr7WrXn_5vKocQDLvTPCNEFeVmp:5mVFMc75Yy4nWYJ8E5j5ESW51Rs=:eyJzY29wZSI6ImFuZHJvaWR0ZXN0IiwiZGVhZGxpbmUiOjE1Njg3MDcxOTl9", config);
+        boolean needPrefetch = DnsPrefetcher.checkRePrefetchDns(TestConfig.uptoken_prefetch, config);
         Log.e("qiniutest", "check:" + needPrefetch);
         if (needPrefetch) {
-            DnsPrefetcher.startPrefetchDns("MP_Ebql_lSsUrDr7WrXn_5vKocQDLvTPCNEFeVmp:5mVFMc75Yy4nWYJ8E5j5ESW51Rs=:eyJzY29wZSI6ImFuZHJvaWR0ZXN0IiwiZGVhZGxpbmUiOjE1Njg3MDcxOTl9", config);
+            DnsPrefetcher.startPrefetchDns(TestConfig.uptoken_prefetch, config);
         } else {
             testRecoverCache();
             return;
