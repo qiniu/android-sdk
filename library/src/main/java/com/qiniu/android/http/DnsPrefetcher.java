@@ -4,6 +4,7 @@ import com.qiniu.android.collect.Config;
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.ZoneInfo;
+import com.qiniu.android.http.custom.DnsCacheKey;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.Recorder;
 import com.qiniu.android.storage.persistent.DnsCacheFile;
@@ -279,16 +280,16 @@ public class DnsPrefetcher {
         if (data == null)
             return true;
 
-        String[] cacheKey = dnscache.split(":");
-        if (cacheKey.length < 3)
+        DnsCacheKey cacheKey = DnsCacheKey.toCacheKey(dnscache);
+        if (cacheKey == null)
             return true;
 
         String currentTime = String.valueOf(System.currentTimeMillis());
         String localip = AndroidNetwork.getHostIP();
-        String akAndScope = StringUtils.getAkAndScope(token);
+        String akScope = StringUtils.getAkAndScope(token);
 
-        long cacheTime = (Long.parseLong(currentTime) - Long.parseLong(cacheKey[0])) / 1000;
-        if (!localip.equals(cacheKey[1]) || cacheTime > config.dnsCacheTimeMs || !akAndScope.equals(cacheKey[2])) {
+        long cacheTime = (Long.parseLong(currentTime) - Long.parseLong(cacheKey.getCurrentTime())) / 1000;
+        if (!localip.equals(cacheKey.getLocalIp()) || cacheTime > config.dnsCacheTimeMs || !akScope.equals(cacheKey.getAkScope())) {
             return true;
         }
 
@@ -303,8 +304,8 @@ public class DnsPrefetcher {
     public static void startPrefetchDns(String token, Configuration config) {
         String currentTime = String.valueOf(System.currentTimeMillis());
         String localip = AndroidNetwork.getHostIP();
-        String akAndScope = StringUtils.getAkAndScope(token);
-        String cacheKey = format(Locale.ENGLISH, "%s:%s:%s", currentTime, localip, akAndScope);
+        String akScope = StringUtils.getAkAndScope(token);
+        String cacheKey = new DnsCacheKey(currentTime, localip, akScope).toString();
         Recorder recorder = null;
         DnsPrefetcher dnsPrefetcher = null;
         try {

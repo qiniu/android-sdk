@@ -8,6 +8,7 @@ import com.qiniu.android.collect.Config;
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.DnsPrefetcher;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.custom.DnsCacheKey;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.Recorder;
 import com.qiniu.android.storage.UpCompletionHandler;
@@ -16,6 +17,7 @@ import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.storage.persistent.DnsCacheFile;
 import com.qiniu.android.utils.AndroidNetwork;
+import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONObject;
 
@@ -125,7 +127,16 @@ public class DnsApiTest extends InstrumentationTestCase {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        String fileName = recorder.getFileName();
+        if (fileName == null) {
+            Log.e("qiniutest: ", "recover file is null ");
+            return;
+        }
         byte[] data = recorder.get(recorder.getFileName());
+        if (data == null) {
+            Log.e("qiniutest: ", "recover data is null ");
+            return;
+        }
         DnsPrefetcher.recoverDnsCache(data);
 
 
@@ -188,5 +199,17 @@ public class DnsApiTest extends InstrumentationTestCase {
             }
         }
     }
+
+    public void testSerializable() {
+        DnsCacheKey key = new DnsCacheKey("12321", "127.0.0.1", "akscope");
+        Log.e("qiniutest", key.toString());
+        DnsCacheKey key1 = DnsCacheKey.toCacheKey(key.toString());
+        if (key1 == null) {
+            return;
+        }
+        Log.e("qiniutest", key1.getCurrentTime() + ":" + key1.getLocalIp() + ":" + key1.getAkScope());
+
+    }
+
 
 }
