@@ -87,7 +87,7 @@ public class ResumeUploaderFast implements Runnable {
     /**
      * 总块数
      */
-    private int tblock;
+    AtomicInteger tblock;
     /**
      * 重传域名数
      */
@@ -95,7 +95,7 @@ public class ResumeUploaderFast implements Runnable {
     /**
      * 单域名检测次数
      */
-    volatile int singleDomainRetry = 1;
+    AtomicInteger singleDomainRetry = new AtomicInteger(0);
     /**
      * 线程数量
      */
@@ -152,9 +152,9 @@ public class ResumeUploaderFast implements Runnable {
             }
         };
         this.options = options != null ? options : UploadOptions.defaultOptions();
-        tblock = (int) (totalSize + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE;
-        this.offsets = new Long[tblock];
-        contexts = new String[tblock];
+        tblock = new AtomicInteger((int) (totalSize + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE);
+        this.offsets = new Long[tblock.get()];
+        contexts = new String[tblock.get()];
         modifyTime = f.lastModified();
         this.token = token;
         this.blockInfo = new LinkedHashMap<>();
@@ -187,7 +187,7 @@ public class ResumeUploaderFast implements Runnable {
      */
     private void putBlockInfo() {
         Long[] offs = recoveryFromRecord();
-        int lastBlock = tblock - 1;
+        int lastBlock = tblock.get() - 1;
         if (offs == null) {
             for (int i = 0; i < lastBlock; i++) {
                 blockInfo.put((long) i * Configuration.BLOCK_SIZE, Configuration.BLOCK_SIZE);
@@ -443,7 +443,7 @@ public class ResumeUploaderFast implements Runnable {
                     offsets[(int) (offset / Configuration.BLOCK_SIZE)] = offset;
                     record(offsets);
                     upBlock += 1;
-                    if (upBlock == tblock) {
+                    if (upBlock == tblock.get()) {
                         makeFile(upHost, getMkfileCompletionHandler(), options.cancellationSignal);
                         return;
                     }
@@ -459,10 +459,10 @@ public class ResumeUploaderFast implements Runnable {
     }
 
     private synchronized void updateRetried() {
-        if (singleDomainRetry < config.retryMax) {
-            singleDomainRetry += 1;
+        if (singleDomainRetry.get() < config.retryMax) {
+            singleDomainRetry.getAndAdd(1);
         } else if (retried.get() < domainRetry) {
-            singleDomainRetry = 1;
+            singleDomainRetry.getAndSet(1);
             retried.getAndAdd(1);
             upHost = config.zone.upHost(token.token, config.useHttps, upHost);
         }
