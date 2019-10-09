@@ -50,7 +50,8 @@ public final class AndroidNetwork {
                     if (ia instanceof Inet6Address) {
                         ipv6 = checkIpv6(ia.getHostAddress());
                         if (ipv6 != null) {
-                            return ipv6;
+                            hostIp = ipv6;
+                            break;
                         }
                         continue;
                     }
@@ -74,7 +75,7 @@ public final class AndroidNetwork {
      * @return
      */
     private static String checkIpv6(String ipv6) {
-        if (ipv6 != null && ipv6.contains("%")) {
+        if (ipv6 != null) {
             String[] split = ipv6.split("%");
             String s1 = split[0];
             if (s1 != null && s1.contains(":")) {

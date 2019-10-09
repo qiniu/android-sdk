@@ -24,6 +24,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
 
@@ -90,7 +91,7 @@ public class ResumeUploaderFast implements Runnable {
     /**
      * 重传域名数
      */
-    volatile int retried = 0;
+    AtomicInteger retried = new AtomicInteger(0);
     /**
      * 单域名检测次数
      */
@@ -347,9 +348,9 @@ public class ResumeUploaderFast implements Runnable {
                 }
 
                 // mkfile  ，允许多重试一次，这里不需要重试时，成功与否都complete回调给客户端
-                if (info.needRetry() && retried < config.retryMax + 1) {
+                if (info.needRetry() && retried.get() < config.retryMax + 1) {
                     makeFile(upHost, getMkfileCompletionHandler(), options.cancellationSignal);
-                    retried += 1;
+                    retried.addAndGet(1);
                     return;
                 }
                 completionHandler.complete(key, info, response);
@@ -442,10 +443,10 @@ public class ResumeUploaderFast implements Runnable {
                     offsets[(int) (offset / Configuration.BLOCK_SIZE)] = offset;
                     record(offsets);
                     upBlock += 1;
-                }
-                if (upBlock == tblock) {
-                    makeFile(upHost, getMkfileCompletionHandler(), options.cancellationSignal);
-                    return;
+                    if (upBlock == tblock) {
+                        makeFile(upHost, getMkfileCompletionHandler(), options.cancellationSignal);
+                        return;
+                    }
                 }
 
                 if (blockInfo.size() > 0) {
@@ -460,16 +461,16 @@ public class ResumeUploaderFast implements Runnable {
     private synchronized void updateRetried() {
         if (singleDomainRetry < config.retryMax) {
             singleDomainRetry += 1;
-        } else if (retried < domainRetry) {
+        } else if (retried.get() < domainRetry) {
             singleDomainRetry = 1;
-            retried += 1;
+            retried.getAndAdd(1);
             upHost = config.zone.upHost(token.token, config.useHttps, upHost);
         }
 
     }
 
-    private synchronized boolean checkRetried() {
-        return retried < domainRetry;
+    private boolean checkRetried() {
+        return retried.get() < domainRetry;
     }
 
     private boolean isChunkOK(ResponseInfo info, JSONObject response) {
