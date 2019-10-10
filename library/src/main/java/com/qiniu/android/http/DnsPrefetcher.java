@@ -22,10 +22,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
-
-import static java.lang.String.format;
 
 /**
  * <p>
@@ -95,17 +92,17 @@ public class DnsPrefetcher {
         //preQuery sync
         ZoneInfo zoneInfo = getPreQueryZone();
         if (zoneInfo != null) {
-            for (int i = 0; i < zoneInfo.upDomainsList.size(); i++) {
-                if (set.add(zoneInfo.upDomainsList.get(i)))
-                    mHosts.add(zoneInfo.upDomainsList.get(i));
+            for (String host : zoneInfo.upDomainsList) {
+                if (set.add(host))
+                    mHosts.add(host);
             }
         }
         //local
         List<ZoneInfo> listZoneinfo = getLocalZone();
         for (ZoneInfo zone : listZoneinfo) {
-            for (int i = 0; i < zone.upDomainsList.size(); i++) {
-                if (set.add(zone.upDomainsList.get(i)))
-                    mHosts.add(zone.upDomainsList.get(i));
+            for (String host : zone.upDomainsList) {
+                if (set.add(host))
+                    mHosts.add(host);
             }
         }
         if (set.add(Config.preQueryHost))
@@ -115,14 +112,14 @@ public class DnsPrefetcher {
 
     private void preFetch() {
         List<String> rePreHosts = new ArrayList<String>();
-        for (int i = 0; i < mHosts.size(); i++) {
+        for (String host : mHosts) {
             List<InetAddress> inetAddresses = null;
             try {
-                inetAddresses = okhttp3.Dns.SYSTEM.lookup(mHosts.get(i));
-                mConcurrentHashMap.put(mHosts.get(i), inetAddresses);
+                inetAddresses = okhttp3.Dns.SYSTEM.lookup(host);
+                mConcurrentHashMap.put(host, inetAddresses);
             } catch (UnknownHostException e) {
                 e.printStackTrace();
-                rePreHosts.add(mHosts.get(i));
+                rePreHosts.add(host);
             }
         }
         rePreFetch(rePreHosts, null);
@@ -135,11 +132,11 @@ public class DnsPrefetcher {
      * @param customeDns 是否自定义dns
      */
     private void rePreFetch(List<String> rePreHosts, Dns customeDns) {
-        for (int i = 0; i < rePreHosts.size(); i++) {
+        for (String host : rePreHosts) {
             int rePreNum = 0;
             while (rePreNum < Config.rePreHost) {
                 rePreNum += 1;
-                if (rePreFetch(rePreHosts.get(i), customeDns))
+                if (rePreFetch(host, customeDns))
                     break;
             }
         }
@@ -170,14 +167,14 @@ public class DnsPrefetcher {
      */
     public void dnsPreByCustom(Dns dns) {
         List<String> rePreHosts = new ArrayList<String>();
-        for (int i = 0; i < mHosts.size(); i++) {
+        for (String host : mHosts) {
             List<InetAddress> inetAddresses = null;
             try {
-                inetAddresses = dns.lookup(mHosts.get(i));
-                mConcurrentHashMap.put(mHosts.get(i), inetAddresses);
+                inetAddresses = dns.lookup(host);
+                mConcurrentHashMap.put(host, inetAddresses);
             } catch (UnknownHostException e) {
                 e.printStackTrace();
-                rePreHosts.add(mHosts.get(i));
+                rePreHosts.add(host);
             }
         }
         rePreFetch(rePreHosts, dns);

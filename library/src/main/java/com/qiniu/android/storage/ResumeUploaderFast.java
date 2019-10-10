@@ -25,6 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.lang.String.format;
 
@@ -83,7 +84,7 @@ public class ResumeUploaderFast implements Runnable {
     /**
      * 上传域名
      */
-    volatile String upHost;
+    AtomicReference upHost = new AtomicReference();
     /**
      * 总块数
      */
@@ -171,13 +172,13 @@ public class ResumeUploaderFast implements Runnable {
         }
         putBlockInfo();
 
-        upHost = config.zone.upHost(token.token, config.useHttps, null);
+        upHost.set(config.zone.upHost(token.token, config.useHttps, null));
         if (blockInfo.size() < multithread) {
             multithread = blockInfo.size();
         }
         for (int i = 0; i < multithread; i++) {
             BlockElement mblock = getBlockInfo();
-            new UploadThread(mblock.getOffset(), mblock.getBlocksize(), upHost).start();
+            new UploadThread(mblock.getOffset(), mblock.getBlocksize(), upHost.get().toString()).start();
         }
     }
 
@@ -313,8 +314,8 @@ public class ResumeUploaderFast implements Runnable {
             @Override
             public void onProgress(long bytesWritten, long totalSize) {
                 long size = 0;
-                for (int i = 0; i < offsets.length; i++) {
-                    if (offsets[i] != null && offsets[i] > 0) {
+                for (Long offset : offsets) {
+                    if (offset != null && offset > 0) {
                         size += 1;
                     }
                 }
@@ -349,7 +350,7 @@ public class ResumeUploaderFast implements Runnable {
 
                 // mkfile  ，允许多重试一次，这里不需要重试时，成功与否都complete回调给客户端
                 if (info.needRetry() && retried.get() < config.retryMax + 1) {
-                    makeFile(upHost, getMkfileCompletionHandler(), options.cancellationSignal);
+                    makeFile(upHost.get().toString(), getMkfileCompletionHandler(), options.cancellationSignal);
                     retried.addAndGet(1);
                     return;
                 }
@@ -384,14 +385,14 @@ public class ResumeUploaderFast implements Runnable {
                 if (!isChunkOK(info, response)) {
                     if (info.statusCode == 701 && checkRetried()) {
                         updateRetried();
-                        mkblk(offset, blockSize, upHost);
+                        mkblk(offset, blockSize, upHost.get().toString());
                         return;
                     }
                     if (upHost != null
                             && ((isNotChunkToQiniu(info, response) || info.needRetry())
                             && checkRetried())) {
                         updateRetried();
-                        mkblk(offset, blockSize, upHost);
+                        mkblk(offset, blockSize, upHost.get().toString());
                         return;
                     }
 
@@ -403,8 +404,7 @@ public class ResumeUploaderFast implements Runnable {
                 String context = null;
                 if (response == null && checkRetried()) {
                     updateRetried();
-                    mkblk(offset, blockSize, upHost);
-
+                    mkblk(offset, blockSize, upHost.get().toString());
                     return;
                 }
                 long crc = 0;
@@ -418,7 +418,7 @@ public class ResumeUploaderFast implements Runnable {
                 }
                 if ((context == null || crc != crc32) && checkRetried()) {
                     updateRetried();
-                    mkblk(offset, blockSize, upHost);
+                    mkblk(offset, blockSize, upHost.get().toString());
                     return;
                 }
                 if (context == null) {
@@ -444,7 +444,7 @@ public class ResumeUploaderFast implements Runnable {
                     record(offsets);
                     upBlock += 1;
                     if (upBlock == tblock.get()) {
-                        makeFile(upHost, getMkfileCompletionHandler(), options.cancellationSignal);
+                        makeFile(upHost.get().toString(), getMkfileCompletionHandler(), options.cancellationSignal);
                         return;
                     }
                 }
@@ -452,7 +452,7 @@ public class ResumeUploaderFast implements Runnable {
                 if (blockInfo.size() > 0) {
                     BlockElement mblock = getBlockInfo();
                     if (mblock.getOffset() != 0 && mblock.getBlocksize() != 0)
-                        new UploadThread(mblock.getOffset(), mblock.getBlocksize(), upHost).start();
+                        new UploadThread(mblock.getOffset(), mblock.getBlocksize(), upHost.get().toString()).start();
                 }
             }
         };
@@ -464,7 +464,7 @@ public class ResumeUploaderFast implements Runnable {
         } else if (retried.get() < domainRetry) {
             singleDomainRetry.getAndSet(1);
             retried.getAndAdd(1);
-            upHost = config.zone.upHost(token.token, config.useHttps, upHost);
+            upHost.getAndSet(config.zone.upHost(token.token, config.useHttps, upHost.get().toString()));
         }
 
     }

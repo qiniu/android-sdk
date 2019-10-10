@@ -200,7 +200,8 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo networkError(int code, UpToken upToken) {
-        return create(null, code, "", "", "", "", "", "", 80, 0, 0, "Network error during preQuery, Please use http try again", upToken, 0);
+        return create(null, code, "", "", "", "", "", "", 80, 0, 0, "Network error during preQuery, Please check your network or " +
+                "use http try again", upToken, 0);
     }
 
     public static boolean isStatusCodeForBrokenNetwork(int code) {

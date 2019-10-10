@@ -21,7 +21,7 @@ public final class AutoZone extends Zone {
     /**
      * 自动判断机房
      */
-    private final String ucServer;
+    private String ucServer;
     private Map<ZoneIndex, ZoneInfo> zones = new ConcurrentHashMap<>();
     private Client client = new Client();
 
@@ -38,6 +38,15 @@ public final class AutoZone extends Zone {
         } else {
             this.ucServer = "http://uc.qbox.me";
         }
+    }
+
+    //私有云可能改变ucServer
+    public void setUcServer(String ucServer) {
+        this.ucServer = ucServer;
+    }
+
+    public String getUcServer() {
+        return this.ucServer;
     }
 
     private void getZoneJsonAsync(ZoneIndex index, CompletionHandler handler) {
