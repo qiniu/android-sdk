@@ -25,7 +25,10 @@ public final class UploadManager {
     private final Client client;
     private int multithreads = 1;
     private static int DEF_THREAD_NUM = 3;
-    static AtomicBoolean atomic = new AtomicBoolean(false);
+    /**
+     * 保证代码只执行一次，防止多个uploadManager同时开始预取dns
+     */
+    static AtomicBoolean atomicStruct = new AtomicBoolean(false);
 
     /**
      * default 3 Threads
@@ -139,7 +142,7 @@ public final class UploadManager {
             return;
         }
 
-        if (atomic.compareAndSet(false, true)) {
+        if (atomicStruct.compareAndSet(false, true)) {
             if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
                 new Thread(new Runnable() {
                     @Override
@@ -198,7 +201,7 @@ public final class UploadManager {
             return;
         }
 
-        if (atomic.compareAndSet(false, true)) {
+        if (atomicStruct.compareAndSet(false, true)) {
             if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
                 new Thread(new Runnable() {
                     @Override
