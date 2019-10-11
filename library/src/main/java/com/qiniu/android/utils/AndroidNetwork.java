@@ -48,9 +48,9 @@ public final class AndroidNetwork {
                 while (ias.hasMoreElements()) {
                     ia = ias.nextElement();
                     if (ia instanceof Inet6Address) {
-                        ipv6 = checkIpv6(ia.getHostAddress());
-                        if (ipv6 != null) {
-                            hostIp = ipv6;
+                        //ipv6 = checkIpv6(ia.getHostAddress());
+                        if (!ia.isLinkLocalAddress()&&!ia.isLoopbackAddress()) {
+                            hostIp = ia.getHostAddress();
                             break;
                         }
                         continue;
