@@ -38,28 +38,19 @@ public final class AndroidNetwork {
      */
     public static String getHostIP() {
         String hostIp = null;
-        String ipv6 = null;
         try {
             Enumeration nis = NetworkInterface.getNetworkInterfaces();
             InetAddress ia = null;
             while (nis.hasMoreElements()) {
                 NetworkInterface ni = (NetworkInterface) nis.nextElement();
                 Enumeration<InetAddress> ias = ni.getInetAddresses();
-                while (ias.hasMoreElements()) {
-                    ia = ias.nextElement();
-                    if (ia instanceof Inet6Address) {
-                        //ipv6 = checkIpv6(ia.getHostAddress());
-                        if (!ia.isLinkLocalAddress()&&!ia.isLoopbackAddress()) {
-                            hostIp = ia.getHostAddress();
-                            break;
-                        }
-                        continue;
-                    }
-                    String ip = ia.getHostAddress();
-                    if (!"127.0.0.1".equals(ip)) {
+                ia = ias.nextElement();
+                if (ia instanceof Inet6Address) {
+                    if (!ia.isLinkLocalAddress() && !ia.isLoopbackAddress()) {
                         hostIp = ia.getHostAddress();
                         break;
                     }
+                    continue;
                 }
             }
         } catch (SocketException e) {
@@ -68,27 +59,4 @@ public final class AndroidNetwork {
         return hostIp;
     }
 
-    /**
-     * first segment contains "fe" or "fc": https://blog.csdn.net/fdl19881/article/details/7091138
-     *
-     * @param ipv6
-     * @return
-     */
-    private static String checkIpv6(String ipv6) {
-        if (ipv6 != null) {
-            String[] split = ipv6.split("%");
-            String s1 = split[0];
-            if (s1 != null && s1.contains(":")) {
-                String[] split1 = s1.split(":");
-                if (split1.length == 6 || split1.length == 8) {
-                    if (split1[0].contains("fe") || split1[0].contains("fc")) {
-                        return null;
-                    } else {
-                        return s1;
-                    }
-                }
-            }
-        }
-        return null;
-    }
 }
