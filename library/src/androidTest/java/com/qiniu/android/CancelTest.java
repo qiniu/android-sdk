@@ -44,10 +44,10 @@ public class CancelTest extends InstrumentationTestCase {
         checkTemp(ts, "testFile");
     }
 
-    public void testData() throws Throwable {
-        Temp[] ts = new Temp[]{templateData(400, 0.2), templateData(700, 0.2), templateData(1024, 0.51), templateData(4 * 1024 + 785, 0.5), templateData(4 * 1024, 0.5), templateData(8 * 1024, 0.6)};
-        checkTemp(ts, "testData");
-    }
+//    public void testData() throws Throwable {
+//        Temp[] ts = new Temp[]{templateData(400, 0.2), templateData(700, 0.2), templateData(1024, 0.51), templateData(4 * 1024 + 785, 0.5), templateData(4 * 1024, 0.5), templateData(8 * 1024, 0.6)};
+//        checkTemp(ts, "testData");
+//    }
 
     private void checkTemp(Temp[] ts, String type) {
         int failedCount = 0;
