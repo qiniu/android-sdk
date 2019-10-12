@@ -6,17 +6,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.util.Date;
 
 /**
- * 实现分片上传时上传进度的接口方法
+ * Created by jemy on 2019/9/17.
  */
-public final class FileRecorder implements Recorder {
+
+public class DnsCacheFile implements Recorder {
 
     public String directory;
 
-    public FileRecorder(String directory) throws IOException {
+    public DnsCacheFile(String directory) throws IOException {
         this.directory = directory;
         File f = new File(directory);
         if (!f.exists()) {
@@ -31,31 +30,23 @@ public final class FileRecorder implements Recorder {
         }
     }
 
-    private static String hash(String base) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-1");
-            byte[] hash = digest.digest(base.getBytes());
-            StringBuffer hexString = new StringBuffer();
-
-            for (int i = 0; i < hash.length; i++) {
-                hexString.append(Integer.toString((hash[i] & 0xff) + 0x100, 16).substring(1));
-            }
-            return hexString.toString();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return null;
-    }
-
     /**
-     * 纪录分片上传进度
+     * 设置DNS缓存
      *
-     * @param key  上传文件进度文件保存名
-     * @param data 上传文件的进度数据
+     * @param key  缓存文件明
+     * @param data 缓存数据
      */
     @Override
     public void set(String key, byte[] data) {
-        File f = new File(directory, hash(key));
+        File file = new File(directory);
+        File[] fs = file.listFiles();
+        if (fs.length > 0) {
+            for (int i = 0; i < fs.length; i++) {
+                del(fs[i].getName());
+            }
+        }
+
+        File f = new File(directory, key);
         FileOutputStream fo = null;
         try {
             fo = new FileOutputStream(f);
@@ -73,21 +64,17 @@ public final class FileRecorder implements Recorder {
     }
 
     /**
-     * 获取分片上传进度
+     * 获取缓存
      *
-     * @param key 上传文件进度文件保存名
+     * @param key 缓存文件名
      */
     @Override
     public byte[] get(String key) {
-        File f = new File(directory, hash(key));
+        File f = new File(directory, key);
         FileInputStream fi = null;
         byte[] data = null;
         int read = 0;
         try {
-            if (outOfDate(f)) {
-                f.delete();
-                return null;
-            }
             data = new byte[(int) f.length()];
             fi = new FileInputStream(f);
             read = fi.read(data);
@@ -107,23 +94,34 @@ public final class FileRecorder implements Recorder {
         return data;
     }
 
-    private boolean outOfDate(File f) {
-        return f.lastModified() + 1000 * 3600 * 24 * 2 < new Date().getTime();
+    //f.delete()=false时才会有fs.length>1的情况
+    public String getFileName() {
+        File file = new File(directory);
+        File[] fs = file.listFiles();
+        if (fs.length == 1) {
+            return fs[0].getName();
+        } else if (fs.length > 1) {
+            String fileName = null;
+            long cachetime = 0;
+            for (int i = 1; i < fs.length; i++) {
+                String key = fs[i].getName();
+                long time = Long.parseLong(key.split(":")[0]);
+                if (time > cachetime) {
+                    del(fileName);
+                    cachetime = time;
+                    fileName = key;
+                }
+            }
+            return fileName;
+        }
+        return null;
     }
 
-    /**
-     * 删除已上传文件的进度文件
-     *
-     * @param key 上传文件进度文件保存名
-     */
     @Override
     public void del(String key) {
-        File f = new File(directory, hash(key));
-        f.delete();
-    }
-
-    @Override
-    public String getFileName() {
-        return null;
+        if (key != null) {
+            File f = new File(directory, key);
+            f.delete();
+        }
     }
 }

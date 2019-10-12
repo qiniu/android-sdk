@@ -27,4 +27,6 @@ public interface Recorder {
      * @param key 持久化的键
      */
     void del(String key);
+
+    String getFileName();
 }

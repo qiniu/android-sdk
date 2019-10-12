@@ -1,7 +1,17 @@
 package com.qiniu.android.utils;
 
-import com.qiniu.android.common.Constants;
+import android.util.Log;
 
+import com.qiniu.android.common.Constants;
+import com.qiniu.android.http.DnsPrefetcher;
+
+import org.json.JSONObject;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -69,6 +79,9 @@ public final class StringUtils {
      */
     public static String jsonJoin(String[] array) {
         int arraySize = array.length;
+        if (array[0] == null) {
+            array[0] = "";
+        }
         int bufSize = arraySize * (array[0].length() + 3);
         StringBuilder buf = new StringBuilder(bufSize);
         for (int i = 0; i < arraySize; i++) {
@@ -81,6 +94,25 @@ public final class StringUtils {
             buf.append('"');
         }
         return buf.toString();
+    }
+
+
+    public static String jsonJoin(Long[] array) {
+        return jsonJoin(longToString(array));
+    }
+
+    public static String[] longToString(Long longArray[]) {
+        String stringArray[] = new String[longArray.length];
+        for (int i = 0; i < stringArray.length; i++) {
+            try {
+                stringArray[i] = String.valueOf(longArray[i]);
+            } catch (NumberFormatException e) {
+                stringArray[i] = "null";
+                continue;
+            }
+        }
+        return stringArray;
+
     }
 
     public static byte[] utf8Bytes(String data) {
@@ -109,4 +141,65 @@ public final class StringUtils {
         }
         return b.toString();
     }
+
+    /**
+     * 对象转数组
+     *
+     * @param obj
+     * @return
+     */
+    public static byte[] toByteArray(Object obj) {
+        byte[] bytes = null;
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(bos);
+            oos.writeObject(obj);
+            oos.flush();
+            bytes = bos.toByteArray();
+            oos.close();
+            bos.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return bytes;
+    }
+
+    /**
+     * 数组转对象
+     *
+     * @param bytes
+     * @return
+     */
+    public static Object toObject(byte[] bytes) {
+        Object obj = null;
+        try {
+            ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
+            ObjectInputStream ois = new ObjectInputStream(bis);
+            obj = ois.readObject();
+            ois.close();
+            bis.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } catch (ClassNotFoundException ex) {
+            ex.printStackTrace();
+        }
+        return obj;
+    }
+
+    public static String getAkAndScope(String token) {
+        String[] strings = token.split(":");
+        String ak = strings[0];
+        String policy = null;
+        try {
+            policy = new String(UrlSafeBase64.decode(strings[2]), Constants.UTF_8);
+            JSONObject obj = new JSONObject(policy);
+            String scope = obj.getString("scope");
+            String bkt = scope.split(":")[0];
+            return ak + bkt;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

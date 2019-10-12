@@ -4,6 +4,7 @@ import com.qiniu.android.collect.Config;
 import com.qiniu.android.collect.UploadInfoCollector;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.Client;
+import com.qiniu.android.http.DnsPrefetcher;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringUtils;
@@ -11,6 +12,7 @@ import com.qiniu.android.utils.StringUtils;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 七牛文件上传管理器
@@ -21,23 +23,50 @@ import java.io.File;
 public final class UploadManager {
     private final Configuration config;
     private final Client client;
+    private int multithreads = 1;
+    private static int DEF_THREAD_NUM = 3;
+    /**
+     * 保证代码只执行一次，防止多个uploadManager同时开始预取dns
+     */
+    static AtomicBoolean atomicStruct = new AtomicBoolean(false);
 
+    /**
+     * default 3 Threads
+     */
     public UploadManager() {
-        this(new Configuration.Builder().build());
+        this(new Configuration.Builder().build(), DEF_THREAD_NUM);
     }
 
+    /**
+     * @param config Configuration, default 1 Thread
+     */
     public UploadManager(Configuration config) {
         this.config = config;
         this.client = new Client(config.proxy, config.connectTimeout, config.responseTimeout,
                 config.urlConverter, config.dns);
     }
 
-    public UploadManager(Recorder recorder, KeyGenerator keyGen) {
-        this(new Configuration.Builder().recorder(recorder, keyGen).build());
+    public UploadManager(Configuration config, int multitread) {
+        this.config = config;
+        this.multithreads = multitread >= 1 ? multitread : DEF_THREAD_NUM;
+        this.client = new Client(config.proxy, config.connectTimeout, config.responseTimeout,
+                config.urlConverter, config.dns);
     }
 
     public UploadManager(Recorder recorder) {
         this(recorder, null);
+    }
+
+    public UploadManager(Recorder recorder, KeyGenerator keyGen) {
+        this(new Configuration.Builder().recorder(recorder, keyGen).build());
+    }
+
+    public UploadManager(Recorder recorder, int multitread) {
+        this(recorder, null, multitread);
+    }
+
+    public UploadManager(Recorder recorder, KeyGenerator keyGen, int multitread) {
+        this(new Configuration.Builder().recorder(recorder, keyGen).build(), multitread);
     }
 
     private static boolean areInvalidArg(final String key, byte[] data, File f, String token,
@@ -113,6 +142,16 @@ public final class UploadManager {
             return;
         }
 
+        if (atomicStruct.compareAndSet(false, true)) {
+            if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        DnsPrefetcher.startPrefetchDns(token, config);
+                    }
+                }).start();
+            }
+        }
         Zone z = config.zone;
         z.preQuery(token, new Zone.QueryHandler() {
             @Override
@@ -145,6 +184,7 @@ public final class UploadManager {
         put(new File(filePath), key, token, completionHandler, options);
     }
 
+
     /**
      * 上传文件
      *
@@ -154,13 +194,23 @@ public final class UploadManager {
      * @param complete 上传完成的后续处理动作
      * @param options  上传数据的可选参数
      */
-    public void put(final File file, final String key, String token, final UpCompletionHandler complete,
+    public void put(final File file, final String key, final String token, final UpCompletionHandler complete,
                     final UploadOptions options) {
         final UpToken decodedToken = UpToken.parse(token);
         if (areInvalidArg(key, null, file, token, decodedToken, complete)) {
             return;
         }
 
+        if (atomicStruct.compareAndSet(false, true)) {
+            if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        DnsPrefetcher.startPrefetchDns(token, config);
+                    }
+                }).start();
+            }
+        }
         Zone z = config.zone;
         z.preQuery(token, new Zone.QueryHandler() {
             @Override
@@ -172,10 +222,15 @@ public final class UploadManager {
                 }
                 String recorderKey = config.keyGen.gen(key, file);
                 final WarpHandler completionHandler = warpHandler(complete, file != null ? file.length() : 0);
-                ResumeUploader uploader = new ResumeUploader(client, config, file, key,
-                        decodedToken, completionHandler, options, recorderKey);
-
-                AsyncRun.runInMain(uploader);
+                if (multithreads == 1) {
+                    ResumeUploader uploader = new ResumeUploader(client, config, file, key,
+                            decodedToken, completionHandler, options, recorderKey);
+                    AsyncRun.runInMain(uploader);
+                } else {
+                    ResumeUploaderFast uploader = new ResumeUploaderFast(client, config, file, key,
+                            decodedToken, completionHandler, options, recorderKey, multithreads);
+                    AsyncRun.runInMain(uploader);
+                }
             }
 
             @Override
@@ -278,5 +333,6 @@ public final class UploadManager {
             });
         }
     }
+
 
 }

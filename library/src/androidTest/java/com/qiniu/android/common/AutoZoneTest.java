@@ -1,6 +1,7 @@
 package com.qiniu.android.common;
 
 import android.test.AndroidTestCase;
+import android.util.Log;
 
 import com.qiniu.android.TestConfig;
 
@@ -76,10 +77,11 @@ public class AutoZoneTest extends AndroidTestCase {
             e.printStackTrace();
         }
         ZoneInfo info = autoZone.zoneInfo(ak, bkt);
-//        Log.d("zone0: ", info.toString());
+        Log.d("qiniutest: ", info.toString());
 
         ZoneInfo info2 = autoZone.zoneInfo(ak, bkt);
         Assert.assertSame(info, info2);
 
     }
+
 }

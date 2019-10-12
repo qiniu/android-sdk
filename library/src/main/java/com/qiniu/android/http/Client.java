@@ -27,8 +27,6 @@ import okhttp3.RequestBody;
 
 import static com.qiniu.android.http.ResponseInfo.NetworkError;
 
-//import okhttp3.MultipartBody;
-
 /**
  * Created by bailong on 15/11/12.
  */
@@ -47,26 +45,23 @@ public final class Client {
     public Client(ProxyConfiguration proxy, int connectTimeout, int responseTimeout, UrlConverter converter, final Dns dns) {
         this.converter = converter;
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
-
         if (proxy != null) {
             builder.proxy(proxy.proxy());
             if (proxy.user != null && proxy.password != null) {
                 builder.proxyAuthenticator(proxy.authenticator());
             }
         }
-        if (dns != null) {
-            builder.dns(new okhttp3.Dns() {
-                @Override
-                public List<InetAddress> lookup(String hostname) throws UnknownHostException {
-                    try {
-                        return dns.lookup(hostname);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return okhttp3.Dns.SYSTEM.lookup(hostname);
+
+        builder.dns(new okhttp3.Dns() {
+            @Override
+            public List<InetAddress> lookup(String hostname) throws UnknownHostException {
+               if (DnsPrefetcher.getDnsPrefetcher().getInetAddressByHost(hostname) != null) {
+                    return DnsPrefetcher.getDnsPrefetcher().getInetAddressByHost(hostname);
                 }
-            });
-        }
+                return okhttp3.Dns.SYSTEM.lookup(hostname);
+            }
+        });
+
         builder.networkInterceptors().add(new Interceptor() {
             @Override
             public okhttp3.Response intercept(Chain chain) throws IOException {
