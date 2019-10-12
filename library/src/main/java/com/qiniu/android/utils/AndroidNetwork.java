@@ -44,8 +44,8 @@ public final class AndroidNetwork {
             while (nis.hasMoreElements()) {
                 NetworkInterface ni = (NetworkInterface) nis.nextElement();
                 Enumeration<InetAddress> ias = ni.getInetAddresses();
-                ia = ias.nextElement();
-                if (ia instanceof Inet6Address) {
+                while (ias.hasMoreElements()) {
+                    ia = ias.nextElement();
                     if (!ia.isLinkLocalAddress() && !ia.isLoopbackAddress()) {
                         hostIp = ia.getHostAddress();
                         break;
