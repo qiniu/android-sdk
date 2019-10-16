@@ -95,7 +95,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         final UploadOptions options = getUploadOptions();
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(f, expectKey, "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:NJYDlsXsCOTKDt3anL_QfU3qZlk=:eyJzY29wZSI6InNodWFuZ2h1bzEiLCJkZWFkbGluZSI6MTU3MjUzNzMzNX0=", new UpCompletionHandler() {
+                uploadManager.put(f, expectKey, TestConfig.uptoken_v3_query, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         Log.i("qiniutest", k + rinfo);
                         key = k;
