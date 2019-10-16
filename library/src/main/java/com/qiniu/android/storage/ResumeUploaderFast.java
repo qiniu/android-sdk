@@ -1,5 +1,7 @@
 package com.qiniu.android.storage;
 
+import android.util.Log;
+
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.ProgressHandler;
@@ -97,14 +99,16 @@ public class ResumeUploaderFast implements Runnable {
      * 单域名检测次数
      */
     AtomicInteger singleDomainRetry = new AtomicInteger(0);
+
+    /**
+     * 单域名重试次数
+     */
+    int retryMax = 0;
     /**
      * 线程数量
      */
     private int multithread;
-    /**
-     * 第一个任务
-     */
-    private boolean isFirstTask = true;
+
     /**
      * 每块偏移位子
      * use 断点续传
@@ -114,7 +118,7 @@ public class ResumeUploaderFast implements Runnable {
      * 已上传块
      */
     private int upBlock = 0;
-    private final int domainRetry = 3;
+    private int domainRetry = 3;
     /**
      * 避免多个任务同时回调
      */
@@ -159,6 +163,8 @@ public class ResumeUploaderFast implements Runnable {
         modifyTime = f.lastModified();
         this.token = token;
         this.blockInfo = new LinkedHashMap<>();
+        domainRetry = config.zone.getZoneInfo(token.token).upDomainsList.size();
+        retryMax = multithread > config.retryMax ? multithread : config.retryMax;
     }
 
     @Override
@@ -388,8 +394,7 @@ public class ResumeUploaderFast implements Runnable {
                         mkblk(offset, blockSize, upHost.get().toString());
                         return;
                     }
-                    if (upHost != null
-                            && ((isNotChunkToQiniu(info, response) || info.needRetry())
+                    if (upHost != null && ((isNotChunkToQiniu(info, response) || info.needRetry())
                             && checkRetried())) {
                         updateRetried();
                         mkblk(offset, blockSize, upHost.get().toString());
@@ -466,7 +471,6 @@ public class ResumeUploaderFast implements Runnable {
             retried.getAndAdd(1);
             upHost.getAndSet(config.zone.upHost(token.token, config.useHttps, upHost.get().toString()));
         }
-
     }
 
     private boolean checkRetried() {

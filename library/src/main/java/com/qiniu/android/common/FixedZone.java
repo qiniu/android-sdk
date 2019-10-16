@@ -114,6 +114,11 @@ public final class FixedZone extends Zone {
     }
 
     @Override
+    public ZoneInfo getZoneInfo(String token) {
+        return this.zoneInfo;
+    }
+
+    @Override
     public synchronized void frozenDomain(String upHostUrl) {
         if (upHostUrl != null) {
             URI uri = URI.create(upHostUrl);

@@ -3,11 +3,13 @@ package com.qiniu.android;
 import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
+import android.util.Log;
 
 import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
+import com.qiniu.android.storage.FormUploaderV2;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
 
@@ -200,5 +202,15 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
 //        Assert.assertTrue(info.toString(), info.isOK());
 //        Assert.assertNotNull(info.reqId);
 //        Assert.assertNotNull(resp);
+    }
+
+    //reTest use FormuploadV2
+    @SmallTest
+    public void testFormUploadSync() throws Throwable {
+        final String expectKey = "你好";
+        final File f = TempFile.createFile(1);
+        info = uploadManager.syncPut(f, expectKey, TestConfig.uptoken_v3_query, null);
+        resp = info.response;
+        Log.e("qiniutest", "response" + resp);
     }
 }

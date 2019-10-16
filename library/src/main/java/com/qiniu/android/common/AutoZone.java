@@ -50,17 +50,17 @@ public final class AutoZone extends Zone {
     }
 
     private void getZoneJsonAsync(ZoneIndex index, CompletionHandler handler) {
-        String address = ucServer + "/v2/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
+        String address = ucServer + "/v3/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
         client.asyncGet(address, null, UpToken.NULL, handler);
     }
 
     private ResponseInfo getZoneJsonSync(ZoneIndex index) {
-        String address = ucServer + "/v2/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
+        String address = ucServer + "/v3/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
         return client.syncGet(address, null);
     }
 
     // only for test public
-    ZoneInfo zoneInfo(String ak, String bucket) {
+    public ZoneInfo zoneInfo(String ak, String bucket) {
         ZoneIndex index = new ZoneIndex(ak, bucket);
         return zones.get(index);
     }
@@ -159,6 +159,11 @@ public final class AutoZone extends Zone {
     public boolean preQuery(String token) {
         ZoneIndex index = ZoneIndex.getFromToken(token);
         return preQueryIndex(index);
+    }
+
+    @Override
+    public ZoneInfo getZoneInfo(String token) {
+        return queryByToken(token);
     }
 
     @Override

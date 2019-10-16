@@ -24,6 +24,8 @@ public final class TestConfig {
     //dns prefetch token
     public static final String uptoken_prefetch = "MP_Ebql_lSsUrDr7WrXn_5vKocQDLvTPCNEFeVmp:3KJpXCGMqm6EAYU71RF1HDmQrcE=:eyJzY29wZSI6ImFuZHJvaWR0ZXN0IiwiZGVhZGxpbmUiOjE1Njc0OTAxODF9";
 
+    //10.31到期
+    public static final String uptoken_v3_query ="bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:EzHmJLzlO3M7ymBz0xbOfu_pm2c=:eyJzY29wZSI6InNodWFuZ2h1bzEiLCJkZWFkbGluZSI6MTU3MjUzNjQzNX0=";
     /**
      * 华东机房
      */

@@ -156,7 +156,7 @@ public final class UploadManager {
         z.preQuery(token, new Zone.QueryHandler() {
             @Override
             public void onSuccess() {
-                FormUploader.upload(client, config, data, key, decodedToken, complete, options);
+                new FormUploaderV2(client, config, data, null, key, decodedToken, complete, options).upload();
             }
 
             @Override
@@ -217,7 +217,7 @@ public final class UploadManager {
             public void onSuccess() {
                 long size = file.length();
                 if (size <= config.putThreshold) {
-                    FormUploader.upload(client, config, file, key, decodedToken, complete, options);
+                    new FormUploaderV2(client, config, null, file, key, decodedToken, complete, options).upload();
                     return;
                 }
                 String recorderKey = config.keyGen.gen(key, file);
@@ -259,7 +259,7 @@ public final class UploadManager {
         if (info != null) {
             return info;
         }
-        return FormUploader.syncUpload(client, config, data, key, decodedToken, options);
+        return new FormUploaderV2(client, config, data, null, key, decodedToken, null, options).syncUpload();
     }
 
     /**
@@ -277,7 +277,7 @@ public final class UploadManager {
         if (info != null) {
             return info;
         }
-        return FormUploader.syncUpload(client, config, file, key, decodedToken, options);
+        return new FormUploaderV2(client, config, null, file, key, decodedToken, null, options).syncUpload();
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.qiniu.android.common;
 
+import com.qiniu.android.utils.UrlSafeBase64;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,6 +24,7 @@ public class ZoneInfo {
     public final Map<String, Long> upDomainsMap;
     private final int ttl;
 
+
     public ZoneInfo(int ttl, List<String> upDomainsList, Map<String, Long> upDomainsMap) {
         this.ttl = ttl;
         this.upDomainsList = upDomainsList;
@@ -35,35 +38,46 @@ public class ZoneInfo {
      * @throws JSONException
      */
     public static ZoneInfo buildFromJson(JSONObject obj) throws JSONException {
-        int ttl = obj.getInt("ttl");
+        JSONArray hostArray = obj.getJSONArray("hosts");
         List<String> domainsList = new ArrayList<>();
         ConcurrentHashMap<String, Long> domainsMap = new ConcurrentHashMap<>();
-        JSONObject upObj = obj.getJSONObject("up");
-
-        String[] upDomainTags = new String[]{"acc", "src", "old_acc", "old_src"};
-        for (String tag : upDomainTags) {
-            JSONObject tagRootObj = upObj.getJSONObject(tag);
-            JSONArray tagMainObj = tagRootObj.getJSONArray("main");
-            for (int i = 0; i < tagMainObj.length(); i++) {
-                String upDomain = tagMainObj.getString(i);
-                domainsList.add(upDomain);
-                domainsMap.put(upDomain, 0L);
+        int ttl = 0;
+        for (int j = 0; j < hostArray.length(); j++) {
+            int hosts = 0;
+            JSONObject arrObj = hostArray.getJSONObject(j);
+            JSONObject upObj = arrObj.getJSONObject("up");
+            ttl = arrObj.getInt("ttl");
+            String[] upDomainTags = new String[]{"acc", "src", "old_acc", "old_src"};
+            for (String tag : upDomainTags) {
+                JSONObject tagRootObj = upObj.getJSONObject(tag);
+                JSONArray tagMainObj = tagRootObj.getJSONArray("main");
+                for (int i = 0; i < tagMainObj.length(); i++) {
+                    String upDomain = tagMainObj.getString(i);
+                    domainsList.add(upDomain);
+                    domainsMap.put(upDomain, 0L);
+                    hosts+=1;
+                }
             }
 
-            try {
-                JSONArray tagBackupObj = tagRootObj.getJSONArray("backup");
-                if (tagBackupObj != null) {
-                    //this backup tag is optional
-                    for (int i = 0; i < tagBackupObj.length(); i++) {
-                        String upHost = tagBackupObj.getString(i);
-                        domainsList.add(upHost);
-                        domainsMap.put(upHost, 0L);
+            for (String tag : upDomainTags) {
+                try {
+                    JSONObject tagRootObj = upObj.getJSONObject(tag);
+                    JSONArray tagBackupObj = tagRootObj.getJSONArray("backup");
+                    if (tagBackupObj != null) {
+                        //this backup tag is optional
+                        for (int i = 0; i < tagBackupObj.length(); i++) {
+                            String upHost = tagBackupObj.getString(i);
+                            domainsList.add(upHost);
+                            domainsMap.put(upHost, 0L);
+                            hosts+=1;
+                        }
                     }
+                } catch (JSONException ex) {
+                    //some zone has not backup domain, just ignore here
                 }
-            } catch (JSONException ex) {
-                //some zone has not backup domain, just ignore here
             }
         }
+
         return new ZoneInfo(ttl, domainsList, domainsMap);
     }
 

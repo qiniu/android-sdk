@@ -62,6 +62,8 @@ public abstract class Zone {
 
     public abstract boolean preQuery(String token);
 
+    public abstract ZoneInfo getZoneInfo(String token);
+
     public interface QueryHandler {
         void onSuccess();
 

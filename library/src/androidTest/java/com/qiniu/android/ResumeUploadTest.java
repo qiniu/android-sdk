@@ -84,18 +84,18 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     }
 
     public void setUp() throws Exception {
-        Configuration config = new Configuration.Builder().build();
-        uploadManager = new UploadManager(config, 3);
+        Configuration config = new Configuration.Builder().retryMax(4).build();
+        uploadManager = new UploadManager(config, 2);
         ACollectUploadInfoTest.testInit();
     }
 
     private void template(int size) throws Throwable {
-        final String expectKey = "r=" + size + "k";
+        final String expectKey = "test002";
         final File f = TempFile.createFile(size);
         final UploadOptions options = getUploadOptions();
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(f, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
+                uploadManager.put(f, expectKey, "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:NJYDlsXsCOTKDt3anL_QfU3qZlk=:eyJzY29wZSI6InNodWFuZ2h1bzEiLCJkZWFkbGluZSI6MTU3MjUzNzMzNX0=", new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         Log.i("qiniutest", k + rinfo);
                         key = k;

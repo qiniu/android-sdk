@@ -16,10 +16,13 @@ import junit.framework.Assert;
 
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import okhttp3.Response;
 
 public class FormUploadTest extends InstrumentationTestCase {
     private UploadManager uploadManager;
@@ -238,6 +241,30 @@ public class FormUploadTest extends InstrumentationTestCase {
         }
 
 
+    }
+
+    @SmallTest
+    public void testFormUpload() throws Throwable {
+        final String expectKey = "你好-upload01";
+        final File f = TempFile.createFile(1);
+
+        final CountDownLatch signal = new CountDownLatch(1);
+        Configuration cfg = new Configuration.Builder()
+                .useHttps(false)
+                .build();
+        UploadManager uploadManagerWithCfg = new UploadManager(cfg);
+        uploadManagerWithCfg.put(f, expectKey, TestConfig.uptoken_v3_query, new UpCompletionHandler() {
+            public void complete(String key, ResponseInfo info, JSONObject response) {
+                Log.d("qiniutest", info.toString());
+                responseBody = response;
+                signal.countDown();
+
+            }
+        }, null);
+        try {
+            signal.await(120, TimeUnit.SECONDS);
+        } catch (Exception ex) {
+        }
     }
 
 }
