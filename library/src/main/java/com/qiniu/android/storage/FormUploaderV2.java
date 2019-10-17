@@ -57,9 +57,7 @@ public class FormUploaderV2 {
             this.needRetried = config.zone.getZoneInfo(token.token).upDomainsList.size();
             post();
         } else {
-            ResponseInfo responseInfo = ResponseInfo.create(null, ResponseInfo.InvalidFile, "", "", "",
-                    "", "", "", 0, 0, -1,
-                    "please send valid file or data", UpToken.NULL, 0);
+            ResponseInfo responseInfo = ResponseInfo.zeroSize(token);
             completionHandler.complete(key, responseInfo, null);
         }
 
@@ -137,7 +135,6 @@ public class FormUploaderV2 {
     }
 
     private void startUpload(UploadOptions options, String upHost) {
-        Log.e("qiniutest", "retry host: " + upHost + ", retry id:" + upRetried);
         client.asyncMultipartPost(upHost, args, token, progress, getCompletionHandler(options), options.cancellationSignal);
     }
 
@@ -151,14 +148,12 @@ public class FormUploaderV2 {
                         e.getMessage(), token, data != null ? data.length : 0);
             }
         } else {
-            return ResponseInfo.create(null, ResponseInfo.InvalidFile, "", "", "",
-                    "", "", "", 0, 0, -1,
-                    "please send valid file or data", UpToken.NULL, 0);
+            return ResponseInfo.zeroSize(token);
         }
     }
 
 
-    private ResponseInfo syncUploadStart() {
+    private ResponseInfo syncUploadStart() throws InterruptedException {
         StringMap params = new StringMap();
         args = new PostArgs();
         if (key != null) {
@@ -208,7 +203,6 @@ public class FormUploaderV2 {
 
             info = client.syncMultipartPost(upHost, args, token);
             upRetried += 1;
-            Log.e("qiniutest", "retry host: " + upHost + ", retry id:" + upRetried);
 
             if (info.isOK()) {
                 needRetry = false;
@@ -218,11 +212,13 @@ public class FormUploaderV2 {
                 if (info.isNetworkBroken() && !AndroidNetwork.isNetWorkReady()) {
                     options.netReadyHandler.waitReady();
                     if (!AndroidNetwork.isNetWorkReady()) {
+                        needRetry = false;
                         return info;
                     }
                 }
                 continue;
             }
+            Thread.sleep(50);
         }
         return info;
     }

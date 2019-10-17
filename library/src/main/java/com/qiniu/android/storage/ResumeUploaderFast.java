@@ -118,7 +118,10 @@ public class ResumeUploaderFast implements Runnable {
      * 已上传块
      */
     private int upBlock = 0;
-    private int domainRetry = 3;
+    /**
+     * 需要重试的所有上传域名
+     */
+    private int domainRetry = 0;
     /**
      * 避免多个任务同时回调
      */
