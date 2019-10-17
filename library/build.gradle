@@ -46,7 +46,7 @@ android {
 }
 
 dependencies {
-    compile 'com.squareup.okhttp3:okhttp:3.11.0'
+    compile 'com.squareup.okhttp3:okhttp:3.12.6'
     // for javax.annotation.Nullable use in custom MultipartBody and Headers implements.
 //    compile 'com.google.code.findbugs:jsr305:3.0.2'
     compile fileTree(include: ['*.jar'], dir: 'libs')
