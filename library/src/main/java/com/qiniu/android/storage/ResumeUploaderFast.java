@@ -1,7 +1,6 @@
 package com.qiniu.android.storage;
 
-import android.util.Log;
-
+import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.ProgressHandler;
@@ -54,7 +53,7 @@ public class ResumeUploaderFast implements Runnable {
     /**
      * 保存每一块上传返回的ctx
      */
-    private final String[] contexts;
+    private String[] contexts;
     /**
      * headers
      */
@@ -62,7 +61,7 @@ public class ResumeUploaderFast implements Runnable {
     /**
      * 修改时间
      */
-    private final long modifyTime;
+    private long modifyTime;
     /**
      * 断点续传记录文件
      */
@@ -126,6 +125,22 @@ public class ResumeUploaderFast implements Runnable {
      * 避免多个任务同时回调
      */
     private boolean isInterrupted = false;
+    /**
+     * 双活空间，第一个region的hosts数量
+     */
+    private int firstRegionHosts = 0;
+    /**
+     * 是否是双活空间
+     */
+    private boolean isBkRegion = false;
+    /**
+     * 是否已经重新上传
+     */
+    private boolean isRestart = false;
+    /**
+     * 当前上传空间的zoneInfo
+     */
+    private ZoneInfo zoneInfo = null;
 
     ResumeUploaderFast(Client client, Configuration config, File f, String key, UpToken token,
                        final UpCompletionHandler completionHandler, UploadOptions options, String recorderKey, int multithread) {
@@ -166,8 +181,13 @@ public class ResumeUploaderFast implements Runnable {
         modifyTime = f.lastModified();
         this.token = token;
         this.blockInfo = new LinkedHashMap<>();
-        domainRetry = config.zone.getZoneInfo(token.token).upDomainsList.size();
+        zoneInfo = config.zone.getZoneInfo(token.token);
+        domainRetry = zoneInfo.upDomainsList.size();
         retryMax = multithread > config.retryMax ? multithread : config.retryMax;
+        isBkRegion = zoneInfo.listHosts.size() > 1;
+        if (isBkRegion) {
+            firstRegionHosts = zoneInfo.listHosts.get(0);
+        }
     }
 
     @Override
@@ -283,7 +303,6 @@ public class ResumeUploaderFast implements Runnable {
 
         long crc32 = Crc32.bytes(chunkBuffer, 0, blockSize);
         String postUrl = String.format("%s%s", upHost, path);
-
         post(postUrl, chunkBuffer, 0, blockSize, getProgressHandler(),
                 getCompletionHandler(offset, blockSize, crc32), options.cancellationSignal);
     }
@@ -308,6 +327,7 @@ public class ResumeUploaderFast implements Runnable {
         }
         String path = format(Locale.ENGLISH, "/mkfile/%d%s%s%s", totalSize, mime, keyStr, paramStr);
         String bodyStr = StringUtils.join(contexts, ",");
+
         byte[] data = bodyStr.getBytes();
         String postUrl = String.format("%s%s", upHost, path);
         post(postUrl, data, 0, data.length, null, _completionHandler, c);
@@ -335,7 +355,6 @@ public class ResumeUploaderFast implements Runnable {
                 options.progressHandler.progress(key, percent);
             }
         };
-
     }
 
     private CompletionHandler getMkfileCompletionHandler() {
@@ -346,6 +365,17 @@ public class ResumeUploaderFast implements Runnable {
                     options.netReadyHandler.waitReady();
                     if (!AndroidNetwork.isNetWorkReady()) {
                         completionHandler.complete(key, info, response);
+                        return;
+                    }
+                }
+
+                //切换到第二个空间上传，且error!=null时，重传
+                //测试restart()时去掉error!=null
+                if (info.error != null && isBkRegion && !isRestart && info.host != "" && info.host != null) {
+                    int r = zoneInfo.upDomainsList.indexOf(info.host);
+                    if (r > (firstRegionHosts - 1)) {
+                        restart();
+                        isRestart = true;
                         return;
                     }
                 }
@@ -403,7 +433,6 @@ public class ResumeUploaderFast implements Runnable {
                         mkblk(offset, blockSize, upHost.get().toString());
                         return;
                     }
-
                     completionHandler.complete(key, info, response);
                     return;
                 }
@@ -467,7 +496,7 @@ public class ResumeUploaderFast implements Runnable {
     }
 
     private synchronized void updateRetried() {
-        if (singleDomainRetry.get() < config.retryMax) {
+        if (singleDomainRetry.get() < retryMax) {
             singleDomainRetry.getAndAdd(1);
         } else if (retried.get() < domainRetry) {
             singleDomainRetry.getAndSet(1);
@@ -500,7 +529,6 @@ public class ResumeUploaderFast implements Runnable {
     }
 
     private Long[] recoveryFromRecord() {
-
         if (config.recorder == null) {
             return null;
         }
@@ -568,4 +596,37 @@ public class ResumeUploaderFast implements Runnable {
         }
     }
 
+
+    private void restart() {
+        //reset data
+        tblock = new AtomicInteger((int) (totalSize + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE);
+        offsets = new Long[tblock.get()];
+        contexts = new String[tblock.get()];
+        blockInfo = new LinkedHashMap<>();
+        upBlock = 0;
+
+        try {
+            file = new RandomAccessFile(f, "r");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            completionHandler.complete(key, ResponseInfo.fileError(e, token), null);
+            return;
+        }
+
+        removeRecord();
+        int lastBlock = tblock.get() - 1;
+        for (int i = 0; i < lastBlock; i++) {
+            blockInfo.put((long) i * Configuration.BLOCK_SIZE, Configuration.BLOCK_SIZE);
+        }
+        blockInfo.put((long) lastBlock * Configuration.BLOCK_SIZE, (int) (totalSize - lastBlock * Configuration.BLOCK_SIZE));
+
+        if (blockInfo.size() < multithread) {
+            multithread = blockInfo.size();
+        }
+
+        for (int i = 0; i < multithread; i++) {
+            BlockElement mblock = getBlockInfo();
+            new UploadThread(mblock.getOffset(), mblock.getBlocksize(), upHost.get().toString()).start();
+        }
+    }
 }

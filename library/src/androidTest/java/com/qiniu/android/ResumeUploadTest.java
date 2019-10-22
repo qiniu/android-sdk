@@ -84,13 +84,15 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     }
 
     public void setUp() throws Exception {
-        Configuration config = new Configuration.Builder().retryMax(4).build();
-        uploadManager = new UploadManager(config, 2);
+        Zone zone = FixedZone.zone0;
+        Configuration config = new Configuration.Builder().retryMax(3).zone(zone).build();
+        FileRecorder fileRecorder = new FileRecorder("/sdcard/DCIM");
+        uploadManager = new UploadManager(config, 3);
         ACollectUploadInfoTest.testInit();
     }
 
     private void template(int size) throws Throwable {
-        final String expectKey = "test002";
+        final String expectKey = "test111";
         final File f = TempFile.createFile(size);
         final UploadOptions options = getUploadOptions();
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS

@@ -108,6 +108,8 @@ public class FormUploaderV2 {
                 crc = Crc32.file(file);
             } catch (IOException e) {
                 e.printStackTrace();
+                ResponseInfo responseInfo = ResponseInfo.fileError(e, token);
+                completionHandler.complete(key, responseInfo, null);
             }
         } else {
             crc = Crc32.bytes(data);
@@ -179,6 +181,8 @@ public class FormUploaderV2 {
                 crc = Crc32.file(file);
             } catch (IOException e) {
                 e.printStackTrace();
+                ResponseInfo responseInfo = ResponseInfo.fileError(e, token);
+                completionHandler.complete(key, responseInfo, null);
             }
         } else {
             crc = Crc32.bytes(data);

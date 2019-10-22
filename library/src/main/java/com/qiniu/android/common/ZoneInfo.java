@@ -1,7 +1,5 @@
 package com.qiniu.android.common;
 
-import com.qiniu.android.utils.UrlSafeBase64;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,12 +21,14 @@ public class ZoneInfo {
     //upHost -> frozenTillTimestamp
     public final Map<String, Long> upDomainsMap;
     private final int ttl;
+    public final List<Integer> listHosts;
 
 
-    public ZoneInfo(int ttl, List<String> upDomainsList, Map<String, Long> upDomainsMap) {
+    public ZoneInfo(int ttl, List<String> upDomainsList, Map<String, Long> upDomainsMap, List<Integer> listHosts) {
         this.ttl = ttl;
         this.upDomainsList = upDomainsList;
         this.upDomainsMap = upDomainsMap;
+        this.listHosts = listHosts;
     }
 
     /**
@@ -41,6 +41,7 @@ public class ZoneInfo {
         JSONArray hostArray = obj.getJSONArray("hosts");
         List<String> domainsList = new ArrayList<>();
         ConcurrentHashMap<String, Long> domainsMap = new ConcurrentHashMap<>();
+        List<Integer> listHost = new ArrayList<>();
         int ttl = 0;
         for (int j = 0; j < hostArray.length(); j++) {
             int hosts = 0;
@@ -55,7 +56,7 @@ public class ZoneInfo {
                     String upDomain = tagMainObj.getString(i);
                     domainsList.add(upDomain);
                     domainsMap.put(upDomain, 0L);
-                    hosts+=1;
+                    hosts += 1;
                 }
             }
 
@@ -69,16 +70,17 @@ public class ZoneInfo {
                             String upHost = tagBackupObj.getString(i);
                             domainsList.add(upHost);
                             domainsMap.put(upHost, 0L);
-                            hosts+=1;
+                            hosts += 1;
                         }
                     }
                 } catch (JSONException ex) {
                     //some zone has not backup domain, just ignore here
                 }
             }
+            listHost.add(hosts);
         }
 
-        return new ZoneInfo(ttl, domainsList, domainsMap);
+        return new ZoneInfo(ttl, domainsList, domainsMap, listHost);
     }
 
     public void frozenDomain(String domain) {
@@ -92,6 +94,7 @@ public class ZoneInfo {
         m.put("ttl", this.ttl);
         m.put("upDomainList", this.upDomainsList);
         m.put("upDomainMap", this.upDomainsMap);
+        m.put("listHosts", this.listHosts);
         return new JSONObject(m).toString();
     }
 }

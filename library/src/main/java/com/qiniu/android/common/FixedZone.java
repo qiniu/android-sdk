@@ -4,7 +4,6 @@ import android.util.Log;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -90,7 +89,9 @@ public final class FixedZone extends Zone {
             upDomainsList.add(domain);
             upDomainsMap.put(domain, 0L);
         }
-        return new ZoneInfo(0, upDomainsList, upDomainsMap);
+        List<Integer> listHosts = new ArrayList<>();
+        listHosts.add(upDomainsList.size());
+        return new ZoneInfo(0, upDomainsList, upDomainsMap, listHosts);
     }
 
 
