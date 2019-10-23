@@ -285,8 +285,10 @@ public class DnsPrefetcher {
         String localip = AndroidNetwork.getHostIP();
         String akScope = StringUtils.getAkAndScope(token);
 
+        if (currentTime == null || localip == null || akScope == null)
+            return true;
         long cacheTime = (Long.parseLong(currentTime) - Long.parseLong(cacheKey.getCurrentTime())) / 1000;
-        if (!localip.equals(cacheKey.getLocalIp()) || cacheTime > config.dnsCacheTimeMs || !akScope.equals(cacheKey.getAkScope())) {
+        if (!cacheKey.getLocalIp().equals(localip) || cacheTime > config.dnsCacheTimeMs || !cacheKey.getAkScope().equals(akScope)) {
             return true;
         }
 
@@ -302,6 +304,8 @@ public class DnsPrefetcher {
         String currentTime = String.valueOf(System.currentTimeMillis());
         String localip = AndroidNetwork.getHostIP();
         String akScope = StringUtils.getAkAndScope(token);
+        if (currentTime == null || localip == null || akScope == null)
+            return;
         String cacheKey = new DnsCacheKey(currentTime, localip, akScope).toString();
         Recorder recorder = null;
         DnsPrefetcher dnsPrefetcher = null;
@@ -310,14 +314,18 @@ public class DnsPrefetcher {
             dnsPrefetcher = DnsPrefetcher.getDnsPrefetcher().init(token);
         } catch (IOException e) {
             e.printStackTrace();
+            return;
         }
         if (config.dns != null) {
             DnsPrefetcher.getDnsPrefetcher().dnsPreByCustom(config.dns);
         }
-        ConcurrentHashMap<String, List<InetAddress>> concurrentHashMap = dnsPrefetcher.getConcurrentHashMap();
-        byte[] dnscache = StringUtils.toByteArray(concurrentHashMap);
-
-        recorder.set(cacheKey, dnscache);
+        if (dnsPrefetcher != null) {
+            ConcurrentHashMap<String, List<InetAddress>> concurrentHashMap = dnsPrefetcher.getConcurrentHashMap();
+            byte[] dnscache = StringUtils.toByteArray(concurrentHashMap);
+            if (dnscache == null)
+                return;
+            recorder.set(cacheKey, dnscache);
+        }
     }
 
     /**

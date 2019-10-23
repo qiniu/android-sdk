@@ -1,5 +1,6 @@
 package com.qiniu.android.storage.persistent;
 
+import com.qiniu.android.http.custom.DnsCacheKey;
 import com.qiniu.android.storage.Recorder;
 
 import java.io.File;
@@ -105,7 +106,10 @@ public class DnsCacheFile implements Recorder {
             long cachetime = 0;
             for (int i = 1; i < fs.length; i++) {
                 String key = fs[i].getName();
-                long time = Long.parseLong(key.split(":")[0]);
+                DnsCacheKey cacheKey = DnsCacheKey.toCacheKey(key);
+                if(cacheKey==null)
+                    return null;
+                long time = Long.parseLong(cacheKey.getCurrentTime());
                 if (time > cachetime) {
                     del(fileName);
                     cachetime = time;
