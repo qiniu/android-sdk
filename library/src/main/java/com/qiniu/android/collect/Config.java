@@ -1,5 +1,7 @@
 package com.qiniu.android.collect;
 
+import android.os.Environment;
+
 import com.qiniu.android.utils.ContextGetter;
 
 /**
@@ -74,7 +76,7 @@ public final class Config {
     /**
      * dns缓存信息目录
      */
-    public static String dnscacheDir = "/sdcard/dnschache";
+    public static String dnscacheDir = Environment.getExternalStorageDirectory() + "/dnschache/";
 
     /**
      * preQuery host
