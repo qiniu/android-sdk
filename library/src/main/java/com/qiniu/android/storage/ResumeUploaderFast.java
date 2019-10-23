@@ -599,7 +599,6 @@ public class ResumeUploaderFast implements Runnable {
 
     private void restart() {
         //reset data
-        tblock = new AtomicInteger((int) (totalSize + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE);
         offsets = new Long[tblock.get()];
         contexts = new String[tblock.get()];
         blockInfo = new LinkedHashMap<>();

@@ -286,7 +286,6 @@ public class DnsPrefetcher {
         String currentTime = String.valueOf(System.currentTimeMillis());
         String localip = AndroidNetwork.getHostIP();
         String akScope = StringUtils.getAkAndScope(token);
-
         if (currentTime == null || localip == null || akScope == null)
             return true;
         long cacheTime = (Long.parseLong(currentTime) - Long.parseLong(cacheKey.getCurrentTime())) / 1000;
