@@ -202,6 +202,8 @@ public class DnsPrefetcher {
         ZoneInfo info = null;
         try {
             ResponseInfo responseInfo = getZoneJsonSync(index);
+            if (responseInfo.response == null)
+                return null;
             info = ZoneInfo.buildFromJson(responseInfo.response);
         } catch (JSONException e) {
             e.printStackTrace();

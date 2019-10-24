@@ -125,6 +125,8 @@ public final class AutoZone extends Zone {
             } else {
                 try {
                     ResponseInfo responseInfo = getZoneJsonSync(index);
+                    if (responseInfo.response == null)
+                        return false;
                     ZoneInfo info2 = ZoneInfo.buildFromJson(responseInfo.response);
                     zones.put(index, info2);
                     success = true;
