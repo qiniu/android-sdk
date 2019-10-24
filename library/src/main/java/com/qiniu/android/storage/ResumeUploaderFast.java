@@ -192,23 +192,10 @@ public class ResumeUploaderFast implements Runnable {
 
     @Override
     public void run() {
-        try {
-            file = new RandomAccessFile(f, "r");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            completionHandler.complete(key, ResponseInfo.fileError(e, token), null);
-            return;
-        }
+        setRandomAccessFile();
         putBlockInfo();
-
         upHost.set(config.zone.upHost(token.token, config.useHttps, null));
-        if (blockInfo.size() < multithread) {
-            multithread = blockInfo.size();
-        }
-        for (int i = 0; i < multithread; i++) {
-            BlockElement mblock = getBlockInfo();
-            new UploadThread(mblock.getOffset(), mblock.getBlocksize(), upHost.get().toString()).start();
-        }
+        startUpThread();
     }
 
 
@@ -604,6 +591,13 @@ public class ResumeUploaderFast implements Runnable {
         blockInfo = new LinkedHashMap<>();
         upBlock = 0;
 
+        setRandomAccessFile();
+        removeRecord();
+        putBlockInfo();
+        startUpThread();
+    }
+
+    private void setRandomAccessFile(){
         try {
             file = new RandomAccessFile(f, "r");
         } catch (FileNotFoundException e) {
@@ -611,18 +605,12 @@ public class ResumeUploaderFast implements Runnable {
             completionHandler.complete(key, ResponseInfo.fileError(e, token), null);
             return;
         }
+    }
 
-        removeRecord();
-        int lastBlock = tblock.get() - 1;
-        for (int i = 0; i < lastBlock; i++) {
-            blockInfo.put((long) i * Configuration.BLOCK_SIZE, Configuration.BLOCK_SIZE);
-        }
-        blockInfo.put((long) lastBlock * Configuration.BLOCK_SIZE, (int) (totalSize - lastBlock * Configuration.BLOCK_SIZE));
-
+    private void startUpThread(){
         if (blockInfo.size() < multithread) {
             multithread = blockInfo.size();
         }
-
         for (int i = 0; i < multithread; i++) {
             BlockElement mblock = getBlockInfo();
             new UploadThread(mblock.getOffset(), mblock.getBlocksize(), upHost.get().toString()).start();
