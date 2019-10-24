@@ -28,6 +28,12 @@ public class ZoneInfo {
         this.upDomainsMap = upDomainsMap;
     }
 
+    /**
+     *
+     * @param obj Not allowed to be null
+     * @return
+     * @throws JSONException
+     */
     public static ZoneInfo buildFromJson(JSONObject obj) throws JSONException {
         int ttl = obj.getInt("ttl");
         List<String> domainsList = new ArrayList<>();
