@@ -24,7 +24,7 @@ android {
     buildToolsVersion '29.0.2'
     defaultConfig {
         //applicationId "com.qiniu.android"
-        minSdkVersion 9
+        minSdkVersion 15
         targetSdkVersion 26
         versionCode code
         versionName version
@@ -43,6 +43,10 @@ android {
     lintOptions {
         warning 'InvalidPackage'
     }
+
+    useLibrary 'android.test.runner'
+    useLibrary 'android.test.base'
+    useLibrary 'android.test.mock'
 }
 
 dependencies {
@@ -50,6 +54,7 @@ dependencies {
     // for javax.annotation.Nullable use in custom MultipartBody and Headers implements.
 //    implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
 
 task releaseJar(type: Jar, dependsOn: 'build') {
