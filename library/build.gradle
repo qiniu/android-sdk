@@ -20,8 +20,8 @@ String version = versionName()
 int code = versionNameToCode(version)
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '25.0.2'
+    compileSdkVersion 29
+    buildToolsVersion '29.0.2'
     defaultConfig {
         //applicationId "com.qiniu.android"
         minSdkVersion 9
@@ -46,10 +46,10 @@ android {
 }
 
 dependencies {
-    compile 'com.squareup.okhttp3:okhttp:3.11.0'
+    implementation 'com.squareup.okhttp3:okhttp:3.11.0'
     // for javax.annotation.Nullable use in custom MultipartBody and Headers implements.
-//    compile 'com.google.code.findbugs:jsr305:3.0.2'
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+//    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
 }
 
 task releaseJar(type: Jar, dependsOn: 'build') {
@@ -62,7 +62,7 @@ task releaseJar(type: Jar, dependsOn: 'build') {
     //去掉不需要打包的目录和文件
     exclude('test/', 'BuildConfig.class', 'R.class')
     //去掉R$开头的文件
-    exclude { it.name.startsWith('R$'); }
+    exclude { it.name.startsWith('R$') }
 }
 
 android.libraryVariants.all { variant ->
@@ -71,7 +71,7 @@ android.libraryVariants.all { variant ->
     task.dependsOn variant.javaCompile
     task.from variant.javaCompile.destinationDir
     task.exclude '**/R.*', '**/R$*.*', '**/BuildConfig.class'
-    artifacts.add('archives', task);
+    artifacts.add('archives', task)
 }
 
 setProperty('VERSION_NAME', version)
