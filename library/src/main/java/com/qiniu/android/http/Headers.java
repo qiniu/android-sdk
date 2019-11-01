@@ -21,6 +21,8 @@
  */
 package com.qiniu.android.http;
 
+import com.qiniu.android.utils.HttpDate;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,7 +35,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import okhttp3.internal.Util;
-import okhttp3.internal.http.HttpDate;
 
 /**
  * The header fields of a single HTTP message. Values are uninterpreted strings; use {@code Request}
@@ -137,8 +138,7 @@ public final class Headers {
      * either the field is absent or cannot be parsed as a date.
      */
     public Date getDate(String name) {
-        String value = get(name);
-        return value != null ? HttpDate.parse(value) : null;
+        return HttpDate.parse(get(name));
     }
 
     /** Returns the number of field values. */
