@@ -22,3 +22,14 @@ allprojects {
         google()
     }
 }
+subprojects {
+    afterEvaluate {
+        project ->
+            if (project.hasProperty("android-sdk")) {
+                android {
+                    compileSdkVersion = rootProject.compileSdkVersion
+                    buildToolsVersion = rootProject.buildToolsVersion
+                }
+            }
+    }
+}

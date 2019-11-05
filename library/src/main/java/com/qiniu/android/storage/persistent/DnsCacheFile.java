@@ -15,10 +15,11 @@ import java.io.IOException;
 public class DnsCacheFile implements Recorder {
 
     public String directory;
+    public File f;
 
     public DnsCacheFile(String directory) throws IOException {
         this.directory = directory;
-        File f = new File(directory);
+        f = new File(directory);
         if (!f.exists()) {
             boolean r = f.mkdirs();
             if (!r) {
@@ -39,8 +40,8 @@ public class DnsCacheFile implements Recorder {
      */
     @Override
     public void set(String key, byte[] data) {
-        File file = new File(directory);
-        File[] fs = file.listFiles();
+        File[] fs = f.listFiles();
+        if (fs == null) return;
         if (fs.length > 0) {
             for (int i = 0; i < fs.length; i++) {
                 del(fs[i].getName());
@@ -97,8 +98,8 @@ public class DnsCacheFile implements Recorder {
 
     //f.delete()=false时才会有fs.length>1的情况
     public String getFileName() {
-        File file = new File(directory);
-        File[] fs = file.listFiles();
+        File[] fs = f.listFiles();
+        if (fs == null) return null;
         if (fs.length == 1) {
             return fs[0].getName();
         } else if (fs.length > 1) {
@@ -107,7 +108,7 @@ public class DnsCacheFile implements Recorder {
             for (int i = 1; i < fs.length; i++) {
                 String key = fs[i].getName();
                 DnsCacheKey cacheKey = DnsCacheKey.toCacheKey(key);
-                if(cacheKey==null)
+                if (cacheKey == null)
                     return null;
                 long time = Long.parseLong(cacheKey.getCurrentTime());
                 if (time > cachetime) {
