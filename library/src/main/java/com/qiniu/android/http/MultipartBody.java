@@ -22,11 +22,12 @@ package com.qiniu.android.http;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
-import okhttp3.internal.Util;
 import okio.Buffer;
 import okio.BufferedSink;
 import okio.ByteString;
@@ -81,7 +82,7 @@ public final class MultipartBody extends RequestBody {
         this.boundary = boundary;
         this.originalType = type;
         this.contentType = MediaType.get(type + "; boundary=" + boundary.utf8());
-        this.parts = Util.immutableList(parts);
+        this.parts = Collections.unmodifiableList(parts);
     }
 
     /**
