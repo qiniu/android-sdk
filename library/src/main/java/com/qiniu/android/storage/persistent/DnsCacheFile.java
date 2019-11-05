@@ -99,6 +99,7 @@ public class DnsCacheFile implements Recorder {
     public String getFileName() {
         File file = new File(directory);
         File[] fs = file.listFiles();
+        if (fs == null) return null;
         if (fs.length == 1) {
             return fs[0].getName();
         } else if (fs.length > 1) {
@@ -107,7 +108,7 @@ public class DnsCacheFile implements Recorder {
             for (int i = 1; i < fs.length; i++) {
                 String key = fs[i].getName();
                 DnsCacheKey cacheKey = DnsCacheKey.toCacheKey(key);
-                if(cacheKey==null)
+                if (cacheKey == null)
                     return null;
                 long time = Long.parseLong(cacheKey.getCurrentTime());
                 if (time > cachetime) {
