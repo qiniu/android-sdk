@@ -13,10 +13,10 @@ android:
     - tools
 
     # The BuildTools version used by your project
-    - build-tools-29.0.0
+    - build-tools-25.0.0
 
     # The SDK version used to compile your project
-    - android-29
+    - android-25
     - android-22
 
     # Specify at least one system image
@@ -29,7 +29,6 @@ android:
 # Emulator Management: Create, Start and Wait
 before_script:
   - android list targets
-  - yes | /usr/local/android-sdk/tools/bin/sdkmanager --licenses
   - echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a
   - emulator -avd test -no-audio -no-window &
   - android-wait-for-emulator
