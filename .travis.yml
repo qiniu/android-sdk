@@ -13,10 +13,10 @@ android:
     #- tools
 
     # The BuildTools version used by your project
-    - build-tools-25.0.0
+    - build-tools-29.0.0
 
     # The SDK version used to compile your project
-    - android-25
+    - android-29
     - android-22
 
     # Specify at least one system image
