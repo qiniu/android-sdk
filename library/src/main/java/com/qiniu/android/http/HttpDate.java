@@ -1,4 +1,4 @@
-package com.qiniu.android.utils;
+package com.qiniu.android.http;
 
 import android.text.TextUtils;
 
@@ -97,6 +97,11 @@ public final class HttpDate {
             }
         }
         return null;
+    }
+
+    /** Returns the string for {@code value}. */
+    public static String format(Date value) {
+        return STANDARD_DATE_FORMAT.get().format(value);
     }
 
     private HttpDate() {

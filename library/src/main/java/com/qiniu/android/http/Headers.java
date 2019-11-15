@@ -21,8 +21,6 @@
  */
 package com.qiniu.android.http;
 
-import com.qiniu.android.utils.HttpDate;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
