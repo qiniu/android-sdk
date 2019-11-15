@@ -73,8 +73,8 @@ task releaseJar(type: Jar, dependsOn: 'build') {
 android.libraryVariants.all { variant ->
     def name = variant.buildType.name
     def task = project.tasks.create "jar${name.capitalize()}", Jar
-    task.dependsOn variant.javaCompile
-    task.from variant.javaCompile.destinationDir
+    task.dependsOn variant.javaCompileProvider
+    task.from variant.javaCompileProvider.get().destinationDir
     task.exclude '**/R.*', '**/R$*.*', '**/BuildConfig.class'
     artifacts.add('archives', task)
 }
