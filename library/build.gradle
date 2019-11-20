@@ -20,8 +20,8 @@ String version = versionName()
 int code = versionNameToCode(version)
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion '25.0.2'
+    compileSdkVersion 29
+    buildToolsVersion '29.0.2'
     defaultConfig {
         //applicationId "com.qiniu.android"
         minSdkVersion 9
@@ -68,8 +68,8 @@ task releaseJar(type: Jar, dependsOn: 'build') {
 android.libraryVariants.all { variant ->
     def name = variant.buildType.name
     def task = project.tasks.create "jar${name.capitalize()}", Jar
-    task.dependsOn variant.javaCompile
-    task.from variant.javaCompile.destinationDir
+    task.dependsOn variant.javaCompileProvider
+    task.from variant.javaCompileProvider.get().destinationDir
     task.exclude '**/R.*', '**/R$*.*', '**/BuildConfig.class'
     artifacts.add('archives', task);
 }
