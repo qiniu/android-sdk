@@ -33,6 +33,7 @@ public class DnsPrefetcher {
 
     public static DnsPrefetcher dnsPrefetcher = null;
     private static String token;
+    private static Configuration config;
 
     private static ConcurrentHashMap<String, List<InetAddress>> mConcurrentHashMap = new ConcurrentHashMap<String, List<InetAddress>>();
     private static List<String> mHosts = new ArrayList<String>();
@@ -74,8 +75,9 @@ public class DnsPrefetcher {
     }
 
 
-    public DnsPrefetcher init(String token) throws UnknownHostException {
+    public DnsPrefetcher init(String token, Configuration config) throws UnknownHostException {
         this.token = token;
+        this.config = config;
         List<String> preHosts = preHosts();
         if (preHosts != null && preHosts.size() > 0)
             preFetch(preHosts);
@@ -242,7 +244,11 @@ public class DnsPrefetcher {
 
     ResponseInfo getZoneJsonSync(DnsPrefetcher.ZoneIndex index) {
         Client client = new Client();
-        String address = "http://" + Config.preQueryHost + "/v2/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
+        String schema = "https://";
+        if (!config.useHttps) {
+            schema = "http://";
+        }
+        String address = schema + Config.preQueryHost + "/v2/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
         return client.syncGet(address, null);
     }
 
@@ -366,7 +372,7 @@ public class DnsPrefetcher {
         DnsPrefetcher dnsPrefetcher = null;
         try {
             recorder = new DnsCacheFile(Config.dnscacheDir);
-            dnsPrefetcher = DnsPrefetcher.getDnsPrefetcher().init(token);
+            dnsPrefetcher = DnsPrefetcher.getDnsPrefetcher().init(token, config);
             //确认预取结束后，需要更新缓存mDnsCacheKey
             mDnsCacheKey = dnsCacheKey;
         } catch (IOException e) {
