@@ -413,8 +413,4 @@ public class DnsPrefetcher {
         DnsPrefetcher.getDnsPrefetcher().setHosts(list);
         return false;
     }
-
-    private void setmDnsCacheKey(DnsCacheKey mDnsCacheKey) {
-        mDnsCacheKey = mDnsCacheKey;
-    }
 }
