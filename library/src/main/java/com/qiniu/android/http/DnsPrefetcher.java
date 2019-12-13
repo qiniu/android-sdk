@@ -299,7 +299,7 @@ public class DnsPrefetcher {
      * @return true:重新预期并缓存, false:不需要重新预取和缓存
      */
     public static boolean checkRePrefetchDns(String token, Configuration config) {
-        if (mDnsCacheKey == null)
+        if (mDnsCacheKey.get() == null)
             return true;
 
         String currentTime = String.valueOf(System.currentTimeMillis());
