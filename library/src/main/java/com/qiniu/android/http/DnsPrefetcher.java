@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * <p>
@@ -37,7 +38,7 @@ public class DnsPrefetcher {
 
     private static ConcurrentHashMap<String, List<InetAddress>> mConcurrentHashMap = new ConcurrentHashMap<String, List<InetAddress>>();
     private static List<String> mHosts = new ArrayList<String>();
-    private static DnsCacheKey mDnsCacheKey = null;
+    private static AtomicReference mDnsCacheKey = new AtomicReference();
 
     private DnsPrefetcher() {
 
@@ -307,8 +308,11 @@ public class DnsPrefetcher {
 
         if (currentTime == null || localip == null || akScope == null)
             return true;
-        long cacheTime = (Long.parseLong(currentTime) - Long.parseLong(mDnsCacheKey.getCurrentTime())) / 1000;
-        if (!mDnsCacheKey.getLocalIp().equals(localip) || cacheTime > config.dnsCacheTimeMs || !mDnsCacheKey.getAkScope().equals(akScope)) {
+        DnsCacheKey dnsCacheKey = (DnsCacheKey) mDnsCacheKey.get();
+        if (dnsCacheKey == null || dnsCacheKey.getCurrentTime() == null)
+            return true;
+        long cacheTime = (Long.parseLong(currentTime) - Long.parseLong(dnsCacheKey.getCurrentTime())) / 1000;
+        if (!localip.equals(dnsCacheKey.getLocalIp()) || cacheTime > config.dnsCacheTimeMs || !akScope.equals(dnsCacheKey.getAkScope())) {
             return true;
         }
 
@@ -350,7 +354,7 @@ public class DnsPrefetcher {
         if (!cacheKey.getLocalIp().equals(localip) || cacheTime > config.dnsCacheTimeMs) {
             return true;
         }
-        mDnsCacheKey = cacheKey;
+        mDnsCacheKey.set(cacheKey);
         return recoverDnsCache(data);
     }
 
@@ -374,7 +378,7 @@ public class DnsPrefetcher {
             recorder = new DnsCacheFile(Config.dnscacheDir);
             dnsPrefetcher = DnsPrefetcher.getDnsPrefetcher().init(token, config);
             //确认预取结束后，需要更新缓存mDnsCacheKey
-            mDnsCacheKey = dnsCacheKey;
+            mDnsCacheKey.set(dnsCacheKey);
         } catch (IOException e) {
             e.printStackTrace();
             return;
