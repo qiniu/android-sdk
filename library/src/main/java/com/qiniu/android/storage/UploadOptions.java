@@ -15,6 +15,7 @@ public final class UploadOptions {
 
     /**
      * 扩展参数，以<code>x:</code>开头的用户自定义参数
+     * 可添加网络检测次数：netCheckTime，int类型，默认600，每增加1，检测时间增加500ms
      */
     final Map<String, String> params;
 
@@ -48,8 +49,18 @@ public final class UploadOptions {
         this(params, mimeType, checkCrc, progressHandler, cancellationSignal, null);
     }
 
-    public UploadOptions(Map<String, String> params, String mimeType, boolean checkCrc,
+    public UploadOptions(final Map<String, String> params, String mimeType, boolean checkCrc,
                          UpProgressHandler progressHandler, UpCancellationSignal cancellationSignal, NetReadyHandler netReadyHandler) {
+        int netReadyCheckTime = 6;
+        try {
+            String netCheckTime = params.get("netCheckTime");
+            if (netCheckTime != null) {
+                netReadyCheckTime = Integer.parseInt(netCheckTime);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Log.e("qiniutest","netCheckTime:"+netReadyCheckTime);
         this.params = filterParam(params);
         this.mimeType = mime(mimeType);
         this.checkCrc = checkCrc;
@@ -65,13 +76,14 @@ public final class UploadOptions {
                 return false;
             }
         };
+        final int finalNetReadyCheckTime = netReadyCheckTime;
         this.netReadyHandler = netReadyHandler != null ? netReadyHandler : new NetReadyHandler() {
             @Override
             public void waitReady() {
                 if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
                     return;
                 }
-                for (int i = 0; i < 6; i++) {
+                for (int i = 0; i < finalNetReadyCheckTime; i++) {
                     try {
                         Thread.sleep(500);
                     } catch (InterruptedException e) {

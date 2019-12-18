@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * <p>
@@ -33,9 +34,11 @@ public class DnsPrefetcher {
 
     public static DnsPrefetcher dnsPrefetcher = null;
     private static String token;
+    private static Configuration config;
 
     private static ConcurrentHashMap<String, List<InetAddress>> mConcurrentHashMap = new ConcurrentHashMap<String, List<InetAddress>>();
     private static List<String> mHosts = new ArrayList<String>();
+    private static AtomicReference mDnsCacheKey = new AtomicReference();
 
     private DnsPrefetcher() {
 
@@ -52,10 +55,33 @@ public class DnsPrefetcher {
         return dnsPrefetcher;
     }
 
-    public DnsPrefetcher init(String token) throws UnknownHostException {
+    /**
+     * 不用判断是否预取，每次调用UploadManager都直接预取一次。
+     * uploadManager只会new一次，但是uploadManager.put方法有多次，如果期间网络发生变化
+     * 这个方法预取的结果应该被ConcurrentHashMap自动覆盖
+     */
+    public void localFetch() {
+        List<String> localHosts = new ArrayList<String>();
+        //local
+        List<ZoneInfo> listZoneinfo = getLocalZone();
+        for (ZoneInfo zone : listZoneinfo) {
+            for (String host : zone.upDomainsList) {
+                localHosts.add(host);
+            }
+        }
+        localHosts.add(Config.preQueryHost);
+
+        if (localHosts != null && localHosts.size() > 0)
+            preFetch(localHosts);
+    }
+
+
+    public DnsPrefetcher init(String token, Configuration config) throws UnknownHostException {
         this.token = token;
-        preHosts();
-        preFetch();
+        this.config = config;
+        List<String> preHosts = preHosts();
+        if (preHosts != null && preHosts.size() > 0)
+            preFetch(preHosts);
         return this;
     }
 
@@ -86,43 +112,47 @@ public class DnsPrefetcher {
         return mConcurrentHashMap.get(host);
     }
 
-    private void preHosts() {
+    private List<String> preHosts() {
         HashSet<String> set = new HashSet<String>();
-
+        List<String> preHosts = new ArrayList<>();
         //preQuery sync
         ZoneInfo zoneInfo = getPreQueryZone();
         if (zoneInfo != null) {
             for (String host : zoneInfo.upDomainsList) {
                 if (set.add(host))
-                    mHosts.add(host);
+                    preHosts.add(host);
             }
         }
+
         //local
         List<ZoneInfo> listZoneinfo = getLocalZone();
         for (ZoneInfo zone : listZoneinfo) {
             for (String host : zone.upDomainsList) {
                 if (set.add(host))
-                    mHosts.add(host);
+                    preHosts.add(host);
             }
         }
         if (set.add(Config.preQueryHost))
-            mHosts.add(Config.preQueryHost);
+            preHosts.add(Config.preQueryHost);
+        return preHosts;
     }
 
 
-    private void preFetch() {
+    private void preFetch(List<String> fetchHost) {
         List<String> rePreHosts = new ArrayList<String>();
-        for (String host : mHosts) {
+        for (String host : fetchHost) {
             List<InetAddress> inetAddresses = null;
             try {
                 inetAddresses = okhttp3.Dns.SYSTEM.lookup(host);
                 mConcurrentHashMap.put(host, inetAddresses);
+                mHosts.add(host);
             } catch (UnknownHostException e) {
                 e.printStackTrace();
                 rePreHosts.add(host);
             }
         }
-        rePreFetch(rePreHosts, null);
+        if (rePreHosts.size() > 0)
+            rePreFetch(rePreHosts, null);
     }
 
     /**
@@ -151,6 +181,7 @@ public class DnsPrefetcher {
                 inetAddresses = customeDns.lookup(host);
             }
             mConcurrentHashMap.put(host, inetAddresses);
+            mHosts.add(host);
             return true;
         } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -214,7 +245,11 @@ public class DnsPrefetcher {
 
     ResponseInfo getZoneJsonSync(DnsPrefetcher.ZoneIndex index) {
         Client client = new Client();
-        String address = "http://" + Config.preQueryHost + "/v2/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
+        String schema = "https://";
+        if (!config.useHttps) {
+            schema = "http://";
+        }
+        String address = schema + Config.preQueryHost + "/v2/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
         return client.syncGet(address, null);
     }
 
@@ -264,6 +299,33 @@ public class DnsPrefetcher {
      * @return true:重新预期并缓存, false:不需要重新预取和缓存
      */
     public static boolean checkRePrefetchDns(String token, Configuration config) {
+        if (mDnsCacheKey.get() == null)
+            return true;
+
+        String currentTime = String.valueOf(System.currentTimeMillis());
+        String localip = AndroidNetwork.getHostIP();
+        String akScope = StringUtils.getAkAndScope(token);
+
+        if (currentTime == null || localip == null || akScope == null)
+            return true;
+        DnsCacheKey dnsCacheKey = (DnsCacheKey) mDnsCacheKey.get();
+        if (dnsCacheKey == null || dnsCacheKey.getCurrentTime() == null)
+            return true;
+        long cacheTime = (Long.parseLong(currentTime) - Long.parseLong(dnsCacheKey.getCurrentTime())) / 1000;
+        if (!localip.equals(dnsCacheKey.getLocalIp()) || cacheTime > config.dnsCacheTimeMs || !akScope.equals(dnsCacheKey.getAkScope())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * uploadManager初始化时，加载本地缓存到内存
+     *
+     * @param config
+     * @return 如果不存在缓存返回true，需要重新预取；如果存在且满足使用，返回false
+     */
+    public static boolean recoverCache(Configuration config) {
         Recorder recorder = null;
         try {
             recorder = new DnsCacheFile(Config.dnscacheDir);
@@ -285,15 +347,14 @@ public class DnsPrefetcher {
 
         String currentTime = String.valueOf(System.currentTimeMillis());
         String localip = AndroidNetwork.getHostIP();
-        String akScope = StringUtils.getAkAndScope(token);
 
-        if (currentTime == null || localip == null || akScope == null)
+        if (currentTime == null || localip == null)
             return true;
         long cacheTime = (Long.parseLong(currentTime) - Long.parseLong(cacheKey.getCurrentTime())) / 1000;
-        if (!cacheKey.getLocalIp().equals(localip) || cacheTime > config.dnsCacheTimeMs || !cacheKey.getAkScope().equals(akScope)) {
+        if (!cacheKey.getLocalIp().equals(localip) || cacheTime > config.dnsCacheTimeMs) {
             return true;
         }
-
+        mDnsCacheKey.set(cacheKey);
         return recoverDnsCache(data);
     }
 
@@ -308,12 +369,16 @@ public class DnsPrefetcher {
         String akScope = StringUtils.getAkAndScope(token);
         if (currentTime == null || localip == null || akScope == null)
             return;
-        String cacheKey = new DnsCacheKey(currentTime, localip, akScope).toString();
+        DnsCacheKey dnsCacheKey = new DnsCacheKey(currentTime, localip, akScope);
+        String cacheKey = dnsCacheKey.toString();
+
         Recorder recorder = null;
         DnsPrefetcher dnsPrefetcher = null;
         try {
             recorder = new DnsCacheFile(Config.dnscacheDir);
-            dnsPrefetcher = DnsPrefetcher.getDnsPrefetcher().init(token);
+            dnsPrefetcher = DnsPrefetcher.getDnsPrefetcher().init(token, config);
+            //确认预取结束后，需要更新缓存mDnsCacheKey
+            mDnsCacheKey.set(dnsCacheKey);
         } catch (IOException e) {
             e.printStackTrace();
             return;

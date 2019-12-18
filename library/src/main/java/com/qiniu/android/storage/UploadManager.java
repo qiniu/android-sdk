@@ -28,7 +28,7 @@ public final class UploadManager {
     /**
      * 保证代码只执行一次，防止多个uploadManager同时开始预取dns
      */
-    static AtomicBoolean atomicStruct = new AtomicBoolean(false);
+    static AtomicBoolean atomicLocalPrefetch = new AtomicBoolean(false);
 
     /**
      * default 3 Threads
@@ -44,6 +44,7 @@ public final class UploadManager {
         this.config = config;
         this.client = new Client(config.proxy, config.connectTimeout, config.responseTimeout,
                 config.urlConverter, config.dns);
+        startLocalPrefetch(config);
     }
 
     public UploadManager(Configuration config, int multitread) {
@@ -51,6 +52,7 @@ public final class UploadManager {
         this.multithreads = multitread >= 1 ? multitread : DEF_THREAD_NUM;
         this.client = new Client(config.proxy, config.connectTimeout, config.responseTimeout,
                 config.urlConverter, config.dns);
+        startLocalPrefetch(config);
     }
 
     public UploadManager(Recorder recorder) {
@@ -67,6 +69,20 @@ public final class UploadManager {
 
     public UploadManager(Recorder recorder, KeyGenerator keyGen, int multitread) {
         this(new Configuration.Builder().recorder(recorder, keyGen).build(), multitread);
+    }
+
+    //初始化一个UploadManager只允许执行一次，开启一个线程，对sdk内置host进行预取
+    private void startLocalPrefetch(final Configuration config) {
+        if (atomicLocalPrefetch.compareAndSet(false, true)) {
+            if (DnsPrefetcher.recoverCache(config)) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        DnsPrefetcher.getDnsPrefetcher().localFetch();
+                    }
+                }).start();
+            }
+        }
     }
 
     private static boolean areInvalidArg(final String key, byte[] data, File f, String token,
@@ -98,7 +114,8 @@ public final class UploadManager {
         return false;
     }
 
-    private static ResponseInfo areInvalidArg(final String key, byte[] data, File f, String token,
+    private static ResponseInfo areInvalidArg(final String key, byte[] data, File f, String
+            token,
                                               UpToken decodedToken) {
         String message = null;
         if (f == null && data == null) {
@@ -141,17 +158,16 @@ public final class UploadManager {
         if (areInvalidArg(key, data, null, token, decodedToken, complete)) {
             return;
         }
-
-        if (atomicStruct.compareAndSet(false, true)) {
-            if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DnsPrefetcher.startPrefetchDns(token, config);
-                    }
-                }).start();
-            }
+        //此处是对uc.qbox.me接口获取的域名进行预取
+        if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    DnsPrefetcher.startPrefetchDns(token, config);
+                }
+            }).start();
         }
+
         Zone z = config.zone;
         z.preQuery(token, new Zone.QueryHandler() {
             @Override
@@ -179,7 +195,8 @@ public final class UploadManager {
      * @param completionHandler 上传完成的后续处理动作
      * @param options           上传数据的可选参数
      */
-    public void put(String filePath, String key, String token, UpCompletionHandler completionHandler,
+    public void put(String filePath, String key, String token, UpCompletionHandler
+            completionHandler,
                     final UploadOptions options) {
         put(new File(filePath), key, token, completionHandler, options);
     }
@@ -194,23 +211,23 @@ public final class UploadManager {
      * @param complete 上传完成的后续处理动作
      * @param options  上传数据的可选参数
      */
-    public void put(final File file, final String key, final String token, final UpCompletionHandler complete,
+    public void put(final File file, final String key, final String token,
+                    final UpCompletionHandler complete,
                     final UploadOptions options) {
         final UpToken decodedToken = UpToken.parse(token);
         if (areInvalidArg(key, null, file, token, decodedToken, complete)) {
             return;
         }
-
-        if (atomicStruct.compareAndSet(false, true)) {
-            if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DnsPrefetcher.startPrefetchDns(token, config);
-                    }
-                }).start();
-            }
+        //此处是每次上传时判断，对uc.qbox.me接口获取的host+sdk内置的host进行预取(去重)
+        if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    DnsPrefetcher.startPrefetchDns(token, config);
+                }
+            }).start();
         }
+
         Zone z = config.zone;
         z.preQuery(token, new Zone.QueryHandler() {
             @Override
