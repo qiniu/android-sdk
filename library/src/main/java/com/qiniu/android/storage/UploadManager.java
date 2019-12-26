@@ -160,12 +160,16 @@ public final class UploadManager {
         }
         //此处是对uc.qbox.me接口获取的域名进行预取
         if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    DnsPrefetcher.startPrefetchDns(token, config);
-                }
-            }).start();
+            try {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        DnsPrefetcher.startPrefetchDns(token, config);
+                    }
+                }).start();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         Zone z = config.zone;
@@ -220,12 +224,16 @@ public final class UploadManager {
         }
         //此处是每次上传时判断，对uc.qbox.me接口获取的host+sdk内置的host进行预取(去重)
         if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    DnsPrefetcher.startPrefetchDns(token, config);
-                }
-            }).start();
+            try {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        DnsPrefetcher.startPrefetchDns(token, config);
+                    }
+                }).start();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         Zone z = config.zone;

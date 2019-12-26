@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -38,6 +39,7 @@ public class DnsPrefetcher {
 
     private static ConcurrentHashMap<String, List<InetAddress>> mConcurrentHashMap = new ConcurrentHashMap<String, List<InetAddress>>();
     private static List<String> mHosts = new ArrayList<String>();
+    private static Set<String> mHostSets = new HashSet<String>();
     private static AtomicReference mDnsCacheKey = new AtomicReference();
 
     private DnsPrefetcher() {
@@ -145,7 +147,10 @@ public class DnsPrefetcher {
             try {
                 inetAddresses = okhttp3.Dns.SYSTEM.lookup(host);
                 mConcurrentHashMap.put(host, inetAddresses);
-                mHosts.add(host);
+                synchronized (this) {
+                    if (mHostSets.add(host))
+                        mHosts.add(host);//ArrayIndexOutOfBoundsException fix by synchronized,set保证元素不重复
+                }
             } catch (UnknownHostException e) {
                 e.printStackTrace();
                 rePreHosts.add(host);
@@ -181,7 +186,10 @@ public class DnsPrefetcher {
                 inetAddresses = customeDns.lookup(host);
             }
             mConcurrentHashMap.put(host, inetAddresses);
-            mHosts.add(host);
+            synchronized (this) {
+                if (mHostSets.add(host))
+                    mHosts.add(host);
+            }
             return true;
         } catch (UnknownHostException e) {
             e.printStackTrace();
