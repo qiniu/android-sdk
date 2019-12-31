@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -186,15 +187,18 @@ public class DnsPrefetcher {
     public void dnsPreByCustom(Dns dns) {
         List<String> rePreHosts = new ArrayList<String>();
         if (mConcurrentHashMap != null && mConcurrentHashMap.size() > 0) {
-            ArrayList<String> mHosts = (ArrayList<String>) mConcurrentHashMap.keySet();
-            for (String host : mHosts) {
-                List<InetAddress> inetAddresses = null;
-                try {
-                    inetAddresses = dns.lookup(host);
-                    mConcurrentHashMap.put(host, inetAddresses);
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
-                    rePreHosts.add(host);
+            Iterator iter = mConcurrentHashMap.keySet().iterator();
+            while (iter.hasNext()) {
+                String tmpkey = (String) iter.next();
+                if (!(tmpkey == null) && !(tmpkey.length() == 0)) {
+                    List<InetAddress> inetAddresses = null;
+                    try {
+                        inetAddresses = dns.lookup(tmpkey);
+                        mConcurrentHashMap.put(tmpkey, inetAddresses);
+                    } catch (UnknownHostException e) {
+                        e.printStackTrace();
+                        rePreHosts.add(tmpkey);
+                    }
                 }
             }
         }
@@ -395,15 +399,6 @@ public class DnsPrefetcher {
             return true;
         }
         DnsPrefetcher.getDnsPrefetcher().setConcurrentHashMap(concurrentHashMap);
-
-        ArrayList<String> list = new ArrayList<String>();
-        Iterator iter = concurrentHashMap.keySet().iterator();
-        while (iter.hasNext()) {
-            String tmpkey = (String) iter.next();
-            if (tmpkey == null || tmpkey.length() == 0)
-                continue;
-            list.add(tmpkey);
-        }
         return false;
     }
 }
