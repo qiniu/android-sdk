@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -37,7 +38,6 @@ public class DnsPrefetcher {
     private static Configuration config;
 
     private static ConcurrentHashMap<String, List<InetAddress>> mConcurrentHashMap = new ConcurrentHashMap<String, List<InetAddress>>();
-    private static List<String> mHosts = new ArrayList<String>();
     private static AtomicReference mDnsCacheKey = new AtomicReference();
 
     private DnsPrefetcher() {
@@ -75,7 +75,6 @@ public class DnsPrefetcher {
             preFetch(localHosts);
     }
 
-
     public DnsPrefetcher init(String token, Configuration config) throws UnknownHostException {
         this.token = token;
         this.config = config;
@@ -87,15 +86,6 @@ public class DnsPrefetcher {
 
     public void setConcurrentHashMap(ConcurrentHashMap<String, List<InetAddress>> mConcurrentHashMap) {
         this.mConcurrentHashMap = mConcurrentHashMap;
-    }
-
-    //use for test
-    public List<String> getHosts() {
-        return this.mHosts;
-    }
-
-    public void setHosts(List mHosts) {
-        this.mHosts = mHosts;
     }
 
     //use for test
@@ -145,7 +135,6 @@ public class DnsPrefetcher {
             try {
                 inetAddresses = okhttp3.Dns.SYSTEM.lookup(host);
                 mConcurrentHashMap.put(host, inetAddresses);
-                mHosts.add(host);
             } catch (UnknownHostException e) {
                 e.printStackTrace();
                 rePreHosts.add(host);
@@ -181,7 +170,6 @@ public class DnsPrefetcher {
                 inetAddresses = customeDns.lookup(host);
             }
             mConcurrentHashMap.put(host, inetAddresses);
-            mHosts.add(host);
             return true;
         } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -198,14 +186,20 @@ public class DnsPrefetcher {
      */
     public void dnsPreByCustom(Dns dns) {
         List<String> rePreHosts = new ArrayList<String>();
-        for (String host : mHosts) {
-            List<InetAddress> inetAddresses = null;
-            try {
-                inetAddresses = dns.lookup(host);
-                mConcurrentHashMap.put(host, inetAddresses);
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-                rePreHosts.add(host);
+        if (mConcurrentHashMap != null && mConcurrentHashMap.size() > 0) {
+            Iterator iter = mConcurrentHashMap.keySet().iterator();
+            while (iter.hasNext()) {
+                String tmpkey = (String) iter.next();
+                if (!(tmpkey == null) && !(tmpkey.length() == 0)) {
+                    List<InetAddress> inetAddresses = null;
+                    try {
+                        inetAddresses = dns.lookup(tmpkey);
+                        mConcurrentHashMap.put(tmpkey, inetAddresses);
+                    } catch (UnknownHostException e) {
+                        e.printStackTrace();
+                        rePreHosts.add(tmpkey);
+                    }
+                }
             }
         }
         rePreFetch(rePreHosts, dns);
@@ -405,16 +399,6 @@ public class DnsPrefetcher {
             return true;
         }
         DnsPrefetcher.getDnsPrefetcher().setConcurrentHashMap(concurrentHashMap);
-
-        ArrayList<String> list = new ArrayList<String>();
-        Iterator iter = concurrentHashMap.keySet().iterator();
-        while (iter.hasNext()) {
-            String tmpkey = (String) iter.next();
-            if (tmpkey == null || tmpkey.length() == 0)
-                continue;
-            list.add(tmpkey);
-        }
-        DnsPrefetcher.getDnsPrefetcher().setHosts(list);
         return false;
     }
 }
