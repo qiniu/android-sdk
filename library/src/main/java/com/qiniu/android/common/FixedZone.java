@@ -63,15 +63,15 @@ public final class FixedZone extends Zone {
     };
     public static final Zone zoneAs0 = new FixedZone(arrayZoneAs0);
 
-    private ZoneInfo zoneInfo;
-
+    private static ZoneInfo zoneInfo;
+    private static List<ZoneInfo> listZoneInfo = new ArrayList<ZoneInfo>();
     public static List<ZoneInfo> getZoneInfos() {
-        List<ZoneInfo> listZoneInfo = new ArrayList<ZoneInfo>();
         listZoneInfo.add(createZoneInfo(arrayzone0));
         listZoneInfo.add(createZoneInfo(arrayzone1));
         listZoneInfo.add(createZoneInfo(arrayzone2));
         listZoneInfo.add(createZoneInfo(arrayzoneNa0));
         listZoneInfo.add(createZoneInfo(arrayZoneAs0));
+        listZoneInfo.add(zoneInfo);
         return listZoneInfo;
     }
 
