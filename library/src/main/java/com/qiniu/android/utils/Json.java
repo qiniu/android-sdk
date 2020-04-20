@@ -1,5 +1,7 @@
 package com.qiniu.android.utils;
 
+import com.google.gson.Gson;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -19,5 +21,10 @@ public final class Json {
     public static String encodeList(Collection collection) {
         JSONArray array = new JSONArray(collection);
         return array.toString();
+    }
+
+    public static String object2Json(Object obj) {
+        String jsonString = new Gson().toJson(obj);
+        return jsonString;
     }
 }

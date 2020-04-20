@@ -1,14 +1,20 @@
 package com.qiniu.android.http;
 
-
 import com.qiniu.android.collect.Config;
+import com.qiniu.android.collect.LogHandler;
 import com.qiniu.android.collect.UploadInfoCollector;
+import com.qiniu.android.collect.UploadInfoElement;
+import com.qiniu.android.collect.UploadInfoElementCollector;
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.storage.UpToken;
+import com.qiniu.android.utils.Json;
 import com.qiniu.android.utils.StringUtils;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.InetAddress;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -32,9 +38,16 @@ public final class ResponseInfo {
     public static final int CannotConnectToHost = -1004;
     public static final int NetworkConnectionLost = -1005;
 
+    public static final int TransmissionError = -1006;
+    public static final int ProxyError = -1007;
+    public static final int SSLError = -1008;
+    public static final int ParseError = -1009;
+    //⽤用户劫持
+    public static final int MailciousResponse = -1010;
+
     // -->
     /**
-     * 回复状态码
+     * 回复状态码"
      */
     public final int statusCode;
     /**
@@ -94,6 +107,21 @@ public final class ResponseInfo {
     public final UpToken upToken;
 
     public final long totalSize;
+    public static long regions_count;
+    public static long bytes_sent;
+    public static long requests_count;
+
+    public static void setBytes_sent(long bytes_sent) {
+        ResponseInfo.bytes_sent = bytes_sent;
+    }
+
+    public void setRequests_count(long requests_count) {
+        this.requests_count = requests_count;
+    }
+
+    public void setRegions_count(long regions_count) {
+        this.regions_count = regions_count;
+    }
 
     /**
      * 响应体，json 格式
@@ -120,11 +148,12 @@ public final class ResponseInfo {
         this.totalSize = totalSize;
     }
 
-    public static ResponseInfo create(final JSONObject json, final int statusCode, final String reqId,
+    public static ResponseInfo create(final LogHandler logHandler, final JSONObject json, final int statusCode, final String reqId,
                                       final String xlog, final String xvia, final String host,
                                       final String path, final String oIp, final int port, final long duration,
                                       final long sent, final String error, final UpToken upToken, final long totalSize) {
-
+        bytes_sent = bytes_sent + sent;
+        requests_count += 1;
         String _ip = (oIp + "").split(":")[0];
         final String ip = _ip.substring(Math.max(0, _ip.indexOf("/") + 1));
         ResponseInfo res = new ResponseInfo(json, statusCode, reqId, xlog, xvia, host, path, ip,
@@ -134,12 +163,42 @@ public final class ResponseInfo {
             UploadInfoCollector.handleHttp(upToken,
                     // 延迟序列化.如果判断不记录,则不执行序列化
                     new UploadInfoCollector.RecordMsg() {
-
                         @Override
                         public String toRecordMsg() {
-                            String[] ss = new String[]{statusCode + "", reqId, host, ip, port + "", duration + "",
-                                    _timeStamp, sent + "", getUpType(path), totalSize + ""};
-                            return StringUtils.join(ss, ",");
+                            logHandler.send("pid", (long) android.os.Process.myPid());
+                            if (logHandler == null) {
+                                return "";
+                            }
+                            logHandler.send("status_code", statusCode);
+                            logHandler.send("req_id", reqId);
+                            logHandler.send("host", host);
+                            logHandler.send("remote_ip", ip);
+                            logHandler.send("port", port);
+                            if (upToken.token != "" && upToken.token != null) {
+                                logHandler.send("target_bucket", StringUtils.getScope(upToken.token));
+                            }
+                            logHandler.send("bytes_sent", (long) sent);
+                            List<InetAddress> resolveResults = DnsPrefetcher.getDnsPrefetcher().getInetAddressByHost(host);
+                            if (resolveResults != null) {
+                                logHandler.send("prefetched_ip_count", (long) resolveResults.size());
+                            }
+                            if (error != null) {
+                                logHandler.send("error_type", statusCode + "");
+                                logHandler.send("error_description", error);
+                            }
+                            try {
+                                if (json.get("key") != null) {
+                                    logHandler.send("target_key", json.get("key"));
+                                }
+                            } catch (JSONException e) {
+                                logHandler.send("target_key", "");
+                                e.printStackTrace();
+                            }
+
+                            UploadInfoElement.ReqInfo reqInfoQuery = (UploadInfoElement.ReqInfo) logHandler.getUploadInfo();
+                            UploadInfoElementCollector.setReqCommonElements(reqInfoQuery);
+                            String req = Json.object2Json(reqInfoQuery);
+                            return req;
                         }
                     });
         }
@@ -180,27 +239,27 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo zeroSize(final UpToken upToken) {
-        return create(null, ZeroSizeFile, "", "", "", "", "", "", 80, 0, 0, "file or data size is zero", upToken, 0);
+        return create(null, null, ZeroSizeFile, "", "", "", "", "", "", 80, 0, 0, "file or data size is zero", upToken, 0);
     }
 
     public static ResponseInfo cancelled(final UpToken upToken) {
-        return create(null, Cancelled, "", "", "", "", "", "", 80, -1, -1, "cancelled by user", upToken, 0);
+        return create(null, null, Cancelled, "", "", "", "", "", "", 80, -1, -1, "cancelled by user", upToken, 0);
     }
 
     public static ResponseInfo invalidArgument(String message, final UpToken upToken) {
-        return create(null, InvalidArgument, "", "", "", "", "", "", 80, 0, 0, message, upToken, 0);
+        return create(null, null, InvalidArgument, "", "", "", "", "", "", 80, 0, 0, message, upToken, 0);
     }
 
     public static ResponseInfo invalidToken(String message) {
-        return create(null, InvalidToken, "", "", "", "", "", "", 80, 0, 0, message, null, 0);
+        return create(null, null, InvalidToken, "", "", "", "", "", "", 80, 0, 0, message, null, 0);
     }
 
     public static ResponseInfo fileError(Exception e, final UpToken upToken) {
-        return create(null, InvalidFile, "", "", "", "", "", "", 80, 0, 0, e.getMessage(), upToken, 0);
+        return create(null, null, InvalidFile, "", "", "", "", "", "", 80, 0, 0, e.getMessage(), upToken, 0);
     }
 
     public static ResponseInfo networkError(int code, UpToken upToken) {
-        return create(null, code, "", "", "", "", "", "", 80, 0, 0, "Network error during preQuery, Please check your network or " +
+        return create(null, null, code, "", "", "", "", "", "", 80, 0, 0, "Network error during preQuery, Please check your network or " +
                 "use http try again", upToken, 0);
     }
 

@@ -1,6 +1,9 @@
 package com.qiniu.android.http;
 
 import com.qiniu.android.collect.Config;
+import com.qiniu.android.collect.LogHandler;
+import com.qiniu.android.collect.UploadInfo;
+import com.qiniu.android.collect.UploadInfoElementCollector;
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.ZoneInfo;
@@ -22,7 +25,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -213,7 +215,6 @@ public class DnsPrefetcher {
         return listZoneInfo;
     }
 
-
     /**
      * query host sync
      */
@@ -223,6 +224,8 @@ public class DnsPrefetcher {
         return zoneInfo;
     }
 
+    public static String target_region_id = "";
+
     ZoneInfo preQueryIndex(DnsPrefetcher.ZoneIndex index) {
         ZoneInfo info = null;
         try {
@@ -230,6 +233,20 @@ public class DnsPrefetcher {
             if (responseInfo.response == null)
                 return null;
             info = ZoneInfo.buildFromJson(responseInfo.response);
+            if (info == null) return null;
+            if (info.upDomainsList.size() > 0) {
+                if (info.upDomainsList.contains(FixedZone.arrayzone0[0])) {
+                    target_region_id = "z0";
+                } else if (info.upDomainsList.contains(FixedZone.arrayzone1[0])) {
+                    target_region_id = "z1";
+                } else if (info.upDomainsList.contains(FixedZone.arrayzone1[0])) {
+                    target_region_id = "z2";
+                } else if (info.upDomainsList.contains(FixedZone.arrayZoneAs0[0])) {
+                    target_region_id = "as0";
+                } else if (info.upDomainsList.contains(FixedZone.arrayzoneNa0[0])) {
+                    target_region_id = "na";
+                }
+            }
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
@@ -244,7 +261,11 @@ public class DnsPrefetcher {
             schema = "http://";
         }
         String address = schema + Config.preQueryHost + "/v2/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
-        return client.syncGet(address, null);
+
+        LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
+        logHandler.send("up_type", "uc_query");
+
+        return client.syncGet(logHandler, address, null);
     }
 
 

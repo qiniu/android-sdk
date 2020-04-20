@@ -1,11 +1,18 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.collect.LogHandler;
+import com.qiniu.android.collect.UploadInfo;
+import com.qiniu.android.collect.UploadInfoCollector;
+import com.qiniu.android.collect.UploadInfoElement;
+import com.qiniu.android.collect.UploadInfoElementCollector;
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
+import com.qiniu.android.http.DnsPrefetcher;
 import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.AndroidNetwork;
 import com.qiniu.android.utils.Crc32;
+import com.qiniu.android.utils.Json;
 import com.qiniu.android.utils.StringMap;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.UrlSafeBase64;
@@ -182,6 +189,7 @@ public class ResumeUploaderFast implements Runnable {
         }
     }
 
+    private long recover_from;
 
     /**
      * cut file to blockInfo
@@ -190,11 +198,13 @@ public class ResumeUploaderFast implements Runnable {
         Long[] offs = recoveryFromRecord();
         int lastBlock = tblock.get() - 1;
         if (offs == null) {
+            recover_from = 0;
             for (int i = 0; i < lastBlock; i++) {
                 blockInfo.put((long) i * Configuration.BLOCK_SIZE, Configuration.BLOCK_SIZE);
             }
             blockInfo.put((long) lastBlock * Configuration.BLOCK_SIZE, (int) (totalSize - lastBlock * Configuration.BLOCK_SIZE));
         } else {
+            recover_from = offs.length * Configuration.BLOCK_SIZE;
             HashSet<Long> set = new HashSet<Long>(Arrays.asList(offs));
             for (int i = 0; i < lastBlock; i++) {
                 Long offset = (long) i * Configuration.BLOCK_SIZE;
@@ -259,7 +269,14 @@ public class ResumeUploaderFast implements Runnable {
      * @param blockSize 分块的块大小
      */
     private void mkblk(long offset, int blockSize, String upHost) {
+        LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
+        logHandler.send("target_key", key);
+        logHandler.send("up_type", "mkblk");
+        logHandler.send("tid", (long) android.os.Process.myTid());
+        logHandler.send("file_offset", offset);
+        logHandler.send("bytes_total", (long) blockSize);
         String path = format(Locale.ENGLISH, "/mkblk/%d", blockSize);
+        // TODO: 2020-04-17 args to Client 
         byte[] chunkBuffer = new byte[blockSize];
         synchronized (this) {
             try {
@@ -274,12 +291,15 @@ public class ResumeUploaderFast implements Runnable {
 
         long crc32 = Crc32.bytes(chunkBuffer, 0, blockSize);
         String postUrl = String.format("%s%s", upHost, path);
-
-        post(postUrl, chunkBuffer, 0, blockSize, getProgressHandler(),
+        post(logHandler, postUrl, chunkBuffer, 0, blockSize, getProgressHandler(),
                 getCompletionHandler(offset, blockSize, crc32), options.cancellationSignal);
     }
 
     private void makeFile(String upHost, CompletionHandler _completionHandler, UpCancellationSignal c) {
+        LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
+        logHandler.send("target_key", key);
+        logHandler.send("up_type", "mkfile");
+        logHandler.send("tid", (long) android.os.Process.myTid());
         String mime = format(Locale.ENGLISH, "/mimeType/%s/fname/%s",
                 UrlSafeBase64.encodeToString(options.mimeType), UrlSafeBase64.encodeToString(f.getName()));
 
@@ -301,12 +321,12 @@ public class ResumeUploaderFast implements Runnable {
         String bodyStr = StringUtils.join(contexts, ",");
         byte[] data = bodyStr.getBytes();
         String postUrl = String.format("%s%s", upHost, path);
-        post(postUrl, data, 0, data.length, null, _completionHandler, c);
+        post(logHandler, postUrl, data, 0, data.length, null, _completionHandler, c);
     }
 
-    private void post(String upHost, byte[] data, int offset, int dataSize, ProgressHandler progress,
+    private void post(LogHandler logHandler, String upHost, byte[] data, int offset, int dataSize, ProgressHandler progress,
                       CompletionHandler completion, UpCancellationSignal c) {
-        client.asyncPost(upHost, data, offset, dataSize, headers, token, totalSize, progress, completion, c);
+        client.asyncPost(logHandler, upHost, data, offset, dataSize, headers, token, totalSize, progress, completion, c);
     }
 
     private ProgressHandler getProgressHandler() {
@@ -354,6 +374,7 @@ public class ResumeUploaderFast implements Runnable {
                     retried.addAndGet(1);
                     return;
                 }
+                info.setRegions_count(retried.get());
                 completionHandler.complete(key, info, response);
             }
         };
@@ -363,7 +384,35 @@ public class ResumeUploaderFast implements Runnable {
     private CompletionHandler getCompletionHandler(final long offset, final int blockSize, final long crc32) {
         return new CompletionHandler() {
             @Override
-            public void complete(ResponseInfo info, JSONObject response) {
+            public void complete(final ResponseInfo info, JSONObject response) {
+                final long tid = android.os.Process.myTid();
+                UploadInfoCollector.handleHttp(token,
+                        // 延迟序列化.如果判断不记录,则不执行序列化
+                        new UploadInfoCollector.RecordMsg() {
+                            @Override
+                            public String toRecordMsg() {
+                                //所有请求先记录，无论失败与否
+                                LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getBlockInfo());
+                                //current_region_id 双活时upHost对应区域可能变
+                                UpToken.setCurrent_region_id(logHandler, upHost.get().toString());
+                                //target_region_id
+                                logHandler.send("target_region_id", DnsPrefetcher.target_region_id);
+                                logHandler.send("total_elapsed_time", info.duration);
+                                logHandler.send("bytes_sent", info.sent);
+                                logHandler.send("recovered_from", recover_from);
+                                logHandler.send("file_size", totalSize);
+                                logHandler.send("pid", (long) android.os.Process.myPid());
+                                logHandler.send("tid", tid);
+                                logHandler.send("up_api_version", 1);
+                                logHandler.send("up_time", System.currentTimeMillis() / 1000);
+
+                                UploadInfoElement.BlockInfo blockInfo = (UploadInfoElement.BlockInfo) logHandler.getUploadInfo();
+                                String upBlock = Json.object2Json(blockInfo);
+                                return upBlock;
+                            }
+                        });
+
+
                 //网络断开或者无状态，检查3s，直接返回
                 if (info.isNetworkBroken() && !AndroidNetwork.isNetWorkReady()) {
                     options.netReadyHandler.waitReady();

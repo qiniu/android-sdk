@@ -2,6 +2,8 @@ package com.qiniu.android.common;
 
 import android.util.Log;
 
+import com.qiniu.android.collect.LogHandler;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +19,7 @@ public final class FixedZone extends Zone {
     /**
      * 华东机房
      */
-    static String[] arrayzone0 = new String[]{
+    public static String[] arrayzone0 = new String[]{
             "upload.qiniup.com", "upload-jjh.qiniup.com",
             "upload-xs.qiniup.com", "up.qiniup.com",
             "up-jjh.qiniup.com", "up-xs.qiniup.com",
@@ -28,7 +30,7 @@ public final class FixedZone extends Zone {
     /**
      * 华北机房
      */
-    static String[] arrayzone1 = new String[]{
+    public static String[] arrayzone1 = new String[]{
             "upload-z1.qiniup.com", "up-z1.qiniup.com",
             "upload-z1.qbox.me", "up-z1.qbox.me"
     };
@@ -37,7 +39,7 @@ public final class FixedZone extends Zone {
     /**
      * 华南机房
      */
-    static String[] arrayzone2 = new String[]{
+    public static String[] arrayzone2 = new String[]{
             "upload-z2.qiniup.com", "upload-dg.qiniup.com",
             "upload-fs.qiniup.com", "up-z2.qiniup.com",
             "up-dg.qiniup.com", "up-fs.qiniup.com",
@@ -48,7 +50,7 @@ public final class FixedZone extends Zone {
     /**
      * 北美机房
      */
-    static String[] arrayzoneNa0 = new String[]{
+    public static String[] arrayzoneNa0 = new String[]{
             "upload-na0.qiniup.com", "up-na0.qiniup.com",
             "upload-na0.qbox.me", "up-na0.qbox.me"
     };
@@ -57,7 +59,7 @@ public final class FixedZone extends Zone {
     /**
      * 新加坡机房
      */
-    static String[] arrayZoneAs0 = new String[]{
+    public static String[] arrayZoneAs0 = new String[]{
             "upload-as0.qiniup.com", "up-as0.qiniup.com",
             "upload-as0.qbox.me", "up-as0.qbox.me"
     };
@@ -65,6 +67,7 @@ public final class FixedZone extends Zone {
 
     private static ZoneInfo zoneInfo;
     private static List<ZoneInfo> listZoneInfo = new ArrayList<ZoneInfo>();
+
     public static List<ZoneInfo> getZoneInfos() {
         listZoneInfo.add(createZoneInfo(arrayzone0));
         listZoneInfo.add(createZoneInfo(arrayzone1));
@@ -104,12 +107,12 @@ public final class FixedZone extends Zone {
     }
 
     @Override
-    public void preQuery(String token, QueryHandler complete) {
+    public void preQuery(LogHandler logHandler, String token, QueryHandler complete) {
         complete.onSuccess();
     }
 
     @Override
-    public boolean preQuery(String token) {
+    public boolean preQuery(LogHandler logHandler, String token) {
         return true;
     }
 

@@ -2,8 +2,12 @@ package com.qiniu.android.storage;
 
 import android.util.Log;
 
+import com.qiniu.android.collect.LogHandler;
+import com.qiniu.android.collect.UploadInfo;
+import com.qiniu.android.collect.UploadInfoElementCollector;
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
+import com.qiniu.android.http.DnsPrefetcher;
 import com.qiniu.android.http.PostArgs;
 import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ResponseInfo;
@@ -37,7 +41,9 @@ final class FormUploader {
      */
     static void upload(Client httpManager, Configuration config, byte[] data, String key, UpToken token, final UpCompletionHandler completionHandler,
                        final UploadOptions options) {
-        post(data, null, key, token, completionHandler, options, httpManager, config);
+        LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
+
+        post(logHandler,data, null, key, token, completionHandler, options, httpManager, config);
     }
 
     /**
@@ -52,10 +58,12 @@ final class FormUploader {
      */
     static void upload(Client client, Configuration config, File file, String key, UpToken token,
                        UpCompletionHandler completionHandler, UploadOptions options) {
-        post(null, file, key, token, completionHandler, options, client, config);
+        LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
+
+        post(logHandler,null, file, key, token, completionHandler, options, client, config);
     }
 
-    private static void post(byte[] data, File file, String k, final UpToken token,
+    private static void post(final LogHandler logHandler, byte[] data, File file, String k, final UpToken token,
                              final UpCompletionHandler completionHandler,
                              final UploadOptions optionsIn, final Client client, final Configuration config) {
         final String key = k;
@@ -107,6 +115,11 @@ final class FormUploader {
         args.params = params;
 
         final String upHost = config.zone.upHost(token.token, config.useHttps, null);
+        logHandler.send("target_key", key);
+        logHandler.send("up_type", "form");
+        logHandler.send("tid",(long)android.os.Process.myTid());
+        UpToken.setCurrent_region_id(logHandler,upHost);
+        logHandler.send("target_region_id",DnsPrefetcher.target_region_id);
         Log.d("Qiniu.FormUploader", "upload use up host " + upHost);
         CompletionHandler completion = new CompletionHandler() {
             @Override
@@ -145,20 +158,19 @@ final class FormUploader {
                                         completionHandler.complete(key, info2, response2);
                                     }
                                 };
-                                client.asyncMultipartPost(upHostRetry2, args, token, progress, retried2, options.cancellationSignal);
+                                client.asyncMultipartPost(logHandler, upHostRetry2, args, token, progress, retried2, options.cancellationSignal);
                             } else {
                                 completionHandler.complete(key, info, response);
                             }
                         }
                     };
-                    client.asyncMultipartPost(upHostRetry, args, token, progress, retried, options.cancellationSignal);
+                    client.asyncMultipartPost(logHandler, upHostRetry, args, token, progress, retried, options.cancellationSignal);
                 } else {
                     completionHandler.complete(key, info, response);
                 }
             }
         };
-
-        client.asyncMultipartPost(upHost, args, token, progress, completion, options.cancellationSignal);
+        client.asyncMultipartPost(logHandler, upHost, args, token, progress, completion, options.cancellationSignal);
     }
 
     /**
@@ -172,11 +184,11 @@ final class FormUploader {
      * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
      */
     public static ResponseInfo syncUpload(Client client, Configuration config, byte[] data, String key, UpToken token, UploadOptions options) {
+        LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
         try {
-            return syncUpload0(client, config, data, null, key, token, options);
+            return syncUpload0(logHandler,client, config, data, null, key, token, options);
         } catch (Exception e) {
-
-            return ResponseInfo.create(null, ResponseInfo.UnknownError, "", "", "", "", "", "", 0, 0, 0,
+            return ResponseInfo.create(logHandler, null, ResponseInfo.UnknownError, "", "", "", "", "", "", 0, 0, 0,
                     e.getMessage(), token, data != null ? data.length : 0);
         }
     }
@@ -192,15 +204,16 @@ final class FormUploader {
      * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
      */
     public static ResponseInfo syncUpload(Client client, Configuration config, File file, String key, UpToken token, UploadOptions options) {
+        LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
         try {
-            return syncUpload0(client, config, null, file, key, token, options);
+            return syncUpload0(logHandler,client, config, null, file, key, token, options);
         } catch (Exception e) {
-            return ResponseInfo.create(null, ResponseInfo.UnknownError, "", "", "", "", "", "", 0, 0, 0,
+            return ResponseInfo.create(logHandler, null, ResponseInfo.UnknownError, "", "", "", "", "", "", 0, 0, 0,
                     e.getMessage(), token, file != null ? file.length() : 0);
         }
     }
 
-    private static ResponseInfo syncUpload0(Client client, Configuration config, byte[] data, File file,
+    private static ResponseInfo syncUpload0(LogHandler logHandler, Client client, Configuration config, byte[] data, File file,
                                             String key, UpToken token, UploadOptions optionsIn) {
         StringMap params = new StringMap();
         final PostArgs args = new PostArgs();
@@ -238,15 +251,23 @@ final class FormUploader {
         args.mimeType = options.mimeType;
         args.params = params;
 
-        boolean success = config.zone.preQuery(token.token);
+        LogHandler logHandlerquery = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
+        logHandlerquery.send("up_type", "uc_query");
+        boolean success = config.zone.preQuery(logHandlerquery, token.token);
+
         if (!success) {
             return ResponseInfo.invalidToken("failed to get up host");
         }
 
-
         final String upHost = config.zone.upHost(token.token, config.useHttps, null);
+
+        logHandler.send("target_key", key);
+        logHandler.send("up_type", "form");
+        logHandler.send("tid",(long)android.os.Process.myTid());
+        UpToken.setCurrent_region_id(logHandler,upHost);
+        logHandler.send("target_region_id", DnsPrefetcher.target_region_id);
         Log.d("Qiniu.FormUploader", "sync upload use up host " + upHost);
-        ResponseInfo info = client.syncMultipartPost(upHost, args, token);
+        ResponseInfo info = client.syncMultipartPost(logHandler, upHost, args, token);
 
         if (info.isOK()) {
             return info;
@@ -264,7 +285,7 @@ final class FormUploader {
             //retry for the second time
             String upHostRetry = config.zone.upHost(token.token, config.useHttps, upHost);
             Log.d("Qiniu.FormUploader", "sync upload retry first time use up host " + upHostRetry);
-            info = client.syncMultipartPost(upHostRetry, args, token);
+            info = client.syncMultipartPost(logHandler, upHostRetry, args, token);
 
             if (info.needRetry()) {
                 if (info.isNetworkBroken() && !AndroidNetwork.isNetWorkReady()) {
@@ -276,7 +297,7 @@ final class FormUploader {
 
                 String upHostRetry2 = config.zone.upHost(token.token, config.useHttps, upHostRetry);
                 Log.d("Qiniu.FormUploader", "sync upload retry second time use up host " + upHostRetry2);
-                info = client.syncMultipartPost(upHostRetry2, args, token);
+                info = client.syncMultipartPost(logHandler, upHostRetry2, args, token);
                 if (info.needRetry()) {
                     config.zone.frozenDomain(upHostRetry2);
                 }
@@ -285,4 +306,6 @@ final class FormUploader {
 
         return info;
     }
+
+
 }

@@ -1,9 +1,6 @@
 package com.qiniu.android.utils;
 
-import android.util.Log;
-
 import com.qiniu.android.common.Constants;
-import com.qiniu.android.http.DnsPrefetcher;
 
 import org.json.JSONObject;
 
@@ -200,6 +197,29 @@ public final class StringUtils {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static String getScope(String token) {
+        String[] strings = token.split(":");
+        String policy = null;
+        try {
+            policy = new String(UrlSafeBase64.decode(strings[2]), Constants.UTF_8);
+            JSONObject obj = new JSONObject(policy);
+            String scope = obj.getString("scope");
+            String bkt = scope.split(":")[0];
+            return bkt;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static String upperCase(String str) {
+        char[] ch = str.toCharArray();
+        if (ch[0] >= 'a' && ch[0] <= 'z') {
+            ch[0] = (char) (ch[0] - 32);
+        }
+        return new String(ch);
     }
 
 }

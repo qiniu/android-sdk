@@ -1,5 +1,7 @@
 package com.qiniu.android.collect;
 
+import android.util.Log;
+
 import com.qiniu.android.http.UserAgent;
 import com.qiniu.android.storage.UpToken;
 
@@ -36,6 +38,8 @@ public final class UploadInfoCollector {
 
     private UploadInfoCollector(String recordFileName, String serverURL) {
         this.recordFileName = recordFileName;
+        new UploadInfoElement();
+        new UploadInfoElement.ReqInfo();
         this.serverURL = serverURL;
         try {
             reset0();
@@ -143,7 +147,7 @@ public final class UploadInfoCollector {
         } catch (Exception e) {
             // do nothing
         }
-        recordFile = null;
+        //recordFile = null;
     }
 
     private void reset0() throws IOException {
@@ -244,11 +248,18 @@ public final class UploadInfoCollector {
         try {
             OkHttpClient client = getHttpClient();
             RequestBody reqBody = RequestBody.create(MediaType.parse("text/plain"), recordFile);
-            Request request = new Request.Builder().url(serverURL).
+
+            Request.Builder requestBuilder = new Request.Builder().url(serverURL).
                     addHeader("Authorization", "UpToken " + upToken.token).
                     addHeader("User-Agent", UserAgent.instance().getUa(upToken.accessKey)).
-                    post(reqBody).build();
+                    post(reqBody);
+            if (UploadInfoElement.x_log_client_id != "") {
+                requestBuilder.addHeader("X-Log-Client-Id", UploadInfoElement.x_log_client_id);
+            }
+            Request request = requestBuilder.build();
             Response res = client.newCall(request).execute();
+            String client_id = res.header("X-Log-Client-Id");
+            UploadInfoElement.setX_log_client_id(client_id);
             try {
                 return isOk(res);
             } finally {

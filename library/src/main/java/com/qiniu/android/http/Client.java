@@ -1,5 +1,8 @@
 package com.qiniu.android.http;
 
+import android.util.Log;
+
+import com.qiniu.android.collect.LogHandler;
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.storage.UpToken;
@@ -24,6 +27,7 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import static com.qiniu.android.http.ResponseInfo.NetworkError;
 
@@ -55,13 +59,13 @@ public final class Client {
         builder.dns(new okhttp3.Dns() {
             @Override
             public List<InetAddress> lookup(String hostname) throws UnknownHostException {
-               if (DnsPrefetcher.getDnsPrefetcher().getInetAddressByHost(hostname) != null) {
-                    return DnsPrefetcher.getDnsPrefetcher().getInetAddressByHost(hostname);
+                List<InetAddress> resolveResults = DnsPrefetcher.getDnsPrefetcher().getInetAddressByHost(hostname);
+                if (resolveResults != null) {
+                    return resolveResults;
                 }
                 return okhttp3.Dns.SYSTEM.lookup(hostname);
             }
         });
-
         builder.networkInterceptors().add(new Interceptor() {
             @Override
             public okhttp3.Response intercept(Chain chain) throws IOException {
@@ -69,8 +73,7 @@ public final class Client {
                 final long before = System.currentTimeMillis();
                 okhttp3.Response response = chain.proceed(request);
                 final long after = System.currentTimeMillis();
-
-                ResponseTag tag = (ResponseTag) request.tag();
+                final ResponseTag tag = (ResponseTag) request.tag();
                 String ip = "";
                 try {
                     ip = chain.connection().socket().getRemoteSocketAddress().toString();
@@ -82,7 +85,7 @@ public final class Client {
                 return response;
             }
         });
-
+        builder.eventListenerFactory(HttpEventListener.FACTORY);
         builder.connectTimeout(connectTimeout, TimeUnit.SECONDS);
         builder.readTimeout(responseTimeout, TimeUnit.SECONDS);
         builder.writeTimeout(0, TimeUnit.SECONDS);
@@ -123,7 +126,7 @@ public final class Client {
         return new JSONObject(str);
     }
 
-    private static ResponseInfo buildResponseInfo(okhttp3.Response response, String ip, long duration,
+    private static ResponseInfo buildResponseInfo(LogHandler logHandler, okhttp3.Response response, String ip, long duration,
                                                   final UpToken upToken, final long totalSize) {
         int code = response.code();
         String reqId = response.header("X-Reqid");
@@ -153,7 +156,7 @@ public final class Client {
         }
 
         HttpUrl u = response.request().url();
-        return ResponseInfo.create(json, code, reqId, response.header("X-Log"),
+        return ResponseInfo.create(logHandler, json, code, reqId, response.header("X-Log"),
                 via(response), u.host(), u.encodedPath(), ip, u.port(), duration,
                 getContentLength(response), error, upToken, totalSize);
     }
@@ -170,9 +173,9 @@ public final class Client {
         }
     }
 
-    private static void onRet(okhttp3.Response response, String ip, long duration, final UpToken upToken,
+    private static void onRet(LogHandler logHandler, okhttp3.Response response, String ip, long duration, final UpToken upToken,
                               final long totalSize, final CompletionHandler complete) {
-        final ResponseInfo info = buildResponseInfo(response, ip, duration, upToken, totalSize);
+        final ResponseInfo info = buildResponseInfo(logHandler, response, ip, duration, upToken, totalSize);
 
         AsyncRun.runInMain(new Runnable() {
             @Override
@@ -182,7 +185,7 @@ public final class Client {
         });
     }
 
-    public void asyncSend(final Request.Builder requestBuilder, StringMap headers, final UpToken upToken,
+    public void asyncSend(final LogHandler logHandler, final Request.Builder requestBuilder, StringMap headers, final UpToken upToken,
                           final long totalSize, final CompletionHandler complete) {
         if (headers != null) {
             headers.forEach(new StringMap.Consumer() {
@@ -201,6 +204,7 @@ public final class Client {
 
 
         final ResponseTag tag = new ResponseTag();
+        tag.logHandler = logHandler;
         httpClient.newCall(requestBuilder.tag(tag).build()).enqueue(new Callback() {
             @Override
             public void onFailure(Call call, IOException e) {
@@ -218,30 +222,29 @@ public final class Client {
                 } else if (e instanceof java.net.ConnectException) {
                     statusCode = ResponseInfo.CannotConnectToHost;
                 }
-
                 HttpUrl u = call.request().url();
-                ResponseInfo info = ResponseInfo.create(null, statusCode, "", "", "", u.host(),
+                ResponseInfo info = ResponseInfo.create(logHandler, null, statusCode, "", "", "", u.host(),
                         u.encodedPath(), "", u.port(), tag.duration, -1, e.getMessage(), upToken, totalSize);
 
                 complete.complete(info, null);
             }
 
             @Override
-            public void onResponse(Call call, okhttp3.Response response) throws IOException {
+            public void onResponse(Call call, Response response) throws IOException {
                 ResponseTag tag = (ResponseTag) response.request().tag();
-                onRet(response, tag.ip, tag.duration, upToken, totalSize, complete);
+                onRet(logHandler, response, tag.ip, tag.duration, upToken, totalSize, complete);
             }
         });
     }
 
-    public void asyncPost(String url, byte[] body,
+    public void asyncPost(LogHandler logHandler, String url, byte[] body,
                           StringMap headers, final UpToken upToken,
                           final long totalSize, ProgressHandler progressHandler,
                           CompletionHandler completionHandler, UpCancellationSignal c) {
-        asyncPost(url, body, 0, body.length, headers, upToken, totalSize, progressHandler, completionHandler, c);
+        asyncPost(logHandler, url, body, 0, body.length, headers, upToken, totalSize, progressHandler, completionHandler, c);
     }
 
-    public void asyncPost(String url, byte[] body, int offset, int size,
+    public void asyncPost(LogHandler logHandler, String url, byte[] body, int offset, int size,
                           StringMap headers, final UpToken upToken,
                           final long totalSize, ProgressHandler progressHandler,
                           CompletionHandler completionHandler, CancellationHandler c) {
@@ -267,10 +270,11 @@ public final class Client {
         }
 
         Request.Builder requestBuilder = new Request.Builder().url(url).post(rbody);
-        asyncSend(requestBuilder, headers, upToken, totalSize, completionHandler);
+        asyncSend(logHandler, requestBuilder, headers, upToken, totalSize, completionHandler);
     }
 
-    public void asyncMultipartPost(String url,
+    public void asyncMultipartPost(LogHandler logHandler,
+                                   String url,
                                    PostArgs args,
                                    final UpToken upToken,
                                    ProgressHandler progressHandler,
@@ -285,10 +289,11 @@ public final class Client {
             file = RequestBody.create(MediaType.parse(args.mimeType), args.data);
             totalSize = args.data.length;
         }
-        asyncMultipartPost(url, args.params, upToken, totalSize, progressHandler, args.fileName, file, completionHandler, c);
+        asyncMultipartPost(logHandler, url, args.params, upToken, totalSize, progressHandler, args.fileName, file, completionHandler, c);
     }
 
-    private void asyncMultipartPost(String url,
+    private void asyncMultipartPost(LogHandler logHandler,
+                                    String url,
                                     StringMap fields,
                                     final UpToken upToken,
                                     final long totalSize,
@@ -315,21 +320,21 @@ public final class Client {
             body = new CountingRequestBody(body, progressHandler, totalSize, cancellationHandler);
         }
         Request.Builder requestBuilder = new Request.Builder().url(url).post(body);
-        asyncSend(requestBuilder, null, upToken, totalSize, completionHandler);
+        asyncSend(logHandler, requestBuilder, null, upToken, totalSize, completionHandler);
     }
 
-    public void asyncGet(String url, StringMap headers, final UpToken upToken,
+    public void asyncGet(LogHandler logHandler, String url, StringMap headers, final UpToken upToken,
                          CompletionHandler completionHandler) {
         Request.Builder requestBuilder = new Request.Builder().get().url(url);
-        asyncSend(requestBuilder, headers, upToken, 0, completionHandler);
+        asyncSend(logHandler, requestBuilder, headers, upToken, 0, completionHandler);
     }
 
-    public ResponseInfo syncGet(String url, StringMap headers) {
+    public ResponseInfo syncGet(LogHandler logHandler, String url, StringMap headers) {
         Request.Builder requestBuilder = new Request.Builder().get().url(url);
-        return send(requestBuilder, headers);
+        return send(logHandler, requestBuilder, headers);
     }
 
-    private ResponseInfo send(final Request.Builder requestBuilder, StringMap headers) {
+    private ResponseInfo send(LogHandler logHandler, final Request.Builder requestBuilder, StringMap headers) {
         if (headers != null) {
             headers.forEach(new StringMap.Consumer() {
                 @Override
@@ -343,20 +348,21 @@ public final class Client {
         long start = System.currentTimeMillis();
         okhttp3.Response res = null;
         ResponseTag tag = new ResponseTag();
+        tag.logHandler = logHandler;
         Request req = requestBuilder.tag(tag).build();
         try {
             res = httpClient.newCall(req).execute();
         } catch (IOException e) {
             e.printStackTrace();
-            return ResponseInfo.create(null, NetworkError, "", "", "",
+            return ResponseInfo.create(logHandler, null, NetworkError, "", "", "",
                     req.url().host(), req.url().encodedPath(), tag.ip, req.url().port(),
                     tag.duration, -1, e.getMessage(), UpToken.NULL, 0);
         }
 
-        return buildResponseInfo(res, tag.ip, tag.duration, UpToken.NULL, 0);
+        return buildResponseInfo(logHandler, res, tag.ip, tag.duration, UpToken.NULL, 0);
     }
 
-    public ResponseInfo syncMultipartPost(String url, PostArgs args,
+    public ResponseInfo syncMultipartPost(LogHandler logHandler, String url, PostArgs args,
                                           final UpToken upToken) {
         RequestBody file;
         long totalSize;
@@ -367,15 +373,17 @@ public final class Client {
             file = RequestBody.create(MediaType.parse(args.mimeType), args.data);
             totalSize = args.data.length;
         }
-        return syncMultipartPost(url, args.params, upToken, totalSize, args.fileName, file);
+        return syncMultipartPost(logHandler, url, args.params, upToken, totalSize, args.fileName, file);
     }
 
-    private ResponseInfo syncMultipartPost(String url,
-                                           StringMap fields,
-                                           final UpToken upToken,
-                                           final long totalSize,
-                                           String fileName,
-                                           RequestBody file) {
+    private ResponseInfo syncMultipartPost(
+            LogHandler logHandler,
+            String url,
+            StringMap fields,
+            final UpToken upToken,
+            final long totalSize,
+            String fileName,
+            RequestBody file) {
         final MultipartBody.Builder mb = new MultipartBody.Builder();
         mb.addFormDataPart("file", fileName, file);
 
@@ -388,10 +396,10 @@ public final class Client {
         mb.setType(MediaType.parse("multipart/form-data"));
         RequestBody body = mb.build();
         Request.Builder requestBuilder = new Request.Builder().url(url).post(body);
-        return syncSend(requestBuilder, null, upToken, totalSize);
+        return syncSend(logHandler, requestBuilder, null, upToken, totalSize);
     }
 
-    public ResponseInfo syncSend(final Request.Builder requestBuilder, StringMap headers,
+    public ResponseInfo syncSend(LogHandler logHandler, final Request.Builder requestBuilder, StringMap headers,
                                  final UpToken upToken, final long totalSize) {
         if (headers != null) {
             headers.forEach(new StringMap.Consumer() {
@@ -404,11 +412,12 @@ public final class Client {
 
         requestBuilder.header("User-Agent", UserAgent.instance().getUa(upToken.accessKey));
         final ResponseTag tag = new ResponseTag();
+        tag.logHandler = logHandler;
         Request req = null;
         try {
             req = requestBuilder.tag(tag).build();
             okhttp3.Response response = httpClient.newCall(req).execute();
-            return buildResponseInfo(response, tag.ip, tag.duration, upToken, totalSize);
+            return buildResponseInfo(logHandler, response, tag.ip, tag.duration, upToken, totalSize);
         } catch (Exception e) {
             e.printStackTrace();
             int statusCode = NetworkError;
@@ -424,13 +433,14 @@ public final class Client {
             }
 
             HttpUrl u = req.url();
-            return ResponseInfo.create(null, statusCode, "", "", "", u.host(), u.encodedPath(), "",
+            return ResponseInfo.create(logHandler, null, statusCode, "", "", "", u.host(), u.encodedPath(), "",
                     u.port(), 0, 0, e.getMessage(), upToken, totalSize);
         }
     }
 
-    private static class ResponseTag {
+    public static class ResponseTag {
         public String ip = "";
         public long duration = -1;
+        public LogHandler logHandler = null;
     }
 }

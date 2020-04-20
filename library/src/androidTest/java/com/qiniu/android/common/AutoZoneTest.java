@@ -59,7 +59,7 @@ public class AutoZoneTest extends AndroidTestCase {
     public void testC1() {
         AutoZone autoZone = new AutoZone();
         final CountDownLatch countDownLatch = new CountDownLatch(1);
-        autoZone.preQueryIndex(new AutoZone.ZoneIndex(ak, bkt), new Zone.QueryHandler() {
+        autoZone.preQueryIndex(null, new AutoZone.ZoneIndex(ak, bkt), new Zone.QueryHandler() {
             @Override
             public void onSuccess() {
                 countDownLatch.countDown();

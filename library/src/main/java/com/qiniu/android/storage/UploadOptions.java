@@ -60,7 +60,6 @@ public final class UploadOptions {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Log.e("qiniutest","netCheckTime:"+netReadyCheckTime);
         this.params = filterParam(params);
         this.mimeType = mime(mimeType);
         this.checkCrc = checkCrc;

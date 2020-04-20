@@ -1,5 +1,9 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.collect.LogHandler;
+import com.qiniu.android.collect.UploadInfo;
+import com.qiniu.android.collect.UploadInfoElement;
+import com.qiniu.android.collect.UploadInfoElementCollector;
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
 import com.qiniu.android.http.ProgressHandler;
@@ -129,6 +133,9 @@ final class ResumeUploader implements Runnable {
      */
     private void makeBlock(String upHost, long offset, int blockSize, int chunkSize, ProgressHandler progress,
                            CompletionHandler _completionHandler, UpCancellationSignal c) {
+        LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
+        logHandler.send("target_key",key);
+        logHandler.send("up_type","mkblk");
         String path = format(Locale.ENGLISH, "/mkblk/%d", blockSize);
         try {
             file.seek(offset);
@@ -139,11 +146,14 @@ final class ResumeUploader implements Runnable {
         }
         this.crc32 = Crc32.bytes(chunkBuffer, 0, chunkSize);
         String postUrl = String.format("%s%s", upHost, path);
-        post(postUrl, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
+        post(logHandler, postUrl, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
     }
 
     private void putChunk(String upHost, long offset, int chunkSize, String context, ProgressHandler progress,
                           CompletionHandler _completionHandler, UpCancellationSignal c) {
+        LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
+        logHandler.send("target_key",key);
+        logHandler.send("up_type","bput");
         int chunkOffset = (int) (offset % Configuration.BLOCK_SIZE);
         String path = format(Locale.ENGLISH, "/bput/%s/%d", context, chunkOffset);
         try {
@@ -156,10 +166,15 @@ final class ResumeUploader implements Runnable {
         this.crc32 = Crc32.bytes(chunkBuffer, 0, chunkSize);
 
         String postUrl = String.format("%s%s", upHost, path);
-        post(postUrl, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
+        post(logHandler, postUrl, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
     }
 
     private void makeFile(String upHost, CompletionHandler _completionHandler, UpCancellationSignal c) {
+
+        LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
+        logHandler.send("target_key",key);
+        logHandler.send("up_type","mkfile");
+
         String mime = format(Locale.ENGLISH, "/mimeType/%s/fname/%s",
                 UrlSafeBase64.encodeToString(options.mimeType), UrlSafeBase64.encodeToString(f.getName()));
 
@@ -182,12 +197,12 @@ final class ResumeUploader implements Runnable {
         String bodyStr = StringUtils.join(contexts, ",");
         byte[] data = bodyStr.getBytes();
         String postUrl = String.format("%s%s", upHost, path);
-        post(postUrl, data, 0, data.length, null, _completionHandler, c);
+        post(logHandler, postUrl, data, 0, data.length, null, _completionHandler, c);
     }
 
-    private void post(String upHost, byte[] data, int offset, int dataSize, ProgressHandler progress,
+    private void post(LogHandler logHandler, String upHost, byte[] data, int offset, int dataSize, ProgressHandler progress,
                       CompletionHandler completion, UpCancellationSignal c) {
-        client.asyncPost(upHost, data, offset, dataSize, headers, token, totalSize, progress, completion, c);
+        client.asyncPost(logHandler, upHost, data, offset, dataSize, headers, token, totalSize, progress, completion, c);
     }
 
     private long calcPutSize(long offset) {
