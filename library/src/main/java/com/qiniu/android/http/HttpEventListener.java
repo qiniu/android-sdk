@@ -1,13 +1,16 @@
 package com.qiniu.android.http;
 
 import com.qiniu.android.collect.LogHandler;
+
 import org.jetbrains.annotations.NotNull;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+
 import okhttp3.Call;
 import okhttp3.Connection;
 import okhttp3.EventListener;
@@ -48,7 +51,21 @@ public class HttpEventListener extends EventListener {
         this.callId = callId;
         this.callStartNanos = callStartNanos;
         this.responseTag = responseTag;
-        this.logHandler = responseTag.logHandler;
+        if (responseTag.logHandler == null) {
+            this.logHandler = new LogHandler() {
+                @Override
+                public void send(String key, Object value) {
+                    //logHandler == null时，创建一个新的logHandler，防止调用send方法时报空指针，这里不处理数据
+                }
+
+                @Override
+                public Object getUploadInfo() {
+                    return null;
+                }
+            };
+        } else {
+            this.logHandler = responseTag.logHandler;
+        }
     }
 
     public static final Factory FACTORY = new Factory() {
@@ -58,7 +75,6 @@ public class HttpEventListener extends EventListener {
         public EventListener create(@NotNull Call call) {
             long callId = nextCallId.getAndIncrement();
             return new HttpEventListener(callId, (Client.ResponseTag) call.request().tag(), System.nanoTime());
-
         }
     };
 
@@ -67,7 +83,6 @@ public class HttpEventListener extends EventListener {
         super.callStart(call);
         start_total_elapsed_time = System.currentTimeMillis();
     }
-
 
     @Override
     public void dnsStart(Call call, String domainName) {

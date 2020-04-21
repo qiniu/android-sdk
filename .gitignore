@@ -32,3 +32,4 @@ build/
 .idea/libraries
 .idea/kotlinc.xml
 .idea/caches/
+library/library.iml

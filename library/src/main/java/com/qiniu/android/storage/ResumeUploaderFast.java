@@ -276,7 +276,6 @@ public class ResumeUploaderFast implements Runnable {
         logHandler.send("file_offset", offset);
         logHandler.send("bytes_total", (long) blockSize);
         String path = format(Locale.ENGLISH, "/mkblk/%d", blockSize);
-        // TODO: 2020-04-17 args to Client 
         byte[] chunkBuffer = new byte[blockSize];
         synchronized (this) {
             try {
@@ -374,7 +373,7 @@ public class ResumeUploaderFast implements Runnable {
                     retried.addAndGet(1);
                     return;
                 }
-                info.setRegions_count(retried.get());
+                info.regions_count = retried.get();
                 completionHandler.complete(key, info, response);
             }
         };

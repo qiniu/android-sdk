@@ -356,9 +356,9 @@ public final class UploadManager {
                                 }
 
                                 logHandler.send("up_time", System.currentTimeMillis() / 1000);
-                                res.setRegions_count(0L);
-                                res.setRequests_count(0L);
-                                res.setBytes_sent(0L);
+                                ResponseInfo.regions_count = 0L;
+                                ResponseInfo.requests_count = 0L;
+                                ResponseInfo.bytes_sent = 0L;
                                 UpToken.setCustomRegion(false);
 
                                 UploadInfoElement.UploadQuality uploadQuality = (UploadInfoElement.UploadQuality) logHandler.getUploadInfo();

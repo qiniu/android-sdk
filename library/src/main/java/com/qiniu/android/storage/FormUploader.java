@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.qiniu.android.collect.LogHandler;
 import com.qiniu.android.collect.UploadInfo;
+import com.qiniu.android.collect.UploadInfoElement;
 import com.qiniu.android.collect.UploadInfoElementCollector;
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
@@ -43,7 +44,7 @@ final class FormUploader {
                        final UploadOptions options) {
         LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
 
-        post(logHandler,data, null, key, token, completionHandler, options, httpManager, config);
+        post(logHandler, data, null, key, token, completionHandler, options, httpManager, config);
     }
 
     /**
@@ -60,7 +61,7 @@ final class FormUploader {
                        UpCompletionHandler completionHandler, UploadOptions options) {
         LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
 
-        post(logHandler,null, file, key, token, completionHandler, options, client, config);
+        post(logHandler, null, file, key, token, completionHandler, options, client, config);
     }
 
     private static void post(final LogHandler logHandler, byte[] data, File file, String k, final UpToken token,
@@ -117,9 +118,9 @@ final class FormUploader {
         final String upHost = config.zone.upHost(token.token, config.useHttps, null);
         logHandler.send("target_key", key);
         logHandler.send("up_type", "form");
-        logHandler.send("tid",(long)android.os.Process.myTid());
-        UpToken.setCurrent_region_id(logHandler,upHost);
-        logHandler.send("target_region_id",DnsPrefetcher.target_region_id);
+        logHandler.send("tid", (long) android.os.Process.myTid());
+        UpToken.setCurrent_region_id(logHandler, upHost);
+        logHandler.send("target_region_id", DnsPrefetcher.target_region_id);
         Log.d("Qiniu.FormUploader", "upload use up host " + upHost);
         CompletionHandler completion = new CompletionHandler() {
             @Override
@@ -186,7 +187,7 @@ final class FormUploader {
     public static ResponseInfo syncUpload(Client client, Configuration config, byte[] data, String key, UpToken token, UploadOptions options) {
         LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
         try {
-            return syncUpload0(logHandler,client, config, data, null, key, token, options);
+            return syncUpload0(logHandler, client, config, data, null, key, token, options);
         } catch (Exception e) {
             return ResponseInfo.create(logHandler, null, ResponseInfo.UnknownError, "", "", "", "", "", "", 0, 0, 0,
                     e.getMessage(), token, data != null ? data.length : 0);
@@ -206,7 +207,7 @@ final class FormUploader {
     public static ResponseInfo syncUpload(Client client, Configuration config, File file, String key, UpToken token, UploadOptions options) {
         LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
         try {
-            return syncUpload0(logHandler,client, config, null, file, key, token, options);
+            return syncUpload0(logHandler, client, config, null, file, key, token, options);
         } catch (Exception e) {
             return ResponseInfo.create(logHandler, null, ResponseInfo.UnknownError, "", "", "", "", "", "", 0, 0, 0,
                     e.getMessage(), token, file != null ? file.length() : 0);
@@ -263,8 +264,8 @@ final class FormUploader {
 
         logHandler.send("target_key", key);
         logHandler.send("up_type", "form");
-        logHandler.send("tid",(long)android.os.Process.myTid());
-        UpToken.setCurrent_region_id(logHandler,upHost);
+        logHandler.send("tid", (long) android.os.Process.myTid());
+        UpToken.setCurrent_region_id(logHandler, upHost);
         logHandler.send("target_region_id", DnsPrefetcher.target_region_id);
         Log.d("Qiniu.FormUploader", "sync upload use up host " + upHost);
         ResponseInfo info = client.syncMultipartPost(logHandler, upHost, args, token);

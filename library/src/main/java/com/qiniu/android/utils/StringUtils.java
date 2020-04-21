@@ -211,10 +211,13 @@ public final class StringUtils {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return "";
     }
 
     public static String upperCase(String str) {
+        if (str.length() <= 0 || str == null) {
+            return "";
+        }
         char[] ch = str.toCharArray();
         if (ch[0] >= 'a' && ch[0] <= 'z') {
             ch[0] = (char) (ch[0] - 32);

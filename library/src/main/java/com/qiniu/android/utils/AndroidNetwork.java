@@ -136,6 +136,9 @@ public final class AndroidNetwork {
             if (context.checkPermission(Manifest.permission.ACCESS_COARSE_LOCATION, Process.myPid(), Process.myUid()) != PackageManager.PERMISSION_GRANTED) {
                 return dbm;
             }
+            if (context.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION, Process.myPid(), Process.myUid()) != PackageManager.PERMISSION_GRANTED) {
+                return dbm;
+            }
             cellInfoList = tm.getAllCellInfo();
             if (null != cellInfoList) {
                 for (CellInfo cellInfo : cellInfoList) {

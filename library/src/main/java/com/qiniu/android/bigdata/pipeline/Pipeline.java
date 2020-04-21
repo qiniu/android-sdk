@@ -24,8 +24,7 @@ public final class Pipeline {
 
     public Pipeline(Configuration config) {
         this.config = Configuration.copy(config);
-        // TODO: 2020-04-17
-        this.client = new Client(null,this.config.proxy, this.config.connectTimeout, this.config.responseTimeout, null, null);
+        this.client = new Client(this.config.proxy, this.config.connectTimeout, this.config.responseTimeout, null, null);
     }
 
     public <V> void pump(String repo, Map<String, V> data, String token, PumpCompleteHandler handler) {
@@ -75,7 +74,7 @@ public final class Pipeline {
         headers.put(HTTPHeaderAuthorization, token);
         headers.put(Client.ContentTypeHeader, TEXT_PLAIN);
         // TODO: 2020-04-15  repo上报时不记录，logHandler为null
-        client.asyncPost(null,url(repo), data, headers, null, data.length, null, new CompletionHandler() {
+        client.asyncPost(null, url(repo), data, headers, null, data.length, null, new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
                 handler.complete(info);

@@ -3,6 +3,7 @@ package com.qiniu.android.http;
 import android.util.Log;
 
 import com.qiniu.android.collect.LogHandler;
+import com.qiniu.android.collect.UploadInfoElement;
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.storage.UpToken;
@@ -66,6 +67,7 @@ public final class Client {
                 return okhttp3.Dns.SYSTEM.lookup(hostname);
             }
         });
+
         builder.networkInterceptors().add(new Interceptor() {
             @Override
             public okhttp3.Response intercept(Chain chain) throws IOException {
@@ -73,7 +75,7 @@ public final class Client {
                 final long before = System.currentTimeMillis();
                 okhttp3.Response response = chain.proceed(request);
                 final long after = System.currentTimeMillis();
-                final ResponseTag tag = (ResponseTag) request.tag();
+                ResponseTag tag = (ResponseTag) request.tag();
                 String ip = "";
                 try {
                     ip = chain.connection().socket().getRemoteSocketAddress().toString();

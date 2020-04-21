@@ -58,6 +58,7 @@ public final class UploadOptions {
                 netReadyCheckTime = Integer.parseInt(netCheckTime);
             }
         } catch (Exception e) {
+            //额外添加参数只能放这，当用户未传netCheckTime这里比走进来
             e.printStackTrace();
         }
         this.params = filterParam(params);

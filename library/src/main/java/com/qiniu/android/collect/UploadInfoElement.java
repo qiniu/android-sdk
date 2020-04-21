@@ -6,15 +6,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class UploadInfoElement {
 
-
     /**
      * 本次上传的header,存活于app启动后的整个生命周期
      */
     public static String x_log_client_id = "";
-
-    public static void setX_log_client_id(String x_log_client_id) {
-        UploadInfoElement.x_log_client_id = x_log_client_id;
-    }
 
     public static class ReqInfo {
         public String log_type;
@@ -40,7 +35,7 @@ public class UploadInfoElement {
         private long bytes_total;
         private long pid;
         private long tid;
-        //response之后解析得到，在AutoZone或者dnsprefetch，如果自定义域名且本次没有dns预取，字段将为空
+        //在AutoZone或者dnsprefetch之后，根据host得到区域，如果自定义域名且本次没有dns预取，字段将为空
         private String target_region_id;
         private String error_type;
         private String error_description;
@@ -323,6 +318,9 @@ public class UploadInfoElement {
         private String current_region_id;
         private long total_elapsed_time;
         private long bytes_sent;
+        /**
+         * resumeUpload（bput）记录开始位置，resumeUploadFast多线程记录的是已上传的数据总量
+         */
         private long recovered_from;
         private long file_size;
         private long pid;
@@ -500,7 +498,6 @@ public class UploadInfoElement {
         public long getUp_time() {
             return up_time;
         }
-
 
     }
 }

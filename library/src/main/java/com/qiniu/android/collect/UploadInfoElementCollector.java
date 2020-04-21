@@ -29,6 +29,7 @@ public class UploadInfoElementCollector {
                     }
                 } catch (NoSuchMethodException e) {
                     e.printStackTrace();
+                    //忽略异常，构造时用默认值
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 } catch (InvocationTargetException e) {
@@ -48,7 +49,7 @@ public class UploadInfoElementCollector {
 
 
     public static void setReqCommonElements(UploadInfoElement.ReqInfo reqInfoQuery) {
-        //device+os_version
+        //os_version
         reqInfoQuery.setOs_version(UserAgent.osVersion());
         //sdk_version
         reqInfoQuery.setSdk_version(Constants.VERSION);

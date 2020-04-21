@@ -58,6 +58,7 @@ final class ResumeUploader implements Runnable {
     private File f;
     private long crc32;
     private UpToken token;
+    private long recover_from;
 
     ResumeUploader(Client client, Configuration config, File f, String key, UpToken token,
                    final UpCompletionHandler completionHandler, UploadOptions options, String recorderKey) {
@@ -111,6 +112,8 @@ final class ResumeUploader implements Runnable {
 
     public void run() {
         long offset = recoveryFromRecord();
+        if (offset > 0)
+            recover_from = offset;
         try {
             file = new RandomAccessFile(f, "r");
         } catch (FileNotFoundException e) {
@@ -134,8 +137,10 @@ final class ResumeUploader implements Runnable {
     private void makeBlock(String upHost, long offset, int blockSize, int chunkSize, ProgressHandler progress,
                            CompletionHandler _completionHandler, UpCancellationSignal c) {
         LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
-        logHandler.send("target_key",key);
-        logHandler.send("up_type","mkblk");
+        logHandler.send("target_key", key);
+        logHandler.send("up_type", "mkblk");
+        if (recover_from > 0)
+            logHandler.send("recovered_from", recover_from);
         String path = format(Locale.ENGLISH, "/mkblk/%d", blockSize);
         try {
             file.seek(offset);
@@ -152,8 +157,8 @@ final class ResumeUploader implements Runnable {
     private void putChunk(String upHost, long offset, int chunkSize, String context, ProgressHandler progress,
                           CompletionHandler _completionHandler, UpCancellationSignal c) {
         LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
-        logHandler.send("target_key",key);
-        logHandler.send("up_type","bput");
+        logHandler.send("target_key", key);
+        logHandler.send("up_type", "bput");
         int chunkOffset = (int) (offset % Configuration.BLOCK_SIZE);
         String path = format(Locale.ENGLISH, "/bput/%s/%d", context, chunkOffset);
         try {
@@ -170,11 +175,9 @@ final class ResumeUploader implements Runnable {
     }
 
     private void makeFile(String upHost, CompletionHandler _completionHandler, UpCancellationSignal c) {
-
         LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
-        logHandler.send("target_key",key);
-        logHandler.send("up_type","mkfile");
-
+        logHandler.send("target_key", key);
+        logHandler.send("up_type", "mkfile");
         String mime = format(Locale.ENGLISH, "/mimeType/%s/fname/%s",
                 UrlSafeBase64.encodeToString(options.mimeType), UrlSafeBase64.encodeToString(f.getName()));
 
