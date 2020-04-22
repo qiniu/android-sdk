@@ -24,7 +24,12 @@ public final class Json {
     }
 
     public static String object2Json(Object obj) {
-        String jsonString = new Gson().toJson(obj);
+        String jsonString =  "";
+        try {
+             jsonString = new Gson().toJson(obj);
+        }catch (Throwable t) {
+            // do nothing
+        }
         return jsonString;
     }
 }
