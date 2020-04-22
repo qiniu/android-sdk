@@ -1,7 +1,5 @@
 package com.qiniu.android.http;
 
-import android.util.Log;
-
 import com.qiniu.android.collect.LogHandler;
 import com.qiniu.android.collect.UploadInfoElement;
 import com.qiniu.android.common.Constants;
