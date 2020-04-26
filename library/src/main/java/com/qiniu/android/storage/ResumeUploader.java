@@ -142,8 +142,9 @@ final class ResumeUploader implements Runnable {
         LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
         logHandler.send("target_key", key);
         logHandler.send("up_type", "mkblk");
-        if (recover_from > 0)
-            logHandler.send("recovered_from", recover_from);
+        logHandler.send("tid", (long) android.os.Process.myTid());
+        logHandler.send("file_offset", offset);
+        logHandler.send("bytes_total", chunkSize);
         String path = format(Locale.ENGLISH, "/mkblk/%d", blockSize);
         try {
             file.seek(offset);
@@ -162,6 +163,9 @@ final class ResumeUploader implements Runnable {
         LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
         logHandler.send("target_key", key);
         logHandler.send("up_type", "bput");
+        logHandler.send("tid", (long) android.os.Process.myTid());
+        logHandler.send("file_offset", offset);
+        logHandler.send("bytes_total", chunkSize);
         int chunkOffset = (int) (offset % Configuration.BLOCK_SIZE);
         String path = format(Locale.ENGLISH, "/bput/%s/%d", context, chunkOffset);
         try {
@@ -172,7 +176,6 @@ final class ResumeUploader implements Runnable {
             return;
         }
         this.crc32 = Crc32.bytes(chunkBuffer, 0, chunkSize);
-
         String postUrl = String.format("%s%s", upHost, path);
         post(logHandler, postUrl, chunkBuffer, 0, chunkSize, progress, _completionHandler, c);
     }
@@ -181,6 +184,8 @@ final class ResumeUploader implements Runnable {
         LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
         logHandler.send("target_key", key);
         logHandler.send("up_type", "mkfile");
+        logHandler.send("tid", (long) android.os.Process.myTid());
+
         String mime = format(Locale.ENGLISH, "/mimeType/%s/fname/%s",
                 UrlSafeBase64.encodeToString(options.mimeType), UrlSafeBase64.encodeToString(f.getName()));
 
@@ -203,6 +208,8 @@ final class ResumeUploader implements Runnable {
         String bodyStr = StringUtils.join(contexts, ",");
         byte[] data = bodyStr.getBytes();
         String postUrl = String.format("%s%s", upHost, path);
+        logHandler.send("file_offset", 0);
+        logHandler.send("bytes_total", data.length);
         post(logHandler, postUrl, data, 0, data.length, null, _completionHandler, c);
     }
 

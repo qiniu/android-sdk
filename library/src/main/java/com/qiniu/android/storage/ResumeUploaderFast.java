@@ -320,6 +320,7 @@ public class ResumeUploaderFast implements Runnable {
         String bodyStr = StringUtils.join(contexts, ",");
         byte[] data = bodyStr.getBytes();
         String postUrl = String.format("%s%s", upHost, path);
+        logHandler.send("bytes_total", data.length);
         post(logHandler, postUrl, data, 0, data.length, null, _completionHandler, c);
     }
 
