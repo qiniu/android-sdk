@@ -1,13 +1,17 @@
 package com.qiniu.android.storage;
 
 import com.qiniu.android.collect.Config;
+import com.qiniu.android.collect.LogHandler;
+import com.qiniu.android.collect.UploadInfo;
 import com.qiniu.android.collect.UploadInfoCollector;
+import com.qiniu.android.collect.UploadInfoElement;
+import com.qiniu.android.collect.UploadInfoElementCollector;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.DnsPrefetcher;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.AsyncRun;
-import com.qiniu.android.utils.StringUtils;
+import com.qiniu.android.utils.Json;
 
 import org.json.JSONObject;
 
@@ -25,6 +29,7 @@ public final class UploadManager {
     private final Client client;
     private int multithreads = 1;
     private static int DEF_THREAD_NUM = 3;
+
     /**
      * 保证代码只执行一次，防止多个uploadManager同时开始预取dns
      */
@@ -160,16 +165,20 @@ public final class UploadManager {
         }
         //此处是对uc.qbox.me接口获取的域名进行预取
         if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DnsPrefetcher.startPrefetchDns(token, config);
-                    }
-                }).start();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    DnsPrefetcher.startPrefetchDns(token, config);
+                }
+            }).start();
         }
 
+        //query请求发生在第一次，第二次query从本地zoneinfo拿，response为null
+        LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
+        logHandler.send("up_type", "uc_query");
+
         Zone z = config.zone;
-        z.preQuery(token, new Zone.QueryHandler() {
+        z.preQuery(logHandler, token, new Zone.QueryHandler() {
             @Override
             public void onSuccess() {
                 FormUploader.upload(client, config, data, key, decodedToken, complete, options);
@@ -220,16 +229,19 @@ public final class UploadManager {
         }
         //此处是每次上传时判断，对uc.qbox.me接口获取的host+sdk内置的host进行预取(去重)
         if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DnsPrefetcher.startPrefetchDns(token, config);
-                    }
-                }).start();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    DnsPrefetcher.startPrefetchDns(token, config);
+                }
+            }).start();
         }
 
+        //query请求发生在第一次，第二次query从本地zoneinfo拿，response为null
+        LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
+        logHandler.send("up_type", "uc_query");
         Zone z = config.zone;
-        z.preQuery(token, new Zone.QueryHandler() {
+        z.preQuery(logHandler, token, new Zone.QueryHandler() {
             @Override
             public void onSuccess() {
                 long size = file.length();
@@ -330,9 +342,19 @@ public final class UploadManager {
 
                             @Override
                             public String toRecordMsg() {
-                                String[] ss = new String[]{res.statusCode + "", res.reqId, res.host, res.ip, res.port + "", (after - before) + "",
-                                        res.timeStamp + "", size + "", "block", size + ""};
-                                return StringUtils.join(ss, ",");
+                                LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getUploadQuality());
+                                logHandler.send("result", UploadInfoElement.resultCode(res.statusCode));
+                                logHandler.send("total_elapsed_time", after - before);
+                                logHandler.send("requests_counts", res.requests_count);
+                                logHandler.send("bytes_sent", res.bytes_sent);
+
+                                logHandler.send("up_time", System.currentTimeMillis() / 1000);
+                                ResponseInfo.requests_count = 0L;
+                                ResponseInfo.bytes_sent = 0L;
+
+                                UploadInfoElement.UploadQuality uploadQuality = (UploadInfoElement.UploadQuality) logHandler.getUploadInfo();
+                                String quality = Json.object2Json(uploadQuality);
+                                return quality;
                             }
                         });
             }

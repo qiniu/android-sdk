@@ -1,7 +1,10 @@
 package com.qiniu.android.common;
 
+import com.qiniu.android.collect.LogHandler;
+import com.qiniu.android.collect.UploadInfoElement;
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
+import com.qiniu.android.http.DnsPrefetcher;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.UrlSafeBase64;
@@ -49,14 +52,14 @@ public final class AutoZone extends Zone {
         return this.ucServer;
     }
 
-    private void getZoneJsonAsync(ZoneIndex index, CompletionHandler handler) {
+    private void getZoneJsonAsync(LogHandler logHandler, ZoneIndex index, CompletionHandler handler) {
         String address = ucServer + "/v2/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
-        client.asyncGet(address, null, UpToken.NULL, handler);
+        client.asyncGet(logHandler, address, null, UpToken.NULL, handler);
     }
 
-    private ResponseInfo getZoneJsonSync(ZoneIndex index) {
+    private ResponseInfo getZoneJsonSync(LogHandler logHandler, ZoneIndex index) {
         String address = ucServer + "/v2/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
-        return client.syncGet(address, null);
+        return client.syncGet(logHandler, address, null);
     }
 
     // only for test public
@@ -84,23 +87,25 @@ public final class AutoZone extends Zone {
     }
 
     //async
-    void preQueryIndex(final ZoneIndex index, final QueryHandler complete) {
+    void preQueryIndex(final LogHandler logHandler, final ZoneIndex index, final QueryHandler complete) {
         if (index == null) {
             complete.onFailure(ResponseInfo.InvalidToken);
             return;
         }
         ZoneInfo info = zones.get(index);
         if (info != null) {
+            setTarget_region_id(info);
             complete.onSuccess();
             return;
         }
-
-        getZoneJsonAsync(index, new CompletionHandler() {
+        logHandler.send("tid", (long) android.os.Process.myTid());
+        getZoneJsonAsync(logHandler, index, new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
                 if (info.isOK() && response != null) {
                     try {
                         ZoneInfo info2 = ZoneInfo.buildFromJson(response);
+                        setTarget_region_id(info2);
                         zones.put(index, info2);
                         complete.onSuccess();
                         return;
@@ -115,8 +120,28 @@ public final class AutoZone extends Zone {
         });
     }
 
+
+    private void setTarget_region_id(ZoneInfo info) {
+        if (info == null) return;
+        if (info.upDomainsList.size() > 0) {
+            if (info.upDomainsList.contains(FixedZone.arrayzone0[0])) {
+                DnsPrefetcher.target_region_id = "z0";
+            } else if (info.upDomainsList.contains(FixedZone.arrayzone1[0])) {
+                DnsPrefetcher.target_region_id = "z1";
+            } else if (info.upDomainsList.contains(FixedZone.arrayzone1[0])) {
+                DnsPrefetcher.target_region_id = "z2";
+            } else if (info.upDomainsList.contains(FixedZone.arrayZoneAs0[0])) {
+                DnsPrefetcher.target_region_id = "as0";
+            } else if (info.upDomainsList.contains(FixedZone.arrayzoneNa0[0])) {
+                DnsPrefetcher.target_region_id = "na";
+            }
+        }
+    }
+
+
     //sync
-    boolean preQueryIndex(final ZoneIndex index) {
+    boolean preQueryIndex(LogHandler logHandler, final ZoneIndex index) {
+        logHandler.send("tid", (long) android.os.Process.myTid());
         boolean success = false;
         if (index != null) {
             ZoneInfo info = zones.get(index);
@@ -124,7 +149,7 @@ public final class AutoZone extends Zone {
                 success = true;
             } else {
                 try {
-                    ResponseInfo responseInfo = getZoneJsonSync(index);
+                    ResponseInfo responseInfo = getZoneJsonSync(logHandler, index);
                     if (responseInfo.response == null)
                         return false;
                     ZoneInfo info2 = ZoneInfo.buildFromJson(responseInfo.response);
@@ -150,15 +175,15 @@ public final class AutoZone extends Zone {
     }
 
     @Override
-    public void preQuery(String token, QueryHandler complete) {
+    public void preQuery(LogHandler logHandler, String token, QueryHandler complete) {
         ZoneIndex index = ZoneIndex.getFromToken(token);
-        preQueryIndex(index, complete);
+        preQueryIndex(logHandler, index, complete);
     }
 
     @Override
-    public boolean preQuery(String token) {
+    public boolean preQuery(LogHandler logHandler, String token) {
         ZoneIndex index = ZoneIndex.getFromToken(token);
-        return preQueryIndex(index);
+        return preQueryIndex(logHandler, index);
     }
 
     @Override

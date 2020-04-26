@@ -39,7 +39,7 @@ public final class UserAgent {
                 osVersion(), device(), id);
     }
 
-    private static String osVersion() {
+    public static String osVersion() {
         try {
             String v = android.os.Build.VERSION.RELEASE;
             if (v == null) {
@@ -51,7 +51,7 @@ public final class UserAgent {
         }
     }
 
-    private static String device() {
+    public static String device() {
         try {
             String model = Build.MODEL.trim();
             String device = deviceName(Build.MANUFACTURER.trim(), model);

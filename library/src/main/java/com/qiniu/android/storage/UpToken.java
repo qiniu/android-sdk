@@ -1,9 +1,13 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.collect.LogHandler;
+import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.utils.UrlSafeBase64;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.Arrays;
 
 /**
  * 内部使用的客户端 token 检查.
@@ -59,6 +63,35 @@ public final class UpToken {
 
     public boolean hasReturnUrl() {
         return !returnUrl.equals("");
+    }
+
+    public static void setCurrent_region_id(LogHandler logHandler, String upHost) {
+        if (upHost == null || upHost == "") {
+            return;
+        }
+        String[] hosts = upHost.split("//");
+        String host = "";
+        if (hosts.length > 1) {
+            host = hosts[1];
+        } else {
+            host = hosts[0];
+        }
+        if (Arrays.asList(FixedZone.arrayzone0).contains(host)) {
+            if (logHandler != null)
+                logHandler.send("current_region_id", "z0");
+        } else if (Arrays.asList(FixedZone.arrayzone1).contains(host)) {
+            if (logHandler != null)
+                logHandler.send("current_region_id", "z1");
+        } else if (Arrays.asList(FixedZone.arrayzone2).contains(host)) {
+            if (logHandler != null)
+                logHandler.send("current_region_id", "z2");
+        } else if (Arrays.asList(FixedZone.arrayzoneNa0).contains(host)) {
+            if (logHandler != null)
+                logHandler.send("current_region_id", "na0");
+        } else if (Arrays.asList(FixedZone.arrayZoneAs0).contains(host)) {
+            if (logHandler != null)
+                logHandler.send("current_region_id", "as0");
+        }
     }
 
 }

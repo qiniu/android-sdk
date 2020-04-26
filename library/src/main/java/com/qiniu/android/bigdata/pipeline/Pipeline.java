@@ -73,7 +73,8 @@ public final class Pipeline {
         StringMap headers = new StringMap();
         headers.put(HTTPHeaderAuthorization, token);
         headers.put(Client.ContentTypeHeader, TEXT_PLAIN);
-        client.asyncPost(url(repo), data, headers, null, data.length, null, new CompletionHandler() {
+        // TODO: 2020-04-15  repo上报时不记录，logHandler为null
+        client.asyncPost(null, url(repo), data, headers, null, data.length, null, new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
                 handler.complete(info);

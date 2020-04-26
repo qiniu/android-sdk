@@ -244,11 +244,18 @@ public final class UploadInfoCollector {
         try {
             OkHttpClient client = getHttpClient();
             RequestBody reqBody = RequestBody.create(MediaType.parse("text/plain"), recordFile);
-            Request request = new Request.Builder().url(serverURL).
+
+            Request.Builder requestBuilder = new Request.Builder().url(serverURL).
                     addHeader("Authorization", "UpToken " + upToken.token).
                     addHeader("User-Agent", UserAgent.instance().getUa(upToken.accessKey)).
-                    post(reqBody).build();
+                    post(reqBody);
+            if (UploadInfoElement.x_log_client_id != "") {
+                requestBuilder.addHeader("X-Log-Client-Id", UploadInfoElement.x_log_client_id);
+            }
+            Request request = requestBuilder.build();
             Response res = client.newCall(request).execute();
+            String client_id = res.header("X-Log-Client-Id");
+            UploadInfoElement.x_log_client_id = client_id;
             try {
                 return isOk(res);
             } finally {

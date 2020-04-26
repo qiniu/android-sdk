@@ -46,7 +46,7 @@ public class HttpTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testPost1() throws Throwable {
-        httpManager.asyncPost("http://www.baidu.com",
+        httpManager.asyncPost(null,"http://www.baidu.com",
                 "hello".getBytes(), null, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override
@@ -69,7 +69,7 @@ public class HttpTest extends InstrumentationTestCase {
     @SmallTest
     public void testPost2() throws Throwable {
 
-        httpManager.asyncPost("http://up.qiniu.com", "hello".getBytes(), null,
+        httpManager.asyncPost(null,"http://up.qiniu.com", "hello".getBytes(), null,
                 UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override
@@ -92,7 +92,7 @@ public class HttpTest extends InstrumentationTestCase {
     public void testPost3() throws Throwable {
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                httpManager.asyncPost("http://httpbin.org/status/500", "hello".getBytes(),
+                httpManager.asyncPost(null,"http://httpbin.org/status/500", "hello".getBytes(),
                         null, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
                         null, new CompletionHandler() {
                             @Override
@@ -118,7 +118,7 @@ public class HttpTest extends InstrumentationTestCase {
     public void testPost4() throws Throwable {
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                httpManager.asyncPost("http://httpbin.org/status/418",
+                httpManager.asyncPost(null,"http://httpbin.org/status/418",
                         "hello".getBytes(),
                         null, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
                         null, new CompletionHandler() {
@@ -144,7 +144,7 @@ public class HttpTest extends InstrumentationTestCase {
     @SmallTest
     public void testPostNoDomain() throws Throwable {
 
-        httpManager.asyncPost("http://no-domain.qiniu.com", "hello".getBytes(),
+        httpManager.asyncPost(null,"http://no-domain.qiniu.com", "hello".getBytes(),
                 null, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override
@@ -190,7 +190,7 @@ public class HttpTest extends InstrumentationTestCase {
     @SmallTest
     public void testPostIP() throws Throwable {
         StringMap x = new StringMap().put("Host", "up.qiniu.com");
-        httpManager.asyncPost("http://183.131.7.18", "hello".getBytes(),
+        httpManager.asyncPost(null,"http://183.131.7.18", "hello".getBytes(),
                 x, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override
@@ -215,7 +215,7 @@ public class HttpTest extends InstrumentationTestCase {
         StringMap x = new StringMap();
         ProxyConfiguration p = new ProxyConfiguration("115.238.101.32", 80);
         Client c = new Client(p, 10, 30, null, null);
-        c.asyncPost("http://upproxy1.qiniu.com", "hello".getBytes(),
+        c.asyncPost(null,"http://upproxy1.qiniu.com", "hello".getBytes(),
                 x, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override

@@ -1,5 +1,11 @@
 package com.qiniu.android.common;
 
+import com.qiniu.android.collect.LogHandler;
+import com.qiniu.android.collect.UploadInfoElement;
+import com.qiniu.android.http.ResponseInfo;
+
+import org.json.JSONObject;
+
 import java.net.URI;
 
 /**
@@ -58,9 +64,9 @@ public abstract class Zone {
 
     public abstract void frozenDomain(String upHostUrl);
 
-    public abstract void preQuery(String token, QueryHandler complete);
+    public abstract void preQuery(LogHandler reqLog, String token, QueryHandler complete);
 
-    public abstract boolean preQuery(String token);
+    public abstract boolean preQuery(LogHandler reqLog, String token);
 
     public interface QueryHandler {
         void onSuccess();

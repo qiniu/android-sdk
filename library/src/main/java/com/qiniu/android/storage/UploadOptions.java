@@ -58,9 +58,9 @@ public final class UploadOptions {
                 netReadyCheckTime = Integer.parseInt(netCheckTime);
             }
         } catch (Exception e) {
+            //额外添加参数只能放这，当用户未传netCheckTime这里会走进来
             e.printStackTrace();
         }
-        Log.e("qiniutest","netCheckTime:"+netReadyCheckTime);
         this.params = filterParam(params);
         this.mimeType = mime(mimeType);
         this.checkCrc = checkCrc;
