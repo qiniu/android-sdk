@@ -2,14 +2,17 @@ package com.qiniu.android.storage;
 
 import com.qiniu.android.collect.LogHandler;
 import com.qiniu.android.collect.UploadInfo;
+import com.qiniu.android.collect.UploadInfoCollector;
 import com.qiniu.android.collect.UploadInfoElement;
 import com.qiniu.android.collect.UploadInfoElementCollector;
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;
+import com.qiniu.android.http.DnsPrefetcher;
 import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.AndroidNetwork;
 import com.qiniu.android.utils.Crc32;
+import com.qiniu.android.utils.Json;
 import com.qiniu.android.utils.StringMap;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.UrlSafeBase64;
@@ -279,7 +282,34 @@ final class ResumeUploader implements Runnable {
         // 分片上传,七牛响应内容固定,若缺少reqId,可通过响应体判断
         CompletionHandler complete = new CompletionHandler() {
             @Override
-            public void complete(ResponseInfo info, JSONObject response) {
+            public void complete(final ResponseInfo info, JSONObject response) {
+                //分块上传统计，每一片上传后，此处记录
+                final long tid = android.os.Process.myTid();
+                UploadInfoCollector.handleHttp(token,
+                        // 延迟序列化.如果判断不记录,则不执行序列化
+                        new UploadInfoCollector.RecordMsg() {
+                            @Override
+                            public String toRecordMsg() {
+                                //所有请求先记录，无论失败与否
+                                LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getBlockInfo());
+                                //current_region_id 双活时upHost对应区域可能变
+                                UpToken.setCurrent_region_id(logHandler, upHost);
+                                //target_region_id
+                                logHandler.send("target_region_id", DnsPrefetcher.target_region_id);
+                                logHandler.send("total_elapsed_time", info.duration);
+                                logHandler.send("bytes_sent", info.sent);
+                                logHandler.send("recovered_from", recover_from);
+                                logHandler.send("file_size", totalSize);
+                                logHandler.send("pid", (long) android.os.Process.myPid());
+                                logHandler.send("tid", tid);
+                                logHandler.send("up_api_version", 1);
+                                logHandler.send("up_time", System.currentTimeMillis() / 1000);
+                                UploadInfoElement.BlockInfo blockInfo = (UploadInfoElement.BlockInfo) logHandler.getUploadInfo();
+                                String upBlock = Json.object2Json(blockInfo);
+                                return upBlock;
+                            }
+                        });
+
                 if (info.isNetworkBroken() && !AndroidNetwork.isNetWorkReady()) {
                     options.netReadyHandler.waitReady();
                     if (!AndroidNetwork.isNetWorkReady()) {

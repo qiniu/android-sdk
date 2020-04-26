@@ -373,7 +373,6 @@ public class ResumeUploaderFast implements Runnable {
                     retried.addAndGet(1);
                     return;
                 }
-                info.regions_count = retried.get();
                 completionHandler.complete(key, info, response);
             }
         };

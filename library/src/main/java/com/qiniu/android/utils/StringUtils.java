@@ -199,7 +199,7 @@ public final class StringUtils {
         return null;
     }
 
-    public static String getScope(String token) {
+    public static String getBucket(String token) {
         String[] strings = token.split(":");
         String policy = null;
         try {

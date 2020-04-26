@@ -427,6 +427,9 @@ public class UploadInfoElement {
         private String log_type;
         private String result;
         private long total_elapsed_time;
+        /**
+         * 在未实现双活之前总是 = 1;
+         */
         private long requests_counts;
         private long regions_counts;
         private long bytes_sent;
@@ -435,6 +438,7 @@ public class UploadInfoElement {
 
         UploadQuality() {
             this.log_type = "quality";
+            this.regions_counts = 1L;
         }
 
         public void setLog_type(String log_type) {

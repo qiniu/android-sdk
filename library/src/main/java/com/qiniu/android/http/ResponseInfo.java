@@ -100,7 +100,6 @@ public final class ResponseInfo {
     public final UpToken upToken;
 
     public final long totalSize;
-    public static long regions_count;
     public static long bytes_sent;
     public static long requests_count;
 
@@ -159,7 +158,7 @@ public final class ResponseInfo {
                             logHandler.send("remote_ip", ip);
                             logHandler.send("port", port);
                             if (upToken.token != "" && upToken.token != null) {
-                                logHandler.send("target_bucket", StringUtils.getScope(upToken.token));
+                                logHandler.send("target_bucket", StringUtils.getBucket(upToken.token));
                             }
                             logHandler.send("bytes_sent", (long) sent);
                             List<InetAddress> resolveResults = DnsPrefetcher.getDnsPrefetcher().getInetAddressByHost(host);
