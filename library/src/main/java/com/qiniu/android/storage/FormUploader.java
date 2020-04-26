@@ -4,7 +4,6 @@ import android.util.Log;
 
 import com.qiniu.android.collect.LogHandler;
 import com.qiniu.android.collect.UploadInfo;
-import com.qiniu.android.collect.UploadInfoElement;
 import com.qiniu.android.collect.UploadInfoElementCollector;
 import com.qiniu.android.http.Client;
 import com.qiniu.android.http.CompletionHandler;

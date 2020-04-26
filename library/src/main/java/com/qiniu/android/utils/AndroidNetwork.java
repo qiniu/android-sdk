@@ -145,18 +145,22 @@ public final class AndroidNetwork {
                     if (cellInfo instanceof CellInfoGsm) {
                         CellSignalStrengthGsm cellSignalStrengthGsm = ((CellInfoGsm) cellInfo).getCellSignalStrength();
                         dbm = cellSignalStrengthGsm.getDbm();
+                        break;
                     } else if (cellInfo instanceof CellInfoCdma) {
                         CellSignalStrengthCdma cellSignalStrengthCdma =
                                 ((CellInfoCdma) cellInfo).getCellSignalStrength();
                         dbm = cellSignalStrengthCdma.getDbm();
+                        break;
                     } else if (cellInfo instanceof CellInfoLte) {
                         CellSignalStrengthLte cellSignalStrengthLte = ((CellInfoLte) cellInfo).getCellSignalStrength();
                         dbm = cellSignalStrengthLte.getDbm();
+                        break;
                     } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                         if (cellInfo instanceof CellInfoWcdma) {
                             CellSignalStrengthWcdma cellSignalStrengthWcdma =
                                     ((CellInfoWcdma) cellInfo).getCellSignalStrength();
                             dbm = cellSignalStrengthWcdma.getDbm();
+                            break;
                         }
                     }
                 }

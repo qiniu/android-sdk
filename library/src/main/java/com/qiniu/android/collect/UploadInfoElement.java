@@ -2,6 +2,8 @@ package com.qiniu.android.collect;
 
 import android.util.Log;
 
+import com.qiniu.android.http.ResponseInfo;
+
 import java.util.concurrent.atomic.AtomicLong;
 
 public class UploadInfoElement {
@@ -499,5 +501,79 @@ public class UploadInfoElement {
             return up_time;
         }
 
+    }
+
+
+    public static String resultCode(int statuscode) {
+        String result = "";
+        switch (statuscode) {
+            case 200:
+                result = "ok";
+                break;
+            case ResponseInfo.NetworkError:
+                result = "network_error";
+                break;
+            case ResponseInfo.Cancelled:
+                result = "user_canceled";
+                break;
+            case ResponseInfo.InvalidFile:
+                result = "invalid_file";
+                break;
+            case ResponseInfo.InvalidArgument:
+                result = "zero_size_file";
+                break;
+            case ResponseInfo.InvalidToken:
+                result = "invalid_args";
+                break;
+            case ResponseInfo.ZeroSizeFile:
+                result = "zero_size_file";
+                break;
+            case ResponseInfo.Crc32NotMatch:
+                result = "crc32_nomatch";
+                break;
+            case ResponseInfo.TimedOut:
+                result = "timeout";
+                break;
+            case ResponseInfo.UnknownHost:
+                result = "unknown_host";
+                break;
+            case ResponseInfo.CannotConnectToHost:
+                result = "cannot_connect_to_host";
+                break;
+            case ResponseInfo.NetworkConnectionLost:
+                result = "network_slow";
+                break;
+
+            default:
+                result = "unknown_error";
+        }
+        return result;
+    }
+
+    public static String errorType(int statuscode) {
+        String result = "";
+        if (200 < statuscode && statuscode < 400) {
+            return "response_error";
+        }
+        switch (statuscode) {
+            case ResponseInfo.NetworkError:
+                result = "network_error";
+                break;
+            case ResponseInfo.Cancelled:
+                result = "user_canceled";
+                break;
+            case ResponseInfo.TimedOut:
+                result = "timeout";
+                break;
+            case ResponseInfo.UnknownHost:
+                result = "unknown_host";
+                break;
+            case ResponseInfo.CannotConnectToHost:
+                result = "cannot_connect_to_host";
+                break;
+            default:
+                result = "unknown_error";
+        }
+        return result;
     }
 }

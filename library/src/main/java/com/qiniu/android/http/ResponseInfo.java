@@ -38,16 +38,9 @@ public final class ResponseInfo {
     public static final int CannotConnectToHost = -1004;
     public static final int NetworkConnectionLost = -1005;
 
-    public static final int TransmissionError = -1006;
-    public static final int ProxyError = -1007;
-    public static final int SSLError = -1008;
-    public static final int ParseError = -1009;
-    //⽤用户劫持
-    public static final int MailciousResponse = -1010;
-
     // -->
     /**
-     * 回复状态码"
+     * 回复状态码
      */
     public final int statusCode;
     /**
@@ -174,7 +167,7 @@ public final class ResponseInfo {
                                 logHandler.send("prefetched_ip_count", (long) resolveResults.size());
                             }
                             if (error != null) {
-                                logHandler.send("error_type", statusCode + "");
+                                logHandler.send("error_type", UploadInfoElement.errorType(statusCode));
                                 logHandler.send("error_description", error);
                             }
 
@@ -226,7 +219,7 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo cancelled(final UpToken upToken) {
-        return create(null, null, Cancelled,  "", "", "", "", "", "", 80, -1, -1, "cancelled by user", upToken, 0);
+        return create(null, null, Cancelled, "", "", "", "", "", "", 80, -1, -1, "cancelled by user", upToken, 0);
     }
 
     public static ResponseInfo invalidArgument(String message, final UpToken upToken) {
@@ -238,11 +231,11 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo fileError(Exception e, final UpToken upToken) {
-        return create(null, null, InvalidFile,  "", "", "", "", "", "", 80, 0, 0, e.getMessage(), upToken, 0);
+        return create(null, null, InvalidFile, "", "", "", "", "", "", 80, 0, 0, e.getMessage(), upToken, 0);
     }
 
     public static ResponseInfo networkError(int code, UpToken upToken) {
-        return create(null, null, code,  "", "", "", "", "", "", 80, 0, 0, "Network error during preQuery, Please check your network or " +
+        return create(null, null, code, "", "", "", "", "", "", 80, 0, 0, "Network error during preQuery, Please check your network or " +
                 "use http try again", upToken, 0);
     }
 

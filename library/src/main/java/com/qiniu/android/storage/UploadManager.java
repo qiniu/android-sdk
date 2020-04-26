@@ -343,23 +343,16 @@ public final class UploadManager {
                             @Override
                             public String toRecordMsg() {
                                 LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getUploadQuality());
-                                logHandler.send("result", res.statusCode + "");
+                                logHandler.send("result", UploadInfoElement.resultCode(res.statusCode));
                                 logHandler.send("total_elapsed_time", after - before);
                                 logHandler.send("requests_counts", res.requests_count);
                                 logHandler.send("regions_counts", res.regions_count);
                                 logHandler.send("bytes_sent", res.bytes_sent);
-                                UpToken.setCurrent_region_id(null, res.host);
-                                if (!UpToken.isCustomRegion()) {//UC || 内置域名
-                                    logHandler.send("cloud_type", "public");
-                                } else {
-                                    logHandler.send("cloud_type", "private");
-                                }
 
                                 logHandler.send("up_time", System.currentTimeMillis() / 1000);
                                 ResponseInfo.regions_count = 0L;
                                 ResponseInfo.requests_count = 0L;
                                 ResponseInfo.bytes_sent = 0L;
-                                UpToken.setCustomRegion(false);
 
                                 UploadInfoElement.UploadQuality uploadQuality = (UploadInfoElement.UploadQuality) logHandler.getUploadInfo();
                                 String quality = Json.object2Json(uploadQuality);

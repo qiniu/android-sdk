@@ -17,7 +17,6 @@ public final class UpToken {
     public final String token;
     public final String accessKey;
     private String returnUrl = null;
-    private static boolean customRegion = false;
 
     private UpToken(String returnUrl, String token, String accessKey) {
         this.returnUrl = returnUrl;
@@ -92,16 +91,7 @@ public final class UpToken {
         } else if (Arrays.asList(FixedZone.arrayZoneAs0).contains(host)) {
             if (logHandler != null)
                 logHandler.send("current_region_id", "as0");
-        } else {
-            customRegion = true;
         }
     }
 
-    public static boolean isCustomRegion() {
-        return customRegion;
-    }
-
-    public static void setCustomRegion(boolean customRegion) {
-        UpToken.customRegion = customRegion;
-    }
 }
