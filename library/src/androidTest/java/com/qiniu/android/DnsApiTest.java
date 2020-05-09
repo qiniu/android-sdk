@@ -1,6 +1,7 @@
 package com.qiniu.android;
 
 
+import android.test.AndroidTestCase;
 import android.test.InstrumentationTestCase;
 import android.util.Log;
 
@@ -32,15 +33,21 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by jemy on 2019/8/20.
  */
 
-public class DnsApiTest extends InstrumentationTestCase {
+public class DnsApiTest extends AndroidTestCase {
+    private Configuration configuration = null;
+
+    @Override
+    protected void setUp() throws Exception {
+        configuration = new Configuration.Builder().build();
+    }
+
     public void testDns() throws Throwable {
         List<InetAddress> inetAddresses = null;
-        DnsPrefetcher dnsPrefetcher;
-//        try {
-//            inetAddresses = DnsPrefetcher.getDnsBySystem().lookup("upload.qiniup.com");
-//        } catch (UnknownHostException e) {
-//            e.printStackTrace();
-//        }
+        try {
+            inetAddresses = okhttp3.Dns.SYSTEM.lookup("upload.qiniup.com");
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
         Log.e("qiniutest", "InetAddress: " + inetAddresses.size());
         //超耗时过程
 //        for (int i = 0; i < inetAddresses.size(); i++) {
@@ -58,7 +65,7 @@ public class DnsApiTest extends InstrumentationTestCase {
 
         DnsPrefetcher dnsPrefetcher = DnsPrefetcher.getDnsPrefetcher();
         try {
-            info = dnsPrefetcher.init(TestConfig.uptoken_prefetch).getPreQueryZone();
+            info = dnsPrefetcher.init(TestConfig.uptoken_prefetch, configuration).getPreQueryZone();
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
@@ -74,7 +81,7 @@ public class DnsApiTest extends InstrumentationTestCase {
         List<ZoneInfo> info = null;
         DnsPrefetcher dnsPrefetcher = DnsPrefetcher.getDnsPrefetcher();
         try {
-            info = dnsPrefetcher.init(TestConfig.uptoken_prefetch).getLocalZone();
+            info = dnsPrefetcher.init(TestConfig.uptoken_prefetch, configuration).getLocalZone();
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
@@ -93,31 +100,6 @@ public class DnsApiTest extends InstrumentationTestCase {
         Log.e("qiniutest", s);
     }
 
-    public void testDnsPreAndcache() {
-        Configuration config = new Configuration.Builder().build();
-        boolean needPrefetch = DnsPrefetcher.checkRePrefetchDns(TestConfig.uptoken_prefetch, config);
-        Log.e("qiniutest", "check:" + needPrefetch);
-        if (needPrefetch) {
-            DnsPrefetcher.startPrefetchDns(TestConfig.uptoken_prefetch, config);
-        } else {
-            testRecoverCache();
-            return;
-        }
-        //预取或者recover success
-        List<String> list = DnsPrefetcher.getDnsPrefetcher().getHosts();
-        ConcurrentHashMap<String, List<InetAddress>> map = DnsPrefetcher.getDnsPrefetcher().getConcurrentHashMap();
-        Log.e("qiniutest: ", "list size: " + list.size());
-        for (String s : list) {
-            Log.e("qiniutest: ", "uphost: " + s);
-            List<InetAddress> list1 = map.get(s);
-            for (InetAddress inetAddress :
-                    list1) {
-                Log.e("qiniutest: ", "ip: " + inetAddress.getHostAddress());
-            }
-        }
-
-    }
-
     //test recover
     public void testRecoverCache() {
 
@@ -126,6 +108,7 @@ public class DnsApiTest extends InstrumentationTestCase {
             recorder = new DnsCacheFile(Config.dnscacheDir);
         } catch (IOException e) {
             e.printStackTrace();
+            return;
         }
         String fileName = recorder.getFileName();
         if (fileName == null) {
@@ -141,9 +124,9 @@ public class DnsApiTest extends InstrumentationTestCase {
 
 
         ConcurrentHashMap<String, List<InetAddress>> map1 = DnsPrefetcher.getDnsPrefetcher().getConcurrentHashMap();
-        List<String> list = DnsPrefetcher.getDnsPrefetcher().getHosts();
-        Log.e("qiniutest: ", "size for cache: " + list.size());
-        for (String s : list) {
+        if (map1.size() <= 0)
+            return;
+        for (String s : map1.keySet()) {
             Log.e("qiniutest: ", "uphost for cache: " + s);
             List<InetAddress> list1 = map1.get(s);
             for (InetAddress inetAddress :
@@ -156,49 +139,6 @@ public class DnsApiTest extends InstrumentationTestCase {
     int time = 0;
     final Object lock = new Object();
 
-    public void testAtomic() {
-        final int size = 6 * 1024;
-        for (int i = 0; i < 3; i++) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Configuration config = new Configuration.Builder().build();
-                        final UploadManager uploadManager = new UploadManager(config, 3);
-                        final String expectKey = "r=" + size + "k";
-                        final File f;
-                        f = TempFile.createFile(size);
-                        final UploadOptions uploadoption = new UploadOptions(null, null, false, new UpProgressHandler() {
-                            public void progress(String key, double percent) {
-                                Log.e("qiniutest", percent + "");
-                            }
-                        }, null);
-
-                        uploadManager.put(f, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
-                            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                                Log.e("qiniutest", k + rinfo);
-                                time += 1;
-                                if (time == 3) {
-                                    lock.notify();
-                                }
-                            }
-                        }, uploadoption);
-
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-        }
-        synchronized (lock) {
-            try {
-                lock.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
     public void testSerializable() {
         DnsCacheKey key = new DnsCacheKey("12321", "127.0.0.1", "akscope");

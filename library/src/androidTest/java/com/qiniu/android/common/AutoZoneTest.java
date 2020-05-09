@@ -4,6 +4,7 @@ import android.test.AndroidTestCase;
 import android.util.Log;
 
 import com.qiniu.android.TestConfig;
+import com.qiniu.android.collect.LogHandler;
 
 import junit.framework.Assert;
 
@@ -59,7 +60,18 @@ public class AutoZoneTest extends AndroidTestCase {
     public void testC1() {
         AutoZone autoZone = new AutoZone();
         final CountDownLatch countDownLatch = new CountDownLatch(1);
-        autoZone.preQueryIndex(null, new AutoZone.ZoneIndex(ak, bkt), new Zone.QueryHandler() {
+        LogHandler logHandler = new LogHandler() {
+            @Override
+            public void send(String key, Object value) {
+                //logHandler == null时，创建一个新的logHandler，防止调用send方法时报空指针，这里不处理数据
+            }
+
+            @Override
+            public Object getUploadInfo() {
+                return null;
+            }
+        };
+        autoZone.preQueryIndex(logHandler, new AutoZone.ZoneIndex(ak, bkt), new Zone.QueryHandler() {
             @Override
             public void onSuccess() {
                 countDownLatch.countDown();
@@ -77,7 +89,6 @@ public class AutoZoneTest extends AndroidTestCase {
             e.printStackTrace();
         }
         ZoneInfo info = autoZone.zoneInfo(ak, bkt);
-        Log.d("qiniutest: ", info.toString());
 
         ZoneInfo info2 = autoZone.zoneInfo(ak, bkt);
         Assert.assertSame(info, info2);

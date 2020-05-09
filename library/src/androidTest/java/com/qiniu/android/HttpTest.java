@@ -187,10 +187,14 @@ public class HttpTest extends InstrumentationTestCase {
 //                ResponseInfo.TimedOut == info.statusCode);
 //    }
 
+    /**
+     * 不同节点解析出来的ip不一样，所以这里是可能报错的 400 or 404
+     * @throws Throwable
+     */
     @SmallTest
     public void testPostIP() throws Throwable {
         StringMap x = new StringMap().put("Host", "up.qiniu.com");
-        httpManager.asyncPost(null,"http://183.131.7.18", "hello".getBytes(),
+        httpManager.asyncPost(null,"http://218.98.28.29", "hello".getBytes(),
                 x, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override
