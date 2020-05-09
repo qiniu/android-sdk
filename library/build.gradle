@@ -22,6 +22,8 @@ int code = versionNameToCode(version)
 android {
     compileSdkVersion 29
     buildToolsVersion '29.0.2'
+    aaptOptions.cruncherEnabled = false
+    aaptOptions.useNewCruncher = false
     defaultConfig {
         //applicationId "com.qiniu.android"
         minSdkVersion 18
@@ -39,6 +41,7 @@ android {
         }
 
     }
+
 
     lintOptions {
         warning 'InvalidPackage'
