@@ -108,6 +108,7 @@ public class DnsApiTest extends AndroidTestCase {
             recorder = new DnsCacheFile(Config.dnscacheDir);
         } catch (IOException e) {
             e.printStackTrace();
+            return;
         }
         String fileName = recorder.getFileName();
         if (fileName == null) {
