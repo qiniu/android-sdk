@@ -4,12 +4,15 @@ package com.qiniu.android.http;
 import com.qiniu.android.collect.Config;
 import com.qiniu.android.collect.UploadInfoCollector;
 import com.qiniu.android.common.Constants;
+import com.qiniu.android.http.newHttp.Request;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONObject;
 
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * 定义HTTP请求的日志信息和常规方法
@@ -118,6 +121,29 @@ public final class ResponseInfo {
         this.sent = sent;
         this.upToken = upToken;
         this.totalSize = totalSize;
+    }
+
+    public static  ResponseInfo create(Request request,
+                                       int responseCode,
+                                       Map<String, String> responseHeader,
+                                       JSONObject response,
+                                       String errorMessage) {
+
+        String reqId = responseHeader.get("X-Reqid");
+        String xlog = responseHeader.get("X-Log");
+        String xvia = null;
+        if (responseHeader.get("X-Via") != null){
+            xvia = responseHeader.get("X-Via");
+        } else if (responseHeader.get("X-Px") != null){
+            xvia = responseHeader.get("X-Px");
+        } else if (responseHeader.get("Fw-Via") != null){
+            xvia = responseHeader.get("Fw-Via");
+        }
+
+        ResponseInfo responseInfo = ResponseInfo.create(response, responseCode, reqId, xlog,
+                xvia, request.host(), null, null, 0, 0, 0,
+                null, null, 0);
+        return responseInfo;
     }
 
     public static ResponseInfo create(final JSONObject json, final int statusCode, final String reqId,
