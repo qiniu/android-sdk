@@ -24,4 +24,5 @@ public interface RequestClient {
                         RequestClientProgress progress,
                         RequestClientCompleteHandler complete);
 
+    public void cancel();
 }

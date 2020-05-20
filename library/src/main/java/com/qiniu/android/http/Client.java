@@ -350,10 +350,10 @@ public final class Client {
             e.printStackTrace();
             return ResponseInfo.create(null, NetworkError, "", "", "",
                     req.url().host(), req.url().encodedPath(), tag.ip, req.url().port(),
-                    tag.duration, -1, e.getMessage(), UpToken.NULL, 0);
+                    tag.duration, -1, e.getMessage(), null, 0);
         }
 
-        return buildResponseInfo(res, tag.ip, tag.duration, UpToken.NULL, 0);
+        return buildResponseInfo(res, tag.ip, tag.duration, null, 0);
     }
 
     public ResponseInfo syncMultipartPost(String url, PostArgs args,

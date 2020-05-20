@@ -1,13 +1,15 @@
 package com.qiniu.android;
 
+import junit.framework.Assert;
+import junit.framework.TestCase;
+
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.newHttp.Request;
 import com.qiniu.android.http.newHttp.RequestClient;
-import com.qiniu.android.http.newHttp.SystemHttpClient;
+import com.qiniu.android.http.newHttp.HttpClient.SystemHttpClient;
 import com.qiniu.android.http.newHttp.metrics.UploadSingleRequestMetrics;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
+
 
 import org.json.JSONObject;
 

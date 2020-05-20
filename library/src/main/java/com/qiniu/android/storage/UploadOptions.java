@@ -17,32 +17,32 @@ public final class UploadOptions {
      * 扩展参数，以<code>x:</code>开头的用户自定义参数
      * 可添加网络检测次数：netCheckTime，int类型，默认600，每增加1，检测时间增加500ms
      */
-    final Map<String, String> params;
+    public final Map<String, String> params;
 
     /**
      * 指定上传文件的MimeType
      */
-    final String mimeType;
+    public final String mimeType;
 
     /**
      * 启用上传内容crc32校验
      */
-    final boolean checkCrc;
+    public final boolean checkCrc;
 
     /**
      * 上传内容进度处理
      */
-    final UpProgressHandler progressHandler;
+    public final UpProgressHandler progressHandler;
 
     /**
      * 取消上传信号
      */
-    final UpCancellationSignal cancellationSignal;
+    public final UpCancellationSignal cancellationSignal;
 
     /**
      * 当网络暂时无法使用时，由用户决定是否继续处理
      */
-    final NetReadyHandler netReadyHandler;
+    public final NetReadyHandler netReadyHandler;
 
     public UploadOptions(Map<String, String> params, String mimeType, boolean checkCrc,
                          UpProgressHandler progressHandler, UpCancellationSignal cancellationSignal) {
@@ -57,9 +57,7 @@ public final class UploadOptions {
             if (netCheckTime != null) {
                 netReadyCheckTime = Integer.parseInt(netCheckTime);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) {}
         Log.e("qiniutest","netCheckTime:"+netReadyCheckTime);
         this.params = filterParam(params);
         this.mimeType = mime(mimeType);
@@ -117,7 +115,7 @@ public final class UploadOptions {
         return ret;
     }
 
-    static UploadOptions defaultOptions() {
+    public static UploadOptions defaultOptions() {
         return new UploadOptions(null, null, false, null, null);
     }
 

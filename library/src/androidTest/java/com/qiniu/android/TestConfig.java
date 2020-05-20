@@ -9,7 +9,7 @@ import com.qiniu.android.common.Zone;
 public final class TestConfig {
     //华东上传凭证
     public static final String bucket_z0 = "sdk-z0";
-    public static final String token_z0 = "MP_Ebql_lSsUrDr7WrXn_5vKocQDLvTPCNEFeVmp:zfCfgMtCzO8l8iab_lbm402wZY8=:eyJzY29wZSI6ImFuZHJvaWR0ZXN0IiwiZGVhZGxpbmUiOjE1Njk4NTgzMTl9";
+    public static final String token_z0 = "jH983zIUFIP1OVumiBVGeAfiLYJvwrF45S-t22eu:IqlAyqMKUd8_j7GeIxJ0QQQHKsc=:eyJzY29wZSI6InpvbmUwLXNwYWNlIiwiZGVhZGxpbmUiOjE1OTAwNDA4Nzh9";
     //华北上传凭证
     public static final String bucket_z1 = "sdk-z1";
     public static final String token_z1 = "QWYn5TFQsLLU1pL5MFEmX3s5DmHdUThav9WyOWOm:ILIWwUZ7_hvZeKJzbBKvpo8DpYc=:eyJzY29wZSI6InNkay16MSIsInJldHVybmJvZHkiOiJ7XCJoYXNoXCI6XCIkKGV0YWcpXCIsXCJrZXlcIjpcIiQoa2V5KVwiLFwiZm5hbWVcIjpcIiAkKGZuYW1lKSBcIixcImZzaXplXCI6XCIkKGZzaXplKVwiLFwibWltZVR5cGVcIjpcIiQobWltZVR5cGUpXCIsXCJmb29cIjpcIiQoeDpmb28pXCIsXCJiYXJcIjpcIiQoeDpiYXIpXCJ9IiwiZGVhZGxpbmUiOjQyOTQ5NjcyOTV9";

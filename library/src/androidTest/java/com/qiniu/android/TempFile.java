@@ -40,6 +40,20 @@ public final class TempFile {
         }
     }
 
+//    public static byte[] createData(int kiloSize){
+//
+//        long size = (long) (1024 * kiloSize);
+//        byte[] data = new byte[0];
+//
+//        byte[] b = getByte(1024);
+//        long s = 0;
+//        while (s < size) {
+//            int l = (int) Math.min(b.length, size - s);
+//            s += l;
+//        }
+//        return data;
+//    }
+
     public static byte[] getByte(int len) {
         byte[] b = new byte[len];
         b[0] = 'A';

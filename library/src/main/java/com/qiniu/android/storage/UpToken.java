@@ -9,48 +9,62 @@ import org.json.JSONObject;
  * 内部使用的客户端 token 检查.
  */
 public final class UpToken {
-    public static UpToken NULL = new UpToken("", "", "");
+//    public static UpToken NULL = new UpToken("", "", "");
     public final String token;
     public final String accessKey;
+    public final String bucket;
     private String returnUrl = null;
 
-    private UpToken(String returnUrl, String token, String accessKey) {
+    private UpToken(String returnUrl, String token, String accessKey, String bucket) {
         this.returnUrl = returnUrl;
         this.token = token;
         this.accessKey = accessKey;
+        this.bucket = bucket;
     }
 
     public static UpToken parse(String token) {
+        if (token == null){
+            return null;
+        }
         String[] t;
         try {
             t = token.split(":");
         } catch (Exception e) {
-            return NULL;
+            return null;
         }
         if (t.length != 3) {
-            return NULL;
+            return null;
         }
         byte[] dtoken = UrlSafeBase64.decode(t[2]);
         JSONObject obj;
         try {
             obj = new JSONObject(new String(dtoken));
         } catch (JSONException e) {
-            return NULL;
+            return null;
         }
         String scope = obj.optString("scope");
+        String bucket = null;
         if (scope.equals("")) {
-            return NULL;
+            return null;
+        } else {
+            String[] scopeSlice = new String[2];
+            try {
+                scopeSlice = scope.split(":");
+            } catch (Exception e) {}
+            if (scopeSlice.length > 0) {
+                bucket = scopeSlice[0];
+            }
         }
 
         int deadline = obj.optInt("deadline");
         if (deadline == 0) {
-            return NULL;
+            return null;
         }
-        return new UpToken(obj.optString("returnUrl"), token, t[0]);
+        return new UpToken(obj.optString("returnUrl"), token, t[0], bucket);
     }
 
     public static boolean isInvalid(UpToken token) {
-        return token == null || token == NULL;
+        return token == null || token == null;
     }
 
     public String toString() {
@@ -61,4 +75,14 @@ public final class UpToken {
         return !returnUrl.equals("");
     }
 
+    public String index(){
+        String index = "";
+        if (accessKey != null){
+            index += accessKey;
+        }
+        if (bucket != null){
+            index += bucket;
+        }
+        return index;
+    }
 }

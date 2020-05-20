@@ -41,6 +41,10 @@ public final class ResponseInfo {
      */
     public final int statusCode;
     /**
+     * response 信息
+     */
+    public String message;
+    /**
      * 七牛日志扩展头
      */
     public final String reqId;
@@ -129,20 +133,24 @@ public final class ResponseInfo {
                                        JSONObject response,
                                        String errorMessage) {
 
-        String reqId = responseHeader.get("X-Reqid");
-        String xlog = responseHeader.get("X-Log");
+        String reqId = null;
+        String xlog = null;
         String xvia = null;
-        if (responseHeader.get("X-Via") != null){
-            xvia = responseHeader.get("X-Via");
-        } else if (responseHeader.get("X-Px") != null){
-            xvia = responseHeader.get("X-Px");
-        } else if (responseHeader.get("Fw-Via") != null){
-            xvia = responseHeader.get("Fw-Via");
+        if (responseHeader != null) {
+            responseHeader.get("X-Reqid");
+            responseHeader.get("X-Log");
+            if (responseHeader.get("X-Via") != null){
+                xvia = responseHeader.get("X-Via");
+            } else if (responseHeader.get("X-Px") != null){
+                xvia = responseHeader.get("X-Px");
+            } else if (responseHeader.get("Fw-Via") != null){
+                xvia = responseHeader.get("Fw-Via");
+            }
         }
 
         ResponseInfo responseInfo = ResponseInfo.create(response, responseCode, reqId, xlog,
                 xvia, request.host(), null, null, 0, 0, 0,
-                null, null, 0);
+                errorMessage, null, 0);
         return responseInfo;
     }
 
@@ -242,6 +250,45 @@ public final class ResponseInfo {
 
     public boolean isOK() {
         return statusCode == 200 && error == null && (hasReqId() || response != null);
+    }
+
+    public boolean couldRetry(){
+        if (isCancelled()
+            || (statusCode > 300 && statusCode < 400)
+            || (statusCode > 400 && statusCode < 500)
+            || statusCode == 501 || statusCode == 573
+            || statusCode == 608 || statusCode == 612 || statusCode == 614 || statusCode == 616
+            || statusCode == 619 || statusCode == 630 || statusCode == 631 || statusCode == 640
+            || statusCode == 701
+            ||(statusCode < 0 && statusCode > -1000)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public boolean couldRegionRetry(){
+        if (couldRetry() == false
+            || statusCode == 400
+            || statusCode == 502 || statusCode == 503 || statusCode == 504 || statusCode == 579 || statusCode == 599
+            || isCancelled()) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public boolean couldHostRetry(){
+        if (couldRegionRetry() == false
+            || (statusCode == 502 || statusCode == 503 || statusCode == 571)) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public boolean isTlsError() {
+        return false;
     }
 
     public boolean isNetworkBroken() {

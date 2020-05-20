@@ -46,6 +46,11 @@ public final class Configuration {
     public final int retryMax;
 
     /**
+     * 重试时是否允许使用备用上传域名，默认为true
+     */
+    public final boolean allowBackupHost;
+
+    /**
      * 特别定制的url转换
      */
     public UrlConverter urlConverter;
@@ -84,6 +89,7 @@ public final class Configuration {
         keyGen = getKeyGen(builder.keyGen);
 
         retryMax = builder.retryMax;
+        allowBackupHost = builder.allowBackupHost;
 
         proxy = builder.proxy;
 
@@ -122,6 +128,7 @@ public final class Configuration {
         private int connectTimeout = 10;
         private int responseTimeout = 60;
         private int retryMax = 3;
+        private boolean allowBackupHost = true;
         private UrlConverter urlConverter = null;
         private Dns dns = null;
         private long dnsCacheTimeMs = 60 * 60 * 24 * 1000;
@@ -169,6 +176,11 @@ public final class Configuration {
 
         public Builder retryMax(int times) {
             this.retryMax = times;
+            return this;
+        }
+
+        public Builder allowBackupHost(boolean isAllow) {
+            this.allowBackupHost = isAllow;
             return this;
         }
 
