@@ -239,7 +239,7 @@ public class DnsPrefetcher {
                     target_region_id = "z0";
                 } else if (info.upDomainsList.contains(FixedZone.arrayzone1[0])) {
                     target_region_id = "z1";
-                } else if (info.upDomainsList.contains(FixedZone.arrayzone1[0])) {
+                } else if (info.upDomainsList.contains(FixedZone.arrayzone2[0])) {
                     target_region_id = "z2";
                 } else if (info.upDomainsList.contains(FixedZone.arrayZoneAs0[0])) {
                     target_region_id = "as0";
