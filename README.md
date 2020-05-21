@@ -14,7 +14,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 
 | Qiniu SDK 版本 | 最低 Android版本   |       依赖库版本           | 
 |------------ |-----------------|------------------------|
-|  7.6.0        |  Android 5.0+     |        okhttp 4+         |
+|  7.6.x        |  Android 5.0+     |        okhttp 4+         |
 |  7.5.x        |  Android 5.0+     |        okhttp 4+         |
 |  7.4.3        |  Android 2.3+     |        okhttp 3.12.6     |
 |  7.3.x        |  Android 2.3+     |        okhttp 3.11.0     |
@@ -24,7 +24,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 |  7.0.7        |  Android 2.2+     | android-async-http 1.4.8 |
 
 ### 注意
-* 推荐使用最新版：7.6.0，7.6.0使用okhttp4.2.2
+* 推荐使用最新版：7.6.1，7.6.1使用okhttp4.2.2
 * 7.4.3是在7.5.2版本上降低okhttp版本，其他功能不变
 * 从 7.3.13 开始，不在强制依赖 `happy-dns-android`，默认不再提供 `httpDns`，可以调用 `Configuration.Builder#dns(com.qiniu.android.http.Dns)`方法设置外部 `Dns`，自定义 `Dns` 要求实现 `com.qiniu.android.http.Dns` 接口。
 * 从7.5.0开始增加了DNS预取和缓存策略，减少dns解析错误
