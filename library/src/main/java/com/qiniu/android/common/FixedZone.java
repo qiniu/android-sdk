@@ -65,16 +65,18 @@ public final class FixedZone extends Zone {
     };
     public static final Zone zoneAs0 = new FixedZone(arrayZoneAs0);
 
-    private static ZoneInfo zoneInfo;
-    private static List<ZoneInfo> listZoneInfo = new ArrayList<ZoneInfo>();
+    private ZoneInfo zoneInfo;
+    private static ZoneInfo preCustomZone;
 
     public static List<ZoneInfo> getZoneInfos() {
+        List<ZoneInfo> listZoneInfo = new ArrayList<ZoneInfo>();
         listZoneInfo.add(createZoneInfo(arrayzone0));
         listZoneInfo.add(createZoneInfo(arrayzone1));
         listZoneInfo.add(createZoneInfo(arrayzone2));
         listZoneInfo.add(createZoneInfo(arrayzoneNa0));
         listZoneInfo.add(createZoneInfo(arrayZoneAs0));
-        listZoneInfo.add(zoneInfo);
+        if (preCustomZone != null)
+            listZoneInfo.add(preCustomZone);
         return listZoneInfo;
     }
 
@@ -84,6 +86,7 @@ public final class FixedZone extends Zone {
 
     public FixedZone(String[] upDomains) {
         this.zoneInfo = createZoneInfo(upDomains);
+        this.preCustomZone = this.zoneInfo;
     }
 
     public static ZoneInfo createZoneInfo(String[] upDomains) {

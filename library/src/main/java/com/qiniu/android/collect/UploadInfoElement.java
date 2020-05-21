@@ -556,7 +556,7 @@ public class UploadInfoElement {
 
     public static String errorType(int statuscode) {
         String result = "";
-        if (200 < statuscode && statuscode < 400) {
+        if (200 < statuscode && statuscode < 600) {
             return "response_error";
         }
         switch (statuscode) {
