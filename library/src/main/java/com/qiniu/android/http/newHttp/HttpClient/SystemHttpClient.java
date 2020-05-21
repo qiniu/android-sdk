@@ -66,7 +66,7 @@ public class SystemHttpClient implements RequestClient {
         httpClient = createHttpClient(request, connectionProxy);
         okhttp3.Request.Builder requestBuilder = createRequestBuilder(request, progress);
         if (requestBuilder == null){
-            ResponseInfo responseInfo = ResponseInfo.invalidArgument("invalid http request", null);
+            ResponseInfo responseInfo = ResponseInfo.invalidArgument("invalid http request");
             handleError(request, responseInfo.statusCode, responseInfo.message, complete);
             return;
         }

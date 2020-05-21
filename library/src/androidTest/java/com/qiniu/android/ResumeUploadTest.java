@@ -9,12 +9,10 @@ import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
-import com.qiniu.android.storage.Recorder;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.storage.persistent.FileRecorder;
 
 import junit.framework.Assert;
 
@@ -85,7 +83,9 @@ public class ResumeUploadTest extends InstrumentationTestCase {
 
     public void setUp() throws Exception {
         Configuration config = new Configuration.Builder().build();
-        uploadManager = new UploadManager(config, 3);
+        config.useConcurrentResumeUpload = true;
+        config.concurrentTaskCount = 3;
+        uploadManager = new UploadManager(config);
         ACollectUploadInfoTest.testInit();
     }
 

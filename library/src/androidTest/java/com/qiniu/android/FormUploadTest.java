@@ -37,8 +37,8 @@ public class FormUploadTest extends InstrumentationTestCase {
         this.bucketTokenMap.put(TestConfig.bucket_na0, TestConfig.token_na0);
 
         this.bucketZoneMap = new HashMap<>();
-        //this.bucketZoneMap.put(TestConfig.bucket_z0, FixedZone.zone0);
-        this.bucketZoneMap.put(TestConfig.bucket_z1, FixedZone.zone1);
+        this.bucketZoneMap.put(TestConfig.bucket_z0, FixedZone.zone0);
+//        this.bucketZoneMap.put(TestConfig.bucket_z1, FixedZone.zone1);
         //this.bucketZoneMap.put(TestConfig.bucket_z2, FixedZone.zone2);
         //this.bucketZoneMap.put(TestConfig.bucket_na0, FixedZone.zoneNa0);
 
@@ -134,12 +134,10 @@ public class FormUploadTest extends InstrumentationTestCase {
             try {
                 Assert.assertEquals("Qiniu.TestPutBytes upload failed", expectKey,
                         responseBody.getString("key"));
-                Assert.assertEquals("Qiniu.TestPutBytes mimetype failed", mimeType,
-                        responseBody.getString("mimeType"));
                 Assert.assertEquals("Qiniu.TestPutBytes optional params x:foo failed", "foo",
-                        responseBody.getString("foo"));
+                        responseBody.getString("x:foo"));
                 Assert.assertEquals("Qiniu.TestPutBytes optional params x:bar failed", "bar",
-                        responseBody.getString("bar"));
+                        responseBody.getString("x:bar"));
             } catch (Exception ex) {
                 Assert.fail("Qiniu.TestPutBytes " + ex.getMessage());
             }

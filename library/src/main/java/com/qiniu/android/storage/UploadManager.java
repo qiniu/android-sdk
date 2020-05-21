@@ -1,40 +1,29 @@
 package com.qiniu.android.storage;
 
-import com.qiniu.android.collect.Config;
-import com.qiniu.android.collect.UploadInfoCollector;
 import com.qiniu.android.common.Zone;
-import com.qiniu.android.http.Client;
-import com.qiniu.android.http.DnsPrefetcher;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.newHttp.metrics.UploadTaskMetrics;
 import com.qiniu.android.utils.AsyncRun;
-import com.qiniu.android.utils.StringUtils;
+
+import junit.framework.Assert;
 
 import org.json.JSONObject;
 
 import java.io.File;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.ArrayList;
 
-/**
- * 七牛文件上传管理器
- * 一般默认可以使用这个类的方法来上传数据和文件。会自动检测文件的大小，
- * 只要超过了{@link Configuration#putThreshold} 异步方法会使用分片方片上传。
- * 同步上传方法使用表单方式上传，建议只对小文件使用同步方式
- */
-public final class UploadManager {
+public class UploadManager {
+
     private final Configuration config;
-    private final Client client;
-    private int multithreads = 1;
-    private static int DEF_THREAD_NUM = 3;
-    /**
-     * 保证代码只执行一次，防止多个uploadManager同时开始预取dns
-     */
-    static AtomicBoolean atomicLocalPrefetch = new AtomicBoolean(false);
 
     /**
      * default 3 Threads
      */
     public UploadManager() {
-        this(new Configuration.Builder().build(), DEF_THREAD_NUM);
+        this(new Configuration.Builder().build());
     }
 
     /**
@@ -42,17 +31,6 @@ public final class UploadManager {
      */
     public UploadManager(Configuration config) {
         this.config = config;
-        this.client = new Client(config.proxy, config.connectTimeout, config.responseTimeout,
-                config.urlConverter, config.dns);
-        startLocalPrefetch(config);
-    }
-
-    public UploadManager(Configuration config, int multitread) {
-        this.config = config;
-        this.multithreads = multitread >= 1 ? multitread : DEF_THREAD_NUM;
-        this.client = new Client(config.proxy, config.connectTimeout, config.responseTimeout,
-                config.urlConverter, config.dns);
-        startLocalPrefetch(config);
     }
 
     public UploadManager(Recorder recorder) {
@@ -61,86 +39,6 @@ public final class UploadManager {
 
     public UploadManager(Recorder recorder, KeyGenerator keyGen) {
         this(new Configuration.Builder().recorder(recorder, keyGen).build());
-    }
-
-    public UploadManager(Recorder recorder, int multitread) {
-        this(recorder, null, multitread);
-    }
-
-    public UploadManager(Recorder recorder, KeyGenerator keyGen, int multitread) {
-        this(new Configuration.Builder().recorder(recorder, keyGen).build(), multitread);
-    }
-
-    //初始化一个UploadManager只允许执行一次，开启一个线程，对sdk内置host进行预取
-    private void startLocalPrefetch(final Configuration config) {
-        if (atomicLocalPrefetch.compareAndSet(false, true)) {
-            if (DnsPrefetcher.recoverCache(config)) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DnsPrefetcher.getDnsPrefetcher().localFetch();
-                    }
-                }).start();
-            }
-        }
-    }
-
-    private static boolean areInvalidArg(final String key, byte[] data, File f, String token,
-                                         UpToken decodedToken, final UpCompletionHandler complete) {
-        if (complete == null) {
-            throw new IllegalArgumentException("no UpCompletionHandler");
-        }
-        String message = null;
-        if (f == null && data == null) {
-            message = "no input data";
-        } else if (token == null || token.equals("")) {
-            message = "no token";
-        }
-
-        ResponseInfo info = null;
-        if (message != null) {
-            info = ResponseInfo.invalidArgument(message, decodedToken);
-        } else if (UpToken.isInvalid(decodedToken)) {
-            info = ResponseInfo.invalidToken("invalid token");
-        } else if ((f != null && f.length() == 0) || (data != null && data.length == 0)) {
-            info = ResponseInfo.zeroSize(decodedToken);
-        }
-
-        if (info != null) {
-            complete.complete(key, info, null);
-            return true;
-        }
-
-        return false;
-    }
-
-    private static ResponseInfo areInvalidArg(final String key, byte[] data, File f, String
-            token,
-                                              UpToken decodedToken) {
-        String message = null;
-        if (f == null && data == null) {
-            message = "no input data";
-        } else if (token == null || token.equals("")) {
-            message = "no token";
-        }
-
-        if (message != null) {
-            return ResponseInfo.invalidArgument(message, decodedToken);
-        }
-
-        if (UpToken.isInvalid(decodedToken)) {
-            return ResponseInfo.invalidToken("invalid token");
-        }
-
-        if ((f != null && f.length() == 0) || (data != null && data.length == 0)) {
-            return ResponseInfo.zeroSize(decodedToken);
-        }
-
-        return null;
-    }
-
-    private static WarpHandler warpHandler(final UpCompletionHandler complete, final long size) {
-        return new WarpHandler(complete, size);
     }
 
     /**
@@ -152,38 +50,15 @@ public final class UploadManager {
      * @param complete 上传完成后续处理动作
      * @param options  上传数据的可选参数
      */
-    public void put(final byte[] data, final String key, final String token,
-                    final UpCompletionHandler complete, final UploadOptions options) {
-        final UpToken decodedToken = UpToken.parse(token);
-        if (areInvalidArg(key, data, null, token, decodedToken, complete)) {
+    public void put(final byte[] data,
+                    final String key,
+                    final String token,
+                    final UpCompletionHandler complete,
+                    final UploadOptions options) {
+        if (checkAndNotifyError(key, token, data, complete)){
             return;
         }
-        //此处是对uc.qbox.me接口获取的域名进行预取
-        if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DnsPrefetcher.startPrefetchDns(token, config);
-                    }
-                }).start();
-        }
-
-        Zone z = config.zone;
-        z.preQuery(token, new Zone.QueryHandler() {
-            @Override
-            public void onSuccess() {
-                FormUploader.upload(client, config, data, key, decodedToken, complete, options);
-            }
-
-            @Override
-            public void onFailure(int reason) {
-                final ResponseInfo info = ResponseInfo.isStatusCodeForBrokenNetwork(reason) ?
-                        ResponseInfo.networkError(reason, decodedToken) :
-                        ResponseInfo.invalidToken("invalid token");
-                complete.complete(key, info, null);
-            }
-        });
-
+        putData(data, null, key, token, true, options, complete);
     }
 
     /**
@@ -195,8 +70,10 @@ public final class UploadManager {
      * @param completionHandler 上传完成的后续处理动作
      * @param options           上传数据的可选参数
      */
-    public void put(String filePath, String key, String token, UpCompletionHandler
-            completionHandler,
+    public void put(String filePath,
+                    String key,
+                    String token,
+                    UpCompletionHandler completionHandler,
                     final UploadOptions options) {
         put(new File(filePath), key, token, completionHandler, options);
     }
@@ -211,54 +88,15 @@ public final class UploadManager {
      * @param complete 上传完成的后续处理动作
      * @param options  上传数据的可选参数
      */
-    public void put(final File file, final String key, final String token,
+    public void put(final File file,
+                    final String key,
+                    final String token,
                     final UpCompletionHandler complete,
                     final UploadOptions options) {
-        final UpToken decodedToken = UpToken.parse(token);
-        if (areInvalidArg(key, null, file, token, decodedToken, complete)) {
+        if (checkAndNotifyError(key, token, file, complete)){
             return;
         }
-        //此处是每次上传时判断，对uc.qbox.me接口获取的host+sdk内置的host进行预取(去重)
-        if (DnsPrefetcher.checkRePrefetchDns(token, config)) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        DnsPrefetcher.startPrefetchDns(token, config);
-                    }
-                }).start();
-        }
-
-        Zone z = config.zone;
-        z.preQuery(token, new Zone.QueryHandler() {
-            @Override
-            public void onSuccess() {
-                long size = file.length();
-                if (size <= config.putThreshold) {
-                    FormUploader.upload(client, config, file, key, decodedToken, complete, options);
-                    return;
-                }
-                String recorderKey = config.keyGen.gen(key, file);
-                final WarpHandler completionHandler = warpHandler(complete, file != null ? file.length() : 0);
-                if (multithreads == 1) {
-                    ResumeUploader uploader = new ResumeUploader(client, config, file, key,
-                            decodedToken, completionHandler, options, recorderKey);
-                    AsyncRun.runInMain(uploader);
-                } else {
-                    ResumeUploaderFast uploader = new ResumeUploaderFast(client, config, file, key,
-                            decodedToken, completionHandler, options, recorderKey, multithreads);
-                    AsyncRun.runInMain(uploader);
-                }
-            }
-
-            @Override
-            public void onFailure(int reason) {
-                final ResponseInfo info = ResponseInfo.isStatusCodeForBrokenNetwork(reason) ?
-                        ResponseInfo.networkError(reason, decodedToken) :
-                        ResponseInfo.invalidToken("invalid token");
-                complete.complete(key, info, null);
-            }
-        });
-
+        putFile(file, key, token, options, complete);
     }
 
     /**
@@ -270,13 +108,28 @@ public final class UploadManager {
      * @param options 上传数据的可选参数
      * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
      */
-    public ResponseInfo syncPut(byte[] data, String key, String token, UploadOptions options) {
-        final UpToken decodedToken = UpToken.parse(token);
-        ResponseInfo info = areInvalidArg(key, data, null, token, decodedToken);
-        if (info != null) {
-            return info;
+    public ResponseInfo syncPut(byte[] data,
+                                String key,
+                                String token,
+                                UploadOptions options) {
+        final ArrayList<ResponseInfo> responseInfos = new ArrayList<ResponseInfo>();
+        UpCompletionHandler completionHandler = new UpCompletionHandler() {
+            @Override
+            public void complete(String key, ResponseInfo info, JSONObject response) {
+                if (info != null) {
+                    responseInfos.add(info);
+                }
+            }
+        };
+        if (!checkAndNotifyError(key, token, data, completionHandler)){
+            putData(data, null, key, token, false, options, completionHandler);
         }
-        return FormUploader.syncUpload(client, config, data, key, decodedToken, options);
+
+        if (responseInfos.size() > 0){
+            return responseInfos.get(0);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -288,13 +141,28 @@ public final class UploadManager {
      * @param options 上传数据的可选参数
      * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
      */
-    public ResponseInfo syncPut(File file, String key, String token, UploadOptions options) {
-        final UpToken decodedToken = UpToken.parse(token);
-        ResponseInfo info = areInvalidArg(key, null, file, token, decodedToken);
-        if (info != null) {
-            return info;
+    public ResponseInfo syncPut(File file,
+                                String key,
+                                String token,
+                                UploadOptions options) {
+        final ArrayList<ResponseInfo> responseInfos = new ArrayList<ResponseInfo>();
+        UpCompletionHandler completionHandler = new UpCompletionHandler() {
+            @Override
+            public void complete(String key, ResponseInfo info, JSONObject response) {
+                if (info != null) {
+                    responseInfos.add(info);
+                }
+            }
+        };
+        if (!checkAndNotifyError(key, token, file, completionHandler)){
+            putFile(file, key, token, options, completionHandler);
         }
-        return FormUploader.syncUpload(client, config, file, key, decodedToken, options);
+
+        if (responseInfos.size() > 0){
+            return responseInfos.get(0);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -310,46 +178,151 @@ public final class UploadManager {
         return syncPut(new File(file), key, token, options);
     }
 
-    private static class WarpHandler implements UpCompletionHandler {
-        final UpCompletionHandler complete;
-        final long before = System.currentTimeMillis();
-        final long size;
 
-        WarpHandler(UpCompletionHandler complete, long size) {
-            this.complete = complete;
-            this.size = size;
+    private void putData(final byte[] data,
+                         final String fileName,
+                         final String key,
+                         final String token,
+                         boolean isAsyn,
+                         final UploadOptions option,
+                         final UpCompletionHandler completionHandler){
+
+        final UpToken t = UpToken.parse(token);
+        if (t == null) {
+            ResponseInfo info = ResponseInfo.invalidArgument("invalid token");
+            completeAction(token, key, info, null, null, completionHandler);
+            return;
         }
 
-        @Override
-        public void complete(final String key, final ResponseInfo res, final JSONObject response) {
-            if (Config.isRecord) {
-                final long after = System.currentTimeMillis();
-                UploadInfoCollector.handleUpload(res.upToken,
-                        // 延迟序列化.如果判断不记录,则不执行序列化
-                        new UploadInfoCollector.RecordMsg() {
-
-                            @Override
-                            public String toRecordMsg() {
-                                String[] ss = new String[]{res.statusCode + "", res.reqId, res.host, res.ip, res.port + "", (after - before) + "",
-                                        res.timeStamp + "", size + "", "block", size + ""};
-                                return StringUtils.join(ss, ",");
-                            }
-                        });
-            }
-
-            AsyncRun.runInMain(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        complete.complete(key, res, response);
-                    } catch (Throwable t) {
-                        // do nothing
-                        t.printStackTrace();
-                    }
+        config.zone.preQuery(t, new Zone.QueryHandler() {
+            @Override
+            public void complete(int code, ResponseInfo responseInfo) {
+                if (code != 0){
+                    completeAction(token, key, responseInfo, responseInfo.response, null, completionHandler);
+                    return;
                 }
-            });
+                BaseUpload.UpTaskCompletionHandler completionHandlerP = new BaseUpload.UpTaskCompletionHandler() {
+                    @Override
+                    public void complete(ResponseInfo responseInfo, String key, UploadTaskMetrics requestMetrics, JSONObject response) {
+                        completeAction(token, key, responseInfo, response, requestMetrics, completionHandler);
+                    }
+                };
+                final FormUpload up = new FormUpload(data, key, fileName, t, option, config, completionHandlerP);
+                AsyncRun.runInMain(new Runnable() {
+                    @Override
+                    public void run() {
+                        up.run();
+                    }
+                });
+            }
+        });
+    }
+
+    private void putFile(final File file,
+                         final String key,
+                         final String token,
+                         final UploadOptions option,
+                         final UpCompletionHandler completionHandler){
+        final UpToken t = UpToken.parse(token);
+        if (t == null) {
+            ResponseInfo info = ResponseInfo.invalidArgument("invalid token");
+            completeAction(token, key, info, null, null, completionHandler);
+            return;
+        }
+        config.zone.preQuery(t, new Zone.QueryHandler() {
+            @Override
+            public void complete(int code, ResponseInfo responseInfo) {
+                if (code != 0) {
+                    completeAction(token, key, responseInfo, responseInfo.response, null, completionHandler);
+                    return;
+                }
+
+                if (file.length() <= config.putThreshold) {
+                    byte[] data = new byte[(int) file.length()];
+                    RandomAccessFile randomAccessFile = null;
+                    try {
+                        randomAccessFile = new RandomAccessFile(file, "r");
+                        randomAccessFile.seek(0);
+                        randomAccessFile.read(data);
+                        randomAccessFile.close();
+                    } catch (FileNotFoundException ignored) {
+                    } catch (IOException e) {
+                    }
+                    putData(data, file.getName(), key, token, true, option, completionHandler);
+                }
+
+                String recorderKey = key;
+                if (config.recorder != null && config.keyGen != null) {
+                    recorderKey = config.keyGen.gen(key, file);
+                }
+
+                BaseUpload.UpTaskCompletionHandler completionHandlerP = new BaseUpload.UpTaskCompletionHandler() {
+                    @Override
+                    public void complete(ResponseInfo responseInfo, String key, UploadTaskMetrics requestMetrics, JSONObject response) {
+                        completeAction(token, key, responseInfo, response, requestMetrics, completionHandler);
+                    }
+                };
+                if (config.useConcurrentResumeUpload) {
+                    final ConcurrentResumeUpload up = new ConcurrentResumeUpload(file, key, t, option, config, config.recorder, key, completionHandlerP);
+                    AsyncRun.runInMain(new Runnable() {
+                        @Override
+                        public void run() {
+                            up.run();
+                        }
+                    });
+                } else {
+                    final ResumeUpload up = new ResumeUpload(file, key, t, option, config, config.recorder, key, completionHandlerP);
+                    AsyncRun.runInMain(new Runnable() {
+                        @Override
+                        public void run() {
+                            up.run();
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    private boolean checkAndNotifyError(String key,
+                                        String token,
+                                        Object input,
+                                        UpCompletionHandler completionHandler){
+        if (completionHandler == null){
+            Assert.assertNotNull("complete handler is null", null);
+            return true;
+        }
+
+        String desc = null;
+        if (input == null){
+            desc = "no input data";
+        } else if (token == null || token.length() == 0){
+            desc = "no token";
+        }
+        if (desc != null){
+            ResponseInfo info = ResponseInfo.invalidArgument(desc);
+            completeAction(token, key, info, null, null, completionHandler);
+            return true;
+        } else {
+            return false;
         }
     }
 
+    private void completeAction(String token,
+                                String key,
+                                ResponseInfo responseInfo,
+                                JSONObject response,
+                                UploadTaskMetrics taskMetrics,
+                                UpCompletionHandler completionHandler){
 
+        reportQuality(responseInfo, taskMetrics, token);
+        if (completionHandler != null){
+            completionHandler.complete(key, responseInfo, response);
+        }
+    }
+
+    private void reportQuality(ResponseInfo responseInfo,
+                               UploadTaskMetrics taskMetrics,
+                               String token){
+
+    }
 }

@@ -71,6 +71,16 @@ public final class Configuration {
     public boolean useHttps;
 
     /**
+     * 是否使用并发上传 默认为false
+     */
+    public boolean useConcurrentResumeUpload;
+
+    /**
+     * 并发分片上传的并发任务个数，在concurrentResumeUpload为YES时有效，默认为3个
+     */
+    public int concurrentTaskCount;
+
+    /**
      * dns预取缓存时间
      */
     public long dnsCacheTimeMs;
@@ -98,7 +108,10 @@ public final class Configuration {
         urlConverter = builder.urlConverter;
         AutoZone autoZone = null;
 
-        autoZone = new AutoZone(builder.useHttps);
+        autoZone = new AutoZone();
+
+        useConcurrentResumeUpload = builder.useConcurrentResumeUpload;
+        concurrentTaskCount = builder.concurrentTaskCount;
 
         zone = builder.zone == null ? autoZone : builder.zone;
         dns = builder.dns;
@@ -130,6 +143,9 @@ public final class Configuration {
         private int retryMax = 3;
         private boolean allowBackupHost = true;
         private UrlConverter urlConverter = null;
+        public boolean useConcurrentResumeUpload = false;
+        public int concurrentTaskCount = 3;
+
         private Dns dns = null;
         private long dnsCacheTimeMs = 60 * 60 * 24 * 1000;
 

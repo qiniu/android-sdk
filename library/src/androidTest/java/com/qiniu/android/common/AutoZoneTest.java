@@ -56,32 +56,6 @@ public class AutoZoneTest extends AndroidTestCase {
         Assert.assertEquals(s1.split(":")[0], s2.split(":")[0]);
     }
 
-    public void testC1() {
-        AutoZone autoZone = new AutoZone();
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
-        autoZone.preQueryIndex(new AutoZone.ZoneIndex(ak, bkt), new Zone.QueryHandler() {
-            @Override
-            public void onSuccess() {
-                countDownLatch.countDown();
-            }
 
-            @Override
-            public void onFailure(int reason) {
-                countDownLatch.countDown();
-                fail();
-            }
-        });
-        try {
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        ZoneInfo info = autoZone.zoneInfo(ak, bkt);
-        Log.d("qiniutest: ", info.toString());
-
-        ZoneInfo info2 = autoZone.zoneInfo(ak, bkt);
-        Assert.assertSame(info, info2);
-
-    }
 
 }

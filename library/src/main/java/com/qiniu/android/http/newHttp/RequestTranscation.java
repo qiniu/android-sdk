@@ -6,7 +6,7 @@ import com.qiniu.android.http.UserAgent;
 import com.qiniu.android.http.newHttp.handler.RequestProgressHandler;
 import com.qiniu.android.http.newHttp.handler.RequestShouldRetryHandler;
 import com.qiniu.android.http.newHttp.metrics.UploadRegionRequestMetrics;
-import com.qiniu.android.http.newHttp.serverRegion.QNUploadDomainRegion;
+import com.qiniu.android.http.newHttp.serverRegion.UploadDomainRegion;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
@@ -44,7 +44,7 @@ public class RequestTranscation {
                               String key,
                               UpToken token){
         this(config, uploadOption, key, token);
-        UploadRegion region = new QNUploadDomainRegion();
+        UploadRegion region = new UploadDomainRegion();
         region.setupRegionData(ZoneInfo.buildInfo(hosts, null));
         this.initData(region, region);
     }
@@ -285,7 +285,7 @@ public class RequestTranscation {
         requestInfo.requestType = UploadRequestInfo.RequestTypeMkfile;
 
         if (blockContexts == null){
-            ResponseInfo responseInfo = ResponseInfo.invalidArgument("invalid blockcontexts", null);
+            ResponseInfo responseInfo = ResponseInfo.invalidArgument("invalid blockcontexts");
             completeHandler.complete(responseInfo, null, responseInfo.response);
             return;
         }

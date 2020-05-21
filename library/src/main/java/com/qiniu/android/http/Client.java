@@ -18,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -152,10 +151,7 @@ public final class Client {
             error = body == null ? "null body" : new String(body);
         }
 
-        HttpUrl u = response.request().url();
-        return ResponseInfo.create(json, code, reqId, response.header("X-Log"),
-                via(response), u.host(), u.encodedPath(), ip, u.port(), duration,
-                getContentLength(response), error, upToken, totalSize);
+        return ResponseInfo.create(null, code, null, json, error);
     }
 
     private static long getContentLength(okhttp3.Response response) {
@@ -219,11 +215,8 @@ public final class Client {
                     statusCode = ResponseInfo.CannotConnectToHost;
                 }
 
-                HttpUrl u = call.request().url();
-                ResponseInfo info = ResponseInfo.create(null, statusCode, "", "", "", u.host(),
-                        u.encodedPath(), "", u.port(), tag.duration, -1, e.getMessage(), upToken, totalSize);
-
-                complete.complete(info, null);
+                ResponseInfo responseInfo = ResponseInfo.create(null, statusCode, null, null, e.getMessage());
+                complete.complete(responseInfo, null);
             }
 
             @Override
@@ -348,9 +341,7 @@ public final class Client {
             res = httpClient.newCall(req).execute();
         } catch (IOException e) {
             e.printStackTrace();
-            return ResponseInfo.create(null, NetworkError, "", "", "",
-                    req.url().host(), req.url().encodedPath(), tag.ip, req.url().port(),
-                    tag.duration, -1, e.getMessage(), null, 0);
+            return ResponseInfo.create(null, NetworkError, null, null, e.getMessage());
         }
 
         return buildResponseInfo(res, tag.ip, tag.duration, null, 0);
@@ -423,9 +414,7 @@ public final class Client {
                 statusCode = ResponseInfo.CannotConnectToHost;
             }
 
-            HttpUrl u = req.url();
-            return ResponseInfo.create(null, statusCode, "", "", "", u.host(), u.encodedPath(), "",
-                    u.port(), 0, 0, e.getMessage(), upToken, totalSize);
+            return ResponseInfo.create(null, statusCode, null, null, e.getMessage());
         }
     }
 

@@ -2,6 +2,8 @@ package com.qiniu.android.common;
 
 import android.util.Log;
 
+import com.qiniu.android.storage.UpToken;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +25,7 @@ public final class FixedZone extends Zone {
             "up-jjh.qiniup.com", "up-xs.qiniup.com",
             "upload.qbox.me", "up.qbox.me"
     };
-    public static final Zone zone0 = new FixedZone(arrayzone0);
+    public static final Zone zone0 = new FixedZone(arrayzone0, new String[]{"iovip.qbox.me"});
 
     /**
      * 华北机房
@@ -32,7 +34,7 @@ public final class FixedZone extends Zone {
             "upload-z1.qiniup.com", "up-z1.qiniup.com",
             "upload-z1.qbox.me", "up-z1.qbox.me"
     };
-    public static final Zone zone1 = new FixedZone(arrayzone1);
+    public static final Zone zone1 = new FixedZone(arrayzone1, new String[]{"iovip-z1.qbox.me"});
 
     /**
      * 华南机房
@@ -43,7 +45,7 @@ public final class FixedZone extends Zone {
             "up-dg.qiniup.com", "up-fs.qiniup.com",
             "upload-z2.qbox.me", "up-z2.qbox.me"
     };
-    public static final Zone zone2 = new FixedZone(arrayzone2);
+    public static final Zone zone2 = new FixedZone(arrayzone2, new String[]{"iovip-z2.qbox.me"});
 
     /**
      * 北美机房
@@ -52,7 +54,7 @@ public final class FixedZone extends Zone {
             "upload-na0.qiniup.com", "up-na0.qiniup.com",
             "upload-na0.qbox.me", "up-na0.qbox.me"
     };
-    public static final Zone zoneNa0 = new FixedZone(arrayzoneNa0);
+    public static final Zone zoneNa0 = new FixedZone(arrayzoneNa0, new String[]{"iovip-na0.qbox.me"});
 
     /**
      * 新加坡机房
@@ -61,9 +63,10 @@ public final class FixedZone extends Zone {
             "upload-as0.qiniup.com", "up-as0.qiniup.com",
             "upload-as0.qbox.me", "up-as0.qbox.me"
     };
-    public static final Zone zoneAs0 = new FixedZone(arrayZoneAs0);
+    public static final Zone zoneAs0 = new FixedZone(arrayZoneAs0, new String[]{"iovip-as0.qbox.me"});
 
     private static ZoneInfo zoneInfo;
+    private ZonesInfo zonesInfo;
     private static List<ZoneInfo> listZoneInfo = new ArrayList<ZoneInfo>();
     public static List<ZoneInfo> getZoneInfos() {
         listZoneInfo.add(createZoneInfo(arrayzone0));
@@ -75,12 +78,26 @@ public final class FixedZone extends Zone {
         return listZoneInfo;
     }
 
+    public static List<Zone> localsZoneInfo() {
+        ArrayList<Zone> localsZone = new ArrayList<Zone>();
+        localsZone.add(zone0);
+        localsZone.add(zone1);
+        localsZone.add(zone2);
+        localsZone.add(zoneNa0);
+        localsZone.add(zoneAs0);
+        return localsZone;
+    }
+
     public FixedZone(ZoneInfo zoneInfo) {
         this.zoneInfo = zoneInfo;
     }
 
     public FixedZone(String[] upDomains) {
         this.zoneInfo = createZoneInfo(upDomains);
+    }
+
+    public FixedZone(String[] upDomains, String[] ioDomains) {
+        this.zonesInfo = createZonesInfo(upDomains, ioDomains);
     }
 
     public static ZoneInfo createZoneInfo(String[] upDomains) {
@@ -93,33 +110,34 @@ public final class FixedZone extends Zone {
         return new ZoneInfo(0, upDomainsList, upDomainsMap);
     }
 
-
-    @Override
-    public synchronized String upHost(String upToken, boolean useHttps, String frozenDomain) {
-        String upHost = this.upHost(this.zoneInfo, useHttps, frozenDomain);
-        for (Map.Entry<String, Long> entry : this.zoneInfo.upDomainsMap.entrySet()) {
-            Log.d("Qiniu.FixedZone", entry.getKey() + ", " + entry.getValue());
+    private ZonesInfo createZonesInfo(String[] upDomains, String[] ioDomains) {
+        if (upDomains == null || upDomains.length == 0) {
+            return null;
         }
-        return upHost;
+
+        ArrayList<String> upDomainsList = new ArrayList<String>(Arrays.asList(upDomains));
+        ArrayList<String> ioDomainsList = null;
+        if (ioDomains != null){
+            ioDomainsList = new ArrayList<String>(Arrays.asList(ioDomains));
+        }
+        ZoneInfo zoneInfo = ZoneInfo.buildInfo(upDomainsList, ioDomainsList);
+        if (zoneInfo == null) {
+            return null;
+        }
+        ArrayList<ZoneInfo> zoneInfoList = new ArrayList<ZoneInfo>();
+        zoneInfoList.add(zoneInfo);
+        return new ZonesInfo(zoneInfoList);
     }
 
     @Override
-    public void preQuery(String token, QueryHandler complete) {
-        complete.onSuccess();
+    public ZonesInfo getZonesInfo(UpToken token) {
+        return zonesInfo;
     }
 
     @Override
-    public boolean preQuery(String token) {
-        return true;
-    }
-
-    @Override
-    public synchronized void frozenDomain(String upHostUrl) {
-        if (upHostUrl != null) {
-            URI uri = URI.create(upHostUrl);
-            //frozen domain
-            String frozenDomain = uri.getHost();
-            zoneInfo.frozenDomain(frozenDomain);
+    public void preQuery(UpToken token, QueryHandler completeHandler) {
+        if (completeHandler != null){
+            completeHandler.complete(0, null);
         }
     }
 }

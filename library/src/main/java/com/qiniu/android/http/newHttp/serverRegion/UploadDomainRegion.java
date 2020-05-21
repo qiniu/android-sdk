@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
-public class QNUploadDomainRegion implements UploadRegion {
+public class UploadDomainRegion implements UploadRegion {
 
     private boolean isAllFreezed;
     private HashMap<String, UploadServerDomain> domainHashMap;

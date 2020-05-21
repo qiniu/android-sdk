@@ -4,20 +4,16 @@ package com.qiniu.android;
 import android.test.InstrumentationTestCase;
 import android.util.Log;
 
-import com.qiniu.android.collect.Config;
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.DnsPrefetcher;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.custom.DnsCacheKey;
 import com.qiniu.android.storage.Configuration;
-import com.qiniu.android.storage.Recorder;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.storage.persistent.DnsCacheFile;
 import com.qiniu.android.utils.AndroidNetwork;
-import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONObject;
 
@@ -26,7 +22,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by jemy on 2019/8/20.
@@ -165,7 +160,9 @@ public class DnsApiTest extends InstrumentationTestCase {
                 public void run() {
                     try {
                         Configuration config = new Configuration.Builder().build();
-                        final UploadManager uploadManager = new UploadManager(config, 3);
+                        config.useConcurrentResumeUpload = true;
+                        config.concurrentTaskCount = 3;
+                        final UploadManager uploadManager = new UploadManager(config);
                         final String expectKey = "r=" + size + "k";
                         final File f;
                         f = TempFile.createFile(size);
