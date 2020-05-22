@@ -2,17 +2,17 @@ package com.qiniu.android.storage;
 
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.newHttp.UploadRegion;
-import com.qiniu.android.http.newHttp.metrics.UploadRegionRequestMetrics;
-import com.qiniu.android.http.newHttp.metrics.UploadTaskMetrics;
-import com.qiniu.android.http.newHttp.serverRegion.UploadDomainRegion;
+import com.qiniu.android.http.request.UploadRegion;
+import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.http.metrics.UploadTaskMetrics;
+import com.qiniu.android.http.request.serverRegion.UploadDomainRegion;
 
 import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
 
-public class BaseUpload {
+public class BaseUpload implements Runnable {
     public final String key;
     public final String fileName;
     public final byte[] data;

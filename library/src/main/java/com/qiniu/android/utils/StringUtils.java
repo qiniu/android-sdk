@@ -1,9 +1,6 @@
 package com.qiniu.android.utils;
 
-import android.util.Log;
-
 import com.qiniu.android.common.Constants;
-import com.qiniu.android.http.DnsPrefetcher;
 
 import org.json.JSONObject;
 

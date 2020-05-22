@@ -1,5 +1,7 @@
 package com.qiniu.android.http;
 
+import android.util.Log;
+
 import com.qiniu.android.utils.AsyncRun;
 
 import java.io.IOException;

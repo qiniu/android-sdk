@@ -65,7 +65,6 @@ public final class FixedZone extends Zone {
     };
     public static final Zone zoneAs0 = new FixedZone(arrayZoneAs0, new String[]{"iovip-as0.qbox.me"});
 
-    private static ZoneInfo zoneInfo;
     private ZonesInfo zonesInfo;
     private static List<ZoneInfo> listZoneInfo = new ArrayList<ZoneInfo>();
     public static List<ZoneInfo> getZoneInfos() {
@@ -74,7 +73,6 @@ public final class FixedZone extends Zone {
         listZoneInfo.add(createZoneInfo(arrayzone2));
         listZoneInfo.add(createZoneInfo(arrayzoneNa0));
         listZoneInfo.add(createZoneInfo(arrayZoneAs0));
-        listZoneInfo.add(zoneInfo);
         return listZoneInfo;
     }
 
@@ -89,11 +87,13 @@ public final class FixedZone extends Zone {
     }
 
     public FixedZone(ZoneInfo zoneInfo) {
-        this.zoneInfo = zoneInfo;
+        ArrayList<ZoneInfo> zoneInfos = new ArrayList<>();
+        zoneInfos.add(zoneInfo);
+        this.zonesInfo = new ZonesInfo(zoneInfos);
     }
 
     public FixedZone(String[] upDomains) {
-        this.zoneInfo = createZoneInfo(upDomains);
+        this(upDomains, null);
     }
 
     public FixedZone(String[] upDomains, String[] ioDomains) {

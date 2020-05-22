@@ -1,8 +1,8 @@
 package com.qiniu.android.common;
 
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.newHttp.RequestTranscation;
-import com.qiniu.android.http.newHttp.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.http.request.RequestTranscation;
+import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.storage.UpToken;
 
 import org.json.JSONObject;

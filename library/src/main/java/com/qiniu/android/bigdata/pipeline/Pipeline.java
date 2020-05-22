@@ -1,8 +1,8 @@
 package com.qiniu.android.bigdata.pipeline;
 
 import com.qiniu.android.bigdata.Configuration;
-import com.qiniu.android.http.Client;
-import com.qiniu.android.http.CompletionHandler;
+import com.qiniu.android.bigdata.client.Client;
+import com.qiniu.android.bigdata.client.CompletionHandler;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.StringMap;
 import com.qiniu.android.utils.StringUtils;

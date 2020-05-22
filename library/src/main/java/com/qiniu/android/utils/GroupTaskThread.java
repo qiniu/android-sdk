@@ -31,9 +31,7 @@ public class GroupTaskThread extends Thread {
             } else {
                 try {
                     sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                } catch (InterruptedException e) {}
             }
         }
     }

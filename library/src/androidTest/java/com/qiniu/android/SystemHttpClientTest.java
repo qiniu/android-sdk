@@ -4,10 +4,10 @@ import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.newHttp.Request;
-import com.qiniu.android.http.newHttp.RequestClient;
-import com.qiniu.android.http.newHttp.HttpClient.SystemHttpClient;
-import com.qiniu.android.http.newHttp.metrics.UploadSingleRequestMetrics;
+import com.qiniu.android.http.request.Request;
+import com.qiniu.android.http.request.RequestClient;
+import com.qiniu.android.http.request.httpclient.SystemHttpClient;
+import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 
 
 

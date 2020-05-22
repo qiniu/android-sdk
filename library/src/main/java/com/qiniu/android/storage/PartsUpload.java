@@ -2,9 +2,8 @@ package com.qiniu.android.storage;
 
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.newHttp.UploadFileInfo;
-import com.qiniu.android.http.newHttp.UploadRegion;
-import com.qiniu.android.utils.Json;
+import com.qiniu.android.http.request.UploadFileInfo;
+import com.qiniu.android.http.request.UploadRegion;
 
 import org.json.JSONException;
 import org.json.JSONObject;

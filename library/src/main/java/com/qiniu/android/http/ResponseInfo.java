@@ -1,16 +1,11 @@
 package com.qiniu.android.http;
 
 
-import com.qiniu.android.collect.Config;
-import com.qiniu.android.collect.UploadInfoCollector;
 import com.qiniu.android.common.Constants;
-import com.qiniu.android.http.newHttp.Request;
-import com.qiniu.android.storage.UpToken;
-import com.qiniu.android.utils.StringUtils;
+import com.qiniu.android.http.request.Request;
 
 import org.json.JSONObject;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -144,14 +139,14 @@ public final class ResponseInfo {
         String xlog = null;
         String xvia = null;
         if (responseHeader != null) {
-            responseHeader.get("X-Reqid");
-            responseHeader.get("X-Log");
-            if (responseHeader.get("X-Via") != null){
-                xvia = responseHeader.get("X-Via");
-            } else if (responseHeader.get("X-Px") != null){
-                xvia = responseHeader.get("X-Px");
-            } else if (responseHeader.get("Fw-Via") != null){
-                xvia = responseHeader.get("Fw-Via");
+            reqId = responseHeader.get("x-reqid");
+            xlog = responseHeader.get("x-log");
+            if (responseHeader.get("x-via") != null){
+                xvia = responseHeader.get("x-via");
+            } else if (responseHeader.get("x-px") != null){
+                xvia = responseHeader.get("x-px");
+            } else if (responseHeader.get("fw-via") != null){
+                xvia = responseHeader.get("fw-via");
             }
         }
         ResponseInfo responseInfo = new ResponseInfo(response, responseCode, reqId, xlog, xvia, host, errorMessage);

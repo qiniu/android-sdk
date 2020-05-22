@@ -5,9 +5,9 @@ import android.test.InstrumentationTestCase;
 import android.util.Log;
 
 import com.qiniu.android.common.ZoneInfo;
-import com.qiniu.android.http.DnsPrefetcher;
+import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.custom.DnsCacheKey;
+import com.qiniu.android.http.dns.DnsCacheKey;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressHandler;

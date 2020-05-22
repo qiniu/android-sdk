@@ -1,11 +1,11 @@
 package com.qiniu.android.storage;
 
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.newHttp.RequestTranscation;
-import com.qiniu.android.http.newHttp.UploadFileInfo;
-import com.qiniu.android.http.newHttp.UploadRegion;
-import com.qiniu.android.http.newHttp.handler.RequestProgressHandler;
-import com.qiniu.android.http.newHttp.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.http.request.RequestTranscation;
+import com.qiniu.android.http.request.UploadFileInfo;
+import com.qiniu.android.http.request.UploadRegion;
+import com.qiniu.android.http.request.handler.RequestProgressHandler;
+import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.utils.GroupTaskThread;
 
 import org.json.JSONException;
@@ -40,12 +40,14 @@ public class ConcurrentResumeUpload extends PartsUpload {
     @Override
     public void prepareToUpload() {
         chunkSize = blockSize;
+
         super.prepareToUpload();
     }
 
     @Override
     public void startToUpload() {
         previousPercent = 0;
+        uploadTranscations = new ArrayList<RequestTranscation>();
         uploadBlockErrorResponseInfo = null;
         uploadBlockErrorResponse = null;
 
@@ -66,12 +68,14 @@ public class ConcurrentResumeUpload extends PartsUpload {
                     makeFile(new UploadFileCompleteHandler() {
                         @Override
                         public void complete(ResponseInfo responseInfo, JSONObject response) {
-                            if (responseInfo != null && !responseInfo.isOK()){
+                            if (responseInfo == null || !responseInfo.isOK()){
                                 boolean isSwitched = switchRegionAndUpload();
                                 if (!isSwitched){
                                     completeAction(responseInfo, response);
                                 }
                             } else {
+                                option.progressHandler.progress(key, 1.0);
+                                removeUploadInfoRecord();
                                 completeAction(responseInfo, response);
                             }
                         }
@@ -85,7 +89,6 @@ public class ConcurrentResumeUpload extends PartsUpload {
             groupTaskThread.addTask(new GroupTaskThread.GroupTask() {
                 @Override
                 public void run(final GroupTaskThread.GroupTask task) {
-
                     uploadRestBlock(new UploadBlockCompleteHandler() {
                         @Override
                         public void complete() {
@@ -171,6 +174,8 @@ public class ConcurrentResumeUpload extends PartsUpload {
                     recordUploadInfo();
                     uploadRestBlock(completeHandler);
                 } else {
+                    chunk.isUploading = false;
+                    chunk.isCompleted = false;
                     uploadBlockErrorResponse = response;
                     uploadBlockErrorResponseInfo = responseInfo;
                     setCurrentRegionRequestMetrics(requestMetrics);
@@ -223,6 +228,9 @@ public class ConcurrentResumeUpload extends PartsUpload {
         } catch (IOException e) {
             data = null;
         }
+        try {
+            randomAccessFile.close();
+        } catch (IOException e){}
         return data;
     }
 

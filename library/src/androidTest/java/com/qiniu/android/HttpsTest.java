@@ -4,8 +4,8 @@ import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
-import com.qiniu.android.http.Client;
-import com.qiniu.android.http.CompletionHandler;
+import com.qiniu.android.bigdata.client.Client;
+import com.qiniu.android.bigdata.client.CompletionHandler;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.UpToken;
 

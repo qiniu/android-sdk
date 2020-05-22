@@ -1,11 +1,11 @@
 package com.qiniu.android.storage;
 
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.newHttp.RequestTranscation;
-import com.qiniu.android.http.newHttp.UploadFileInfo;
-import com.qiniu.android.http.newHttp.UploadRegion;
-import com.qiniu.android.http.newHttp.handler.RequestProgressHandler;
-import com.qiniu.android.http.newHttp.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.http.request.RequestTranscation;
+import com.qiniu.android.http.request.UploadFileInfo;
+import com.qiniu.android.http.request.UploadRegion;
+import com.qiniu.android.http.request.handler.RequestProgressHandler;
+import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -58,12 +58,14 @@ public class ResumeUpload extends PartsUpload {
                     makeFile(new UploadFileCompleteHandler() {
                         @Override
                         public void complete(ResponseInfo responseInfo, JSONObject response) {
-                            if (responseInfo != null && !responseInfo.isOK()){
+                            if (responseInfo == null || !responseInfo.isOK()){
                                 boolean isSwitched = switchRegionAndUpload();
                                 if (!isSwitched){
                                     completeAction(responseInfo, response);
                                 }
                             } else {
+                                option.progressHandler.progress(key, 1.0);
+                                removeUploadInfoRecord();
                                 completeAction(responseInfo, response);
                             }
                         }
@@ -147,6 +149,8 @@ public class ResumeUpload extends PartsUpload {
                     recordUploadInfo();
                     uploadRestChunk(completeHandler);
                 } else {
+                    chunk.isUploading = false;
+                    chunk.isCompleted = false;
                     uploadChunkErrorResponse = response;
                     uploadChunkErrorResponseInfo = responseInfo;
                     completeHandler.complete();
@@ -180,6 +184,8 @@ public class ResumeUpload extends PartsUpload {
                     recordUploadInfo();
                     uploadRestChunk(completeHandler);
                 } else {
+                    chunk.isUploading = false;
+                    chunk.isCompleted = false;
                     uploadChunkErrorResponse = response;
                     uploadChunkErrorResponseInfo = responseInfo;
                     completeHandler.complete();
@@ -225,6 +231,9 @@ public class ResumeUpload extends PartsUpload {
         } catch (IOException e) {
             data = null;
         }
+        try {
+            randomAccessFile.close();
+        } catch (IOException e) {}
         return data;
     }
 

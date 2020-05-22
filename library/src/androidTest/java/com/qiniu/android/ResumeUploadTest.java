@@ -13,6 +13,7 @@ import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
+import com.qiniu.android.utils.Etag;
 
 import junit.framework.Assert;
 
@@ -26,7 +27,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class ResumeUploadTest extends InstrumentationTestCase {
-    final CountDownLatch signal = new CountDownLatch(1);
+
     String TAG = this.getClass().getSimpleName();
     private UploadManager uploadManager;
     private volatile String key;
@@ -75,7 +76,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     private UploadOptions getUploadOptions() {
         return new UploadOptions(null, null, false, new UpProgressHandler() {
             public void progress(String key, double percent) {
-                Log.d(TAG, percent + "");
+                Log.d(TAG, "== percent:" + percent);
                 putProgress(percent);
             }
         }, null);
@@ -90,7 +91,10 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     }
 
     private void template(int size) throws Throwable {
-        final String expectKey = "r=" + size + "k";
+
+        final CountDownLatch signal = new CountDownLatch(1);
+
+        final String expectKey = "android-resume-test1-" + size + "k";
         final File f = TempFile.createFile(size);
         final UploadOptions options = getUploadOptions();
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
@@ -109,27 +113,24 @@ public class ResumeUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(1200, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
+            assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        Assert.assertEquals(info.toString(), expectKey, key);
-
-//        Assert.assertTrue(info.toString(), info.isOK());
-
-        Assert.assertNotNull(info.reqId);
-//        Assert.assertNotNull(resp);
-//        String hash = resp.getString("hash");
-//        Assert.assertEquals(hash, Etag.file(f));
-        //TempFile.remove(f);
-//        Assert.assertTrue("进度有变化，不大可能一直相同。" + getProgress(), !isProgressAllSame());
-        Log.d(TAG, getProgress());
-        ACollectUploadInfoTest.recordFileTest();
+        assertTrue(info.toString(), info.isOK());
+        assertNotNull(info.reqId);
+        assertEquals(info.toString(), expectKey, key);
+        String hash = resp.getString("hash");
+        assertEquals(hash, Etag.file(f));
+        TempFile.remove(f);
     }
 
     private void template2(int size) throws Throwable {
-        final String expectKey = "r=" + size + "k";
+
+        final CountDownLatch signal = new CountDownLatch(1);
+
+        final String expectKey = "android-resume-test2-" + size + "k";
         final File f = TempFile.createFile(size);
         String[] s = new String[]{"up.qbox.me"};
         Zone z = new FixedZone(s);
@@ -150,29 +151,17 @@ public class ResumeUploadTest extends InstrumentationTestCase {
 
         try {
             signal.await(1200, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
+            assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        Assert.assertEquals(info.toString(), expectKey, key);
-
-//        Assert.assertTrue(info.toString(), info.isOK());
-
-        Assert.assertEquals(expectKey, key);
-
-        //上传策略含空格 \"fname\":\" $(fname) \"
-//        Assert.assertEquals(f.getName(), resp.optString("fname", "res doesn't include the FNAME").trim());
-//        Assert.assertTrue(info.isOK());
-        Assert.assertNotNull(info.reqId);
-//        Assert.assertNotNull(resp);
-//        String hash = resp.getString("hash");
-//        Assert.assertEquals(hash, Etag.file(f));
+        assertTrue(info.toString(), info.isOK());
+        assertNotNull(info.reqId);
+        assertEquals(info.toString(), expectKey, key);
+        String hash = resp.getString("hash");
+        assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
-
-//        Assert.assertTrue("进度有变化，不大可能一直相同。" + getProgress(), !isProgressAllSame());
-        Log.d(TAG, getProgress());
-        ACollectUploadInfoTest.recordFileTest();
     }
 
     @MediumTest

@@ -1,5 +1,6 @@
 package com.qiniu.android.collect;
 
+import com.qiniu.android.common.Config;
 import com.qiniu.android.http.UserAgent;
 import com.qiniu.android.storage.UpToken;
 

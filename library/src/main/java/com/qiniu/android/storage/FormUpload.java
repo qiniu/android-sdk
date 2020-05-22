@@ -1,9 +1,9 @@
 package com.qiniu.android.storage;
 
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.newHttp.RequestTranscation;
-import com.qiniu.android.http.newHttp.handler.RequestProgressHandler;
-import com.qiniu.android.http.newHttp.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.http.request.RequestTranscation;
+import com.qiniu.android.http.request.handler.RequestProgressHandler;
+import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 
 import org.json.JSONObject;
 

@@ -3,7 +3,7 @@ package com.qiniu.android;
 import android.test.AndroidTestCase;
 import android.util.Log;
 
-import com.qiniu.android.collect.Config;
+import com.qiniu.android.common.Config;
 
 import junit.framework.Assert;
 

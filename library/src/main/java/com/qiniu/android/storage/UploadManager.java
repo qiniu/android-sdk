@@ -1,8 +1,9 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.newHttp.metrics.UploadTaskMetrics;
+import com.qiniu.android.http.metrics.UploadTaskMetrics;
 import com.qiniu.android.utils.AsyncRun;
 
 import junit.framework.Assert;
@@ -14,6 +15,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class UploadManager {
 
@@ -208,12 +210,7 @@ public class UploadManager {
                     }
                 };
                 final FormUpload up = new FormUpload(data, key, fileName, t, option, config, completionHandlerP);
-                AsyncRun.runInMain(new Runnable() {
-                    @Override
-                    public void run() {
-                        up.run();
-                    }
-                });
+                AsyncRun.runInMain(up);
             }
         });
     }
@@ -263,21 +260,11 @@ public class UploadManager {
                     }
                 };
                 if (config.useConcurrentResumeUpload) {
-                    final ConcurrentResumeUpload up = new ConcurrentResumeUpload(file, key, t, option, config, config.recorder, key, completionHandlerP);
-                    AsyncRun.runInMain(new Runnable() {
-                        @Override
-                        public void run() {
-                            up.run();
-                        }
-                    });
+                    final ConcurrentResumeUpload up = new ConcurrentResumeUpload(file, recorderKey, t, option, config, config.recorder, key, completionHandlerP);
+                    AsyncRun.runInMain(up);
                 } else {
-                    final ResumeUpload up = new ResumeUpload(file, key, t, option, config, config.recorder, key, completionHandlerP);
-                    AsyncRun.runInMain(new Runnable() {
-                        @Override
-                        public void run() {
-                            up.run();
-                        }
-                    });
+                    final ResumeUpload up = new ResumeUpload(file, key, t, option, config, config.recorder, recorderKey, completionHandlerP);
+                    AsyncRun.runInMain(up);
                 }
             }
         });
@@ -323,6 +310,18 @@ public class UploadManager {
     private void reportQuality(ResponseInfo responseInfo,
                                UploadTaskMetrics taskMetrics,
                                String token){
+
+        UploadTaskMetrics taskMetricsP = taskMetrics != null ? taskMetrics : new UploadTaskMetrics(null);
+
+        ReportItem item = new ReportItem();
+        item.setReport(ReportItem.LogTypeQuality, ReportItem.QualityKeyLogType);
+        item.setReport((new Date().getTime()), ReportItem.QualityKeyUpTime);
+        item.setReport(ReportItem.qualityResult(responseInfo), ReportItem.QualityKeyResult);
+        item.setReport(taskMetricsP.totalElaspsedTime(), ReportItem.QualityKeyTotalElaspsedTime);
+        item.setReport(taskMetricsP.requestCount(), ReportItem.QualityKeyRequestsCount);
+        item.setReport(taskMetricsP.regionCount(), ReportItem.QualityKeyRegionsCount);
+        item.setReport(taskMetricsP.bytesSend(), ReportItem.QualityKeyBytesSent);
+
 
     }
 }
