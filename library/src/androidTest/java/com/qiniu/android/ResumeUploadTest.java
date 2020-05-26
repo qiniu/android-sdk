@@ -145,6 +145,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
                 key = k;
                 info = rinfo;
                 resp = response;
+
                 signal.countDown();
             }
         }, options);

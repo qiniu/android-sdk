@@ -109,9 +109,9 @@ public class HttpSingleRequest {
 
 
     private void completeAction(ResponseInfo responseInfo,
-                          JSONObject response,
-                          UploadSingleRequestMetrics requestMetrics,
-                          RequestCompleteHandler completeHandler) {
+                                JSONObject response,
+                                UploadSingleRequestMetrics requestMetrics,
+                                RequestCompleteHandler completeHandler) {
 
         reportRequest(responseInfo, requestMetrics);
         if (completeHandler != null){

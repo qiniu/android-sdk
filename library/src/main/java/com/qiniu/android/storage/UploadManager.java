@@ -1,6 +1,7 @@
 package com.qiniu.android.storage;
 
 import com.qiniu.android.collect.ReportItem;
+import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
@@ -317,11 +318,10 @@ public class UploadManager {
         item.setReport(ReportItem.LogTypeQuality, ReportItem.QualityKeyLogType);
         item.setReport((new Date().getTime()), ReportItem.QualityKeyUpTime);
         item.setReport(ReportItem.qualityResult(responseInfo), ReportItem.QualityKeyResult);
-        item.setReport(taskMetricsP.totalElaspsedTime(), ReportItem.QualityKeyTotalElaspsedTime);
+        item.setReport(taskMetricsP.totalElaspsedTime(), ReportItem.QualityKeyTotalElapsedTime);
         item.setReport(taskMetricsP.requestCount(), ReportItem.QualityKeyRequestsCount);
         item.setReport(taskMetricsP.regionCount(), ReportItem.QualityKeyRegionsCount);
         item.setReport(taskMetricsP.bytesSend(), ReportItem.QualityKeyBytesSent);
-
-
+        UploadInfoReporter.getInstance().report(item, token);
     }
 }

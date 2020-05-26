@@ -2,6 +2,8 @@ package com.qiniu.android.collect;
 
 import com.qiniu.android.http.ResponseInfo;
 
+import org.json.JSONObject;
+
 import java.util.HashMap;
 
 public class ReportItem {
@@ -29,7 +31,7 @@ public class ReportItem {
         if (keyValues == null || keyValues.size() == 0){
             return jsonString;
         }
-        jsonString = keyValues.toString();
+        jsonString = new JSONObject(keyValues).toString();
         return jsonString;
     }
 
@@ -49,7 +51,7 @@ public class ReportItem {
     public static final String RequestKeyPort = "port";
     public static final String RequestKeyTargetBucket = "target_bucket";
     public static final String RequestKeyTargetKey = "target_key";
-    public static final String RequestKeyTotalElaspsedTime = "total_elaspsed_time";
+    public static final String RequestKeyTotalElapsedTime = "total_elapsed_time";
     public static final String RequestKeyDnsElapsedTime = "dns_elapsed_time";
     public static final String RequestKeyConnectElapsedTime = "connect_elapsed_time";
     public static final String RequestKeyTLSConnectElapsedTime = "tls_connect_elapsed_time";
@@ -65,7 +67,7 @@ public class ReportItem {
     public static final String RequestKeyCurrentRegionId = "current_region_id";
     public static final String RequestKeyErrorType = "error_type";
     public static final String RequestKeyErrorDescription = "error_description";
-    public static final String RequestKeyUpTFype = "up_type";
+    public static final String RequestKeyUpType = "up_type";
     public static final String RequestKeyOsName = "os_name";
     public static final String RequestKeyOsVersion = "os_version";
     public static final String RequestKeySDKName = "sdk_name";
@@ -73,7 +75,7 @@ public class ReportItem {
     public static final String RequestKeyClientTime = "client_time";
     public static final String RequestKeyNetworkType = "network_type";
     public static final String RequestKeySignalStrength = "signal_strength";
-    public static final String RequestKeyPrefetchedIpCount = "prefetched_ip_count";
+    public static final String RequestKeyPreetchedIpCount = "prefetched_ip_count";
 
 
     // 分块上传统计⽇志
@@ -81,7 +83,7 @@ public class ReportItem {
     public static final String BlockKeyUpTime = "up_time";
     public static final String BlockKeyTargetRegionId = "target_region_id";
     public static final String BlockKeyCurrentRegionId = "current_region_id";
-    public static final String BlockKeyTotalElaspsedTime = "total_elaspsed_time";
+    public static final String BlockKeyTotalElapsedTime = "total_elapsed_time";
     public static final String BlockKeyBytesSent = "bytes_sent";
     public static final String BlockKeyRecoveredFrom = "recovered_from";
     public static final String BlockKeyFileSize = "file_size";
@@ -95,7 +97,7 @@ public class ReportItem {
     public static final String QualityKeyLogType = "log_type";
     public static final String QualityKeyUpTime = "up_time";
     public static final String QualityKeyResult = "result";
-    public static final String QualityKeyTotalElaspsedTime = "total_elaspsed_time";
+    public static final String QualityKeyTotalElapsedTime = "total_elapsed_time";
     public static final String QualityKeyRequestsCount = "requests_count";
     public static final String QualityKeyRegionsCount = "regions_count";
     public static final String QualityKeyBytesSent = "bytes_sent";

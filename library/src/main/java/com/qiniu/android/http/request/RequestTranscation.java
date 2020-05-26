@@ -29,6 +29,7 @@ public class RequestTranscation {
     private final UploadOptions uploadOption;
     private final String key;
     private final UpToken token;
+    private final String userAgent;
 
     private UploadRequestInfo requestInfo;
     private UploadRequstState requstState;
@@ -69,6 +70,7 @@ public class RequestTranscation {
         this.uploadOption = uploadOption;
         this.key = key;
         this.token = token;
+        this.userAgent = UserAgent.instance().getUa((token.accessKey != null ? token.accessKey : "pandora"));
     }
 
     private void initData(UploadRegion targetRegion,
@@ -99,11 +101,7 @@ public class RequestTranscation {
         };
 
         HashMap<String, String> header = new HashMap<>();
-        if (token != null) {
-            header.put("User-Agent", UserAgent.instance().getUa(token.accessKey));
-        } else {
-            header.put("User-Agent", UserAgent.instance().getUa("pandora"));
-        }
+        header.put("User-Agent", userAgent);
         String action = "/v3/query?ak=" + (token.accessKey != null ? token.accessKey : "") + "&bucket=" + (token.bucket != null ? token.bucket : "") ;
         regionRequest.get(action, isAsyn, header, shouldRetryHandler, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
@@ -162,6 +160,7 @@ public class RequestTranscation {
         HashMap <String, String> header = new HashMap<String, String>();
         header.put("Content-Type", ("multipart/form-data; boundary=" + boundary));
         header.put("Content-Length", String.valueOf(body.length));
+        header.put("User-Agent", userAgent);
 
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
             @Override
@@ -195,6 +194,7 @@ public class RequestTranscation {
         HashMap <String, String> header = new HashMap<String, String>();
         header.put("Authorization", token);
         header.put("Content-Type", "application/octet-stream");
+        header.put("User-Agent", userAgent);
 
         String action = String.format("/mkblk/%d", blockSize);
         final String chunkCrc = String.format("%d", Crc32.bytes(firstChunkData));
@@ -243,6 +243,7 @@ public class RequestTranscation {
         HashMap <String, String> header = new HashMap<String, String>();
         header.put("Authorization", token);
         header.put("Content-Type", "application/octet-stream");
+        header.put("User-Agent", userAgent);
 
         String action = String.format("/bput/%s/%d", blockContext, chunkOffest);
         final String chunkCrc = String.format("%d", Crc32.bytes(chunkData));
@@ -297,6 +298,7 @@ public class RequestTranscation {
         HashMap <String, String> header = new HashMap<String, String>();
         header.put("Authorization", token);
         header.put("Content-Type", "application/octet-stream");
+        header.put("User-Agent", userAgent);
 
         String mimeType = String.format("/mimeType/%s", UrlSafeBase64.encodeToString(uploadOption.mimeType));
         String action =  String.format("/mkfile/%d%s", fileSize, mimeType);
@@ -339,6 +341,39 @@ public class RequestTranscation {
         });
     }
 
+    public void reportLog(byte[] logData,
+                          String logClientId,
+                          boolean isAsyn,
+                          final RequestCompleteHandler completeHandler){
+        requestInfo.requestType = UploadRequestInfo.RequestTypeUpLog;
+
+        String token = String.format("UpToken %s", (this.token.token != null ? this.token.token : ""));
+        HashMap <String, String> header = new HashMap<String, String>();
+        header.put("Authorization", token);
+        header.put("Content-Type", "text/plain");
+        header.put("User-Agent", userAgent);
+
+        if (logClientId != null){
+            header.put("X-Log-Client-Id", logClientId);
+        }
+
+        RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
+            @Override
+            public boolean shouldRetry(ResponseInfo responseInfo, JSONObject response) {
+                if (!responseInfo.isOK()){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        };
+        regionRequest.post(null, isAsyn, logData, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
+            @Override
+            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                completeHandler.complete(responseInfo, requestMetrics, response);
+            }
+        });
+    }
 
     public interface RequestCompleteHandler {
         public void complete(ResponseInfo responseInfo,

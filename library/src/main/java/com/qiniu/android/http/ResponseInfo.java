@@ -71,11 +71,17 @@ public final class ResponseInfo {
     public final long timeStamp;
 
     /**
+     * 响应头
+     */
+    public final Map<String, String> responseHeader;
+
+    /**
      * 响应体，json 格式
      */
     public final JSONObject response;
 
     private ResponseInfo(JSONObject json,
+                         Map<String, String>responseHeader,
                          int statusCode,
                          String reqId,
                          String xlog,
@@ -83,6 +89,7 @@ public final class ResponseInfo {
                          String host,
                          String error) {
         this.response = json;
+        this.responseHeader = responseHeader;
         this.statusCode = statusCode;
         this.reqId = reqId;
         this.xlog = xlog;
@@ -124,7 +131,7 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo errorInfo(int statusCode, String error) {
-        ResponseInfo responseInfo = new ResponseInfo(null, statusCode, null, null, null, null, error);
+        ResponseInfo responseInfo = new ResponseInfo(null, null, statusCode, null, null, null, null, error);
         return responseInfo;
     }
 
@@ -149,7 +156,7 @@ public final class ResponseInfo {
                 xvia = responseHeader.get("fw-via");
             }
         }
-        ResponseInfo responseInfo = new ResponseInfo(response, responseCode, reqId, xlog, xvia, host, errorMessage);
+        ResponseInfo responseInfo = new ResponseInfo(response, responseHeader, responseCode, reqId, xlog, xvia, host, errorMessage);
         return responseInfo;
     }
 

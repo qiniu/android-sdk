@@ -60,8 +60,7 @@ public class Utils {
 
     @NotNull
     public static  String sdkDirectory(){
-        File file = Environment.getDataDirectory();
-        String directory = file.getPath() + "/qiniu";
+        String directory = ContextGetter.applicationContext().getCacheDir().getAbsolutePath() + "/qiniu";
         return directory;
     }
 }

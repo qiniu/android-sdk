@@ -10,6 +10,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class PartsUpload extends BaseUpload {
@@ -48,6 +49,15 @@ public class PartsUpload extends BaseUpload {
         return uploadFileInfo;
     };
 
+    private void closeUploadFileInfo(){
+        if (randomAccessFile == null){
+            return;
+        }
+        try {
+            randomAccessFile.close();
+        } catch (IOException e) {}
+    }
+
     public RandomAccessFile getRandomAccessFile() {
         return randomAccessFile;
     }
@@ -78,6 +88,7 @@ public class PartsUpload extends BaseUpload {
     @Override
     public void completeAction(ResponseInfo responseInfo, JSONObject response) {
         reportBlock();
+        closeUploadFileInfo();
         super.completeAction(responseInfo, response);
     }
 

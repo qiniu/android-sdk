@@ -7,6 +7,7 @@ public class UploadRequestInfo {
     public static final String RequestTypeMkblk = "mkblk";
     public static final String RequestTypeBput = "bput";
     public static final String RequestTypeMkfile = "mkfile";
+    public static final String RequestTypeUpLog = "uplog";
 
     public String requestType;
     public String bucket;

@@ -135,7 +135,7 @@ public final class Configuration {
         private KeyGenerator keyGen = null;
         private ProxyConfiguration proxy = null;
 
-        private boolean useHttps = true;
+        private boolean useHttps = false;
         private int chunkSize = 2 * 1024 * 1024;
         private int putThreshold = 4 * 1024 * 1024;
         private int connectTimeout = 10;

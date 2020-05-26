@@ -228,9 +228,6 @@ public class ConcurrentResumeUpload extends PartsUpload {
         } catch (IOException e) {
             data = null;
         }
-        try {
-            randomAccessFile.close();
-        } catch (IOException e){}
         return data;
     }
 

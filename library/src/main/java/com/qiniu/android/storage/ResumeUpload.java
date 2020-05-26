@@ -132,8 +132,18 @@ public class ResumeUpload extends PartsUpload {
         chunk.isUploading = true;
         chunk.isCompleted = false;
 
+        byte[] chunkData = getDataWithChunk(chunk, block);
+        if (chunkData == null){
+            ResponseInfo responseInfo = ResponseInfo.invalidArgument("upload chunk was null");
+            completeAction(responseInfo, responseInfo.response);
+
+            chunk.isUploading = false;
+            chunk.isCompleted = false;
+            return;
+        }
+
         RequestTranscation transcation = createUploadRequestTranscation();
-        transcation.makeBlock(block.offset, block.size, getDataWithChunk(chunk, block), true, progressHandler, new RequestTranscation.RequestCompleteHandler() {
+        transcation.makeBlock(block.offset, block.size, chunkData, true, progressHandler, new RequestTranscation.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 String blockContext = null;
@@ -167,8 +177,18 @@ public class ResumeUpload extends PartsUpload {
         chunk.isUploading = true;
         chunk.isCompleted = false;
 
+        byte[] chunkData = getDataWithChunk(chunk, block);
+        if (chunkData == null){
+            ResponseInfo responseInfo = ResponseInfo.invalidArgument("upload chunk was null");
+            completeAction(responseInfo, responseInfo.response);
+
+            chunk.isUploading = false;
+            chunk.isCompleted = false;
+            return;
+        }
+
         RequestTranscation transcation = createUploadRequestTranscation();
-        transcation.uploadChunk(block.context, block.offset, getDataWithChunk(chunk, block), chunk.offset, true, progressHandler, new RequestTranscation.RequestCompleteHandler() {
+        transcation.uploadChunk(block.context, block.offset, chunkData, chunk.offset, true, progressHandler, new RequestTranscation.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 String blockContext = null;
@@ -231,9 +251,6 @@ public class ResumeUpload extends PartsUpload {
         } catch (IOException e) {
             data = null;
         }
-        try {
-            randomAccessFile.close();
-        } catch (IOException e) {}
         return data;
     }
 

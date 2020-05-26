@@ -341,7 +341,7 @@ public class SystemHttpClient implements RequestClient {
         HashMap<String, String> responseHeader = new HashMap<String, String>();
         int headerCount = response.headers().size();
         for (int i = 0; i < headerCount; i++) {
-            String name = response.headers().name(i);
+            String name = response.headers().name(i).toLowerCase();
             String value = response.headers().value(i);
             responseHeader.put(name, value);
         }
@@ -359,10 +359,12 @@ public class SystemHttpClient implements RequestClient {
             errorMessage = new String(responseBody);
         } else if (responseContentType(response) != "application/json"){
             String responseString = new String(responseBody);
-            try {
-                responseJson = new JSONObject(responseString);
-            } catch (Exception e) {
-                errorMessage = e.getMessage();
+            if (responseString != null && responseString.length() > 0){
+                try {
+                    responseJson = new JSONObject(responseString);
+                } catch (Exception e) {
+                    errorMessage = e.getMessage();
+                }
             }
         } else {
             try {
