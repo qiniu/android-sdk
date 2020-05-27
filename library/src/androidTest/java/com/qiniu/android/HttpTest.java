@@ -68,7 +68,7 @@ public class HttpTest extends BaseTest {
             }
         }, 60);
 
-        Assert.assertNull(info.reqId);
+        Assert.assertTrue(info.reqId == "");
     }
 
     @SmallTest
@@ -184,7 +184,7 @@ public class HttpTest extends BaseTest {
                 }
             }
         }, 60);
-        Assert.assertEquals(null, info.reqId);
+        Assert.assertEquals("", info.reqId);
         Assert.assertEquals(ResponseInfo.UnknownHost, info.statusCode);
     }
 

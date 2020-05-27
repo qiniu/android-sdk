@@ -9,6 +9,7 @@ import org.json.JSONObject;
 
 public class FormUpload extends BaseUpload {
 
+    private boolean isAsyn = true;
     private double previousPercent;
     private RequestTranscation uploadTranscation;
 
@@ -20,6 +21,11 @@ public class FormUpload extends BaseUpload {
                       Configuration config,
                       UpTaskCompletionHandler completionHandler) {
         super(data, key, fileName, token, option, config, completionHandler);
+    }
+
+    public void syncRun(){
+        isAsyn = false;
+        super.run();
     }
 
     @Override
@@ -44,7 +50,7 @@ public class FormUpload extends BaseUpload {
                 }
             }
         };
-        uploadTranscation.uploadFormData(data, fileName, true, progressHandler, new RequestTranscation.RequestCompleteHandler() {
+        uploadTranscation.uploadFormData(data, fileName, isAsyn, progressHandler, new RequestTranscation.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 setCurrentRegionRequestMetrics(requestMetrics);

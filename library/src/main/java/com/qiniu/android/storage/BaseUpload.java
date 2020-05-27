@@ -6,6 +6,7 @@ import com.qiniu.android.http.request.UploadRegion;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
 import com.qiniu.android.http.request.serverRegion.UploadDomainRegion;
+import com.qiniu.android.utils.AsyncRun;
 
 import org.json.JSONObject;
 

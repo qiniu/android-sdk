@@ -1,6 +1,5 @@
 package com.qiniu.android;
 
-import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.LargeTest;
 import android.test.suitebuilder.annotation.MediumTest;
 import android.util.Log;
@@ -16,18 +15,17 @@ import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.Etag;
 
-import junit.framework.Assert;
-
 import org.json.JSONObject;
 
 import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
-public class ResumeUploadTest extends BaseTest {
+/**
+ * Created by yangsen on 2020/5/27
+ */
+public class ConcurrentResumeUploadTest extends BaseTest {
 
     String TAG = this.getClass().getSimpleName();
     private UploadManager uploadManager;
@@ -85,7 +83,7 @@ public class ResumeUploadTest extends BaseTest {
 
     public void setUp() throws Exception {
         Configuration config = new Configuration.Builder()
-                .useConcurrentResumeUpload(false)
+                .useConcurrentResumeUpload(true).concurrentTaskCount(3)
                 .build();
         uploadManager = new UploadManager(config);
     }
@@ -134,7 +132,7 @@ public class ResumeUploadTest extends BaseTest {
         String[] s = new String[]{"up.qbox.me"};
         Zone z = new FixedZone(s);
         Configuration c = new Configuration.Builder()
-                .zone(z).useHttps(true).useConcurrentResumeUpload(false)
+                .zone(z).useHttps(true)
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
         final UploadOptions options = getUploadOptions();
@@ -166,6 +164,7 @@ public class ResumeUploadTest extends BaseTest {
         TempFile.remove(f);
     }
 
+
     @LargeTest
     public void test4M1() throws Throwable {
         template(1024 * 4 + 1);
@@ -187,13 +186,7 @@ public class ResumeUploadTest extends BaseTest {
     }
 
     @LargeTest
-    public void test8M1k2() throws Throwable {
-        template2(1024 * 8 + 1);
-    }
-
-    @LargeTest
     public void test20M1k2() throws Throwable {
         template2(1024 * 20 + 1);
     }
-
 }

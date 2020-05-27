@@ -62,7 +62,6 @@ public class HttpsTest extends BaseTest {
         }, 5);
 
         assertEquals(info.error, 200, info.statusCode);
-        assertNull(info.reqId);
     }
 
 //    @SmallTest

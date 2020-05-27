@@ -358,7 +358,7 @@ public class SystemHttpClient implements RequestClient {
         }
 
         if (responseBody == null){
-            errorMessage = new String(responseBody);
+            errorMessage = response.message();
         } else if (responseContentType(response) != "application/json"){
             String responseString = new String(responseBody);
             if (responseString != null && responseString.length() > 0){

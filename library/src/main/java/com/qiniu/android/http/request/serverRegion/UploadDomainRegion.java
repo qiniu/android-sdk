@@ -1,5 +1,7 @@
 package com.qiniu.android.http.request.serverRegion;
 
+import android.util.Log;
+
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.request.UploadRegion;
 import com.qiniu.android.http.request.UploadServerInterface;
@@ -59,10 +61,12 @@ public class UploadDomainRegion implements UploadRegion {
             UploadServerDomain domain = null;
             domain = domainHashMap.get(freezeServer.getServerId());
             if (domain != null){
+                Log.w("DomainRegion", ("freeze domain:" + domain.host));
                 domain.freeze();
             }
             domain = oldDomainHashMap.get(freezeServer.getServerId());
             if (domain != null){
+                Log.w("DomainRegion", ("freeze domain:" + domain.host));
                 domain.freeze();
             }
         }

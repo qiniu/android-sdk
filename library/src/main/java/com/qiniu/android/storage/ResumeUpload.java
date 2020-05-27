@@ -220,6 +220,13 @@ public class ResumeUpload extends PartsUpload {
 
         RequestTranscation transcation = createUploadRequestTranscation();
         ArrayList<String> contextsList = uploadFileInfo.allBlocksContexts();
+
+        if (contextsList == null || contextsList.size() == 0){
+            ResponseInfo responseInfo = ResponseInfo.invalidArgument("block ctx invalid");
+            completeHandler.complete(responseInfo, responseInfo.response);
+            return;
+        }
+
         String[] contexts = contextsList.toArray(new String[contextsList.size()]);
         transcation.makeFile(uploadFileInfo.size, fileName,  contexts, true, new RequestTranscation.RequestCompleteHandler(){
 

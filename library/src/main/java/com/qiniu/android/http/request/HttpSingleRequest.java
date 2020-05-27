@@ -1,6 +1,8 @@
 package com.qiniu.android.http.request;
 
 
+import android.util.Log;
+
 import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;
@@ -12,11 +14,13 @@ import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
+import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.Utils;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.TimerTask;
 
 public class HttpSingleRequest {
 
@@ -42,7 +46,7 @@ public class HttpSingleRequest {
         this.token = token;
         this.requestInfo = requestInfo;
         this.requstState = requstState;
-        currentRetryTime = 0;
+        currentRetryTime = 1;
     }
 
     public void request(Request request,
@@ -51,7 +55,7 @@ public class HttpSingleRequest {
                         RequestShouldRetryHandler shouldRetryHandler,
                         RequestProgressHandler progressHandler,
                         RequestCompleteHandler completeHandler){
-        currentRetryTime = 0;
+        currentRetryTime = 1;
         requestMetricsList = new ArrayList<UploadSingleRequestMetrics>();
         retryRequest(request, isAsyn, isSkipDns, shouldRetryHandler, progressHandler, completeHandler);
     }
@@ -79,6 +83,7 @@ public class HttpSingleRequest {
             }
         };
 
+        Log.w("SingleRequest", ("== request host:" + request.host + " ip:" + request.ip));
         client.request(request, isAsyn, config.proxy, new RequestClient.RequestClientProgress() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
@@ -100,8 +105,21 @@ public class HttpSingleRequest {
                     && responseInfo.couldHostRetry()){
                     currentRetryTime += 1;
 
-                    retryRequest(request, isAsyn, isSkipDns, shouldRetryHandler, progressHandler, completeHandler);
-
+                    if (isAsyn) {
+                        AsyncRun.runInBack(config.retryInterval, new Runnable() {
+                            @Override
+                            public void run() {
+                                retryRequest(request, isAsyn, isSkipDns, shouldRetryHandler, progressHandler, completeHandler);
+                            }
+                        });
+                    } else {
+                        try {
+                            Thread.sleep(config.retryInterval);
+                        } catch (InterruptedException ignored) {
+                        } finally {
+                            retryRequest(request, isAsyn, isSkipDns, shouldRetryHandler, progressHandler, completeHandler);
+                        }
+                    }
                 } else {
                     completeAction(responseInfo, response, metrics, completeHandler);
                 }

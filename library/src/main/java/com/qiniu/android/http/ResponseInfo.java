@@ -91,7 +91,7 @@ public final class ResponseInfo {
         this.response = json;
         this.responseHeader = responseHeader;
         this.statusCode = statusCode;
-        this.reqId = reqId;
+        this.reqId = reqId != null ? reqId : "";
         this.xlog = xlog;
         this.xvia = xvia;
         this.host = host;
@@ -100,14 +100,8 @@ public final class ResponseInfo {
         this.timeStamp = System.currentTimeMillis() / 1000;
     }
 
-    public static ResponseInfo zeroSize(String path) {
-        String desc = null;
-        if (path == null){
-            desc = "data size is 0";
-        } else {
-            desc = String.format("file %s size is 0", path);
-        }
-        return errorInfo(ZeroSizeFile, desc);
+    public static ResponseInfo zeroSize(String desc) {
+        return errorInfo(ZeroSizeFile, (desc != null ? desc : "data size is 0"));
     }
 
     public static ResponseInfo cancelled() {

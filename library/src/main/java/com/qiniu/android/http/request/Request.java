@@ -14,6 +14,8 @@ public class Request {
     public final byte[] httpBody;
     public final int timeout;
 
+    public String host;
+    public String ip;
 
     public Request(String urlString,
                    String httpMethod,
@@ -29,7 +31,7 @@ public class Request {
     }
 
     public String host(){
-        return null;
+        return urlString;
     }
 
     public boolean isValid() {

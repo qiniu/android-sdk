@@ -1,6 +1,5 @@
 package com.qiniu.android;
 
-import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
 import android.util.Log;
 
@@ -21,7 +20,8 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class FormUploadTest extends InstrumentationTestCase {
+public class FormUploadTest extends BaseTest {
+
     private UploadManager uploadManager;
     private Map<String, String> bucketTokenMap;
     private Map<String, Zone> bucketZoneMap;
@@ -132,14 +132,14 @@ public class FormUploadTest extends InstrumentationTestCase {
             }
 
             try {
-                Assert.assertEquals("Qiniu.TestPutBytes upload failed", expectKey,
+                assertEquals("Qiniu.TestPutBytes upload failed", expectKey,
                         responseBody.getString("key"));
-                Assert.assertEquals("Qiniu.TestPutBytes optional params x:foo failed", "foo",
-                        responseBody.getString("x:foo"));
-                Assert.assertEquals("Qiniu.TestPutBytes optional params x:bar failed", "bar",
-                        responseBody.getString("x:bar"));
+                assertEquals("Qiniu.TestPutBytes optional params foo failed", "foo",
+                        responseBody.getString("foo"));
+                assertEquals("Qiniu.TestPutBytes optional params bar failed", "bar",
+                        responseBody.getString("bar"));
             } catch (Exception ex) {
-                Assert.fail("Qiniu.TestPutBytes " + ex.getMessage());
+                fail("Qiniu.TestPutBytes " + ex.getMessage());
             }
         }
     }
@@ -156,39 +156,6 @@ public class FormUploadTest extends InstrumentationTestCase {
         final String mimeType = "text/plain";
         final UploadOptions options = new UploadOptions(params, mimeType, true, null, null);
         byte[] putData = "hello qiniu cloud storage".getBytes();
-
-        for (Map.Entry<String, Zone> bucketZone : this.mockBucketZoneMap.entrySet()) {
-            final CountDownLatch signal = new CountDownLatch(1);
-            final String bucket = bucketZone.getKey();
-            final Zone zone = bucketZone.getValue();
-            final String upToken = this.bucketTokenMap.get(bucket);
-
-            final String expectKey = String.format("androidsdk/%s/qiniu_put_bytes_test.txt", bucket);
-
-            Configuration cfg = new Configuration.Builder()
-                    .zone(zone)
-                    .useHttps(false)
-                    .build();
-            UploadManager uploadManagerWithCfg = new UploadManager(cfg);
-            uploadManagerWithCfg.put(putData, expectKey, upToken, new UpCompletionHandler() {
-                public void complete(String key, ResponseInfo info, JSONObject response) {
-                    Log.i("Qiniu.TestPutBytes", "upload result of bucket " + bucket);
-                    Log.d("Qiniu.TestPutBytes", info.toString());
-
-                    responseBody = response;
-                    signal.countDown();
-
-                }
-            }, options);
-
-            try {
-                signal.await(120, TimeUnit.SECONDS);
-            } catch (Exception ex) {
-                Assert.fail("Qiniu.TestPutBytes timeout");
-            }
-
-            Assert.assertNull(responseBody);
-        }
 
         //retry will success
         for (Map.Entry<String, Zone> bucketZone : this.mockBucketZoneMap.entrySet()) {
@@ -218,20 +185,16 @@ public class FormUploadTest extends InstrumentationTestCase {
             try {
                 signal.await(120, TimeUnit.SECONDS);
             } catch (Exception ex) {
-                Assert.fail("Qiniu.TestPutBytes timeout");
+                fail("Qiniu.TestPutBytes timeout");
             }
 
             try {
-                Assert.assertEquals("Qiniu.TestPutBytes upload failed", expectKey,
-                        responseBody.getString("key"));
-                Assert.assertEquals("Qiniu.TestPutBytes mimetype failed", mimeType,
-                        responseBody.getString("mimeType"));
-                Assert.assertEquals("Qiniu.TestPutBytes optional params x:foo failed", "foo",
-                        responseBody.getString("foo"));
-                Assert.assertEquals("Qiniu.TestPutBytes optional params x:bar failed", "bar",
-                        responseBody.getString("bar"));
+                assertEquals("Qiniu.TestPutBytes upload failed", expectKey, responseBody.getString("key"));
+                assertEquals("Qiniu.TestPutBytes mimetype failed", mimeType, responseBody.getString("mimeType"));
+                assertEquals("Qiniu.TestPutBytes optional params x:foo failed", "foo", responseBody.getString("foo"));
+                assertEquals("Qiniu.TestPutBytes optional params x:bar failed", "bar", responseBody.getString("bar"));
             } catch (Exception ex) {
-                Assert.fail("Qiniu.TestPutBytes " + ex.getMessage());
+                fail("Qiniu.TestPutBytes " + ex.getMessage());
             }
         }
 

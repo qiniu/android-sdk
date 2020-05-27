@@ -46,6 +46,11 @@ public final class Configuration {
     public final int retryMax;
 
     /**
+     * 重试时间间隔 单位：毫秒 默认500
+     */
+    public final int retryInterval;
+
+    /**
      * 重试时是否允许使用备用上传域名，默认为true
      */
     public final boolean allowBackupHost;
@@ -68,17 +73,17 @@ public final class Configuration {
     /**
      * 使用https域名
      */
-    public boolean useHttps;
+    public final boolean useHttps;
 
     /**
      * 是否使用并发上传 默认为false
      */
-    public boolean useConcurrentResumeUpload;
+    public final boolean useConcurrentResumeUpload;
 
     /**
      * 并发分片上传的并发任务个数，在concurrentResumeUpload为YES时有效，默认为3个
      */
-    public int concurrentTaskCount;
+    public final int concurrentTaskCount;
 
     /**
      * dns预取缓存时间
@@ -87,8 +92,6 @@ public final class Configuration {
 
 
     private Configuration(Builder builder) {
-        useHttps = builder.useHttps;
-
         chunkSize = builder.chunkSize;
         putThreshold = builder.putThreshold;
 
@@ -99,6 +102,8 @@ public final class Configuration {
         keyGen = getKeyGen(builder.keyGen);
 
         retryMax = builder.retryMax;
+        retryInterval = builder.retryInterval;
+
         allowBackupHost = builder.allowBackupHost;
 
         proxy = builder.proxy;
@@ -106,14 +111,13 @@ public final class Configuration {
         dnsCacheTimeMs = builder.dnsCacheTimeMs;
 
         urlConverter = builder.urlConverter;
-        AutoZone autoZone = null;
 
-        autoZone = new AutoZone();
+        useHttps = builder.useHttps;
 
         useConcurrentResumeUpload = builder.useConcurrentResumeUpload;
         concurrentTaskCount = builder.concurrentTaskCount;
 
-        zone = builder.zone == null ? autoZone : builder.zone;
+        zone = builder.zone != null ? builder.zone : new AutoZone();
         dns = builder.dns;
     }
 
@@ -141,10 +145,11 @@ public final class Configuration {
         private int connectTimeout = 10;
         private int responseTimeout = 60;
         private int retryMax = 3;
+        private int retryInterval = 500;
         private boolean allowBackupHost = true;
         private UrlConverter urlConverter = null;
-        public boolean useConcurrentResumeUpload = false;
-        public int concurrentTaskCount = 3;
+        private boolean useConcurrentResumeUpload = false;
+        private int concurrentTaskCount = 3;
 
         private Dns dns = null;
         private long dnsCacheTimeMs = 60 * 60 * 24 * 1000;
@@ -195,6 +200,11 @@ public final class Configuration {
             return this;
         }
 
+        public Builder retryInterval(int retryInterval) {
+            this.retryInterval = retryInterval;
+            return this;
+        }
+
         public Builder allowBackupHost(boolean isAllow) {
             this.allowBackupHost = isAllow;
             return this;
@@ -202,6 +212,16 @@ public final class Configuration {
 
         public Builder urlConverter(UrlConverter converter) {
             this.urlConverter = converter;
+            return this;
+        }
+
+        public Builder useConcurrentResumeUpload(boolean useConcurrentResumeUpload) {
+            this.useConcurrentResumeUpload = useConcurrentResumeUpload;
+            return this;
+        }
+
+        public Builder concurrentTaskCount(int concurrentTaskCount) {
+            this.concurrentTaskCount = concurrentTaskCount;
             return this;
         }
 

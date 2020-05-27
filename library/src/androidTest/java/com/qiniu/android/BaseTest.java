@@ -52,7 +52,7 @@ public class BaseTest extends TestCase {
     }
 
 
-    public void testWait(){
+    private void notestWait(){
 
         long waitTime = 5;
 

@@ -14,13 +14,16 @@ import java.util.concurrent.Executors;
  */
 public final class AsyncRun {
 
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(2);
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(6);
 
     public static void runInMain(Runnable r) {
         Handler h = new Handler(Looper.getMainLooper());
         h.post(r);
     }
 
+    /**
+     * delay: delay in milliseconds before task is to be executed.
+     */
     public static void runInMain(int delay,
                                  final Runnable r){
 
@@ -38,6 +41,9 @@ public final class AsyncRun {
        executorService.submit(r);
     }
 
+    /**
+     * delay: delay in milliseconds before task is to be executed.
+     */
     public static void runInBack(int delay,
                                  final Runnable r) {
 

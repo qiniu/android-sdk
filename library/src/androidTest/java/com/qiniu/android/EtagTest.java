@@ -27,19 +27,19 @@ public class EtagTest extends AndroidTestCase {
 
     public void testFile() throws IOException {
         File f = TempFile.createFile(1024);
-        Assert.assertEquals("Foyl8onxBLWeRLL5oItRJphv6i4b", Etag.file(f));
+        Assert.assertEquals("FhHnGzB75K2JC4YOzKDMLEiaeSKm", Etag.file(f));
         TempFile.remove(f);
         f = TempFile.createFile(4 * 1024);
-        Assert.assertEquals("FicHOveBNs5Kn9d74M3b9tI4D-8r", Etag.file(f));
+        Assert.assertEquals("FuPHVcYFMpfuoCTDGF5PCjMY9xxu", Etag.file(f));
         TempFile.remove(f);
         f = TempFile.createFile(5 * 1024);
-        Assert.assertEquals("lg-Eb5KFCuZn-cUfj_oS2PPOU9xy", Etag.file(f));
+        Assert.assertEquals("lkr1cErNyp23IdWan82rufDn3dzT", Etag.file(f));
         TempFile.remove(f);
         f = TempFile.createFile(8 * 1024);
-        Assert.assertEquals("lkSKZOMToDp-EqLDVuT1pyjQssl-", Etag.file(f));
+        Assert.assertEquals("lkRgUHWNADyQ0TRirdqoS7UWFql4", Etag.file(f));
         TempFile.remove(f);
         f = TempFile.createFile(9 * 1024);
-        Assert.assertEquals("ljgVjMtyMsOgIySv79U8Qz4TrUO4", Etag.file(f));
+        Assert.assertEquals("lvlmp343GVuq367WF4XTMetchhid", Etag.file(f));
         TempFile.remove(f);
     }
 

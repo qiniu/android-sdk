@@ -38,7 +38,8 @@ public final class UpToken {
         byte[] dtoken = UrlSafeBase64.decode(t[2]);
         JSONObject obj;
         try {
-            obj = new JSONObject(new String(dtoken));
+            String dtokenString = new String(dtoken);
+            obj = new JSONObject(dtokenString);
         } catch (JSONException e) {
             return null;
         }

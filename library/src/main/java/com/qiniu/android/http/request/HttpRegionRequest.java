@@ -88,6 +88,8 @@ public class HttpRegionRequest {
             serverIP = null;
         }
 
+        currentServer = server;
+
         boolean isSkipDns = false;
         String scheme = config.useHttps ? "https://" : "http://";
         String urlString = null;
@@ -99,6 +101,8 @@ public class HttpRegionRequest {
             isSkipDns = true;
         }
         Request request = new Request(urlString, method, header, data, config.connectTimeout);
+        request.host = serverHost;
+        request.ip = serverIP;
         singleRequest.request(request, isAsyn, isSkipDns, shouldRetryHandler, progressHandler, new HttpSingleRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, ArrayList<UploadSingleRequestMetrics> requestMetricsList, JSONObject response) {

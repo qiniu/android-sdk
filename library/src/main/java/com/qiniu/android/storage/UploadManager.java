@@ -5,6 +5,7 @@ import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
+import com.qiniu.android.http.request.Request;
 import com.qiniu.android.utils.AsyncRun;
 
 import junit.framework.Assert;
@@ -17,6 +18,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class UploadManager {
 
@@ -115,6 +118,8 @@ public class UploadManager {
                                 String key,
                                 String token,
                                 UploadOptions options) {
+
+        final CountDownLatch completeSingle = new CountDownLatch(1);
         final ArrayList<ResponseInfo> responseInfos = new ArrayList<ResponseInfo>();
         UpCompletionHandler completionHandler = new UpCompletionHandler() {
             @Override
@@ -122,10 +127,16 @@ public class UploadManager {
                 if (info != null) {
                     responseInfos.add(info);
                 }
+                completeSingle.countDown();
             }
         };
+
         if (!checkAndNotifyError(key, token, data, completionHandler)){
-            putData(data, null, key, token, false, options, completionHandler);
+            putData(data, null, key, token, true, options, completionHandler);
+            try {
+                completeSingle.await(1200, TimeUnit.SECONDS);
+            } catch (InterruptedException ignored) {
+            }
         }
 
         if (responseInfos.size() > 0){
@@ -148,6 +159,7 @@ public class UploadManager {
                                 String key,
                                 String token,
                                 UploadOptions options) {
+
         final ArrayList<ResponseInfo> responseInfos = new ArrayList<ResponseInfo>();
         UpCompletionHandler completionHandler = new UpCompletionHandler() {
             @Override
@@ -157,15 +169,24 @@ public class UploadManager {
                 }
             }
         };
-        if (!checkAndNotifyError(key, token, file, completionHandler)){
-            putFile(file, key, token, options, completionHandler);
+        if (checkAndNotifyError(key, token, file, completionHandler)){
+            return responseInfos.size() > 0 ? responseInfos.get(0) : null;
         }
 
-        if (responseInfos.size() > 0){
-            return responseInfos.get(0);
-        } else {
-            return null;
+        byte[] data = null;
+        try {
+            RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
+            data = new byte[(int)file.length()];
+            randomAccessFile.seek(0);
+            randomAccessFile.read(data, 0, (int)file.length());
+            randomAccessFile.close();
+        } catch (FileNotFoundException e) {
+            return ResponseInfo.fileError(e);
+        } catch (IOException e) {
+            return ResponseInfo.fileError(e);
         }
+
+        return syncPut(data, key, token, options);
     }
 
     /**
@@ -186,13 +207,13 @@ public class UploadManager {
                          final String fileName,
                          final String key,
                          final String token,
-                         boolean isAsyn,
+                         final boolean isAsyn,
                          final UploadOptions option,
                          final UpCompletionHandler completionHandler){
 
         final UpToken t = UpToken.parse(token);
         if (t == null) {
-            ResponseInfo info = ResponseInfo.invalidArgument("invalid token");
+            ResponseInfo info = ResponseInfo.invalidToken("invalid token");
             completeAction(token, key, info, null, null, completionHandler);
             return;
         }
@@ -211,7 +232,11 @@ public class UploadManager {
                     }
                 };
                 final FormUpload up = new FormUpload(data, key, fileName, t, option, config, completionHandlerP);
-                AsyncRun.runInMain(up);
+                if (isAsyn){
+                    AsyncRun.runInBack(up);
+                } else {
+                    up.syncRun();
+                }
             }
         });
     }
@@ -223,7 +248,7 @@ public class UploadManager {
                          final UpCompletionHandler completionHandler){
         final UpToken t = UpToken.parse(token);
         if (t == null) {
-            ResponseInfo info = ResponseInfo.invalidArgument("invalid token");
+            ResponseInfo info = ResponseInfo.invalidToken("invalid token");
             completeAction(token, key, info, null, null, completionHandler);
             return;
         }
@@ -280,15 +305,16 @@ public class UploadManager {
             return true;
         }
 
-        String desc = null;
+        ResponseInfo responseInfo = null;
         if (input == null){
-            desc = "no input data";
+            responseInfo = ResponseInfo.zeroSize("no input data");
+        } else if (input instanceof byte[] && ((byte[])input).length == 0){
+            responseInfo = ResponseInfo.zeroSize("no input data");
         } else if (token == null || token.length() == 0){
-            desc = "no token";
+            responseInfo = ResponseInfo.invalidToken("no token");
         }
-        if (desc != null){
-            ResponseInfo info = ResponseInfo.invalidArgument(desc);
-            completeAction(token, key, info, null, null, completionHandler);
+        if (responseInfo != null){
+            completeAction(token, key, responseInfo, responseInfo.response, null, completionHandler);
             return true;
         } else {
             return false;
