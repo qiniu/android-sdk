@@ -82,7 +82,9 @@ public class SystemHttpClient implements RequestClient {
                     e.printStackTrace();
                     int statusCode = NetworkError;
                     String msg = e.getMessage();
-                    if (e instanceof CancellationHandler.CancellationException) {
+                    if (e.getMessage().contains("Canceled")){
+                        statusCode = ResponseInfo.Cancelled;
+                    } else if (e instanceof CancellationHandler.CancellationException) {
                         statusCode = ResponseInfo.Cancelled;
                     } else if (e instanceof UnknownHostException) {
                         statusCode = ResponseInfo.UnknownHost;
@@ -362,9 +364,7 @@ public class SystemHttpClient implements RequestClient {
             if (responseString != null && responseString.length() > 0){
                 try {
                     responseJson = new JSONObject(responseString);
-                } catch (Exception e) {
-                    errorMessage = e.getMessage();
-                }
+                } catch (Exception e) {}
             }
         } else {
             try {

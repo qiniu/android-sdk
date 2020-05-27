@@ -9,6 +9,7 @@ import com.qiniu.android.bigdata.client.CompletionHandler;
 import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.UpToken;
+import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringMap;
 
 import junit.framework.Assert;
@@ -25,8 +26,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by bailong on 14/10/12.
  */
-public class HttpTest extends InstrumentationTestCase {
-    final CountDownLatch signal = new CountDownLatch(1);
+public class HttpTest extends BaseTest {
     private Client httpManager;
     private ResponseInfo info;
 
@@ -54,15 +54,20 @@ public class HttpTest extends InstrumentationTestCase {
                         Assert.assertNotNull(rinfo);
                         Log.d("qiniutest", rinfo.toString());
                         info = rinfo;
-                        signal.countDown();
                     }
                 }, null);
 
-        try {
-            signal.await(6000, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 60);
+
         Assert.assertNull(info.reqId);
     }
 
@@ -76,21 +81,26 @@ public class HttpTest extends InstrumentationTestCase {
                     public void complete(ResponseInfo rinfo, JSONObject response) {
                         Log.d("qiniutest", rinfo.toString());
                         info = rinfo;
-                        signal.countDown();
                     }
                 }, null);
 
-        try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 60);
+
         Assert.assertNotNull(info.reqId);
     }
 
     @SmallTest
     public void testPost3() throws Throwable {
-        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
+        AsyncRun.runInMain(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
                 httpManager.asyncPost("http://httpbin.org/status/500", "hello".getBytes(),
                         null, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
@@ -99,24 +109,29 @@ public class HttpTest extends InstrumentationTestCase {
                             public void complete(ResponseInfo rinfo, JSONObject response) {
                                 Log.d("qiniutest", rinfo.toString());
                                 info = rinfo;
-                                signal.countDown();
                             }
                         }, null);
             }
         });
 
-        try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 60);
+
         Assert.assertEquals(500, info.statusCode);
         Assert.assertNotNull(info.error);
     }
 
     @SmallTest
     public void testPost4() throws Throwable {
-        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
+        AsyncRun.runInMain(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
                 httpManager.asyncPost("http://httpbin.org/status/418",
                         "hello".getBytes(),
@@ -126,17 +141,22 @@ public class HttpTest extends InstrumentationTestCase {
                             public void complete(ResponseInfo rinfo, JSONObject response) {
                                 Log.d("qiniutest", rinfo.toString());
                                 info = rinfo;
-                                signal.countDown();
                             }
                         }, null);
             }
         });
 
-        try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 5);
+
         Assert.assertEquals(418, info.statusCode);
         Assert.assertNotNull(info.error);
     }
@@ -151,17 +171,21 @@ public class HttpTest extends InstrumentationTestCase {
                     public void complete(ResponseInfo rinfo, JSONObject response) {
                         Log.d("qiniutest", rinfo.toString());
                         info = rinfo;
-                        signal.countDown();
                     }
                 }, null);
 
-        try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-//        Assert.assertEquals(null, info.reqId);
-//        Assert.assertEquals(ResponseInfo.UnknownHost, info.statusCode);
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 60);
+        Assert.assertEquals(null, info.reqId);
+        Assert.assertEquals(ResponseInfo.UnknownHost, info.statusCode);
     }
 
 //    @SmallTest
@@ -189,23 +213,29 @@ public class HttpTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testPostIP() throws Throwable {
+        info = null;
         StringMap x = new StringMap().put("Host", "up.qiniu.com");
-        httpManager.asyncPost("http://183.131.7.18", "hello".getBytes(),
+        httpManager.asyncPost("http://124.160.115.112", "hello".getBytes(),
                 x, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
                         Log.d("qiniutest", rinfo.toString());
                         info = rinfo;
-                        signal.countDown();
                     }
                 }, null);
 
-        try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 60);
+
         Assert.assertTrue(!"".equals(info.reqId));
         Assert.assertEquals(400, info.statusCode);
     }
@@ -222,15 +252,20 @@ public class HttpTest extends InstrumentationTestCase {
                     public void complete(ResponseInfo rinfo, JSONObject response) {
                         Log.d("qiniutest", rinfo.toString());
                         info = rinfo;
-                        signal.countDown();
                     }
                 }, null);
 
-        try {
-            signal.await(60, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 60);
+
         Assert.assertTrue(!"".equals(info.reqId));
         Assert.assertEquals(400, info.statusCode);
     }

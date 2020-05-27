@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by bailong on 15/12/1.
  */
-public class HttpsTest extends InstrumentationTestCase {
+public class HttpsTest extends BaseTest {
     final CountDownLatch signal = new CountDownLatch(1);
     private Client httpManager;
     private ResponseInfo info;
@@ -40,46 +40,60 @@ public class HttpsTest extends InstrumentationTestCase {
 
     @SmallTest
     public void testPost1() throws Throwable {
+        info = null;
         httpManager.asyncPost("https://www.baidu.com/", "hello".getBytes(), null,
                 UpToken.parse(TestConfig.token_z0), "hello".getBytes().length, null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
                         Log.d("qiniutest", rinfo.toString());
                         info = rinfo;
-                        signal.countDown();
                     }
                 }, null);
 
-        try {
-            signal.await(6000, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-//        Assert.assertEquals(info.error, 200, info.statusCode);
-//        Assert.assertNull(info.reqId);
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 5);
+
+        assertEquals(info.error, 200, info.statusCode);
+        assertNull(info.reqId);
     }
 
-    @SmallTest
-    public void testPost2() throws Throwable {
-        httpManager.asyncPost("https://static-fw.qbox.me/public/v28812/add-on/ga/analytics.js",
-                "hello".getBytes(), null, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
-                null, new CompletionHandler() {
-                    @Override
-                    public void complete(ResponseInfo rinfo, JSONObject response) {
-                        Log.d("qiniutest", rinfo.toString());
-                        info = rinfo;
-                        signal.countDown();
-                    }
-                }, null);
-
-        try {
-            signal.await(60000, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-//        Assert.assertEquals(info.error, 200, info.statusCode);
-//        Assert.assertNotNull(info.reqId);
-    }
+//    @SmallTest
+//    public void testPost2() throws Throwable {
+//
+//        info = null;
+//
+//        httpManager.asyncPost("https://static-fw.qbox.me/public/v28812/add-on/ga/analytics.js",
+//                "hello".getBytes(), null, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
+//                null, new CompletionHandler() {
+//                    @Override
+//                    public void complete(ResponseInfo rinfo, JSONObject response) {
+//                        Log.d("qiniutest", rinfo.toString());
+//                        info = rinfo;
+//                    }
+//                }, null);
+//
+//        wait(new WaitConditional() {
+//            @Override
+//            public boolean shouldWait() {
+//                if (info == null) {
+//                    return true;
+//                } else {
+//                    return false;
+//                }
+//            }
+//        }, 5);
+//
+//        assertEquals(info.error, 200, info.statusCode);
+//        assertNotNull(info.reqId);
+//    }
 
 //    @SmallTest
 //    public void testPost3() throws Throwable {

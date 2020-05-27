@@ -42,6 +42,10 @@ public class Utils {
         return System.getProperty("os.name");
     }
 
+    public static String systemVersion(){
+        return System.getProperty("os.version");
+    }
+
     @Nullable
     @Contract(pure = true)
     public static Integer getCurrentSignalStrength(){

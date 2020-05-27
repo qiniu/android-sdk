@@ -39,12 +39,11 @@ public class UploadInfoReporterTest extends AndroidTestCase {
                     ReportItem item = new ReportItem();
                     item.setReport(ReportItem.LogTypeQuality, ReportItem.QualityKeyLogType);
                     item.setReport((new Date().getTime() / 1000), ReportItem.QualityKeyUpTime);
-                    item.setReport("this is a test", ReportItem.QualityKeyResult);
-                    item.setReport(0, ReportItem.QualityKeyTotalElapsedTime);
+                    item.setReport("ok", ReportItem.QualityKeyResult);
+                    item.setReport(1, ReportItem.QualityKeyTotalElapsedTime);
                     item.setReport(1, ReportItem.QualityKeyRequestsCount);
                     item.setReport(1, ReportItem.QualityKeyRegionsCount);
-                    item.setReport(10, ReportItem.QualityKeyBytesSent);
-//                    item.setReport(iP, "test_index");
+                    item.setReport(1, ReportItem.QualityKeyBytesSent);
                     report(item);
                 }
             }).run();

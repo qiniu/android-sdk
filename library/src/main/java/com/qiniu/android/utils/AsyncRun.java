@@ -3,6 +3,8 @@ package com.qiniu.android.utils;
 import android.os.Handler;
 import android.os.Looper;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -19,8 +21,39 @@ public final class AsyncRun {
         h.post(r);
     }
 
+    public static void runInMain(int delay,
+                                 final Runnable r){
+
+        delayTimerTask(delay, new TimerTask() {
+            @Override
+            public void run() {
+                Handler h = new Handler(Looper.getMainLooper());
+                h.post(r);
+                this.cancel();
+            }
+        });
+    }
+
     public static void runInBack(Runnable r) {
        executorService.submit(r);
     }
+
+    public static void runInBack(int delay,
+                                 final Runnable r) {
+
+        delayTimerTask(delay, new TimerTask() {
+            @Override
+            public void run() {
+                executorService.submit(r);
+                this.cancel();
+            }
+        });
+    }
+
+    private static void delayTimerTask(int delay, TimerTask timerTask){
+        Timer timer = new Timer();
+        timer.schedule(timerTask, delay);
+    }
+
 }
 

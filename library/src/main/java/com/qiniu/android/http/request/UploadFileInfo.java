@@ -156,7 +156,7 @@ public class UploadFileInfo {
                         blockJsonArray.put(blockJson);
                     }
                 }
-                jsonObject.put("uploadBlocks", uploadBlocks);
+                jsonObject.put("uploadBlocks", blockJsonArray);
             }
         } catch (JSONException e) {}
         return jsonObject;
@@ -216,7 +216,9 @@ public class UploadFileInfo {
                 }
             } catch (JSONException e){};
             UploadBlock block = new UploadBlock(offset, size, index, uploadDatas);
-            block.context = context;
+            if (context != null && context.length() > 0){
+                block.context = context;
+            }
             return block;
         }
 
@@ -268,7 +270,7 @@ public class UploadFileInfo {
                 jsonObject.put("offset", offset);
                 jsonObject.put("size", size);
                 jsonObject.put("index", index);
-                jsonObject.put("context", context);
+                jsonObject.put("context", (context != null ? context : ""));
                 if (uploadDatas != null && uploadDatas.size() > 0){
                     JSONArray dataJsonArray = new JSONArray();
                     for (UploadData data : uploadDatas) {

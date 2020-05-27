@@ -345,6 +345,7 @@ public class RequestTranscation {
                           String logClientId,
                           boolean isAsyn,
                           final RequestCompleteHandler completeHandler){
+
         requestInfo.requestType = UploadRequestInfo.RequestTypeUpLog;
 
         String token = String.format("UpToken %s", (this.token.token != null ? this.token.token : ""));

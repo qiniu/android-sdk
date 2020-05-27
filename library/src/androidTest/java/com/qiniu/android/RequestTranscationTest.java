@@ -20,38 +20,32 @@ import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class RequestTranscationTest extends TestCase {
-
-    CountDownLatch signal = new CountDownLatch(1);
+public class RequestTranscationTest extends BaseTest {
 
     public void testUCQuery(){
-
-        signal = new CountDownLatch(1);
 
         UpToken token = UpToken.parse(TestConfig.token_z0);
 
         ArrayList<String> hosts = new ArrayList<String>();
         hosts.add("uc.qbox.me");
 
+        final WaitCondition waitCondition = new WaitCondition();
+
         RequestTranscation requestTranscation = new RequestTranscation(hosts, token);
         requestTranscation.quertUploadHosts(true, new RequestTranscation.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 Assert.assertTrue("pass", responseInfo.isOK());
-                signal.countDown();
+                waitCondition.shouldWait = false;
             }
         });
 
-        try {
-            signal.await(6000, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(waitCondition, 60);
     }
 
     public void testUploadForm(){
 
-        signal = new CountDownLatch(1);
+        final WaitCondition waitCondition = new WaitCondition();
 
         UpToken token = UpToken.parse(TestConfig.token_z0);
 
@@ -69,20 +63,17 @@ public class RequestTranscationTest extends TestCase {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 Assert.assertTrue("pass", responseInfo.isOK());
-                signal.countDown();
+                waitCondition.shouldWait = false;
             }
         });
 
-        try {
-            signal.await(6000, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(waitCondition, 60);
     }
 
 
     public void testUploadBlock(){
-        signal = new CountDownLatch(1);
+
+        final WaitCondition waitCondition = new WaitCondition();
 
         makeBlock(new RequestTranscation.RequestCompleteHandler() {
             @Override
@@ -97,7 +88,7 @@ public class RequestTranscationTest extends TestCase {
 
                     if (ct == null) {
                         Assert.assertTrue("pass", false);
-                        signal.countDown();
+                        waitCondition.shouldWait = false;
                         return;
                     }
 
@@ -114,7 +105,7 @@ public class RequestTranscationTest extends TestCase {
 
                                 if (ct_02 == null) {
                                     Assert.assertTrue("pass", false);
-                                    signal.countDown();
+                                    waitCondition.shouldWait = false;
                                     return;
                                 }
 
@@ -122,27 +113,23 @@ public class RequestTranscationTest extends TestCase {
                                     @Override
                                     public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                                         Assert.assertTrue("pass", responseInfo.isOK());
-                                        signal.countDown();
+                                        waitCondition.shouldWait = false;
                                     }
                                 });
                             } else {
                                 Assert.assertTrue("pass", false);
-                                signal.countDown();
+                                waitCondition.shouldWait = false;
                             }
                         }
                     });
                 } else {
                     Assert.fail("fail");
-                    signal.countDown();
+                    waitCondition.shouldWait = false;
                 }
             }
         });
 
-        try {
-            signal.await(6000, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(waitCondition, 60);
     }
 
     private void makeBlock(RequestTranscation.RequestCompleteHandler completeHandler){

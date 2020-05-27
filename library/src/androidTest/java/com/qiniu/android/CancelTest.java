@@ -35,7 +35,6 @@ public class CancelTest extends InstrumentationTestCase {
         String folder = f.getParent();
         FileRecorder fr = new FileRecorder(folder);
         uploadManager = new UploadManager(fr);
-        ACollectUploadInfoTest.testInit();
     }
 
 
@@ -66,8 +65,6 @@ public class CancelTest extends InstrumentationTestCase {
         if (failedCount > ts.length / 2) {
             String info = type + ": 共 " + ts.length + "个测试，至多允许 " + ts.length / 2 + " 失败，实际失败 " + failedCount + " 个： " + tt.info.toString();
             Assert.assertEquals(info, tt.expectKey, tt.key);
-//            Assert.assertTrue(info, tt.info.isCancelled());
-//            Assert.assertNull(info, tt.resp);
         }
     }
 
@@ -133,9 +130,6 @@ public class CancelTest extends InstrumentationTestCase {
         }
 
         TempFile.remove(tempFile);
-
-        ACollectUploadInfoTest.recordFileTest();
-
         return temp;
     }
 
@@ -198,9 +192,6 @@ public class CancelTest extends InstrumentationTestCase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        ACollectUploadInfoTest.recordFileTest();
-
         return temp;
     }
 

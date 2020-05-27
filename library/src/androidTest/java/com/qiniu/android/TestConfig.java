@@ -9,7 +9,7 @@ import com.qiniu.android.common.Zone;
 public final class TestConfig {
     //华东上传凭证
     public static final String bucket_z0 = "zone0-space";
-    public static final String token_z0 = "jH983zIUFIP1OVumiBVGeAfiLYJvwrF45S-t22eu:3qcwHEyWJzN6qx5tYzBGnwrFdH4=:eyJzY29wZSI6InpvbmUwLXNwYWNlIiwiZGVhZGxpbmUiOjE1OTA0ODM0MzR9";
+    public static final String token_z0 = "jH983zIUFIP1OVumiBVGeAfiLYJvwrF45S-t22eu:Nxj-HswkR6xudNiV18kejFox5HU=:eyJzY29wZSI6InpvbmUwLXNwYWNlIiwiZGVhZGxpbmUiOjE1OTA1NzI1MzF9";
     //华北上传凭证
     public static final String bucket_z1 = "zone1-space";
     public static final String token_z1 = "jH983zIUFIP1OVumiBVGeAfiLYJvwrF45S-t22eu:leC4_omECndJD27EcfUWlQ5PRPU=:eyJzY29wZSI6InpvbmUxLXNwYWNlIiwiZGVhZGxpbmUiOjE1OTAxNDU2MDJ9";

@@ -4,15 +4,10 @@ import android.util.Log;
 
 import com.qiniu.android.utils.AsyncRun;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class AsynTest extends TestCase {
-
-    final CountDownLatch signal = new CountDownLatch(1);
+public class AsynTest extends BaseTest {
 
     private class TestParam {
         int maxCount;
@@ -36,19 +31,22 @@ public class AsynTest extends TestCase {
                     }
 
                     testParam.completeCount += 1;
-
-                    if (testParam.completeCount == testParam.maxCount){
-                        signal.countDown();
-                    }
                 }
             });
         }
 
-        try {
-            signal.await(6000, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        WaitConditional waitConditional = new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (testParam.completeCount == testParam.maxCount){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        };
+
+        wait(waitConditional, 5);
 
         Log.i("Asyn test", String.format("success count: %d", testParam.successCount));
         assertTrue("pass", (testParam.successCount == testParam.maxCount));
@@ -68,21 +66,23 @@ public class AsynTest extends TestCase {
                     if (threadName.equals("main") == false){
                         testParam.successCount += 1;
                     }
-//                    Log.i("Asyn test", String.format("== thread name: %d", threadName));
                     testParam.completeCount += 1;
-
-                    if (testParam.completeCount == testParam.maxCount){
-                        signal.countDown();
-                    }
                 }
             });
         }
 
-        try {
-            signal.await(6000, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        WaitConditional waitConditional = new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (testParam.completeCount == testParam.maxCount){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        };
+
+        wait(waitConditional, 5);
 
         Log.i("Asyn test", String.format("success count: %d", testParam.successCount));
         assertTrue("pass", (testParam.successCount == testParam.maxCount));

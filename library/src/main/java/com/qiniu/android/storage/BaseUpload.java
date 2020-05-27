@@ -63,7 +63,7 @@ public class BaseUpload implements Runnable {
                       Recorder recorder,
                       String recorderKey,
                       UpTaskCompletionHandler completionHandler) {
-        this(file, null, null, key, token, option, config, recorder, recorderKey, completionHandler);
+        this(file, null, file.getName(), key, token, option, config, recorder, recorderKey, completionHandler);
     }
 
     public BaseUpload(byte[] data,

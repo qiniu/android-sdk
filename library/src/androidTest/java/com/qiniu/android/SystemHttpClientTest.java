@@ -17,11 +17,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 
-public class SystemHttpClientTest extends TestCase {
-
-    final CountDownLatch signal = new CountDownLatch(1);
+public class SystemHttpClientTest extends BaseTest {
 
     public void testGet() {
+
+        final WaitCondition waitCondition = new WaitCondition();
 
         Request request = new Request("https://uc.qbox.me/v3/query?ak=jH983zIUFIP1OVumiBVGeAfiLYJvwrF45S-t22eu&bucket=zone0-space",
                 null, null, null, 15);
@@ -30,21 +30,17 @@ public class SystemHttpClientTest extends TestCase {
         client.request(request, true, null, null, new RequestClient.RequestClientCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
-
                 Assert.assertTrue("pass", responseInfo.isOK());
-                signal.countDown();
+                waitCondition.shouldWait = false;
             }
         });
 
-
-        try {
-            signal.await(6000, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(waitCondition, 60);
     }
 
     public void testPost() {
+
+        final WaitCondition waitCondition = new WaitCondition();
 
         Request request = new Request("http://www.baidu.com/",
                 Request.HttpMethodPOST, null, "hello".getBytes(), 15);
@@ -54,16 +50,11 @@ public class SystemHttpClientTest extends TestCase {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
 
-                Assert.assertTrue("pass", responseInfo.isOK());
-                signal.countDown();
+                Assert.assertFalse("pass", responseInfo.isServerError());
+                waitCondition.shouldWait = false;
             }
         });
 
-
-        try {
-            signal.await(6000, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(waitCondition, 60);
     }
 }

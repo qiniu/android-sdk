@@ -11,6 +11,7 @@ import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.storage.persistent.FileRecorder;
+import com.qiniu.android.utils.Etag;
 
 import junit.framework.Assert;
 
@@ -61,8 +62,6 @@ public class TestFileRecorder extends InstrumentationTestCase {
         FileRecorder fr = new FileRecorder(folder);
         config = new Configuration.Builder().recorder(fr).build();
         uploadManager = new UploadManager(config);
-
-        ACollectUploadInfoTest.testInit();
     }
 
     private void template(final int size, final double pos) throws Throwable {
@@ -109,8 +108,8 @@ public class TestFileRecorder extends InstrumentationTestCase {
         }
 
         Assert.assertEquals(info.toString(), expectKey, key);
-//        Assert.assertTrue(info.toString(), info.isCancelled());
-//        Assert.assertNull(resp);
+        Assert.assertTrue(info.toString(), info.isCancelled());
+        Assert.assertNull(resp);
 
         cancelled = false;
         options = new UploadOptions(null, null, false, new UpProgressHandler() {
@@ -145,15 +144,13 @@ public class TestFileRecorder extends InstrumentationTestCase {
         }
 
         Assert.assertEquals(info.toString(), expectKey, key);
-//        Assert.assertTrue(info.toString(), info.isOK());
+        Assert.assertTrue(info.toString(), info.isOK());
         Assert.assertTrue(!failed);
-//        Assert.assertNotNull(resp);
+        Assert.assertNotNull(resp);
 
-//        String hash = resp.getString("hash");
-//        Assert.assertEquals(hash, Etag.file(tempFile));
+        String hash = resp.getString("hash");
+        Assert.assertEquals(hash, Etag.file(tempFile));
         TempFile.remove(tempFile);
-
-        ACollectUploadInfoTest.recordFileTest();
     }
 
     public void test600k() throws Throwable {

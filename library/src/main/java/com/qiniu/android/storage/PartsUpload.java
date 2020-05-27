@@ -1,9 +1,13 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.collect.ReportItem;
+import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.request.UploadFileInfo;
 import com.qiniu.android.http.request.UploadRegion;
+import com.qiniu.android.utils.Utils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -139,7 +143,7 @@ public class PartsUpload extends BaseUpload {
         }
 
         try {
-            JSONObject info = new JSONObject(data.toString());
+            JSONObject info = new JSONObject(new String(data));
             ZoneInfo zoneInfo = ZoneInfo.buildFromJson(info.getJSONObject(kRecordZoneInfoKey));
             UploadFileInfo fileInfo = UploadFileInfo.fileFromJson(info.getJSONObject(kRecordFileInfoKey));
             if (zoneInfo != null && fileInfo != null){
@@ -164,5 +168,25 @@ public class PartsUpload extends BaseUpload {
 
     private void reportBlock(){
 
+        UploadRegionRequestMetrics metrics = getCurrentRegionRequestMetrics();
+        if (metrics == null){
+            metrics = new UploadRegionRequestMetrics(null);
+        }
+
+        ReportItem item = new ReportItem();
+        item.setReport(ReportItem.LogTypeBlock, ReportItem.BlockKeyLogType);
+        item.setReport((Utils.currentTimestamp()), ReportItem.BlockKeyUpTime);
+        item.setReport(getTargetRegion().getZoneInfo().zoneRegionId, ReportItem.BlockKeyTargetRegionId);
+        item.setReport(getCurrentRegion().getZoneInfo().zoneRegionId, ReportItem.BlockKeyCurrentRegionId);
+        item.setReport(metrics.totalElaspsedTime(), ReportItem.BlockKeyTotalElapsedTime);
+        item.setReport(metrics.bytesSend(), ReportItem.BlockKeyBytesSent);
+        item.setReport(recoveredFrom, ReportItem.BlockKeyRecoveredFrom);
+        item.setReport(file.length(), ReportItem.BlockKeyFileSize);
+        item.setReport(Utils.getCurrentProcessID(), ReportItem.BlockKeyPid);
+        item.setReport(Utils.getCurrentThreadID(), ReportItem.BlockKeyTid);
+        item.setReport(1, ReportItem.BlockKeyUpApiVersion);
+        item.setReport(Utils.getCurrentNetworkType(), ReportItem.BlockKeyClientTime);
+
+        UploadInfoReporter.getInstance().report(item, token.token);
     }
 }

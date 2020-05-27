@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -161,7 +162,14 @@ public final class Client {
             error = body == null ? "null body" : new String(body);
         }
 
-        return ResponseInfo.create(null, code, null, json, error);
+        HashMap<String, String> responseHeader = new HashMap<String, String>();
+        int headerCount = response.headers().size();
+        for (int i = 0; i < headerCount; i++) {
+            String name = response.headers().name(i).toLowerCase();
+            String value = response.headers().value(i);
+            responseHeader.put(name, value);
+        }
+        return ResponseInfo.create(null, code, responseHeader, json, error);
     }
 
     private static long getContentLength(okhttp3.Response response) {

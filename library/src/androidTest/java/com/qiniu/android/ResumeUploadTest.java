@@ -13,6 +13,7 @@ import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
+import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.Etag;
 
 import junit.framework.Assert;
@@ -26,7 +27,7 @@ import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class ResumeUploadTest extends InstrumentationTestCase {
+public class ResumeUploadTest extends BaseTest {
 
     String TAG = this.getClass().getSimpleName();
     private UploadManager uploadManager;
@@ -87,17 +88,14 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         config.useConcurrentResumeUpload = true;
         config.concurrentTaskCount = 3;
         uploadManager = new UploadManager(config);
-        ACollectUploadInfoTest.testInit();
     }
 
     private void template(int size) throws Throwable {
 
-        final CountDownLatch signal = new CountDownLatch(1);
-
         final String expectKey = "android-resume-test1-" + size + "k";
         final File f = TempFile.createFile(size);
         final UploadOptions options = getUploadOptions();
-        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
+        AsyncRun.runInMain(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
                 uploadManager.put(f, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
@@ -105,18 +103,21 @@ public class ResumeUploadTest extends InstrumentationTestCase {
                         key = k;
                         info = rinfo;
                         resp = response;
-                        signal.countDown();
                     }
                 }, options);
             }
         });
 
-        try {
-            signal.await(1200, TimeUnit.SECONDS); // wait for callback
-            assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (resp == null){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 60);
 
         assertTrue(info.toString(), info.isOK());
         assertNotNull(info.reqId);
@@ -127,8 +128,6 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     }
 
     private void template2(int size) throws Throwable {
-
-        final CountDownLatch signal = new CountDownLatch(1);
 
         final String expectKey = "android-resume-test2-" + size + "k";
         final File f = TempFile.createFile(size);
@@ -145,17 +144,19 @@ public class ResumeUploadTest extends InstrumentationTestCase {
                 key = k;
                 info = rinfo;
                 resp = response;
-
-                signal.countDown();
             }
         }, options);
 
-        try {
-            signal.await(1200, TimeUnit.SECONDS); // wait for callback
-            assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (resp == null){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 60);
 
         assertTrue(info.toString(), info.isOK());
         assertNotNull(info.reqId);

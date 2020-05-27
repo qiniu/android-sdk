@@ -55,6 +55,7 @@ public final class FileRecorder implements Recorder {
      */
     @Override
     public void set(String key, byte[] data) {
+        String hashKey = hash(key);
         File f = new File(directory, hash(key));
         FileOutputStream fo = null;
         try {
