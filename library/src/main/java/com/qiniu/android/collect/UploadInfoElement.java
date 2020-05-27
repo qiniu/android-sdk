@@ -514,6 +514,9 @@ public class UploadInfoElement {
             case 200:
                 result = "ok";
                 break;
+            case 406:
+                result = "checksum_error";
+                break;
             case ResponseInfo.NetworkError:
                 if (error != null && error.indexOf("but received") != -1) {
                     result = "file_changed";
@@ -560,6 +563,9 @@ public class UploadInfoElement {
 
     public static String errorType(int statuscode, String error) {
         String result = "";
+        if (statuscode == 406) {
+            return "checksum_error";
+        }
         if (200 < statuscode && statuscode < 600) {
             return "response_error";
         }
