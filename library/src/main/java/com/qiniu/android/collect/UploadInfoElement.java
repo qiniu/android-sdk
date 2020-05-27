@@ -508,14 +508,18 @@ public class UploadInfoElement {
     }
 
 
-    public static String resultCode(int statuscode) {
+    public static String resultCode(int statuscode, String error) {
         String result = "";
         switch (statuscode) {
             case 200:
                 result = "ok";
                 break;
             case ResponseInfo.NetworkError:
-                result = "network_error";
+                if (error != null && error.indexOf("but received") != -1) {
+                    result = "file_changed";
+                } else {
+                    result = "network_error";
+                }
                 break;
             case ResponseInfo.Cancelled:
                 result = "user_canceled";
@@ -554,14 +558,18 @@ public class UploadInfoElement {
         return result;
     }
 
-    public static String errorType(int statuscode) {
+    public static String errorType(int statuscode, String error) {
         String result = "";
         if (200 < statuscode && statuscode < 600) {
             return "response_error";
         }
         switch (statuscode) {
             case ResponseInfo.NetworkError:
-                result = "network_error";
+                if (error != null && error.indexOf("but received") != -1) {
+                    result = "file_changed";
+                } else {
+                    result = "network_error";
+                }
                 break;
             case ResponseInfo.Cancelled:
                 result = "user_canceled";

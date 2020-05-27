@@ -166,7 +166,7 @@ public final class ResponseInfo {
                                 logHandler.send("prefetched_ip_count", (long) resolveResults.size());
                             }
                             if (error != null) {
-                                logHandler.send("error_type", UploadInfoElement.errorType(statusCode));
+                                logHandler.send("error_type", UploadInfoElement.errorType(statusCode, error));
                                 logHandler.send("error_description", error);
                             }
 

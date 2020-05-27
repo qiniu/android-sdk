@@ -343,7 +343,7 @@ public final class UploadManager {
                             @Override
                             public String toRecordMsg() {
                                 LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getUploadQuality());
-                                logHandler.send("result", UploadInfoElement.resultCode(res.statusCode));
+                                logHandler.send("result", UploadInfoElement.resultCode(res.statusCode, res.error));
                                 logHandler.send("total_elapsed_time", after - before);
                                 logHandler.send("requests_counts", res.requests_count);
                                 logHandler.send("bytes_sent", res.bytes_sent);
