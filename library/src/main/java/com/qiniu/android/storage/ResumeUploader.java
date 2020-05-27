@@ -144,7 +144,7 @@ final class ResumeUploader implements Runnable {
         logHandler.send("up_type", "mkblk");
         logHandler.send("tid", (long) android.os.Process.myTid());
         logHandler.send("file_offset", offset);
-        logHandler.send("bytes_total", chunkSize);
+        logHandler.send("bytes_total", (long) chunkSize);
         String path = format(Locale.ENGLISH, "/mkblk/%d", blockSize);
         try {
             file.seek(offset);
@@ -165,7 +165,7 @@ final class ResumeUploader implements Runnable {
         logHandler.send("up_type", "bput");
         logHandler.send("tid", (long) android.os.Process.myTid());
         logHandler.send("file_offset", offset);
-        logHandler.send("bytes_total", chunkSize);
+        logHandler.send("bytes_total", (long) chunkSize);
         int chunkOffset = (int) (offset % Configuration.BLOCK_SIZE);
         String path = format(Locale.ENGLISH, "/bput/%s/%d", context, chunkOffset);
         try {
@@ -209,7 +209,7 @@ final class ResumeUploader implements Runnable {
         byte[] data = bodyStr.getBytes();
         String postUrl = String.format("%s%s", upHost, path);
         logHandler.send("file_offset", 0);
-        logHandler.send("bytes_total", data.length);
+        logHandler.send("bytes_total", (long) data.length);
         post(logHandler, postUrl, data, 0, data.length, null, _completionHandler, c);
     }
 
