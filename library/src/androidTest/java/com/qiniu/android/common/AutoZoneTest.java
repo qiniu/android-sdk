@@ -51,11 +51,11 @@ public class AutoZoneTest extends AndroidTestCase {
 //        assertNull(zoneInfo);
 //    }
 
-    public void testSplitE() {
-        String s1 = "bkt:key";
-        String s2 = "bkt";
-        Assert.assertEquals(s1.split(":")[0], s2.split(":")[0]);
-    }
+//    public void testSplitE() {
+//        String s1 = "bkt:key";
+//        String s2 = "bkt";
+//        Assert.assertEquals(s1.split(":")[0], s2.split(":")[0]);
+//    }
 
     public void testC1() {
         AutoZone autoZone = new AutoZone();
