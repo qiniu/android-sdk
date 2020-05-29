@@ -155,7 +155,7 @@ public final class StringUtils {
             bytes = bos.toByteArray();
             oos.close();
             bos.close();
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return bytes;
