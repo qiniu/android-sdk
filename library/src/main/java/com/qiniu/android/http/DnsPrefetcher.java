@@ -415,7 +415,12 @@ public class DnsPrefetcher {
      * @return
      */
     public static boolean recoverDnsCache(byte[] data) {
-        ConcurrentHashMap<String, List<InetAddress>> concurrentHashMap = (ConcurrentHashMap<String, List<InetAddress>>) StringUtils.toObject(data);
+        ConcurrentHashMap<String, List<InetAddress>> concurrentHashMap = null;
+        try {
+            concurrentHashMap = (ConcurrentHashMap<String, List<InetAddress>>) StringUtils.toObject(data);
+        }catch (Exception e){
+            return true;
+        }
         if (concurrentHashMap == null) {
             return true;
         }

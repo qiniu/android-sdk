@@ -147,14 +147,20 @@ public final class StringUtils {
      */
     public static byte[] toByteArray(Object obj) {
         byte[] bytes = null;
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(bos);
-            oos.writeObject(obj);
-            oos.flush();
-            bytes = bos.toByteArray();
-            oos.close();
-            bos.close();
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            try {
+                ObjectOutputStream oos = new ObjectOutputStream(bos);
+                try {
+                    oos.writeObject(obj);
+                    oos.flush();
+                    bytes = bos.toByteArray();
+                } finally {
+                    oos.close();
+                }
+            } finally {
+                bos.close();
+            }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -171,14 +177,17 @@ public final class StringUtils {
         Object obj = null;
         try {
             ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-            ObjectInputStream ois = new ObjectInputStream(bis);
-            obj = ois.readObject();
-            ois.close();
-            bis.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
+            try {
+                ObjectInputStream ois = new ObjectInputStream(bis);
+                obj = ois.readObject();
+                ois.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            } finally {
+                bis.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return obj;
     }
