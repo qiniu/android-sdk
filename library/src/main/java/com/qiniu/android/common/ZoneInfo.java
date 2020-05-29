@@ -31,17 +31,10 @@ public class ZoneInfo {
     public UploadServerGroup old_acc;
     public UploadServerGroup old_src;
 
-    public String zoneRegionId;
+    public String regionId;
     public ArrayList<String> allHosts;
     public JSONObject detailInfo;
-
-    //upHost
-    public List<String> upDomainsList;
-    //upHost -> frozenTillTimestamp
-    public Map<String, Long> upDomainsMap;
-
-    private String regionId;
-
+    
     public static ZoneInfo buildInfo(@NotNull ArrayList<String> mainHosts,
                                      @Nullable ArrayList<String> ioHosts){
         if (mainHosts == null){
@@ -147,7 +140,7 @@ public class ZoneInfo {
                 UploadServerGroup.buildInfoFromJson(src),
                 UploadServerGroup.buildInfoFromJson(old_acc),
                 UploadServerGroup.buildInfoFromJson(old_src));
-        zoneInfo.zoneRegionId = zoneRegion;
+        zoneInfo.regionId = zoneRegion;
         zoneInfo.detailInfo = obj;
 
         ArrayList<String> allHosts = new ArrayList<>();
@@ -168,21 +161,15 @@ public class ZoneInfo {
         return zoneInfo;
     }
 
-    public void frozenDomain(String domain) {
-        //frozen for 10 minutes
-        upDomainsMap.put(domain, System.currentTimeMillis() / 1000 + DOMAIN_FROZEN_SECONDS);
-    }
-
     public String getRegionId(){
-        return zoneRegionId;
+        return regionId;
     }
 
     @Override
     public String toString() {
         Map<String, Object> m = new HashMap<String, Object>();
         m.put("ttl", this.ttl);
-        m.put("upDomainList", this.upDomainsList);
-        m.put("upDomainMap", this.upDomainsMap);
+        m.put("allHost", this.allHosts);
         return new JSONObject(m).toString();
     }
 

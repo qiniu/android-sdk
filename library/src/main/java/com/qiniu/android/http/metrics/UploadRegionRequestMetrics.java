@@ -45,8 +45,8 @@ public class UploadRegionRequestMetrics {
 
     public void addMetrics(UploadRegionRequestMetrics metrics){
         if (metrics == null || metrics.region == null || metrics.region.getZoneInfo() == null
-                || metrics.region.getZoneInfo().zoneRegionId == null
-                || region == null || region.getZoneInfo() == null || region.getZoneInfo().zoneRegionId == null
+                || metrics.region.getZoneInfo().regionId == null
+                || region == null || region.getZoneInfo() == null || region.getZoneInfo().regionId == null
                 || metrics.metricsList == null || metrics.metricsList.size() == 0){
 
             return;

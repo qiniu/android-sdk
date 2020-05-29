@@ -25,7 +25,7 @@ public class PartsUpload extends BaseUpload {
     // 定制chunk大小 在执行run之前赋值
     public Long chunkSize;
 
-    // 断点续传时，起始上传偏移, 只做为日志打点，不参与上传逻辑
+    // 断点续传时，起始上传偏移, 暂只做为日志打点，不参与上传逻辑
     private Long recoveredFrom;
     private UploadFileInfo uploadFileInfo;
 
@@ -174,12 +174,12 @@ public class PartsUpload extends BaseUpload {
         }
 
         String currentZoneRegionId = null;
-        if (getCurrentRegion() != null && getCurrentRegion().getZoneInfo() != null && getCurrentRegion().getZoneInfo().zoneRegionId != null){
-            currentZoneRegionId = getCurrentRegion().getZoneInfo().zoneRegionId;
+        if (getCurrentRegion() != null && getCurrentRegion().getZoneInfo() != null && getCurrentRegion().getZoneInfo().regionId != null){
+            currentZoneRegionId = getCurrentRegion().getZoneInfo().regionId;
         }
         String targetZoneRegionId = null;
-        if (getTargetRegion() != null && getTargetRegion().getZoneInfo() != null && getTargetRegion().getZoneInfo().zoneRegionId != null){
-            targetZoneRegionId = getTargetRegion().getZoneInfo().zoneRegionId;
+        if (getTargetRegion() != null && getTargetRegion().getZoneInfo() != null && getTargetRegion().getZoneInfo().regionId != null){
+            targetZoneRegionId = getTargetRegion().getZoneInfo().regionId;
         }
 
         ReportItem item = new ReportItem();

@@ -49,7 +49,7 @@ public class UploadTaskMetrics {
         for (String key : metricsInfo.keySet()){
             UploadRegionRequestMetrics metrics = metricsInfo.get(key);
             if (metrics.region != null && metrics.region.getZoneInfo() != null
-                    && !metrics.region.getZoneInfo().zoneRegionId.equals(ZoneInfo.EmptyRegionId)){
+                    && !metrics.region.getZoneInfo().regionId.equals(ZoneInfo.EmptyRegionId)){
                 count += 1;
             }
         }
@@ -58,10 +58,10 @@ public class UploadTaskMetrics {
 
     public void addMetrics(UploadRegionRequestMetrics metrics){
         if (metrics == null || metrics.region == null || metrics.region.getZoneInfo() == null
-                || metrics.region.getZoneInfo().zoneRegionId == null){
+                || metrics.region.getZoneInfo().regionId == null){
             return;
         }
-        String regionId = metrics.region.getZoneInfo().zoneRegionId;
+        String regionId = metrics.region.getZoneInfo().regionId;
         UploadRegionRequestMetrics metricsOld = metricsInfo.get(regionId);
         if (metricsOld != null){
             metricsOld.addMetrics(metrics);
