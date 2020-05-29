@@ -88,7 +88,7 @@ public class BaseUpload implements Runnable {
         config.zone.preQuery(token, new Zone.QueryHandler() {
             @Override
             public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics) {
-                addRegionRequestMetricsOfOneFlow(metrics);
+                metrics.addMetrics(metrics);
 
                 if (code == 0){
                     prepareToUpload();
