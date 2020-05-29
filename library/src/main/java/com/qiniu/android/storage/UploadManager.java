@@ -4,9 +4,11 @@ import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
 import com.qiniu.android.http.request.Request;
 import com.qiniu.android.utils.AsyncRun;
+import com.qiniu.android.utils.Utils;
 
 import junit.framework.Assert;
 
@@ -64,7 +66,7 @@ public class UploadManager {
         if (checkAndNotifyError(key, token, data, complete)){
             return;
         }
-        putData(data, null, key, token, true, options, complete);
+        putData(data, null, key, token, options, complete);
     }
 
     /**
@@ -132,7 +134,7 @@ public class UploadManager {
         };
 
         if (!checkAndNotifyError(key, token, data, completionHandler)){
-            putData(data, null, key, token, true, options, completionHandler);
+            putData(data, null, key, token, options, completionHandler);
             try {
                 completeSingle.await(1200, TimeUnit.SECONDS);
             } catch (InterruptedException ignored) {
@@ -207,7 +209,6 @@ public class UploadManager {
                          final String fileName,
                          final String key,
                          final String token,
-                         final boolean isAsyn,
                          final UploadOptions option,
                          final UpCompletionHandler completionHandler){
 
@@ -218,27 +219,14 @@ public class UploadManager {
             return;
         }
 
-        config.zone.preQuery(t, new Zone.QueryHandler() {
+        BaseUpload.UpTaskCompletionHandler completionHandlerP = new BaseUpload.UpTaskCompletionHandler() {
             @Override
-            public void complete(int code, ResponseInfo responseInfo) {
-                if (code != 0){
-                    completeAction(token, key, responseInfo, responseInfo.response, null, completionHandler);
-                    return;
-                }
-                BaseUpload.UpTaskCompletionHandler completionHandlerP = new BaseUpload.UpTaskCompletionHandler() {
-                    @Override
-                    public void complete(ResponseInfo responseInfo, String key, UploadTaskMetrics requestMetrics, JSONObject response) {
-                        completeAction(token, key, responseInfo, response, requestMetrics, completionHandler);
-                    }
-                };
-                final FormUpload up = new FormUpload(data, key, fileName, t, option, config, completionHandlerP);
-                if (isAsyn){
-                    AsyncRun.runInBack(up);
-                } else {
-                    up.syncRun();
-                }
+            public void complete(ResponseInfo responseInfo, String key, UploadTaskMetrics requestMetrics, JSONObject response) {
+                completeAction(token, key, responseInfo, response, requestMetrics, completionHandler);
             }
-        });
+        };
+        final FormUpload up = new FormUpload(data, key, fileName, t, option, config, completionHandlerP);
+        AsyncRun.runInMain(up);
     }
 
     private void putFile(final File file,
@@ -252,48 +240,39 @@ public class UploadManager {
             completeAction(token, key, info, null, null, completionHandler);
             return;
         }
-        config.zone.preQuery(t, new Zone.QueryHandler() {
-            @Override
-            public void complete(int code, ResponseInfo responseInfo) {
-                if (code != 0) {
-                    completeAction(token, key, responseInfo, responseInfo.response, null, completionHandler);
-                    return;
-                }
 
-                if (file.length() <= config.putThreshold) {
-                    byte[] data = new byte[(int) file.length()];
-                    RandomAccessFile randomAccessFile = null;
-                    try {
-                        randomAccessFile = new RandomAccessFile(file, "r");
-                        randomAccessFile.seek(0);
-                        randomAccessFile.read(data);
-                        randomAccessFile.close();
-                    } catch (FileNotFoundException ignored) {
-                    } catch (IOException e) {
-                    }
-                    putData(data, file.getName(), key, token, true, option, completionHandler);
-                }
-
-                String recorderKey = key;
-                if (config.recorder != null && config.keyGen != null) {
-                    recorderKey = config.keyGen.gen(key, file);
-                }
-
-                BaseUpload.UpTaskCompletionHandler completionHandlerP = new BaseUpload.UpTaskCompletionHandler() {
-                    @Override
-                    public void complete(ResponseInfo responseInfo, String key, UploadTaskMetrics requestMetrics, JSONObject response) {
-                        completeAction(token, key, responseInfo, response, requestMetrics, completionHandler);
-                    }
-                };
-                if (config.useConcurrentResumeUpload) {
-                    final ConcurrentResumeUpload up = new ConcurrentResumeUpload(file, recorderKey, t, option, config, config.recorder, key, completionHandlerP);
-                    AsyncRun.runInMain(up);
-                } else {
-                    final ResumeUpload up = new ResumeUpload(file, key, t, option, config, config.recorder, recorderKey, completionHandlerP);
-                    AsyncRun.runInMain(up);
-                }
+        if (file.length() <= config.putThreshold) {
+            byte[] data = new byte[(int) file.length()];
+            RandomAccessFile randomAccessFile = null;
+            try {
+                randomAccessFile = new RandomAccessFile(file, "r");
+                randomAccessFile.seek(0);
+                randomAccessFile.read(data);
+                randomAccessFile.close();
+            } catch (FileNotFoundException ignored) {
+            } catch (IOException e) {
             }
-        });
+            putData(data, file.getName(), key, token, option, completionHandler);
+        }
+
+        String recorderKey = key;
+        if (config.recorder != null && config.keyGen != null) {
+            recorderKey = config.keyGen.gen(key, file);
+        }
+
+        BaseUpload.UpTaskCompletionHandler completionHandlerP = new BaseUpload.UpTaskCompletionHandler() {
+            @Override
+            public void complete(ResponseInfo responseInfo, String key, UploadTaskMetrics requestMetrics, JSONObject response) {
+                completeAction(token, key, responseInfo, response, requestMetrics, completionHandler);
+            }
+        };
+        if (config.useConcurrentResumeUpload) {
+            final ConcurrentResumeUpload up = new ConcurrentResumeUpload(file, recorderKey, t, option, config, config.recorder, key, completionHandlerP);
+            AsyncRun.runInMain(up);
+        } else {
+            final ResumeUpload up = new ResumeUpload(file, key, t, option, config, config.recorder, recorderKey, completionHandlerP);
+            AsyncRun.runInMain(up);
+        }
     }
 
     private boolean checkAndNotifyError(String key,
@@ -342,7 +321,7 @@ public class UploadManager {
 
         ReportItem item = new ReportItem();
         item.setReport(ReportItem.LogTypeQuality, ReportItem.QualityKeyLogType);
-        item.setReport((new Date().getTime()), ReportItem.QualityKeyUpTime);
+        item.setReport((Utils.currentTimestamp()/1000), ReportItem.QualityKeyUpTime);
         item.setReport(ReportItem.qualityResult(responseInfo), ReportItem.QualityKeyResult);
         item.setReport(taskMetricsP.totalElaspsedTime(), ReportItem.QualityKeyTotalElapsedTime);
         item.setReport(taskMetricsP.requestCount(), ReportItem.QualityKeyRequestsCount);

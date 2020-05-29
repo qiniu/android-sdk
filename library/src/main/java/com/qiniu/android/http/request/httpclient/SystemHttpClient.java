@@ -3,13 +3,14 @@ package com.qiniu.android.http.request.httpclient;
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.http.CancellationHandler;
 import com.qiniu.android.http.CountingRequestBody;
-import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.request.Request;
 import com.qiniu.android.http.request.RequestClient;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
+import com.qiniu.android.utils.AndroidNetwork;
 import com.qiniu.android.utils.StringUtils;
 
 
@@ -148,8 +149,8 @@ public class SystemHttpClient implements RequestClient {
         clientBuilder.dns(new okhttp3.Dns() {
             @Override
             public List<InetAddress> lookup(String hostname) throws UnknownHostException {
-                if (DnsPrefetcher.getDnsPrefetcher().getInetAddressByHost(hostname) != null) {
-                    return DnsPrefetcher.getDnsPrefetcher().getInetAddressByHost(hostname);
+                if (DnsPrefetcher.getInstance().getInetAddressByHost(hostname) != null) {
+                    return DnsPrefetcher.getInstance().getInetAddressByHost(hostname);
                 }
                 return okhttp3.Dns.SYSTEM.lookup(hostname);
             }
@@ -225,7 +226,6 @@ public class SystemHttpClient implements RequestClient {
             rbody = new CountingRequestBody(rbody, new ProgressHandler() {
                 @Override
                 public void onProgress(long bytesWritten, long totalSize) {
-                metrics.countOfRequestBodyBytesSent = bytesWritten;
                 if (progress != null){
                     progress.progress(bytesWritten, totalSize);
                 }
@@ -262,8 +262,9 @@ public class SystemHttpClient implements RequestClient {
                                                InetSocketAddress inetSocketAddress,
                                                Proxy proxy) {
                 metrics.connectStartDate = new Date();
-                metrics.remoteAddress = inetSocketAddress.getAddress().getAddress().toString();
-                metrics.remotePort = new Integer(inetSocketAddress.getPort());
+                metrics.remoteAddress = inetSocketAddress.getAddress().getHostAddress();
+                metrics.remotePort = inetSocketAddress.getPort();
+                metrics.localAddress = AndroidNetwork.getHostIP();
             }
             @Override public void secureConnectStart(Call call) {
                 metrics.connectEndDate = new Date();
@@ -299,9 +300,11 @@ public class SystemHttpClient implements RequestClient {
             }
             @Override public void requestBodyEnd(Call call, long byteCount) {
                 metrics.requestEndDate = new Date();
+                metrics.countOfRequestBodyBytesSent = byteCount;
             }
             @Override public void requestFailed(Call call, IOException ioe) {
                 metrics.requestEndDate = new Date();
+                metrics.countOfRequestBodyBytesSent = 0;
             }
             @Override public void responseHeadersStart(Call call) {
                 metrics.responseStartDate = new Date();

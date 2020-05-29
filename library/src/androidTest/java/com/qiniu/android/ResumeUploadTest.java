@@ -117,7 +117,7 @@ public class ResumeUploadTest extends BaseTest {
                     return false;
                 }
             }
-        }, 60);
+        }, 1200);
 
         assertTrue(info.toString(), info.isOK());
         assertNotNull(info.reqId);
@@ -156,7 +156,7 @@ public class ResumeUploadTest extends BaseTest {
                     return false;
                 }
             }
-        }, 60);
+        }, 1200);
 
         assertTrue(info.toString(), info.isOK());
         assertNotNull(info.reqId);
@@ -167,17 +167,17 @@ public class ResumeUploadTest extends BaseTest {
     }
 
     @LargeTest
-    public void test4M1() throws Throwable {
+    public void test4M1K() throws Throwable {
         template(1024 * 4 + 1);
     }
 
     @LargeTest
-    public void test8M1() throws Throwable {
+    public void test8M1L() throws Throwable {
         template(1024 * 8 + 1);
     }
 
     @LargeTest
-    public void test20M1() throws Throwable {
+    public void test20M1K() throws Throwable {
         template(1024 * 20 + 1);
     }
 

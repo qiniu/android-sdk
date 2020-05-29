@@ -4,6 +4,7 @@ package com.qiniu.android.http;
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.http.request.Request;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Locale;
@@ -95,9 +96,18 @@ public final class ResponseInfo {
         this.xlog = xlog;
         this.xvia = xvia;
         this.host = host;
-        this.error = error;
         this.id = UserAgent.instance().id;
         this.timeStamp = System.currentTimeMillis() / 1000;
+
+        if (error == null && !this.isOK()) {
+            String errorP = null;
+            try {
+                errorP = response.getString("error");
+            } catch (JSONException ignored) {}
+            this.error = errorP;
+        } else {
+            this.error = error;
+        }
     }
 
     public static ResponseInfo zeroSize(String desc) {
@@ -135,7 +145,7 @@ public final class ResponseInfo {
                                        JSONObject response,
                                        String errorMessage) {
 
-        String host = (request != null ? request.host() : null);
+        String host = (request != null ? request.host : null);
         String reqId = null;
         String xlog = null;
         String xvia = null;

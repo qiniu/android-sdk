@@ -6,26 +6,55 @@ import java.util.ArrayList;
 
 public class UploadRegionRequestMetrics {
 
-    private final UploadRegion region;
-    private ArrayList <UploadSingleRequestMetrics> metricsList;
+    public final UploadRegion region;
+    private ArrayList <UploadSingleRequestMetrics> metricsList = new ArrayList<>();
 
     public UploadRegionRequestMetrics(UploadRegion region) {
         this.region = region;
     }
 
     public Long totalElaspsedTime(){
-        return null;
+        if (metricsList.size() == 0){
+            return 0l;
+        }
+        long time = 0;
+        for (UploadSingleRequestMetrics metrics : metricsList){
+            time += metrics.totalElaspsedTime();
+        }
+        return time;
     }
 
     public Integer requestCount(){
-        return null;
+        return metricsList.size();
     }
 
     public Long bytesSend(){
-        return null;
+        if (metricsList.size() == 0){
+            return 0l;
+        }
+        long bytes = 0;
+        for (UploadSingleRequestMetrics metrics : metricsList){
+            bytes += metrics.bytesSend();
+        }
+        return bytes;
     }
 
     public void addMetricsList(ArrayList<UploadSingleRequestMetrics> metricsList){
-        metricsList.addAll(0, metricsList);
+        this.metricsList.addAll(0, metricsList);
+    }
+
+    public void addMetrics(UploadRegionRequestMetrics metrics){
+        if (metrics == null || metrics.region == null || metrics.region.getZoneInfo() == null
+                || metrics.region.getZoneInfo().zoneRegionId == null
+                || region == null || region.getZoneInfo() == null || region.getZoneInfo().zoneRegionId == null
+                || metrics.metricsList == null || metrics.metricsList.size() == 0){
+
+            return;
+        }
+        String thisRegionId = metrics.region.getZoneInfo().getRegionId();
+        String metricsRegionId = metrics.region.getZoneInfo().getRegionId();
+        if (thisRegionId.equals(metricsRegionId)){
+            metricsList.addAll(0, metrics.metricsList);
+        }
     }
 }

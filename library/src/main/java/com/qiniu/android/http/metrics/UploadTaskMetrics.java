@@ -1,41 +1,72 @@
 package com.qiniu.android.http.metrics;
 
+import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.request.UploadRegion;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class UploadTaskMetrics {
 
-    public final ArrayList<UploadRegion> regions;
-    private ArrayList<UploadRegionRequestMetrics> metricsList;
+    public ArrayList<UploadRegion> regions;
+    private HashMap<String, UploadRegionRequestMetrics> metricsInfo;
 
     public UploadTaskMetrics(ArrayList<UploadRegion> regions) {
         this.regions = regions;
-        this.metricsList = new ArrayList<UploadRegionRequestMetrics>();
+        this.metricsInfo = new HashMap<String, UploadRegionRequestMetrics>();
     }
 
 
     public Long totalElaspsedTime(){
-        return null;
+        long time = 0;
+        for (String key : metricsInfo.keySet()){
+            UploadRegionRequestMetrics metrics = metricsInfo.get(key);
+            time += metrics.totalElaspsedTime();
+        }
+        return time;
     }
 
     public Long requestCount(){
-        return null;
+        long count = 0;
+        for (String key : metricsInfo.keySet()){
+            UploadRegionRequestMetrics metrics = metricsInfo.get(key);
+            count += metrics.requestCount();
+        }
+        return count;
     }
 
     public Long bytesSend(){
-        return null;
+        long bytesSend = 0;
+        for (String key : metricsInfo.keySet()){
+            UploadRegionRequestMetrics metrics = metricsInfo.get(key);
+            bytesSend += metrics.bytesSend();
+        }
+        return bytesSend;
     }
 
     public Long regionCount(){
-        return null;
-    }
-
-    public ArrayList<UploadRegionRequestMetrics> getMetricsList(){
-        return metricsList;
+        long count = 0;
+        for (String key : metricsInfo.keySet()){
+            UploadRegionRequestMetrics metrics = metricsInfo.get(key);
+            if (metrics.region != null && metrics.region.getZoneInfo() != null
+                    && !metrics.region.getZoneInfo().zoneRegionId.equals(ZoneInfo.EmptyRegionId)){
+                count += 1;
+            }
+        }
+        return count;
     }
 
     public void addMetrics(UploadRegionRequestMetrics metrics){
-        metricsList.add(metrics);
+        if (metrics == null || metrics.region == null || metrics.region.getZoneInfo() == null
+                || metrics.region.getZoneInfo().zoneRegionId == null){
+            return;
+        }
+        String regionId = metrics.region.getZoneInfo().zoneRegionId;
+        UploadRegionRequestMetrics metricsOld = metricsInfo.get(regionId);
+        if (metricsOld != null){
+            metricsOld.addMetrics(metrics);
+        } else {
+            metricsInfo.put(regionId, metrics);
+        }
     }
 }

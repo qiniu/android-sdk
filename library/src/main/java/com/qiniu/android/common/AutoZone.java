@@ -32,7 +32,7 @@ public final class AutoZone extends Zone {
         if (ucServer != null){
             return ucServer;
         } else {
-            return "uc.qbox.me";
+            return Config.preQueryHost;
         }
     }
 
@@ -50,7 +50,7 @@ public final class AutoZone extends Zone {
         final ZonesInfo zonesInfo = getZonesInfo(token);
 
         if (zonesInfo != null) {
-            completeHandler.complete(0, null);
+            completeHandler.complete(0, null, null);
             return;
         }
         final RequestTranscation transcation = createUploadRequestTranscation(token);
@@ -60,9 +60,9 @@ public final class AutoZone extends Zone {
                 if (responseInfo != null && responseInfo.isOK() && response != null){
                     ZonesInfo zonesInfoP = ZonesInfo.createZonesInfo(response);
                     ZonesInfoMap.put(token.index(), zonesInfoP);
-                    completeHandler.complete(0, responseInfo);
+                    completeHandler.complete(0, responseInfo, requestMetrics);
                 } else {
-                    completeHandler.complete(ResponseInfo.NetworkError, responseInfo);
+                    completeHandler.complete(ResponseInfo.NetworkError, responseInfo, requestMetrics);
                 }
                 destoryUploadRequestTranscation(transcation);
             }
@@ -74,7 +74,11 @@ public final class AutoZone extends Zone {
     private RequestTranscation createUploadRequestTranscation(UpToken token){
         ArrayList<String> hosts = new ArrayList<>();
         hosts.add(getUcServer());
-        RequestTranscation transcation = new RequestTranscation(hosts, token);
+
+        ArrayList<String> ioHosts = new ArrayList<>();
+        ioHosts.add(ZoneInfo.SDKDefaultIOHost);
+
+        RequestTranscation transcation = new RequestTranscation(hosts, ioHosts, token);
         transcations.add(transcation);
         return transcation;
     }

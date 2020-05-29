@@ -18,6 +18,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 
 public class ZoneInfo {
+
+    // 只允许内部使用
+    public final static String SDKDefaultIOHost = "sdkDefaultIOHost";
+    public final static String EmptyRegionId = "sdkEmptyRegionId";
+
     private static int DOMAIN_FROZEN_SECONDS = 10 * 60;
 
     private int ttl;
@@ -27,6 +32,7 @@ public class ZoneInfo {
     public UploadServerGroup old_src;
 
     public String zoneRegionId;
+    public ArrayList<String> allHosts;
     public JSONObject detailInfo;
 
     //upHost
@@ -35,14 +41,6 @@ public class ZoneInfo {
     public Map<String, Long> upDomainsMap;
 
     private String regionId;
-
-    public ZoneInfo(int ttl,
-                    List<String> upDomainsList,
-                    Map<String, Long> upDomainsMap) {
-        this.ttl = ttl;
-        this.upDomainsList = upDomainsList;
-        this.upDomainsMap = upDomainsMap;
-    }
 
     public static ZoneInfo buildInfo(@NotNull ArrayList<String> mainHosts,
                                      @Nullable ArrayList<String> ioHosts){
@@ -121,6 +119,8 @@ public class ZoneInfo {
             zoneRegion = "na0";
         } else if (io_host.equals("iovip-as0.qbox.me")){
             zoneRegion = "as0";
+        } else if (io_host.equals(SDKDefaultIOHost)){
+            zoneRegion = EmptyRegionId;
         }
 
         JSONObject up = obj.getJSONObject("up");
@@ -149,6 +149,21 @@ public class ZoneInfo {
                 UploadServerGroup.buildInfoFromJson(old_src));
         zoneInfo.zoneRegionId = zoneRegion;
         zoneInfo.detailInfo = obj;
+
+        ArrayList<String> allHosts = new ArrayList<>();
+        if (zoneInfo.acc != null && zoneInfo.acc.allHosts != null){
+            allHosts.addAll(zoneInfo.acc.allHosts);
+        }
+        if (zoneInfo.src != null && zoneInfo.src.allHosts != null){
+            allHosts.addAll(zoneInfo.src.allHosts);
+        }
+        if (zoneInfo.old_acc != null && zoneInfo.old_acc.allHosts != null){
+            allHosts.addAll(zoneInfo.old_acc.allHosts);
+        }
+        if (zoneInfo.old_src != null && zoneInfo.old_src.allHosts != null){
+            allHosts.addAll(zoneInfo.old_src.allHosts);
+        }
+        zoneInfo.allHosts = allHosts;
 
         return zoneInfo;
     }

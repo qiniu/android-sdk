@@ -2,16 +2,18 @@ package com.qiniu.android.common;
 
 import android.os.Environment;
 
+import com.qiniu.android.http.dns.Dns;
 import com.qiniu.android.utils.ContextGetter;
+import com.qiniu.android.utils.Utils;
 
 /**
  * Created by Simon on 11/22/16.
  */
 public final class Config {
     /**
-     * 上传信息收集文件的地址
+     * 上传信息收集文件的地址 只保留域名部分 eg：https://uplog.qbox.me/log/3 => uplog.qbox.me
      */
-    public final static String serverURL = "https://uplog.qbox.me/log/3";
+    public final static String upLogURL = "uplog.qbox.me";
     /**
      * 是否记录上传状态信息。 true 表示记录，false 表示不记录。
      * <p>
@@ -39,6 +41,27 @@ public final class Config {
      * 默认使用当前应用的缓存目录： getCacheDir()
      */
     public static String recordDir = null;
+    /**
+     *   是否开启dns预解析 默认开启
+     */
+    public static boolean isDnsOpen = true;
+    /**
+     *   dns预取缓存时间  单位：秒
+     */
+    public static int dnsCacheTime = 2 * 60;
+    /**
+     *   dns 预取失败后 会进行重新预取  rePreHostNum为最多尝试次数
+     */
+    public static int dnsRepreHostNum = 2;
+    /**
+     *   自定义DNS解析客户端host
+     */
+    public static Dns dns = null;
+    /**
+     *   dns解析结果本地缓存路径
+     */
+    public static final String dnscacheDir = Utils.sdkDirectory() + "/dnschache/";
+
 
     static {
         try {
@@ -74,16 +97,9 @@ public final class Config {
     public static int interval = 10;
 
     /**
-     * dns缓存信息目录
-     */
-    public static String dnscacheDir = Environment.getExternalStorageDirectory() + "/dnschache/";
-
-    /**
      * preQuery host
      */
     public static String preQueryHost = "uc.qbox.me";
-
-    public static int rePreHost = 2;
 
     /**
      * 当网络切换到 wifi 下，切换到此设置

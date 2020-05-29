@@ -161,6 +161,8 @@ public class ConcurrentResumeUpload extends PartsUpload {
         transcation.makeBlock(block.offset, block.size, getDataWithChunk(chunk, block), true, progressHandler, new RequestTranscation.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                addRegionRequestMetricsOfOneFlow(requestMetrics);
+
                 String blockContext = null;
                 if (response != null){
                     try {
@@ -178,7 +180,6 @@ public class ConcurrentResumeUpload extends PartsUpload {
                     chunk.isCompleted = false;
                     uploadBlockErrorResponse = response;
                     uploadBlockErrorResponseInfo = responseInfo;
-                    setCurrentRegionRequestMetrics(requestMetrics);
                     completeHandler.complete();
                 }
             }
@@ -196,7 +197,7 @@ public class ConcurrentResumeUpload extends PartsUpload {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 
-                setCurrentRegionRequestMetrics(requestMetrics);
+                addRegionRequestMetricsOfOneFlow(requestMetrics);
                 destoryUploadRequestTranscation(transcation);
                 completeHandler.complete(responseInfo, response);
             }

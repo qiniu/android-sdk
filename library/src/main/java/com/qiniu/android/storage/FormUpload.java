@@ -53,7 +53,7 @@ public class FormUpload extends BaseUpload {
         uploadTranscation.uploadFormData(data, fileName, isAsyn, progressHandler, new RequestTranscation.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                setCurrentRegionRequestMetrics(requestMetrics);
+                addRegionRequestMetricsOfOneFlow(requestMetrics);
                 if (responseInfo.isOK()){
                     option.progressHandler.progress(key, 1.0);
                     completeAction(responseInfo, response);

@@ -173,11 +173,20 @@ public class PartsUpload extends BaseUpload {
             metrics = new UploadRegionRequestMetrics(null);
         }
 
+        String currentZoneRegionId = null;
+        if (getCurrentRegion() != null && getCurrentRegion().getZoneInfo() != null && getCurrentRegion().getZoneInfo().zoneRegionId != null){
+            currentZoneRegionId = getCurrentRegion().getZoneInfo().zoneRegionId;
+        }
+        String targetZoneRegionId = null;
+        if (getTargetRegion() != null && getTargetRegion().getZoneInfo() != null && getTargetRegion().getZoneInfo().zoneRegionId != null){
+            targetZoneRegionId = getTargetRegion().getZoneInfo().zoneRegionId;
+        }
+
         ReportItem item = new ReportItem();
         item.setReport(ReportItem.LogTypeBlock, ReportItem.BlockKeyLogType);
-        item.setReport((Utils.currentTimestamp()), ReportItem.BlockKeyUpTime);
-        item.setReport(getTargetRegion().getZoneInfo().zoneRegionId, ReportItem.BlockKeyTargetRegionId);
-        item.setReport(getCurrentRegion().getZoneInfo().zoneRegionId, ReportItem.BlockKeyCurrentRegionId);
+        item.setReport((Utils.currentTimestamp()/1000), ReportItem.BlockKeyUpTime);
+        item.setReport(currentZoneRegionId, ReportItem.BlockKeyTargetRegionId);
+        item.setReport(targetZoneRegionId, ReportItem.BlockKeyCurrentRegionId);
         item.setReport(metrics.totalElaspsedTime(), ReportItem.BlockKeyTotalElapsedTime);
         item.setReport(metrics.bytesSend(), ReportItem.BlockKeyBytesSent);
         item.setReport(recoveredFrom, ReportItem.BlockKeyRecoveredFrom);
@@ -185,7 +194,7 @@ public class PartsUpload extends BaseUpload {
         item.setReport(Utils.getCurrentProcessID(), ReportItem.BlockKeyPid);
         item.setReport(Utils.getCurrentThreadID(), ReportItem.BlockKeyTid);
         item.setReport(1, ReportItem.BlockKeyUpApiVersion);
-        item.setReport(Utils.getCurrentNetworkType(), ReportItem.BlockKeyClientTime);
+        item.setReport(Utils.currentTimestamp(), ReportItem.BlockKeyClientTime);
 
         UploadInfoReporter.getInstance().report(item, token.token);
     }

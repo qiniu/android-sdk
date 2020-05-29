@@ -143,15 +143,20 @@ public class HttpSingleRequest {
     private void reportRequest(ResponseInfo responseInfo,
                                UploadSingleRequestMetrics requestMetrics){
 
+        if (!requestInfo.shouldReportRequestLog()){
+            return;
+        }
+
         UploadSingleRequestMetrics requestMetricsP = requestMetrics != null ? requestMetrics : new UploadSingleRequestMetrics();
 
         ReportItem item = new ReportItem();
         item.setReport(ReportItem.LogTypeRequest, ReportItem.RequestKeyLogType);
+        item.setReport((Utils.currentTimestamp()/1000), ReportItem.RequestKeyUpTime);
         item.setReport(ReportItem.requestReportStatusCode(responseInfo), ReportItem.RequestKeyStatusCode);
         item.setReport(responseInfo.reqId, ReportItem.RequestKeyRequestId);
-        item.setReport(requestMetricsP.request.host(), ReportItem.RequestKeyHost);
+        item.setReport(requestMetricsP.request.host, ReportItem.RequestKeyHost);
         item.setReport(requestMetricsP.remoteAddress, ReportItem.RequestKeyRemoteIp);
-        item.setReport(requestMetricsP.localPort, ReportItem.RequestKeyPort);
+        item.setReport(requestMetricsP.remotePort, ReportItem.RequestKeyPort);
         item.setReport(requestInfo.bucket, ReportItem.RequestKeyTargetBucket);
         item.setReport(requestInfo.key, ReportItem.RequestKeyTargetKey);
         item.setReport(requestMetricsP.totalElaspsedTime(), ReportItem.RequestKeyTotalElapsedTime);
@@ -169,8 +174,12 @@ public class HttpSingleRequest {
         item.setReport(Utils.getCurrentThreadID(), ReportItem.RequestKeyTid);
         item.setReport(requestInfo.targetRegionId, ReportItem.RequestKeyTargetRegionId);
         item.setReport(requestInfo.currentRegionId, ReportItem.RequestKeyCurrentRegionId);
-        item.setReport(ReportItem.requestReportErrorType(responseInfo), ReportItem.RequestKeyErrorType);
-        String errorDesc = ReportItem.requestReportErrorType(responseInfo) != null ? responseInfo.message : null;
+        String errorType = ReportItem.requestReportErrorType(responseInfo);
+        item.setReport(errorType, ReportItem.RequestKeyErrorType);
+        String errorDesc = null;
+        if (errorType != null){
+            errorDesc = responseInfo.error != null ? responseInfo.error : responseInfo.message;
+        }
         item.setReport(errorDesc, ReportItem.RequestKeyErrorDescription);
         item.setReport(requestInfo.requestType, ReportItem.RequestKeyUpType);
         item.setReport(Utils.systemName(), ReportItem.RequestKeyOsName);

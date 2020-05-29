@@ -15,4 +15,12 @@ public class UploadRequestInfo {
     public Long fileOffset;
     public String targetRegionId;
     public String currentRegionId;
+
+    public boolean shouldReportRequestLog(){
+        if (requestType.equals(RequestTypeUpLog)){
+            return false;
+        } else {
+            return true;
+        }
+    }
 }

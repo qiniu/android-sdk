@@ -3,9 +3,9 @@ package com.qiniu.android.common;
 import com.qiniu.android.BaseTest;
 import com.qiniu.android.TestConfig;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.storage.UpToken;
 
-import junit.framework.Assert;
 
 
 /**
@@ -25,7 +25,7 @@ public class AutoZoneTest extends BaseTest {
         final int[] c = {-1};
         zone.preQuery(token, new Zone.QueryHandler() {
             @Override
-            public void complete(int code, ResponseInfo responseInfo) {
+            public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics) {
                 c[0] = code;
                 waitCondition.shouldWait = false;
             }

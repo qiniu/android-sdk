@@ -30,10 +30,6 @@ public class Request {
         this.timeout = timeout;
     }
 
-    public String host(){
-        return urlString;
-    }
-
     public boolean isValid() {
         if (this.urlString == null || httpMethod == null) {
             return true;

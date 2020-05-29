@@ -1,6 +1,7 @@
 package com.qiniu.android.common;
 
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.storage.UpToken;
 
 import java.net.URI;
@@ -15,6 +16,6 @@ public abstract class Zone {
     public abstract void preQuery(UpToken token, QueryHandler completeHandler);
 
     public interface QueryHandler {
-        void complete(int code, ResponseInfo responseInfo);
+        void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics);
     }
 }

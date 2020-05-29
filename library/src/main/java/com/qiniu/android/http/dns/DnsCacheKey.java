@@ -9,12 +9,15 @@ import org.json.JSONObject;
  */
 
 public class DnsCacheKey {
-    public String currentTime;
-    public String localIp;
-    public String akScope;
+    private String currentTime;
+    private String localIp;
+    private String akScope;
 
-    public DnsCacheKey() {
+    public DnsCacheKey() {}
 
+    public DnsCacheKey(String currentTime, String localIp) {
+        this.currentTime = currentTime;
+        this.localIp = localIp;
     }
 
     public DnsCacheKey(String currentTime, String localIp, String akScope) {

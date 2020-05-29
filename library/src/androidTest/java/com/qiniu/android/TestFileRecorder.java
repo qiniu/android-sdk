@@ -13,8 +13,6 @@ import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.storage.persistent.FileRecorder;
 import com.qiniu.android.utils.Etag;
 
-import junit.framework.Assert;
-
 import org.json.JSONObject;
 
 import java.io.File;
@@ -102,14 +100,14 @@ public class TestFileRecorder extends InstrumentationTestCase {
 
         try {
             signal.await(600, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
+            assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isCancelled());
-        Assert.assertNull(resp);
+        assertEquals(info.toString(), expectKey, key);
+        assertTrue(info.toString(), info.isCancelled());
+        assertNull(resp);
 
         cancelled = false;
         options = new UploadOptions(null, null, false, new UpProgressHandler() {
@@ -138,18 +136,18 @@ public class TestFileRecorder extends InstrumentationTestCase {
 
         try {
             signal2.await(1200, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
+            assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isOK());
-        Assert.assertTrue(!failed);
-        Assert.assertNotNull(resp);
+        assertEquals(info.toString(), expectKey, key);
+        assertTrue(info.toString(), info.isOK());
+        assertNotNull(resp);
 
         String hash = resp.getString("hash");
-        Assert.assertEquals(hash, Etag.file(tempFile));
+        assertEquals(hash, Etag.file(tempFile));
+
         TempFile.remove(tempFile);
     }
 
@@ -165,8 +163,8 @@ public class TestFileRecorder extends InstrumentationTestCase {
         template(1024, 0.51);
     }
 
-    public void test4M() throws Throwable {
-        template(4 * 1024, 0.5);
+    public void test4M1K() throws Throwable {
+        template(4 * 1024 + 1, 0.5);
     }
 
     public void test8M1K() throws Throwable {

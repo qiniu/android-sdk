@@ -66,15 +66,6 @@ public final class FixedZone extends Zone {
     public static final Zone zoneAs0 = new FixedZone(arrayZoneAs0, new String[]{"iovip-as0.qbox.me"});
 
     private ZonesInfo zonesInfo;
-    private static List<ZoneInfo> listZoneInfo = new ArrayList<ZoneInfo>();
-    public static List<ZoneInfo> getZoneInfos() {
-        listZoneInfo.add(createZoneInfo(arrayzone0));
-        listZoneInfo.add(createZoneInfo(arrayzone1));
-        listZoneInfo.add(createZoneInfo(arrayzone2));
-        listZoneInfo.add(createZoneInfo(arrayzoneNa0));
-        listZoneInfo.add(createZoneInfo(arrayZoneAs0));
-        return listZoneInfo;
-    }
 
     public static List<Zone> localsZoneInfo() {
         ArrayList<Zone> localsZone = new ArrayList<Zone>();
@@ -98,16 +89,6 @@ public final class FixedZone extends Zone {
 
     public FixedZone(String[] upDomains, String[] ioDomains) {
         this.zonesInfo = createZonesInfo(upDomains, ioDomains);
-    }
-
-    public static ZoneInfo createZoneInfo(String[] upDomains) {
-        List<String> upDomainsList = new ArrayList<String>();
-        Map<String, Long> upDomainsMap = new ConcurrentHashMap<String, Long>();
-        for (String domain : upDomains) {
-            upDomainsList.add(domain);
-            upDomainsMap.put(domain, 0L);
-        }
-        return new ZoneInfo(0, upDomainsList, upDomainsMap);
     }
 
     private ZonesInfo createZonesInfo(String[] upDomains, String[] ioDomains) {
@@ -137,7 +118,7 @@ public final class FixedZone extends Zone {
     @Override
     public void preQuery(UpToken token, QueryHandler completeHandler) {
         if (completeHandler != null){
-            completeHandler.complete(0, null);
+            completeHandler.complete(0, null, null);
         }
     }
 }

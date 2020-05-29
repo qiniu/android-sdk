@@ -20,12 +20,14 @@ public class BaseTest extends TestCase {
      * maxWaitTime: 等待最大时长 单位-秒
      */
     public void wait(WaitConditional waitConditional, float maxWaitTime){
-        if (waitConditional == null){
-            return;
+
+        WaitConditional waitConditionalP = waitConditional;
+        if (waitConditionalP == null){
+            waitConditionalP = new WaitCondition();
         }
 
         this.maxWaitTimestamp = new Date().getTime() + (long)(maxWaitTime * 1000);
-        while (waitConditional.shouldWait()) {
+        while (waitConditionalP.shouldWait()) {
             long currentTimestamp = new Date().getTime();
             if (currentTimestamp > maxWaitTimestamp) {
                 break;

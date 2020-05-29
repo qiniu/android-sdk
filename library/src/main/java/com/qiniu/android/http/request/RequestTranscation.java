@@ -38,17 +38,24 @@ public class RequestTranscation {
 
     public RequestTranscation(ArrayList<String> hosts,
                               UpToken token){
-        this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, null, token);
+        this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, null, null, token);
+    }
+
+    public RequestTranscation(ArrayList<String> hosts,
+                              ArrayList<String> ioHosts,
+                              UpToken token){
+        this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, ioHosts, null, token);
     }
 
     public RequestTranscation(Configuration config,
                               UploadOptions uploadOption,
                               ArrayList<String> hosts,
+                              ArrayList<String> ioHosts,
                               String key,
                               UpToken token){
         this(config, uploadOption, key, token);
         UploadRegion region = new UploadDomainRegion();
-        region.setupRegionData(ZoneInfo.buildInfo(hosts, null));
+        region.setupRegionData(ZoneInfo.buildInfo(hosts, ioHosts));
         this.initData(region, region);
     }
 
@@ -368,7 +375,7 @@ public class RequestTranscation {
                 }
             }
         };
-        regionRequest.post(null, isAsyn, logData, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
+        regionRequest.post("/log/4", isAsyn, logData, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 completeHandler.complete(responseInfo, requestMetrics, response);

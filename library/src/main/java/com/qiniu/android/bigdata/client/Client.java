@@ -65,8 +65,8 @@ public final class Client {
         builder.dns(new okhttp3.Dns() {
             @Override
             public List<InetAddress> lookup(String hostname) throws UnknownHostException {
-               if (DnsPrefetcher.getDnsPrefetcher().getInetAddressByHost(hostname) != null) {
-                    return DnsPrefetcher.getDnsPrefetcher().getInetAddressByHost(hostname);
+               if (DnsPrefetcher.getInstance().getInetAddressByHost(hostname) != null) {
+                    return DnsPrefetcher.getInstance().getInetAddressByHost(hostname);
                 }
                 return okhttp3.Dns.SYSTEM.lookup(hostname);
             }

@@ -53,7 +53,11 @@ public class RequestTranscationTest extends BaseTest {
         hosts.add("upload.qiniup.com");
 
         byte[] data = "你好".getBytes();
-        RequestTranscation requestTranscation = new RequestTranscation(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, "android-transcation-form", token);
+        RequestTranscation requestTranscation = new RequestTranscation(new Configuration.Builder().build(),
+                UploadOptions.defaultOptions(),
+                hosts, null,
+                "android-transcation-form",
+                token);
         requestTranscation.uploadFormData(data, null, true, new RequestProgressHandler() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
@@ -139,7 +143,7 @@ public class RequestTranscationTest extends BaseTest {
         hosts.add("upload.qiniup.com");
 
         byte[] data = new byte[2*1024*1024];
-        RequestTranscation requestTranscation = new RequestTranscation(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, "android-transcation-block", token);
+        RequestTranscation requestTranscation = new RequestTranscation(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, null, "android-transcation-block", token);
         requestTranscation.makeBlock(0, 3*1024*1024, data, true, new RequestProgressHandler() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
@@ -155,7 +159,7 @@ public class RequestTranscationTest extends BaseTest {
         hosts.add("upload.qiniup.com");
 
         byte[] data = new byte[1*1024*1024];
-        RequestTranscation requestTranscation = new RequestTranscation(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, "android-transcation-block", token);
+        RequestTranscation requestTranscation = new RequestTranscation(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, null,"android-transcation-block", token);
         requestTranscation.uploadChunk(ct,0, data, 2*1024*1024,true, new RequestProgressHandler() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
@@ -170,7 +174,7 @@ public class RequestTranscationTest extends BaseTest {
         ArrayList<String> hosts = new ArrayList<String>();
         hosts.add("upload.qiniup.com");
 
-        RequestTranscation requestTranscation = new RequestTranscation(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, "android-transcation-block", token);
+        RequestTranscation requestTranscation = new RequestTranscation(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts,null, "android-transcation-block", token);
         requestTranscation.makeFile(3*1024*1024, "android-transcation-block-fileName", blockContexts, true, completeHandler);
     }
 }

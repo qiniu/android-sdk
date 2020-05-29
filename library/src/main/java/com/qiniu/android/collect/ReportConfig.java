@@ -1,5 +1,6 @@
 package com.qiniu.android.collect;
 
+import com.qiniu.android.common.Config;
 import com.qiniu.android.utils.Utils;
 
 public class ReportConfig {
@@ -44,7 +45,7 @@ public class ReportConfig {
     private ReportConfig(){
         this.isReportEnable = true;
         this.interval = 10;
-        this.serverURL = "uplog.qbox.me/log/4";
+        this.serverURL = Config.upLogURL;
         this.recordDirectory = Utils.sdkDirectory() + "/report";
         this.maxRecordFileSize = 2 * 1024 * 1024;
         this.uploadThreshold = 4 * 1024;

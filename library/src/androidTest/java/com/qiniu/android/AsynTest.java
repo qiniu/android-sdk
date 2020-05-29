@@ -63,10 +63,14 @@ public class AsynTest extends BaseTest {
                 @Override
                 public void run() {
                     String threadName = Thread.currentThread().getName();
-                    if (threadName.equals("main") == false){
-                        testParam.successCount += 1;
+                    if (!threadName.equals("main")){
+                        synchronized (this){
+                            testParam.successCount += 1;
+                        }
                     }
-                    testParam.completeCount += 1;
+                    synchronized (this){
+                        testParam.completeCount += 1;
+                    }
                 }
             });
         }

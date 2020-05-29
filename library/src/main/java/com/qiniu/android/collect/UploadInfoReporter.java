@@ -3,6 +3,7 @@ package com.qiniu.android.collect;
 
 import android.util.Log;
 
+import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.request.RequestTranscation;
@@ -217,9 +218,13 @@ public class UploadInfoReporter {
         if (token == null){
             return null;
         }
-        ArrayList<String> hosts = new ArrayList();
+        ArrayList<String> hosts = new ArrayList<>();
         hosts.add(config.serverURL);
-        transcation = new RequestTranscation(hosts, token);
+
+        ArrayList<String> ioHosts = new ArrayList<>();
+        ioHosts.add(ZoneInfo.SDKDefaultIOHost);
+
+        transcation = new RequestTranscation(hosts, ioHosts, token);
         return transcation;
     }
 

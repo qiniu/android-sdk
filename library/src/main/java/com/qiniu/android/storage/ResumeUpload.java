@@ -146,6 +146,8 @@ public class ResumeUpload extends PartsUpload {
         transcation.makeBlock(block.offset, block.size, chunkData, true, progressHandler, new RequestTranscation.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                addRegionRequestMetricsOfOneFlow(requestMetrics);
+
                 String blockContext = null;
                 if (response != null){
                     try {
@@ -191,6 +193,8 @@ public class ResumeUpload extends PartsUpload {
         transcation.uploadChunk(block.context, block.offset, chunkData, chunk.offset, true, progressHandler, new RequestTranscation.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                addRegionRequestMetricsOfOneFlow(requestMetrics);
+
                 String blockContext = null;
                 if (response != null){
                     try {
@@ -233,7 +237,7 @@ public class ResumeUpload extends PartsUpload {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 
-                setCurrentRegionRequestMetrics(requestMetrics);
+                addRegionRequestMetricsOfOneFlow(requestMetrics);
                 completeHandler.complete(responseInfo, response);
             }
         });

@@ -1,6 +1,8 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.common.Zone;
 import com.qiniu.android.common.ZoneInfo;
+import com.qiniu.android.common.ZonesInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.request.UploadRegion;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
@@ -27,7 +29,7 @@ public class BaseUpload implements Runnable {
 
 
     private UploadRegionRequestMetrics currentRegionRequestMetrics;
-    private UploadTaskMetrics metrics;
+    private UploadTaskMetrics metrics = new UploadTaskMetrics(null);
 
     private int currentRegionIndex;
     private ArrayList<UploadRegion> regions;
@@ -83,8 +85,19 @@ public class BaseUpload implements Runnable {
 
 
     public void run(){
-        prepareToUpload();
-        startToUpload();
+        config.zone.preQuery(token, new Zone.QueryHandler() {
+            @Override
+            public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics) {
+                addRegionRequestMetricsOfOneFlow(metrics);
+
+                if (code == 0){
+                    prepareToUpload();
+                    startToUpload();
+                } else {
+                    completeAction(responseInfo, responseInfo.response);
+                }
+            }
+        });
     }
 
     public void prepareToUpload(){
@@ -107,7 +120,7 @@ public class BaseUpload implements Runnable {
 
     public void completeAction(ResponseInfo responseInfo,
                                JSONObject response){
-        if (currentRegionRequestMetrics != null){
+        if (currentRegionRequestMetrics != null && metrics != null){
             metrics.addMetrics(currentRegionRequestMetrics);
         }
         if (completionHandler != null){
@@ -116,11 +129,14 @@ public class BaseUpload implements Runnable {
     }
 
     private void setupRegions(){
-
-        ArrayList<ZoneInfo> zoneInfos = config.zone.getZonesInfo(token).zonesInfo;
-        if (zoneInfos == null || zoneInfos.size() == 0){
+        if (config == null || config.zone == null){
             return;
         }
+        ZonesInfo zonesInfo = config.zone.getZonesInfo(token);
+        if (zonesInfo == null || zonesInfo.zonesInfo == null || zonesInfo.zonesInfo.size() == 0){
+            return;
+        }
+        ArrayList<ZoneInfo> zoneInfos = zonesInfo.zonesInfo;
 
         ArrayList<UploadRegion> defaultRegions = new ArrayList<>();
         for (ZoneInfo zoneInfo : zoneInfos) {
@@ -129,7 +145,7 @@ public class BaseUpload implements Runnable {
             defaultRegions.add(region);
         }
         regions = defaultRegions;
-        metrics = new UploadTaskMetrics(defaultRegions);
+        metrics.regions = defaultRegions;
     }
 
     public void insertRegionAtFirstByZoneInfo(ZoneInfo zoneInfo){
@@ -186,8 +202,16 @@ public class BaseUpload implements Runnable {
         return currentRegionRequestMetrics;
     }
 
-    public void setCurrentRegionRequestMetrics(UploadRegionRequestMetrics currentRegionRequestMetrics) {
-        this.currentRegionRequestMetrics = currentRegionRequestMetrics;
+    // 一个上传流程可能会发起多个上传操作（如：上传多个分片），每个上传操作均是以一个Region的host做重试操作
+    public void addRegionRequestMetricsOfOneFlow(UploadRegionRequestMetrics metrics){
+        if (metrics == null){
+            return;
+        }
+        if (this.currentRegionRequestMetrics == null){
+            this.currentRegionRequestMetrics = metrics;
+        } else {
+            this.currentRegionRequestMetrics.addMetrics(metrics);
+        }
     }
 
     public interface UpTaskCompletionHandler {
