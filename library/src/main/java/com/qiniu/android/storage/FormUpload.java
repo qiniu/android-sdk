@@ -23,11 +23,6 @@ public class FormUpload extends BaseUpload {
         super(data, key, fileName, token, option, config, completionHandler);
     }
 
-    public void syncRun(){
-        isAsyn = false;
-        super.run();
-    }
-
     @Override
     public void startToUpload() {
 

@@ -1,8 +1,5 @@
 package com.qiniu.android;
 
-import android.app.WallpaperInfo;
-import android.util.Log;
-
 import junit.framework.TestCase;
 
 import java.util.Date;
@@ -43,7 +40,7 @@ public class BaseTest extends TestCase {
 
 
     public interface WaitConditional {
-        public boolean shouldWait();
+        boolean shouldWait();
     }
 
     public static class WaitCondition implements WaitConditional {

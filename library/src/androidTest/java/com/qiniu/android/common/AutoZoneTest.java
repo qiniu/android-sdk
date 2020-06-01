@@ -1,11 +1,14 @@
 package com.qiniu.android.common;
 
+import android.util.Log;
+
 import com.qiniu.android.BaseTest;
 import com.qiniu.android.TestConfig;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.storage.UpToken;
 
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -16,30 +19,77 @@ public class AutoZoneTest extends BaseTest {
     private String bkt = "javasdk";
 
     public void testHttp() {
-        AutoZone zone = new AutoZone();
-        UpToken token = UpToken.parse(TestConfig.token_z0);
 
         final WaitCondition waitCondition = new WaitCondition();
-        waitCondition.shouldWait = true;
 
-        final int[] c = {-1};
-        zone.preQuery(token, new Zone.QueryHandler() {
+        zoneRequest(new CompleteHandlder() {
             @Override
-            public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics) {
-                c[0] = code;
+            public void complete(boolean isSuccess) {
                 waitCondition.shouldWait = false;
+                assertTrue(isSuccess);
             }
         });
 
         wait(waitCondition, 100);
-
-        assertEquals(0, c[0]);
     }
 
-    public void testMutiHttp() {
-        for (int i = 0; i < 5; i++) {
-            testHttp();
+    public void testMufiHttp() {
+
+        final TestParam param = new TestParam();
+        final int maxCount = 5;
+        for (int i = 0; i < maxCount; i++) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+
+                    zoneRequest(new CompleteHandlder() {
+                        @Override
+                        public void complete(boolean isSuccess) {
+                            param.completeCount.incrementAndGet();
+                            assertTrue(isSuccess);
+                        }
+                    });
+
+                }
+            }).start();
         }
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (param.completeCount.intValue() >= maxCount){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        }, 60);
+
+        Log.i(this.toString(), "== muti complete");
+    }
+
+    private void zoneRequest(final CompleteHandlder completeHandlder){
+        AutoZone zone = new AutoZone();
+        UpToken token = UpToken.parse(TestConfig.token_z0);
+
+        zone.preQuery(token, new Zone.QueryHandler() {
+            @Override
+            public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics) {
+                if (code == 0){
+                    completeHandlder.complete(true);
+                } else {
+                    completeHandlder.complete(false);
+                }
+            }
+        });
+    }
+
+    private interface CompleteHandlder {
+        void complete(boolean isSuccess);
+    }
+
+    private class TestParam{
+        AtomicInteger completeCount = new AtomicInteger(0);
     }
 
 }

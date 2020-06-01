@@ -17,7 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public class PartsUpload extends BaseUpload {
+public abstract class PartsUpload extends BaseUpload {
     private static final String kRecordFileInfoKey = "recordFileInfo";
     private static final String kRecordZoneInfoKey = "recordZoneInfo";
 
@@ -51,15 +51,15 @@ public class PartsUpload extends BaseUpload {
 
     public UploadFileInfo getUploadFileInfo(){
         return uploadFileInfo;
-    };
+    }
 
     private void closeUploadFileInfo(){
-        if (randomAccessFile == null){
-            return;
+        if (randomAccessFile != null){
+            try {
+                randomAccessFile.close();
+            } catch (IOException ignored) {
+            }
         }
-        try {
-            randomAccessFile.close();
-        } catch (IOException e) {}
     }
 
     public RandomAccessFile getRandomAccessFile() {

@@ -27,6 +27,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -129,8 +130,8 @@ public class SystemHttpClient implements RequestClient {
     }
 
     @Override
-    public void cancel() {
-        if (call != null) {
+    public synchronized void cancel() {
+        if (call != null && !call.isCanceled()) {
             call.cancel();
         }
     }
@@ -329,17 +330,27 @@ public class SystemHttpClient implements RequestClient {
         };
     }
 
-    private void handleError(Request request,
+    private synchronized void handleError(Request request,
                              int responseCode,
                              String errorMsg,
                              RequestClientCompleteHandler complete){
+        if (metrics == null || metrics.response != null) {
+            return;
+        }
+
         ResponseInfo info = ResponseInfo.create(request, responseCode, null,null, errorMsg);
+        metrics.response = info;
         complete.complete(info, metrics, info.response);
+
+        releaseResource();
     }
 
-    private void handleResponse(Request request,
+    private synchronized void handleResponse(Request request,
                                 okhttp3.Response response,
                                 RequestClientCompleteHandler complete){
+        if (metrics == null || metrics.response != null) {
+            return;
+        }
 
         int statusCode = response.code();
 
@@ -377,9 +388,17 @@ public class SystemHttpClient implements RequestClient {
             }
         }
 
+
         final ResponseInfo info = ResponseInfo.create(request, statusCode, responseHeader, responseJson, errorMessage);
         metrics.response = info;
         complete.complete(info, metrics, info.response);
+
+        releaseResource();
+    }
+
+    private void releaseResource(){
+        this.httpClient = null;
+        this.call = null;
     }
 
     private static String responseContentType(okhttp3.Response response) {

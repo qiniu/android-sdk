@@ -35,7 +35,6 @@ public class HttpSingleRequest {
 
     private RequestClient client;
 
-
     public HttpSingleRequest(Configuration config,
                              UploadOptions uploadOption,
                              UpToken token,
@@ -129,15 +128,20 @@ public class HttpSingleRequest {
     }
 
 
-    private void completeAction(ResponseInfo responseInfo,
+    private synchronized void completeAction(ResponseInfo responseInfo,
                                 JSONObject response,
                                 UploadSingleRequestMetrics requestMetrics,
                                 RequestCompleteHandler completeHandler) {
 
-        reportRequest(responseInfo, requestMetrics);
+        if (client == null){
+            return;
+        }
+        client = null;
+
         if (completeHandler != null){
             completeHandler.complete(responseInfo, requestMetricsList, response);
         }
+        reportRequest(responseInfo, requestMetrics);
     }
 
     private void reportRequest(ResponseInfo responseInfo,

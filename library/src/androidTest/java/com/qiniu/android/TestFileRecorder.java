@@ -1,6 +1,5 @@
 package com.qiniu.android;
 
-import android.test.InstrumentationTestCase;
 import android.util.Log;
 
 import com.qiniu.android.http.ResponseInfo;
@@ -21,12 +20,8 @@ import java.security.MessageDigest;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
-public class TestFileRecorder extends InstrumentationTestCase {
-    final CountDownLatch signal = new CountDownLatch(1);
-    final CountDownLatch signal2 = new CountDownLatch(1);
+public class TestFileRecorder extends BaseTest {
     private volatile boolean cancelled;
     private volatile boolean failed;
     private UploadManager uploadManager;
@@ -63,6 +58,9 @@ public class TestFileRecorder extends InstrumentationTestCase {
     }
 
     private void template(final int size, final double pos) throws Throwable {
+
+        info = null;
+
         final File tempFile = TempFile.createFile(size);
         final String expectKey = "rc=" + size + "k";
         cancelled = false;
@@ -84,31 +82,31 @@ public class TestFileRecorder extends InstrumentationTestCase {
                 return cancelled;
             }
         });
-        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
-            public void run() {
-                uploadManager.put(tempFile, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
-                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        Log.i("qiniutest", k + rinfo);
-                        key = k;
-                        info = rinfo;
-                        resp = response;
-                        signal.countDown();
-                    }
-                }, options);
+        uploadManager.put(tempFile, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                Log.i("qiniutest",  "Cancel:" + k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
             }
-        });
+        }, options);
 
-        try {
-            signal.await(600, TimeUnit.SECONDS); // wait for callback
-            assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 600);
 
         assertEquals(info.toString(), expectKey, key);
         assertTrue(info.toString(), info.isCancelled());
         assertNull(resp);
 
+        info = null;
         cancelled = false;
         options = new UploadOptions(null, null, false, new UpProgressHandler() {
             @Override
@@ -120,26 +118,25 @@ public class TestFileRecorder extends InstrumentationTestCase {
             }
         }, null);
 
-        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
-            public void run() {
-                uploadManager.put(tempFile, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
-                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        Log.i("qiniutest", k + rinfo);
-                        key = k;
-                        info = rinfo;
-                        resp = response;
-                        signal2.countDown();
-                    }
-                }, options);
+        uploadManager.put(tempFile, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                Log.i("qiniutest", "Continue" + k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
             }
-        });
+        }, options);
 
-        try {
-            signal2.await(1200, TimeUnit.SECONDS); // wait for callback
-            assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 60);
 
         assertEquals(info.toString(), expectKey, key);
         assertTrue(info.toString(), info.isOK());

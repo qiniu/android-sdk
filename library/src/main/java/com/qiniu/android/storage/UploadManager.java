@@ -226,7 +226,7 @@ public class UploadManager {
             }
         };
         final FormUpload up = new FormUpload(data, key, fileName, t, option, config, completionHandlerP);
-        AsyncRun.runInMain(up);
+        AsyncRun.runInBack(up);
     }
 
     private void putFile(final File file,
@@ -248,11 +248,17 @@ public class UploadManager {
                 randomAccessFile = new RandomAccessFile(file, "r");
                 randomAccessFile.seek(0);
                 randomAccessFile.read(data);
-                randomAccessFile.close();
             } catch (FileNotFoundException ignored) {
-            } catch (IOException e) {
+            } catch (IOException ignored) {
+            } finally {
+                if (randomAccessFile != null){
+                    try {
+                        randomAccessFile.close();
+                    } catch (IOException ignored){}
+                }
             }
             putData(data, file.getName(), key, token, option, completionHandler);
+            return;
         }
 
         String recorderKey = key;
@@ -268,10 +274,10 @@ public class UploadManager {
         };
         if (config.useConcurrentResumeUpload) {
             final ConcurrentResumeUpload up = new ConcurrentResumeUpload(file, recorderKey, t, option, config, config.recorder, key, completionHandlerP);
-            AsyncRun.runInMain(up);
+            AsyncRun.runInBack(up);
         } else {
             final ResumeUpload up = new ResumeUpload(file, key, t, option, config, config.recorder, recorderKey, completionHandlerP);
-            AsyncRun.runInMain(up);
+            AsyncRun.runInBack(up);
         }
     }
 
@@ -280,8 +286,7 @@ public class UploadManager {
                                         Object input,
                                         UpCompletionHandler completionHandler){
         if (completionHandler == null){
-            Assert.assertNotNull("complete handler is null", null);
-            return true;
+            throw new NullPointerException("complete handler is null");
         }
 
         ResponseInfo responseInfo = null;

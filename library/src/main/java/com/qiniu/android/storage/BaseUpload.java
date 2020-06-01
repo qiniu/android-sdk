@@ -1,5 +1,7 @@
 package com.qiniu.android.storage;
 
+import android.util.Log;
+
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.common.ZonesInfo;
@@ -15,7 +17,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.util.ArrayList;
 
-public class BaseUpload implements Runnable {
+public abstract class BaseUpload implements Runnable {
     public final String key;
     public final String fileName;
     public final byte[] data;
@@ -84,11 +86,13 @@ public class BaseUpload implements Runnable {
     }
 
 
+    @Override
     public void run(){
+        Log.i("Base Upload", "== request start " + this.toString());
         config.zone.preQuery(token, new Zone.QueryHandler() {
             @Override
-            public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics) {
-                metrics.addMetrics(metrics);
+            public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics) {
+                metrics.addMetrics(requestMetrics);
 
                 if (code == 0){
                     prepareToUpload();
@@ -104,7 +108,7 @@ public class BaseUpload implements Runnable {
         setupRegions();
     }
 
-    public void startToUpload(){}
+    public abstract void startToUpload();
 
     public boolean switchRegionAndUpload(){
         if (currentRegionRequestMetrics != null){

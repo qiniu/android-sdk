@@ -1,8 +1,5 @@
 package com.qiniu.android;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
-
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.request.Request;
 import com.qiniu.android.http.request.RequestClient;
@@ -12,9 +9,6 @@ import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 
 
 import org.json.JSONObject;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 
 public class SystemHttpClientTest extends BaseTest {
@@ -30,7 +24,7 @@ public class SystemHttpClientTest extends BaseTest {
         client.request(request, true, null, null, new RequestClient.RequestClientCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
-                Assert.assertTrue("pass", responseInfo.isOK());
+                assertTrue("pass", responseInfo.isOK());
                 waitCondition.shouldWait = false;
             }
         });
@@ -38,7 +32,7 @@ public class SystemHttpClientTest extends BaseTest {
         wait(waitCondition, 60);
     }
 
-    public void testPost() {
+    public void testPostRequest() {
 
         final WaitCondition waitCondition = new WaitCondition();
 
@@ -50,7 +44,7 @@ public class SystemHttpClientTest extends BaseTest {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
 
-                Assert.assertFalse("pass", responseInfo.isServerError());
+                assertFalse("pass", responseInfo.isServerError());
                 waitCondition.shouldWait = false;
             }
         });

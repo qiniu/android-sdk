@@ -101,9 +101,11 @@ public final class ResponseInfo {
 
         if (error == null && !this.isOK()) {
             String errorP = null;
-            try {
-                errorP = response.getString("error");
-            } catch (JSONException ignored) {}
+            if (response != null){
+                try {
+                    errorP = response.getString("error");
+                } catch (JSONException ignored) {}
+            }
             this.error = errorP;
         } else {
             this.error = error;

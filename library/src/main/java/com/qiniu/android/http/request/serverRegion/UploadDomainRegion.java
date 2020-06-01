@@ -15,7 +15,9 @@ import java.util.HashMap;
 public class UploadDomainRegion implements UploadRegion {
 
     private boolean isAllFreezed;
+    private ArrayList<String> domainHostList;
     private HashMap<String, UploadServerDomain> domainHashMap;
+    private ArrayList<String> oldDomainHostList;
     private HashMap<String, UploadServerDomain> oldDomainHashMap;
     private ZoneInfo zoneInfo;
 
@@ -33,22 +35,38 @@ public class UploadDomainRegion implements UploadRegion {
         this.zoneInfo = zoneInfo;
 
         isAllFreezed = false;
+        ArrayList<String> domainHostList = new ArrayList<>();
         ArrayList<ZoneInfo.UploadServerGroup> serverGroups = new ArrayList<>();
         if (zoneInfo.acc != null){
             serverGroups.add(zoneInfo.acc);
+            if (zoneInfo.acc.allHosts != null){
+                domainHostList.addAll(zoneInfo.acc.allHosts);
+            }
         }
         if (zoneInfo.src != null){
             serverGroups.add(zoneInfo.src);
+            if (zoneInfo.src.allHosts != null){
+                domainHostList.addAll(zoneInfo.src.allHosts);
+            }
         }
+        this.domainHostList = domainHostList;
         domainHashMap = createDomainDictionary(serverGroups);
 
+        ArrayList<String> oldDomainHostList = new ArrayList<>();
         serverGroups = new ArrayList<>();
         if (zoneInfo.old_acc != null){
             serverGroups.add(zoneInfo.old_acc);
+            if (zoneInfo.old_acc.allHosts != null){
+                oldDomainHostList.addAll(zoneInfo.old_acc.allHosts);
+            }
         }
         if (zoneInfo.old_src != null){
             serverGroups.add(zoneInfo.old_src);
+            if (zoneInfo.old_src.allHosts != null){
+                oldDomainHostList.addAll(zoneInfo.old_src.allHosts);
+            }
         }
+        this.oldDomainHostList = oldDomainHostList;
         oldDomainHashMap = createDomainDictionary(serverGroups);
     }
 
@@ -61,22 +79,21 @@ public class UploadDomainRegion implements UploadRegion {
             UploadServerDomain domain = null;
             domain = domainHashMap.get(freezeServer.getServerId());
             if (domain != null){
-                Log.w("DomainRegion", ("freeze domain:" + domain.host));
                 domain.freeze();
             }
             domain = oldDomainHashMap.get(freezeServer.getServerId());
             if (domain != null){
-                Log.w("DomainRegion", ("freeze domain:" + domain.host));
                 domain.freeze();
             }
         }
 
+        ArrayList<String> hostList = isOldServer ? oldDomainHostList : domainHostList;
         HashMap<String, UploadServerDomain> domainInfo = isOldServer ? oldDomainHashMap : domainHashMap;
         UploadServerInterface server = null;
-        for (String key : domainInfo.keySet()) {
-            UploadServerDomain domain = domainInfo.get(key);
+        for (String host : hostList) {
+            UploadServerDomain domain = domainInfo.get(host);
             if (domain != null){
-                server =  domain.getNextServer();
+                server =  domain.getServer();
             }
             if (server != null){
                 break;
@@ -118,7 +135,7 @@ public class UploadDomainRegion implements UploadRegion {
             this.freezeDate = freezeDate;
         }
 
-        protected UploadServerInterface getNextServer(){
+        protected UploadServerInterface getServer(){
             if (host == null || host.length() == 0){
                 return null;
             }
