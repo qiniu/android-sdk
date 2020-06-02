@@ -27,7 +27,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.net.ssl.SSLException;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -122,6 +123,8 @@ public class SystemHttpClient implements RequestClient {
                     statusCode = ResponseInfo.TimedOut;
                 } else if (e instanceof java.net.ConnectException) {
                     statusCode = ResponseInfo.CannotConnectToHost;
+                } else if(e instanceof SSLException){
+                    statusCode = ResponseInfo.NetworkSSLError;
                 }
                 handleError(request, statusCode, msg, complete);
             }

@@ -30,6 +30,7 @@ public final class ResponseInfo {
     public static final int UnknownHost = -1003;
     public static final int CannotConnectToHost = -1004;
     public static final int NetworkConnectionLost = -1005;
+    public static final int NetworkSSLError = -1200;
 
     // -->
     /**
@@ -196,7 +197,7 @@ public final class ResponseInfo {
     }
 
     public boolean couldRegionRetry(){
-        if (couldRetry() == false
+        if (!couldRetry()
             || statusCode == 400
             || statusCode == 502 || statusCode == 503 || statusCode == 504 || statusCode == 579 || statusCode == 599
             || isCancelled()) {
@@ -207,7 +208,7 @@ public final class ResponseInfo {
     }
 
     public boolean couldHostRetry(){
-        if (couldRegionRetry() == false
+        if (!couldRegionRetry()
             || (statusCode == 502 || statusCode == 503 || statusCode == 571)) {
             return false;
         } else {
@@ -216,7 +217,11 @@ public final class ResponseInfo {
     }
 
     public boolean isTlsError() {
-        return false;
+        if (statusCode == NetworkSSLError){
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public boolean isNetworkBroken() {

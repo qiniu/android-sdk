@@ -14,7 +14,6 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by long on 2016/9/29.
  */
-
 public final class AutoZone extends Zone {
     /**
      * 自动判断机房
@@ -62,7 +61,13 @@ public final class AutoZone extends Zone {
                     ZonesInfoMap.put(token.index(), zonesInfoP);
                     completeHandler.complete(0, responseInfo, requestMetrics);
                 } else {
-                    completeHandler.complete(ResponseInfo.NetworkError, responseInfo, requestMetrics);
+                    if (responseInfo.isNetworkBroken()){
+                        completeHandler.complete(ResponseInfo.NetworkError, responseInfo, requestMetrics);
+                    } else {
+                        ZonesInfo zonesInfoP = FixedZone.localsZoneInfo().getZonesInfo(token);
+                        ZonesInfoMap.put(token.index(), zonesInfoP);
+                        completeHandler.complete(0, responseInfo, requestMetrics);
+                    }
                 }
                 destoryUploadRequestTranscation(transcation);
             }

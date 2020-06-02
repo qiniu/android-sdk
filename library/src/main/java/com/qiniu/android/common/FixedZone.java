@@ -67,20 +67,33 @@ public final class FixedZone extends Zone {
 
     private ZonesInfo zonesInfo;
 
-    public static List<Zone> localsZoneInfo() {
-        ArrayList<Zone> localsZone = new ArrayList<Zone>();
-        localsZone.add(zone0);
-        localsZone.add(zone1);
-        localsZone.add(zone2);
-        localsZone.add(zoneNa0);
-        localsZone.add(zoneAs0);
-        return localsZone;
+    public static FixedZone localsZoneInfo() {
+        ArrayList<FixedZone> localsZone = new ArrayList<>();
+        localsZone.add((FixedZone)zone0);
+        localsZone.add((FixedZone)zone1);
+        localsZone.add((FixedZone)zone2);
+        localsZone.add((FixedZone)zoneNa0);
+        localsZone.add((FixedZone)zoneAs0);
+
+        ArrayList<ZoneInfo> zoneInfoArray = new ArrayList<>();
+        for (FixedZone zone : localsZone){
+            if (zone.zonesInfo != null && zone.zonesInfo.zonesInfo != null){
+                zoneInfoArray.addAll(zone.zonesInfo.zonesInfo);
+            }
+        }
+
+        ZonesInfo zonesInfo = new ZonesInfo(zoneInfoArray);
+        return new FixedZone(zonesInfo);
     }
 
     public FixedZone(ZoneInfo zoneInfo) {
         ArrayList<ZoneInfo> zoneInfos = new ArrayList<>();
         zoneInfos.add(zoneInfo);
         this.zonesInfo = new ZonesInfo(zoneInfos);
+    }
+
+    public FixedZone(ZonesInfo zonesInfo){
+        this.zonesInfo = zonesInfo;
     }
 
     public FixedZone(String[] upDomains) {

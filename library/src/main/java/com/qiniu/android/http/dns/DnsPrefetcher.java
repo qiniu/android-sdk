@@ -366,14 +366,12 @@ public class DnsPrefetcher {
     }
 
     private String[] getFixedZoneHosts(){
-        List<Zone> fixedZones = FixedZone.localsZoneInfo();
         ArrayList<String> localHosts = new ArrayList<>();
-        for (Zone fixedZone : fixedZones){
-            ZonesInfo zonesInfo = fixedZone.getZonesInfo(null);
-            for (ZoneInfo zoneInfo : zonesInfo.zonesInfo) {
-                if (zoneInfo != null && zoneInfo.allHosts != null){
-                    localHosts.addAll(zoneInfo.allHosts);
-                }
+        FixedZone fixedZone = FixedZone.localsZoneInfo();
+        ZonesInfo zonesInfo = fixedZone.getZonesInfo(null);
+        for (ZoneInfo zoneInfo : zonesInfo.zonesInfo) {
+            if (zoneInfo != null && zoneInfo.allHosts != null){
+                localHosts.addAll(zoneInfo.allHosts);
             }
         }
         return localHosts.toArray(new String[0]);
