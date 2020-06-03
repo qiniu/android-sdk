@@ -21,7 +21,6 @@ public class HttpRegionRequest {
     private final UpToken token;
     private final UploadRegion region;
     private final UploadRequestInfo requestInfo;
-    private final UploadRequstState requstState;
 
     private boolean isUseOldServer;
     private HttpSingleRequest singleRequest;
@@ -33,15 +32,14 @@ public class HttpRegionRequest {
                              UpToken token,
                              UploadRegion region,
                              UploadRequestInfo requestInfo,
-                             UploadRequstState requstState) {
+                             UploadRequstState requestState) {
         this.config = config;
         this.uploadOption = uploadOption;
         this.token = token;
         this.region = region;
         this.requestInfo = requestInfo;
-        this.requstState = requstState;
 
-        singleRequest = new HttpSingleRequest(config, uploadOption, token, requestInfo, requstState);
+        singleRequest = new HttpSingleRequest(config, uploadOption, token, requestInfo, requestState);
     }
 
     public void get(String action,
@@ -90,9 +88,9 @@ public class HttpRegionRequest {
 
         currentServer = server;
 
-        boolean isSkipDns = false;
+        boolean isSkipDns;
         String scheme = config.useHttps ? "https://" : "http://";
-        String urlString = null;
+        String urlString;
         if (serverIP != null && serverIP.length() > 0) {
             urlString = scheme + serverIP + (action != null ? action : "");
             isSkipDns = false;
@@ -110,7 +108,7 @@ public class HttpRegionRequest {
                 requestMetrics.addMetricsList(requestMetricsList);
 
                 if (shouldRetryHandler.shouldRetry(responseInfo, response)
-                        && config.allowBackupHost == true
+                        && config.allowBackupHost
                         && responseInfo.couldRegionRetry()){
 
                     UploadServerInterface newServer = getNextServer(responseInfo);
@@ -142,7 +140,7 @@ public class HttpRegionRequest {
             return region.getNextServer(false, null);
         }
 
-        if (responseInfo.isTlsError() == true) {
+        if (responseInfo.isTlsError()) {
             isUseOldServer = true;
         }
         return region.getNextServer(isUseOldServer, currentServer);
@@ -150,8 +148,8 @@ public class HttpRegionRequest {
 
 
     public interface RequestCompleteHandler {
-        public void complete(ResponseInfo responseInfo,
-                             UploadRegionRequestMetrics requestMetrics,
-                             JSONObject response);
+        void complete(ResponseInfo responseInfo,
+                      UploadRegionRequestMetrics requestMetrics,
+                      JSONObject response);
     }
 }

@@ -88,7 +88,6 @@ public abstract class BaseUpload implements Runnable {
 
     @Override
     public void run(){
-        Log.i("Base Upload", "== request start " + this.toString());
         config.zone.preQuery(token, new Zone.QueryHandler() {
             @Override
             public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics) {

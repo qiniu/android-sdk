@@ -176,16 +176,23 @@ public class UploadManager {
         }
 
         byte[] data = null;
+        RandomAccessFile randomAccessFile = null;
         try {
-            RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r");
+            randomAccessFile = new RandomAccessFile(file, "r");
             data = new byte[(int)file.length()];
             randomAccessFile.seek(0);
             randomAccessFile.read(data, 0, (int)file.length());
-            randomAccessFile.close();
         } catch (FileNotFoundException e) {
             return ResponseInfo.fileError(e);
         } catch (IOException e) {
             return ResponseInfo.fileError(e);
+        } finally {
+            if (randomAccessFile != null){
+                try {
+                    randomAccessFile.close();
+                } catch (IOException ignored) {
+                }
+            }
         }
 
         return syncPut(data, key, token, options);

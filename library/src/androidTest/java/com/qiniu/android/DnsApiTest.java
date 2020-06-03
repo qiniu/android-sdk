@@ -112,7 +112,7 @@ public class DnsApiTest extends BaseTest {
                         param.completeCount += 1;
                     }
                 }
-            }).run();
+            }).start();
         }
 
         wait(new WaitConditional() {
@@ -130,7 +130,7 @@ public class DnsApiTest extends BaseTest {
     }
 
 
-    private class TestParam{
+    private static class TestParam{
         int count = 100;
         int successCount = 0;
         int completeCount = 0;

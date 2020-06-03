@@ -55,7 +55,7 @@ public class HttpSingleRequest {
                         RequestProgressHandler progressHandler,
                         RequestCompleteHandler completeHandler){
         currentRetryTime = 1;
-        requestMetricsList = new ArrayList<UploadSingleRequestMetrics>();
+        requestMetricsList = new ArrayList<>();
         retryRequest(request, isAsyn, isSkipDns, shouldRetryHandler, progressHandler, completeHandler);
     }
 
@@ -65,6 +65,7 @@ public class HttpSingleRequest {
                               final RequestShouldRetryHandler shouldRetryHandler,
                               final RequestProgressHandler progressHandler,
                               final RequestCompleteHandler completeHandler){
+
         if (isSkipDns){
             client = new SystemHttpClient();
         } else {

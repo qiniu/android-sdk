@@ -1,16 +1,17 @@
 package com.qiniu.android.http.request.serverRegion;
 
-import android.util.Log;
-
 import com.qiniu.android.common.ZoneInfo;
+import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.request.UploadRegion;
 import com.qiniu.android.http.request.UploadServerInterface;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 
 public class UploadDomainRegion implements UploadRegion {
 
@@ -79,11 +80,11 @@ public class UploadDomainRegion implements UploadRegion {
             UploadServerDomain domain = null;
             domain = domainHashMap.get(freezeServer.getServerId());
             if (domain != null){
-                domain.freeze();
+                domain.freeze(freezeServer.getIp());
             }
             domain = oldDomainHashMap.get(freezeServer.getServerId());
             if (domain != null){
-                domain.freeze();
+                domain.freeze(freezeServer.getIp());
             }
         }
 
@@ -114,54 +115,136 @@ public class UploadDomainRegion implements UploadRegion {
             ZoneInfo.UploadServerGroup serverGroup = serverGroups.get(i);
             for (int j = 0; j < serverGroup.allHosts.size(); j++){
                 String host = serverGroup.allHosts.get(j);
-                UploadServerDomain domain = new UploadServerDomain(host,null, freezeDate);
+                UploadServerDomain domain = new UploadServerDomain(host);
                 domainHashMap.put(host, domain);
             }
         }
         return  domainHashMap;
     }
 
-    protected class UploadServerDomain{
 
+    private static class UploadServerDomain{
+
+        private boolean isAllFreezed = false;
         protected final String host;
-        protected ArrayList<String> ipList;
-        private Date freezeDate;
+        protected ArrayList<UploadIpGroup> ipGroupList = new ArrayList<>();
 
-        UploadServerDomain(String host,
-                           ArrayList<String> ipList,
-                           Date freezeDate){
+        protected UploadServerDomain(String host){
             this.host = host;
-            this.ipList = ipList;
-            this.freezeDate = freezeDate;
         }
 
         protected UploadServerInterface getServer(){
-            if (host == null || host.length() == 0){
+            if (isAllFreezed || host == null || host.length() == 0){
                 return null;
             }
 
-            Date currentDate = new Date();
-            if (isFreezeByDate(currentDate)){
+            if (ipGroupList == null || ipGroupList.size() == 0){
+                createIpGroupList();
+            }
+
+            if (ipGroupList != null && ipGroupList.size() > 0){
+                UploadServer server = null;
+                for (UploadIpGroup ipGroup : ipGroupList){
+                    if (UploadServerFreezeManager.getInstance().isFreezeHost(host, ipGroup.groupType)){
+                        server = new UploadServer(host, host, ipGroup.getServerIP());
+                        break;
+                    }
+                }
+                if (server == null){
+                    isAllFreezed = true;
+                }
+                return server;
+            } else if (!UploadServerFreezeManager.getInstance().isFreezeHost(host, null)){
+                return new UploadServer(host, host, null);
+            } else {
+                isAllFreezed = true;
                 return null;
             }
-            String ip = null;
-            if (ipList != null && ipList.size() > 0){
-                ip = ipList.get(0);
-            }
-            return new UploadServer(host, host, ip);
         }
 
-        boolean isFreezeByDate(Date date){
-            boolean isFreeze = false;
-            if (freezeDate.getTime() - date.getTime() > 0){
-                isFreeze = true;
-            }
-            return isFreeze;
+        private synchronized void createIpGroupList(){
+           if (ipGroupList != null && ipGroupList.size() > 0){
+               return;
+           }
+
+           List<InetAddress> inetAddresses = DnsPrefetcher.getInstance().getInetAddressByHost(host);
+           if (inetAddresses == null || inetAddresses.size() == 0){
+               return;
+           }
+
+           HashMap<String, ArrayList<String>> ipGroupInfos = new HashMap<>();
+           for (InetAddress inetAddress : inetAddresses){
+               String ipValue = inetAddress.getHostAddress();
+               String groupType = getIpType(ipValue);
+               if (groupType != null){
+                   ArrayList<String> ipList = ipGroupInfos.get(groupType) != null ? ipGroupInfos.get(groupType) : (new ArrayList<String>());
+                   ipList.add(ipValue);
+                   ipGroupInfos.put(groupType, ipList);
+               }
+           }
+
+           ArrayList<UploadIpGroup> ipGroupList = new ArrayList<>();
+           for (String groupType : ipGroupInfos.keySet()){
+               ArrayList<String> ipList = ipGroupInfos.get(groupType);
+               UploadIpGroup ipGroup = new UploadIpGroup(groupType, ipList);
+               ipGroupList.add(ipGroup);
+           }
+           this.ipGroupList = ipGroupList;
         }
 
-        void freeze(){
-            Date currentDate = new Date();
-            freezeDate = new Date((currentDate.getTime() + 20*60*1000));
+        protected void freeze(String ip){
+            UploadServerFreezeManager.getInstance().freezeHost(host, getIpType(ip));
+        }
+
+        private String getIpType(String ip){
+            String type = null;
+            if (ip == null || ip.length() == 0) {
+                return type;
+            }
+            if (ip.contains(":")) {
+                type = "ipv6";
+            } else if (ip.contains(".")){
+                String[] ipNumbers = ip.split(".");
+                if (ipNumbers.length == 4){
+                    int firstNumber = Integer.parseInt(ipNumbers[0]);
+                    if (firstNumber > 0 && firstNumber < 127) {
+                        type = "ipv4-A";
+                    } else if (firstNumber > 127 && firstNumber <= 191) {
+                        type = "ipv4-B";
+                    } else if (firstNumber > 191 && firstNumber <= 223) {
+                        type = "ipv4-C";
+                    } else if (firstNumber > 223 && firstNumber <= 239) {
+                        type = "ipv4-D";
+                    } else if (firstNumber > 239 && firstNumber < 255) {
+                        type = "ipv4-E";
+                    }
+                }
+            }
+            return type;
         }
     }
+
+    private static class UploadIpGroup{
+        protected final String groupType;
+        protected final ArrayList<String> ipList;
+
+        protected UploadIpGroup(String groupType,
+                              ArrayList<String> ipList) {
+            this.groupType = groupType;
+            this.ipList = ipList;
+        }
+
+        protected String getServerIP(){
+            if (ipList == null || ipList.size() == 0){
+                return null;
+            } else {
+                int index = (int)(Math.random()*ipList.size());
+                return ipList.get(index);
+            }
+        }
+
+    }
+
+
+
 }
