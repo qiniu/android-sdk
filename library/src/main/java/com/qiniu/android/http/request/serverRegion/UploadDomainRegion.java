@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -109,7 +108,6 @@ public class UploadDomainRegion implements UploadRegion {
     }
 
     private HashMap<String, UploadServerDomain> createDomainDictionary(ArrayList<ZoneInfo.UploadServerGroup> serverGroups){
-        Date freezeDate = new Date(0);
         HashMap<String, UploadServerDomain> domainHashMap = new HashMap<>();
         for (int i = 0; i < serverGroups.size(); i++) {
             ZoneInfo.UploadServerGroup serverGroup = serverGroups.get(i);
@@ -145,8 +143,8 @@ public class UploadDomainRegion implements UploadRegion {
             if (ipGroupList != null && ipGroupList.size() > 0){
                 UploadServer server = null;
                 for (UploadIpGroup ipGroup : ipGroupList){
-                    if (UploadServerFreezeManager.getInstance().isFreezeHost(host, ipGroup.groupType)){
-                        server = new UploadServer(host, host, ipGroup.getServerIP());
+                    if (!UploadServerFreezeManager.getInstance().isFreezeHost(host, ipGroup.groupType)){
+                        server = new UploadServer(host, host, ipGroup.getInetAddress());
                         break;
                     }
                 }
@@ -172,21 +170,27 @@ public class UploadDomainRegion implements UploadRegion {
                return;
            }
 
-           HashMap<String, ArrayList<String>> ipGroupInfos = new HashMap<>();
+           HashMap<String, ArrayList<InetAddress>> ipGroupInfos = new HashMap<>();
            for (InetAddress inetAddress : inetAddresses){
                String ipValue = inetAddress.getHostAddress();
+               if (ipValue == null){
+                   continue;
+               }
                String groupType = getIpType(ipValue);
                if (groupType != null){
-                   ArrayList<String> ipList = ipGroupInfos.get(groupType) != null ? ipGroupInfos.get(groupType) : (new ArrayList<String>());
-                   ipList.add(ipValue);
-                   ipGroupInfos.put(groupType, ipList);
+                   ArrayList<InetAddress> inetAddressArrayList = ipGroupInfos.get(groupType);
+                   if (inetAddressArrayList == null) {
+                       inetAddressArrayList = new ArrayList<>();
+                   }
+                   inetAddressArrayList.add(inetAddress);
+                   ipGroupInfos.put(groupType, inetAddressArrayList);
                }
            }
 
            ArrayList<UploadIpGroup> ipGroupList = new ArrayList<>();
            for (String groupType : ipGroupInfos.keySet()){
-               ArrayList<String> ipList = ipGroupInfos.get(groupType);
-               UploadIpGroup ipGroup = new UploadIpGroup(groupType, ipList);
+               ArrayList<InetAddress> inetAddressList = ipGroupInfos.get(groupType);
+               UploadIpGroup ipGroup = new UploadIpGroup(groupType, inetAddressList);
                ipGroupList.add(ipGroup);
            }
            this.ipGroupList = ipGroupList;
@@ -204,7 +208,7 @@ public class UploadDomainRegion implements UploadRegion {
             if (ip.contains(":")) {
                 type = "ipv6";
             } else if (ip.contains(".")){
-                String[] ipNumbers = ip.split(".");
+                String[] ipNumbers = ip.split("\\.");
                 if (ipNumbers.length == 4){
                     int firstNumber = Integer.parseInt(ipNumbers[0]);
                     if (firstNumber > 0 && firstNumber < 127) {
@@ -225,26 +229,24 @@ public class UploadDomainRegion implements UploadRegion {
     }
 
     private static class UploadIpGroup{
-        protected final String groupType;
-        protected final ArrayList<String> ipList;
+        private final String groupType;
+        private final ArrayList<InetAddress> inetAddressArrayList;
 
         protected UploadIpGroup(String groupType,
-                              ArrayList<String> ipList) {
+                                ArrayList<InetAddress> inetAddressArrayList) {
             this.groupType = groupType;
-            this.ipList = ipList;
+            this.inetAddressArrayList = inetAddressArrayList;
         }
 
-        protected String getServerIP(){
-            if (ipList == null || ipList.size() == 0){
+        protected InetAddress getInetAddress(){
+            if (inetAddressArrayList == null || inetAddressArrayList.size() == 0){
                 return null;
             } else {
-                int index = (int)(Math.random()*ipList.size());
-                return ipList.get(index);
+                int index = (int)(Math.random()*inetAddressArrayList.size());
+                return inetAddressArrayList.get(index);
             }
         }
 
     }
-
-
 
 }

@@ -1,5 +1,6 @@
 package com.qiniu.android.http.request;
 
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ public class Request {
     public final int timeout;
 
     public String host;
+    public InetAddress inetAddress;
     public String ip;
 
     public Request(String urlString,

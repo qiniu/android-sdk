@@ -4,6 +4,7 @@ import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.dns.DnsPrefrtcherTransaction;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
 import com.qiniu.android.http.request.Request;
@@ -27,8 +28,17 @@ public class UploadManager {
 
     private final Configuration config;
 
+
+    public UploadManager(Recorder recorder) {
+        this(recorder, null);
+    }
+
+    public UploadManager(Recorder recorder, KeyGenerator keyGen) {
+        this(new Configuration.Builder().recorder(recorder, keyGen).build());
+    }
+
     /**
-     * default 3 Threads
+     * default 1 Threads
      */
     public UploadManager() {
         this(new Configuration.Builder().build());
@@ -39,14 +49,7 @@ public class UploadManager {
      */
     public UploadManager(Configuration config) {
         this.config = config;
-    }
-
-    public UploadManager(Recorder recorder) {
-        this(recorder, null);
-    }
-
-    public UploadManager(Recorder recorder, KeyGenerator keyGen) {
-        this(new Configuration.Builder().recorder(recorder, keyGen).build());
+        DnsPrefrtcherTransaction.addDnsLocalLoadTransaction();
     }
 
     /**
@@ -219,6 +222,8 @@ public class UploadManager {
                          final UploadOptions option,
                          final UpCompletionHandler completionHandler){
 
+        DnsPrefrtcherTransaction.addDnsCheckAndPrefetchTransaction(config.zone, token);
+
         final UpToken t = UpToken.parse(token);
         if (t == null) {
             ResponseInfo info = ResponseInfo.invalidToken("invalid token");
@@ -241,6 +246,9 @@ public class UploadManager {
                          final String token,
                          final UploadOptions option,
                          final UpCompletionHandler completionHandler){
+
+        DnsPrefrtcherTransaction.addDnsCheckAndPrefetchTransaction(config.zone, token);
+
         final UpToken t = UpToken.parse(token);
         if (t == null) {
             ResponseInfo info = ResponseInfo.invalidToken("invalid token");

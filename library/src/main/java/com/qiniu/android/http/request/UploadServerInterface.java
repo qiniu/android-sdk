@@ -1,10 +1,14 @@
 package com.qiniu.android.http.request;
 
+import java.net.InetAddress;
+
 public interface UploadServerInterface {
 
-    public String getServerId();
+    String getServerId();
 
-    public String getIp();
+    InetAddress getInetAddress();
 
-    public String getHost();
+    String getIp();
+
+    String getHost();
 }

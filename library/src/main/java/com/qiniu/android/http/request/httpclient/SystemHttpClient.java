@@ -1,12 +1,14 @@
 package com.qiniu.android.http.request.httpclient;
 
+import android.util.Log;
+
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.http.CancellationHandler;
 import com.qiniu.android.http.CountingRequestBody;
 import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.dns.DnsPrefetcher;
+import com.qiniu.android.http.dns.SystemDns;
 import com.qiniu.android.http.request.Request;
 import com.qiniu.android.http.request.RequestClient;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
@@ -18,11 +20,13 @@ import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +37,7 @@ import javax.net.ssl.SSLException;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Connection;
+import okhttp3.Dns;
 import okhttp3.EventListener;
 import okhttp3.Handshake;
 import okhttp3.Headers;
@@ -81,11 +86,11 @@ public class SystemHttpClient implements RequestClient {
         if (isAsync){
             call.enqueue(new Callback() {
                 @Override
-                public void onFailure(Call call, IOException e) {
+                public void onFailure(@NotNull Call call, IOException e) {
                     e.printStackTrace();
                     int statusCode = NetworkError;
                     String msg = e.getMessage();
-                    if (e.getMessage().contains("Canceled")){
+                    if (msg != null && msg.contains("Canceled")){
                         statusCode = ResponseInfo.Cancelled;
                     } else if (e instanceof CancellationHandler.CancellationException) {
                         statusCode = ResponseInfo.Cancelled;
@@ -102,7 +107,7 @@ public class SystemHttpClient implements RequestClient {
                 }
 
                 @Override
-                public void onResponse(Call call, okhttp3.Response response) throws IOException {
+                public void onResponse(@NotNull Call call, @NotNull okhttp3.Response response) throws IOException {
                     handleResponse(request, response, complete);
                 }
             });
@@ -139,7 +144,7 @@ public class SystemHttpClient implements RequestClient {
         }
     }
 
-    private OkHttpClient createHttpClient(Request request,
+    private OkHttpClient createHttpClient(final Request request,
                                           ProxyConfiguration connectionProxy){
 
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
@@ -150,17 +155,22 @@ public class SystemHttpClient implements RequestClient {
             }
         }
 
-        clientBuilder.dns(new okhttp3.Dns() {
-            @Override
-            public List<InetAddress> lookup(String hostname) throws UnknownHostException {
-                if (DnsPrefetcher.getInstance().getInetAddressByHost(hostname) != null) {
-                    return DnsPrefetcher.getInstance().getInetAddressByHost(hostname);
-                }
-                return okhttp3.Dns.SYSTEM.lookup(hostname);
-            }
-        });
 
         clientBuilder.eventListener(createEventLister());
+
+        clientBuilder.dns(new Dns() {
+            @NotNull
+            @Override
+            public List<InetAddress> lookup(@NotNull String s) throws UnknownHostException {
+                if (request.inetAddress != null && s.equals(request.host)){
+                    List<InetAddress> inetAddressList = new ArrayList<>();
+                    inetAddressList.add(request.inetAddress);
+                    return inetAddressList;
+                } else {
+                    return new SystemDns().lookup(s);
+                }
+            }
+        });
 
         clientBuilder.networkInterceptors().add(new Interceptor() {
             @Override

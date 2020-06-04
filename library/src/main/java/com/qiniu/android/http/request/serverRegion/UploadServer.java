@@ -2,16 +2,18 @@ package com.qiniu.android.http.request.serverRegion;
 
 import com.qiniu.android.http.request.UploadServerInterface;
 
+import java.net.InetAddress;
+
 public class UploadServer implements UploadServerInterface {
 
     private final String serverId;
     private final String host;
-    private final String ip;
+    private final InetAddress inetAddress;
 
-    public UploadServer(String serverId, String host, String ip) {
+    public UploadServer(String serverId, String host, InetAddress inetAddress) {
         this.serverId = serverId;
         this.host = host;
-        this.ip = ip;
+        this.inetAddress = inetAddress;
     }
 
     @Override
@@ -20,12 +22,21 @@ public class UploadServer implements UploadServerInterface {
     }
 
     @Override
+    public InetAddress getInetAddress() {
+        return inetAddress;
+    }
+
+    @Override
     public String getIp() {
-        return this.ip;
+        if (inetAddress == null){
+            return null;
+        } else {
+            return inetAddress.getHostAddress();
+        }
     }
 
     @Override
     public String getHost() {
-        return this.host;
+        return host;
     }
 }
