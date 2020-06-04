@@ -1,8 +1,5 @@
 package com.qiniu.android;
 
-import android.util.Log;
-
-import com.qiniu.android.common.AutoZone;
 import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
@@ -12,6 +9,7 @@ import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.Etag;
+import com.qiniu.android.utils.LogUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,7 +37,7 @@ public class RetryTest extends BaseTest {
                 public void run() {
 
                     try {
-                        template((i_p + 1) * 1024, new CompleteHandler() {
+                        template((i_p + 1), new CompleteHandler() {
                             @Override
                             public void complete(boolean isSuccess) {
 
@@ -101,7 +99,7 @@ public class RetryTest extends BaseTest {
         final UploadOptions options = new UploadOptions(null, null, true, new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
-                Log.i(this.toString(), ("progress:" + percent));
+                LogUtil.i(("progress:" + percent));
             }
         }, null);
         uploadManager.put(f, expectKey, TestConfig.token_z0, new UpCompletionHandler() {

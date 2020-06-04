@@ -1,8 +1,6 @@
 package com.qiniu.android;
 
 import android.test.suitebuilder.annotation.LargeTest;
-import android.test.suitebuilder.annotation.MediumTest;
-import android.util.Log;
 
 import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.Zone;
@@ -14,6 +12,7 @@ import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.Etag;
+import com.qiniu.android.utils.LogUtil;
 
 import org.json.JSONObject;
 
@@ -27,7 +26,6 @@ import java.util.Queue;
  */
 public class ConcurrentResumeUploadTest extends BaseTest {
 
-    String TAG = this.getClass().getSimpleName();
     private UploadManager uploadManager;
     private volatile String key;
     private volatile ResponseInfo info = null;
@@ -75,7 +73,7 @@ public class ConcurrentResumeUploadTest extends BaseTest {
     private UploadOptions getUploadOptions() {
         return new UploadOptions(null, null, false, new UpProgressHandler() {
             public void progress(String key, double percent) {
-                Log.d(TAG, "== percent:" + percent);
+                LogUtil.d("== percent:" + percent);
                 putProgress(percent);
             }
         }, null);
@@ -97,7 +95,7 @@ public class ConcurrentResumeUploadTest extends BaseTest {
             public void run() {
                 uploadManager.put(f, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        Log.i("qiniutest", k + rinfo);
+                        LogUtil.i(k + rinfo);
                         key = k;
                         info = rinfo;
                         resp = response;
@@ -138,7 +136,7 @@ public class ConcurrentResumeUploadTest extends BaseTest {
         final UploadOptions options = getUploadOptions();
         uploadManager2.put(f, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest", k + rinfo);
+                LogUtil.i(k + rinfo);
                 key = k;
                 info = rinfo;
                 resp = response;

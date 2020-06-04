@@ -1,32 +1,8 @@
 package com.qiniu.android;
 
-
-import android.test.InstrumentationTestCase;
-import android.util.Log;
-
 import com.qiniu.android.common.AutoZone;
-import com.qiniu.android.common.Config;
 import com.qiniu.android.common.FixedZone;
-import com.qiniu.android.common.ZoneInfo;
-import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.dns.DnsCacheKey;
 import com.qiniu.android.http.dns.DnsPrefetcher;
-import com.qiniu.android.storage.Configuration;
-import com.qiniu.android.storage.UpCompletionHandler;
-import com.qiniu.android.storage.UpProgressHandler;
-import com.qiniu.android.storage.UploadManager;
-import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.utils.AndroidNetwork;
-import com.qiniu.android.utils.UrlSafeBase64;
-
-import org.json.JSONObject;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.charset.Charset;
-import java.util.Base64;
 import java.util.List;
 
 /**
@@ -126,7 +102,7 @@ public class DnsApiTest extends BaseTest {
             }
         }, 60);
 
-        assertTrue((param.completeCount == param.successCount));
+        assertTrue((param.successCount == 1));
     }
 
 

@@ -92,10 +92,8 @@ public class HttpRegionRequest {
         String scheme = config.useHttps ? "https://" : "http://";
         String urlString = scheme + serverHost + (action != null ? action : "");
         if (serverIP != null && serverIP.length() > 0) {
-//            urlString = scheme + serverIP + (action != null ? action : "");
             isSkipDns = false;
         } else {
-//            urlString = scheme + serverHost + (action != null ? action : "");
             isSkipDns = true;
         }
         Request request = new Request(urlString, method, header, data, config.connectTimeout);

@@ -1,8 +1,6 @@
 package com.qiniu.android;
 
-import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
-import android.util.Log;
 
 import com.qiniu.android.bigdata.client.Client;
 import com.qiniu.android.bigdata.client.CompletionHandler;
@@ -10,22 +8,16 @@ import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.AsyncRun;
+import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringMap;
 
 import junit.framework.Assert;
 
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.Buffer;
 import java.nio.charset.Charset;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -57,7 +49,7 @@ public class HttpTest extends BaseTest {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
                         Assert.assertNotNull(rinfo);
-                        Log.d("qiniutest", rinfo.toString());
+                        LogUtil.d(rinfo.toString());
                         info = rinfo;
                     }
                 }, null);
@@ -84,7 +76,7 @@ public class HttpTest extends BaseTest {
                 null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
-                        Log.d("qiniutest", rinfo.toString());
+                        LogUtil.d(rinfo.toString());
                         info = rinfo;
                     }
                 }, null);
@@ -112,7 +104,7 @@ public class HttpTest extends BaseTest {
                         null, new CompletionHandler() {
                             @Override
                             public void complete(ResponseInfo rinfo, JSONObject response) {
-                                Log.d("qiniutest", rinfo.toString());
+                                LogUtil.d(rinfo.toString());
                                 info = rinfo;
                             }
                         }, null);
@@ -144,7 +136,7 @@ public class HttpTest extends BaseTest {
                         null, new CompletionHandler() {
                             @Override
                             public void complete(ResponseInfo rinfo, JSONObject response) {
-                                Log.d("qiniutest", rinfo.toString());
+                                LogUtil.d(rinfo.toString());
                                 info = rinfo;
                             }
                         }, null);
@@ -174,7 +166,7 @@ public class HttpTest extends BaseTest {
                 null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
-                        Log.d("qiniutest", rinfo.toString());
+                        LogUtil.d(rinfo.toString());
                         info = rinfo;
                     }
                 }, null);
@@ -200,7 +192,7 @@ public class HttpTest extends BaseTest {
 //                null, null, new CompletionHandler() {
 //                    @Override
 //                    public void complete(ResponseInfo rinfo, JSONObject response) {
-//                        Log.d("qiniutest", rinfo.toString());
+//                        LogUtil.d(rinfo.toString());
 //                        info = rinfo;
 //                        signal.countDown();
 //                    }
@@ -225,7 +217,7 @@ public class HttpTest extends BaseTest {
                 null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
-                        Log.d("qiniutest", rinfo.toString());
+                        LogUtil.d(rinfo.toString());
                         info = rinfo;
                     }
                 }, null);
@@ -255,7 +247,7 @@ public class HttpTest extends BaseTest {
                 null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
-                        Log.d("qiniutest", rinfo.toString());
+                        LogUtil.d(rinfo.toString());
                         info = rinfo;
                     }
                 }, null);

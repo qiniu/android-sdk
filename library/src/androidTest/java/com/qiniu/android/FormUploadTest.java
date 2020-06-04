@@ -1,7 +1,6 @@
 package com.qiniu.android;
 
 import android.test.suitebuilder.annotation.SmallTest;
-import android.util.Log;
 
 import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.Zone;
@@ -10,6 +9,7 @@ import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
+import com.qiniu.android.utils.LogUtil;
 
 import junit.framework.Assert;
 
@@ -77,8 +77,8 @@ public class FormUploadTest extends BaseTest {
 
             uploadManager.put(putData, expectKey, upToken, new UpCompletionHandler() {
                 public void complete(String key, ResponseInfo info, JSONObject response) {
-                    Log.i("Qiniu.TestPutBytes", "upload result of bucket " + bucket);
-                    Log.d("Qiniu.TestPutBytes", info.toString());
+                    LogUtil.i("upload result of bucket " + bucket);
+                    LogUtil.d(info.toString());
 
                     signal.countDown();
                 }
@@ -116,8 +116,8 @@ public class FormUploadTest extends BaseTest {
             UploadManager uploadManagerWithCfg = new UploadManager(cfg);
             uploadManagerWithCfg.put(putData, expectKey, upToken, new UpCompletionHandler() {
                 public void complete(String key, ResponseInfo info, JSONObject response) {
-                    Log.i("Qiniu.TestPutBytes", "upload result of bucket " + bucket);
-                    Log.d("Qiniu.TestPutBytes", info.toString());
+                    LogUtil.i("upload result of bucket " + bucket);
+                    LogUtil.d( info.toString());
 
                     responseBody = response;
                     signal.countDown();
@@ -173,8 +173,8 @@ public class FormUploadTest extends BaseTest {
             UploadManager uploadManagerWithCfg = new UploadManager(cfg);
             uploadManagerWithCfg.put(putData, expectKey, upToken, new UpCompletionHandler() {
                 public void complete(String key, ResponseInfo info, JSONObject response) {
-                    Log.i("Qiniu.TestPutBytes", "upload result of bucket " + bucket);
-                    Log.d("Qiniu.TestPutBytes", info.toString());
+                    LogUtil.i("upload result of bucket " + bucket);
+                    LogUtil.d(info.toString());
 
                     responseBody = response;
                     signal.countDown();

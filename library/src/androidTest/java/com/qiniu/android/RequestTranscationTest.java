@@ -1,7 +1,5 @@
 package com.qiniu.android;
 
-import android.util.Log;
-
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.request.RequestTranscation;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
@@ -9,16 +7,15 @@ import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
+import com.qiniu.android.utils.LogUtil;
 
 import junit.framework.Assert;
-import junit.framework.TestCase;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+
 
 public class RequestTranscationTest extends BaseTest {
 
@@ -61,7 +58,7 @@ public class RequestTranscationTest extends BaseTest {
         requestTranscation.uploadFormData(data, null, true, new RequestProgressHandler() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
-                Log.i("RequestTranscation", ("== progress: " + (totalBytesWritten*1.0/totalBytesExpectedToWrite)));
+                LogUtil.i(("== progress: " + (totalBytesWritten*1.0/totalBytesExpectedToWrite)));
             }
         }, new RequestTranscation.RequestCompleteHandler() {
             @Override
@@ -147,7 +144,7 @@ public class RequestTranscationTest extends BaseTest {
         requestTranscation.makeBlock(0, 3*1024*1024, data, true, new RequestProgressHandler() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
-                Log.i("RequestTranscation", ("== progress: " + (totalBytesWritten*1.0/totalBytesExpectedToWrite)));
+                LogUtil.i(("== progress: " + (totalBytesWritten*1.0/totalBytesExpectedToWrite)));
             }
         }, completeHandler);
     }
@@ -163,7 +160,7 @@ public class RequestTranscationTest extends BaseTest {
         requestTranscation.uploadChunk(ct,0, data, 2*1024*1024,true, new RequestProgressHandler() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
-                Log.i("RequestTranscation", ("== progress: " + (totalBytesWritten*1.0/totalBytesExpectedToWrite)));
+                LogUtil.i(("== progress: " + (totalBytesWritten*1.0/totalBytesExpectedToWrite)));
             }
         }, completeHandler);
     }

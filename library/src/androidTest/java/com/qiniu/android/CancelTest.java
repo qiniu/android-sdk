@@ -1,7 +1,6 @@
 package com.qiniu.android;
 
 import android.test.InstrumentationTestCase;
-import android.util.Log;
 
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.UpCancellationSignal;
@@ -10,6 +9,7 @@ import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.storage.persistent.FileRecorder;
+import com.qiniu.android.utils.LogUtil;
 
 import junit.framework.Assert;
 
@@ -61,7 +61,7 @@ public class CancelTest extends InstrumentationTestCase {
             }
         }
 
-        Log.d("qiniu_cancel", type + "   " + failedCount);
+        LogUtil.d(type + "   " + failedCount);
         if (failedCount > ts.length / 2) {
             String info = type + ": 共 " + ts.length + "个测试，至多允许 " + ts.length / 2 + " 失败，实际失败 " + failedCount + " 个： " + tt.info.toString();
             Assert.assertEquals(info, tt.expectKey, tt.key);
@@ -99,7 +99,7 @@ public class CancelTest extends InstrumentationTestCase {
                 if (percent >= pos) {
                     temp.cancelled = true;
                 }
-                Log.i("qiniutest", pos + ": progress " + percent);
+                LogUtil.i(pos + ": progress " + percent);
             }
         }, new UpCancellationSignal() {
             @Override
@@ -116,7 +116,7 @@ public class CancelTest extends InstrumentationTestCase {
                         temp.info = rinfo;
                         temp.resp = response;
                         signal.countDown();
-                        Log.i("qiniutest", k + rinfo);
+                        LogUtil.i(k + rinfo);
                     }
                 }, options);
             }
@@ -163,7 +163,7 @@ public class CancelTest extends InstrumentationTestCase {
                 if (percent >= pos) {
                     temp.cancelled = true;
                 }
-                Log.i("qiniutest", pos + ": progress " + percent);
+                LogUtil.i(pos + ": progress " + percent);
             }
         }, new UpCancellationSignal() {
             @Override
@@ -180,7 +180,7 @@ public class CancelTest extends InstrumentationTestCase {
                         temp.info = rinfo;
                         temp.resp = response;
                         signal.countDown();
-                        Log.i("qiniutest", k + rinfo);
+                        LogUtil.i(k + rinfo);
                     }
                 }, options);
             }

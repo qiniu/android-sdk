@@ -6,6 +6,7 @@ import android.util.Log;
 import com.qiniu.android.collect.ReportConfig;
 import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
+import com.qiniu.android.utils.LogUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -46,7 +47,7 @@ public class UploadInfoReporterTest extends AndroidTestCase {
                     item.setReport(1, ReportItem.QualityKeyBytesSent);
                     report(item);
                 }
-            }).run();
+            }).start();
         }
 
         try {
@@ -75,11 +76,11 @@ public class UploadInfoReporterTest extends AndroidTestCase {
             fileReader = new FileReader(recordFile);
             br = new BufferedReader(fileReader);
             String line = null;
-            Log.d("recordFile", "== " + recordFile.getPath() + ": start");
+            LogUtil.d("== " + recordFile.getPath() + ": start");
             while ((line = br.readLine()) != null) {
-                Log.d("recordFile", ("== " + line));
+                LogUtil.d(("== " + line));
             }
-            Log.d("recordFile", "== " + recordFile.getPath() + ": end");
+            LogUtil.d("== " + recordFile.getPath() + ": end");
         } catch (Exception e) {
 
         } finally {

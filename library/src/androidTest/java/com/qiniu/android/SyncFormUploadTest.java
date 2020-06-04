@@ -81,7 +81,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
     }
 
     @SmallTest
-    public void testInvalidtoken_z0() throws Throwable {
+    public void testInvalidtoken_z0() {
         final String expectKey = "你好-testInvalidtoken_z0";
         info = uploadManager.syncPut("hello".getBytes(), expectKey, "invalid", null);
 
@@ -91,7 +91,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
     }
 
     @SmallTest
-    public void testNoData() throws Throwable {
+    public void testNoData() {
         final String expectKey = "你好-testNoData";
 
         info = uploadManager.syncPut((byte[]) null, expectKey, "invalid", null);

@@ -1,8 +1,6 @@
 package com.qiniu.android.http.request;
 
 
-import android.util.Log;
-
 import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;
@@ -15,12 +13,13 @@ import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.AsyncRun;
+import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.Utils;
 
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.TimerTask;
+
 
 public class HttpSingleRequest {
 
@@ -83,7 +82,7 @@ public class HttpSingleRequest {
             }
         };
 
-        Log.w("SingleRequest", ("== request host:" + request.host + " ip:" + request.ip));
+        LogUtil.w(("== request host:" + request.host + " ip:" + request.ip));
         client.request(request, isAsyn, config.proxy, new RequestClient.RequestClientProgress() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {

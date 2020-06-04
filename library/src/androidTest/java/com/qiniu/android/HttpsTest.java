@@ -1,20 +1,18 @@
 package com.qiniu.android;
 
-import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.SmallTest;
-import android.util.Log;
 
 import com.qiniu.android.bigdata.client.Client;
 import com.qiniu.android.bigdata.client.CompletionHandler;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.UpToken;
+import com.qiniu.android.utils.LogUtil;
 
 import org.json.JSONObject;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by bailong on 15/12/1.
@@ -45,7 +43,7 @@ public class HttpsTest extends BaseTest {
                 UpToken.parse(TestConfig.token_z0), "hello".getBytes().length, null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
-                        Log.d("qiniutest", rinfo.toString());
+                        LogUtil.d(rinfo.toString());
                         info = rinfo;
                     }
                 }, null);
@@ -74,7 +72,7 @@ public class HttpsTest extends BaseTest {
 //                null, new CompletionHandler() {
 //                    @Override
 //                    public void complete(ResponseInfo rinfo, JSONObject response) {
-//                        Log.d("qiniutest", rinfo.toString());
+//                        LogUtil.d(rinfo.toString());
 //                        info = rinfo;
 //                    }
 //                }, null);
@@ -100,7 +98,7 @@ public class HttpsTest extends BaseTest {
 //                "hello".getBytes(), null, null, new CompletionHandler() {
 //                    @Override
 //                    public void complete(ResponseInfo rinfo, JSONObject response) {
-//                        Log.d("qiniutest", rinfo.toString());
+//                        LogUtil.d(rinfo.toString());
 //                        info = rinfo;
 //                        signal.countDown();
 //                    }

@@ -10,6 +10,7 @@ import com.qiniu.android.http.request.RequestTranscation;
 import com.qiniu.android.http.request.UploadFileInfo;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.AsyncRun;
+import com.qiniu.android.utils.LogUtil;
 
 import org.json.JSONObject;
 
@@ -23,7 +24,6 @@ import java.util.Date;
 
 public class UploadInfoReporter {
 
-    private final static String LogTag = "UploadInfoReporter";
     private ReportConfig config = ReportConfig.getInstance();
     private long lastReportTime = 0;
     private File recordDirectory = new File(config.recordDirectory);
@@ -83,7 +83,7 @@ public class UploadInfoReporter {
             return false;
         }
         if (config.maxRecordFileSize <= config.uploadThreshold){
-            Log.e("UploadInfoReporter", "maxRecordFileSize must be larger than uploadThreshold");
+            LogUtil.e("maxRecordFileSize must be larger than uploadThreshold");
             return false;
         }
         return true;
@@ -96,7 +96,7 @@ public class UploadInfoReporter {
         }
 
         if (!recordDirectory.isDirectory()){
-            Log.e(LogTag, "recordDirectory is not a directory");
+            LogUtil.e("recordDirectory is not a directory");
             return;
         }
 

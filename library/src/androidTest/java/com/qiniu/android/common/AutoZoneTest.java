@@ -7,6 +7,7 @@ import com.qiniu.android.TestConfig;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.storage.UpToken;
+import com.qiniu.android.utils.LogUtil;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -65,7 +66,7 @@ public class AutoZoneTest extends BaseTest {
             }
         }, 60);
 
-        Log.i(this.toString(), "== muti complete");
+        LogUtil.i("== muti complete");
     }
 
     private void zoneRequest(final CompleteHandlder completeHandlder){

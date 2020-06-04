@@ -1,11 +1,8 @@
 package com.qiniu.android;
 
-import android.util.Log;
-
 import com.qiniu.android.utils.AsyncRun;
+import com.qiniu.android.utils.LogUtil;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 public class AsynTest extends BaseTest {
 
@@ -48,8 +45,8 @@ public class AsynTest extends BaseTest {
 
         wait(waitConditional, 5);
 
-        Log.i("Asyn test", String.format("success count: %d", testParam.successCount));
-        assertTrue("pass", (testParam.successCount == testParam.maxCount));
+        LogUtil.i(String.format("success count: %d", testParam.successCount));
+        assertTrue((testParam.successCount == testParam.maxCount));
     }
 
     public void testAsynBg(){
@@ -88,7 +85,7 @@ public class AsynTest extends BaseTest {
 
         wait(waitConditional, 5);
 
-        Log.i("Asyn test", String.format("success count: %d", testParam.successCount));
+        LogUtil.i(String.format("success count: %d", testParam.successCount));
         assertTrue("pass", (testParam.successCount == testParam.maxCount));
     }
 }

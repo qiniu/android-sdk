@@ -222,14 +222,15 @@ public class UploadManager {
                          final UploadOptions option,
                          final UpCompletionHandler completionHandler){
 
-        DnsPrefrtcherTransaction.addDnsCheckAndPrefetchTransaction(config.zone, token);
-
         final UpToken t = UpToken.parse(token);
         if (t == null) {
             ResponseInfo info = ResponseInfo.invalidToken("invalid token");
             completeAction(token, key, info, null, null, completionHandler);
             return;
         }
+
+        DnsPrefrtcherTransaction.addDnsCheckAndPrefetchTransaction(config.zone, token);
+
 
         BaseUpload.UpTaskCompletionHandler completionHandlerP = new BaseUpload.UpTaskCompletionHandler() {
             @Override
@@ -247,14 +248,14 @@ public class UploadManager {
                          final UploadOptions option,
                          final UpCompletionHandler completionHandler){
 
-        DnsPrefrtcherTransaction.addDnsCheckAndPrefetchTransaction(config.zone, token);
-
         final UpToken t = UpToken.parse(token);
         if (t == null) {
             ResponseInfo info = ResponseInfo.invalidToken("invalid token");
             completeAction(token, key, info, null, null, completionHandler);
             return;
         }
+
+        DnsPrefrtcherTransaction.addDnsCheckAndPrefetchTransaction(config.zone, token);
 
         if (file.length() <= config.putThreshold) {
             byte[] data = new byte[(int) file.length()];

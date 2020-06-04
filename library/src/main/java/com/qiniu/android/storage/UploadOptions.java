@@ -4,6 +4,7 @@ import android.os.Looper;
 import android.util.Log;
 
 import com.qiniu.android.utils.AndroidNetwork;
+import com.qiniu.android.utils.LogUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -58,14 +59,14 @@ public final class UploadOptions {
                 netReadyCheckTime = Integer.parseInt(netCheckTime);
             }
         } catch (Exception e) {}
-        Log.e("qiniutest","netCheckTime:"+netReadyCheckTime);
+        LogUtil.e("netCheckTime:"+netReadyCheckTime);
         this.params = filterParam(params);
         this.mimeType = mime(mimeType);
         this.checkCrc = checkCrc;
         this.progressHandler = progressHandler != null ? progressHandler : new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
-                Log.d("Qiniu.UploadProgress", "" + percent);
+                LogUtil.d("" + percent);
             }
         };
         this.cancellationSignal = cancellationSignal != null ? cancellationSignal : new UpCancellationSignal() {

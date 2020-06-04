@@ -1,7 +1,5 @@
 package com.qiniu.android;
 
-import android.util.Log;
-
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCancellationSignal;
@@ -11,6 +9,7 @@ import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.storage.persistent.FileRecorder;
 import com.qiniu.android.utils.Etag;
+import com.qiniu.android.utils.LogUtil;
 
 import org.json.JSONObject;
 
@@ -74,7 +73,7 @@ public class TestFileRecorder extends BaseTest {
                 if (percent >= pos) {
                     cancelled = true;
                 }
-                Log.i("qiniutest", "progress " + percent);
+                LogUtil.i("progress " + percent);
             }
         }, new UpCancellationSignal() {
             @Override
@@ -84,7 +83,7 @@ public class TestFileRecorder extends BaseTest {
         });
         uploadManager.put(tempFile, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest",  "Cancel:" + k + rinfo);
+                LogUtil.i("Cancel:" + k + rinfo);
                 key = k;
                 info = rinfo;
                 resp = response;
@@ -114,13 +113,13 @@ public class TestFileRecorder extends BaseTest {
                 if (percent < pos - config.chunkSize / (size * 1024.0)) {
                     failed = true;
                 }
-                Log.i("qiniutest", "continue progress " + percent);
+                LogUtil.i("continue progress " + percent);
             }
         }, null);
 
         uploadManager.put(tempFile, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest", "Continue" + k + rinfo);
+                LogUtil.i("Continue" + k + rinfo);
                 key = k;
                 info = rinfo;
                 resp = response;
