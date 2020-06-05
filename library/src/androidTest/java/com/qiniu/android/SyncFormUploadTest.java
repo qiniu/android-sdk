@@ -1,6 +1,5 @@
 package com.qiniu.android;
 
-import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.MediumTest;
 import android.test.suitebuilder.annotation.SmallTest;
 
@@ -20,18 +19,18 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SyncFormUploadTest extends InstrumentationTestCase {
+public class SyncFormUploadTest extends BaseTest {
     private UploadManager uploadManager;
     private volatile String key;
     private volatile ResponseInfo info;
     private volatile JSONObject resp;
 
-    public void setUp() throws Exception {
+    public void setUp() {
         uploadManager = new UploadManager();
     }
 
     @SmallTest
-    public void testHello() throws Throwable {
+    public void testHello() {
         final String expectKey = "你好-testHello;\"\r\n\r\n\r\n";
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
@@ -50,7 +49,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
     }
 
     @SmallTest
-    public void test0Data() throws Throwable {
+    public void test0Data(){
         final String expectKey = "你好-test0Data;\"\r\n\r\n\r\n";
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
@@ -64,7 +63,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
     }
 
     @SmallTest
-    public void testNoKey() throws Throwable {
+    public void testNoKey() {
         final String expectKey = null;
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
@@ -103,7 +102,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
     }
 
     @SmallTest
-    public void testNotoken_z0() throws Throwable {
+    public void testNotoken_z0() {
         final String expectKey = "你好-testNotoken_z0";
         info = uploadManager.syncPut(new byte[1], expectKey, null, null);
 
@@ -113,7 +112,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
     }
 
     @SmallTest
-    public void testEmptytoken_z0() throws Throwable {
+    public void testEmptytoken_z0() {
         final String expectKey = "你好-testEmptytoken_z0";
         info = uploadManager.syncPut(new byte[1], expectKey, "", null);
 
@@ -175,7 +174,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
 
 
     @SmallTest
-    public void testHttps() throws Throwable {
+    public void testHttps() {
         final String expectKey = "你好-testHttps;\"\r\n\r\n\r\n";
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
