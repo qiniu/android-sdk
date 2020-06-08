@@ -176,12 +176,12 @@ public final class UploadManager {
         //query请求发生在第一次，第二次query从本地zoneinfo拿，response为null
         LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
         logHandler.send("up_type", "uc_query");
-
+        final WarpHandler completionHandler = warpHandler(complete, data != null ? data.length : 0);
         Zone z = config.zone;
         z.preQuery(logHandler, token, new Zone.QueryHandler() {
             @Override
             public void onSuccess() {
-                FormUploader.upload(client, config, data, key, decodedToken, complete, options);
+                FormUploader.upload(client, config, data, key, decodedToken, completionHandler, options);
             }
 
             @Override
@@ -245,12 +245,12 @@ public final class UploadManager {
             @Override
             public void onSuccess() {
                 long size = file.length();
+                final WarpHandler completionHandler = warpHandler(complete, file != null ? file.length() : 0);
                 if (size <= config.putThreshold) {
-                    FormUploader.upload(client, config, file, key, decodedToken, complete, options);
+                    FormUploader.upload(client, config, file, key, decodedToken, completionHandler, options);
                     return;
                 }
                 String recorderKey = config.keyGen.gen(key, file);
-                final WarpHandler completionHandler = warpHandler(complete, file != null ? file.length() : 0);
                 if (multithreads == 1) {
                     ResumeUploader uploader = new ResumeUploader(client, config, file, key,
                             decodedToken, completionHandler, options, recorderKey);
