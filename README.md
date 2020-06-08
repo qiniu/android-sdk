@@ -24,7 +24,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 |  7.0.7        |  Android 2.2+     | android-async-http 1.4.8 |
 
 ### 注意
-* 推荐使用最新版：7.6.2，7.6.2使用okhttp4.2.2
+* 推荐使用最新版：7.6.3，7.6.3使用okhttp4.2.2
 * 7.4.3是在7.5.2版本上降低okhttp版本，其他功能不变
 * 从 7.3.13 开始，不在强制依赖 `happy-dns-android`，默认不再提供 `httpDns`，可以调用 `Configuration.Builder#dns(com.qiniu.android.http.Dns)`方法设置外部 `Dns`，自定义 `Dns` 要求实现 `com.qiniu.android.http.Dns` 接口。
 * 从7.5.0开始增加了DNS预取和缓存策略，减少dns解析错误
@@ -41,6 +41,8 @@ https://github.com/qiniudemo/qiniu-lab-android
 
 ## 使用方法
 UploadManager 可以创建一次，一直使用。
+7.6.2调用AndroidNetwork.getMobileDbm可以获取网络信号强度
+需要Manifest.permission.ACCESS_FINE_LOCATION和Manifest.permission.ACCESS_COARSE_LOCATION权限
 ```java
 import com.qiniu.android.storage.UploadManager;
 ...
