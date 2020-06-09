@@ -1,7 +1,5 @@
 package com.qiniu.android.http.dns;
 
-import android.util.Log;
-
 import com.qiniu.android.common.Config;
 import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.Zone;
@@ -40,7 +38,7 @@ public class DnsPrefetcher {
     private boolean isPrefetching = false;
     private DnsCacheKey dnsCacheKey = null;
     private HashMap<String, List<InetAddress>> addressDictionary = new HashMap<>();
-    private final SystemDns systemDns = new SystemDns();
+    private final HappyDns happyDns = new HappyDns();
 
     private final static DnsPrefetcher dnsPrefetcher = new DnsPrefetcher();
     private DnsPrefetcher(){}
@@ -87,7 +85,6 @@ public class DnsPrefetcher {
         if (!prepareToPreFetch()){
             return;
         }
-//        Log.i()
         preFetchHosts(getLocalPreHost());
         recoderDnsCache();
         endPreFetch();
@@ -166,7 +163,7 @@ public class DnsPrefetcher {
         String[] nextFetchHosts = fetchHosts;
 
         nextFetchHosts = preFetchHosts(nextFetchHosts, Config.dns);
-        nextFetchHosts = preFetchHosts(nextFetchHosts, systemDns);
+        nextFetchHosts = preFetchHosts(nextFetchHosts, happyDns);
     }
 
     private String[] preFetchHosts(String[] preHosts, Dns dns){

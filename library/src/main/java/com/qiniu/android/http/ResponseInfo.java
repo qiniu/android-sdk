@@ -225,9 +225,7 @@ public final class ResponseInfo {
     }
 
     public boolean isNetworkBroken() {
-        return statusCode == NetworkError || statusCode == UnknownHost
-                || statusCode == CannotConnectToHost || statusCode == TimedOut
-                || statusCode == NetworkConnectionLost;
+        return statusCode == NetworkError;
     }
 
     public boolean isServerError() {
