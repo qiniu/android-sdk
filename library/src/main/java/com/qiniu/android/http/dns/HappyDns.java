@@ -26,8 +26,8 @@ public class HappyDns implements Dns {
 
     public HappyDns(){
         IResolver[] resolvers = new IResolver[3];
-        resolvers[0] = AndroidDnsServer.defaultResolver();
-        resolvers[1] = new SystemResolver();
+        resolvers[0] = new SystemResolver();
+        resolvers[1] = AndroidDnsServer.defaultResolver();
         resolvers[2] = new DnspodFree();
 
         dnsManager = new DnsManager(NetworkInfo.normal, resolvers);

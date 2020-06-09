@@ -50,6 +50,7 @@ public class UploadManager {
     public UploadManager(Configuration config) {
         this.config = config;
         DnsPrefrtcherTransaction.addDnsLocalLoadTransaction();
+        DnsPrefrtcherTransaction.setDnsCheckWhetherCachedValidTransactionAction();
     }
 
     /**

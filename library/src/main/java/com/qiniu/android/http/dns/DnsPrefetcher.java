@@ -126,7 +126,7 @@ public class DnsPrefetcher {
     }
 
 
-    private void checkWhetherCachedDnsValid(){
+    public void checkWhetherCachedDnsValid(){
         if (!prepareToPreFetch()){
             return;
         }
@@ -380,21 +380,21 @@ public class DnsPrefetcher {
         return addressDictionary.keySet().toArray(new String[0]);
     }
 
-    private boolean isDnsOpen(){
+    public boolean isDnsOpen(){
         return true;
     }
 
     public synchronized boolean isPrefetching() {
         return isPrefetching;
     }
-    public synchronized void setIsPrefetching(boolean isPrefetching) {
+    private synchronized void setIsPrefetching(boolean isPrefetching) {
         this.isPrefetching = isPrefetching;
     }
 
-    public synchronized DnsCacheKey getDnsCacheKey() {
+    private synchronized DnsCacheKey getDnsCacheKey() {
         return dnsCacheKey;
     }
-    public synchronized void setDnsCacheKey(DnsCacheKey dnsCacheKey) {
+    private synchronized void setDnsCacheKey(DnsCacheKey dnsCacheKey) {
         this.dnsCacheKey = dnsCacheKey;
     }
 }

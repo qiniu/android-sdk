@@ -233,6 +233,6 @@ public class LogUtil {
     }
 
     private static String recreateLogMessage(String msg){
-        return "[msg]" + (msg != null ? msg : "");
+        return (msg != null ? msg : "");
     }
 }
