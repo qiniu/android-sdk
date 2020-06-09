@@ -39,10 +39,10 @@ public class CancelTest extends InstrumentationTestCase {
     }
 
 
-    public void testFile() throws Throwable {
-        Temp[] ts = new Temp[]{templateFile(400, 0.2), templateFile(700, 0.2), templateFile(1024, 0.51), templateFile(4 * 1024, 0.5), templateFile(8 * 1024 + 1, 0.6)};
-        checkTemp(ts, "testFile");
-    }
+//    public void testFile() throws Throwable {
+//        Temp[] ts = new Temp[]{templateFile(400, 0.2), templateFile(700, 0.2), templateFile(1024, 0.51), templateFile(4 * 1024, 0.5), templateFile(8 * 1024 + 1, 0.6)};
+//        checkTemp(ts, "testFile");
+//    }
 
 //    public void testData() throws Throwable {
 //        Temp[] ts = new Temp[]{templateData(400, 0.2), templateData(700, 0.2), templateData(1024, 0.51), templateData(4 * 1024 + 785, 0.5), templateData(4 * 1024, 0.5), templateData(8 * 1024, 0.6)};
