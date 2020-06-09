@@ -2,8 +2,6 @@ package com.qiniu.android.http;
 
 import com.qiniu.android.collect.LogHandler;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -72,7 +70,7 @@ public class HttpEventListener extends EventListener {
         final AtomicLong nextCallId = new AtomicLong(1L);
 
         @Override
-        public EventListener create(@NotNull Call call) {
+        public EventListener create(Call call) {
             long callId = nextCallId.getAndIncrement();
             return new HttpEventListener(callId, (Client.ResponseTag) call.request().tag(), System.nanoTime());
         }
