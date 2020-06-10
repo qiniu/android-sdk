@@ -5,8 +5,6 @@ import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.request.UploadRegion;
 import com.qiniu.android.http.request.UploadServerInterface;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +25,7 @@ public class UploadDomainRegion implements UploadRegion {
     }
 
     @Override
-    public void setupRegionData(@NotNull ZoneInfo zoneInfo) {
+    public void setupRegionData(ZoneInfo zoneInfo) {
         if (zoneInfo == null) {
             return;
         }

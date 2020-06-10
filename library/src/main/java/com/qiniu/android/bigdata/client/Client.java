@@ -2,8 +2,8 @@ package com.qiniu.android.bigdata.client;
 
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.http.CancellationHandler;
-import com.qiniu.android.http.CountingRequestBody;
-import com.qiniu.android.http.MultipartBody;
+import com.qiniu.android.http.request.httpclient.CountingRequestBody;
+import com.qiniu.android.http.request.httpclient.MultipartBody;
 import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.ResponseInfo;

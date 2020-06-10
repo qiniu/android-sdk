@@ -52,7 +52,7 @@ public class TestFileRecorder extends BaseTest {
         File f = File.createTempFile("qiniutest", "b");
         String folder = f.getParent();
         FileRecorder fr = new FileRecorder(folder);
-        config = new Configuration.Builder().recorder(fr).build();
+        config = new Configuration.Builder().connectTimeout(15000)/*.recorder(fr)*/.build();
         uploadManager = new UploadManager(config);
     }
 
@@ -147,7 +147,7 @@ public class TestFileRecorder extends BaseTest {
         TempFile.remove(tempFile);
     }
 
-    public void test600k() throws Throwable {
+    public void test_600k() throws Throwable {
         template(600, 0.7);
     }
 
@@ -159,7 +159,7 @@ public class TestFileRecorder extends BaseTest {
         template(1024, 0.51);
     }
 
-    public void test4M1K() throws Throwable {
+    public void test_4M1K() throws Throwable {
         template(4 * 1024 + 1, 0.5);
     }
 

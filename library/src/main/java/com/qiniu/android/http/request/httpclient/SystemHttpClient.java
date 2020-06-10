@@ -1,10 +1,7 @@
 package com.qiniu.android.http.request.httpclient;
 
-import android.util.Log;
-
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.http.CancellationHandler;
-import com.qiniu.android.http.CountingRequestBody;
 import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.ResponseInfo;
@@ -16,7 +13,6 @@ import com.qiniu.android.utils.AndroidNetwork;
 import com.qiniu.android.utils.StringUtils;
 
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -40,7 +36,6 @@ import okhttp3.Dns;
 import okhttp3.EventListener;
 import okhttp3.Handshake;
 import okhttp3.Headers;
-import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -85,7 +80,7 @@ public class SystemHttpClient implements RequestClient {
         if (isAsync){
             call.enqueue(new Callback() {
                 @Override
-                public void onFailure(@NotNull Call call, IOException e) {
+                public void onFailure(Call call, IOException e) {
                     e.printStackTrace();
                     int statusCode = NetworkError;
                     String msg = e.getMessage();
@@ -106,7 +101,7 @@ public class SystemHttpClient implements RequestClient {
                 }
 
                 @Override
-                public void onResponse(@NotNull Call call, @NotNull okhttp3.Response response) throws IOException {
+                public void onResponse(Call call, okhttp3.Response response) throws IOException {
                     handleResponse(request, response, complete);
                 }
             });
@@ -158,9 +153,8 @@ public class SystemHttpClient implements RequestClient {
         clientBuilder.eventListener(createEventLister());
 
         clientBuilder.dns(new Dns() {
-            @NotNull
             @Override
-            public List<InetAddress> lookup(@NotNull String s) throws UnknownHostException {
+            public List<InetAddress> lookup(String s) throws UnknownHostException {
                 if (request.inetAddress != null && s.equals(request.host)){
                     List<InetAddress> inetAddressList = new ArrayList<>();
                     inetAddressList.add(request.inetAddress);
@@ -202,39 +196,31 @@ public class SystemHttpClient implements RequestClient {
     private okhttp3.Request.Builder createRequestBuilder(Request request,
                                                          final RequestClientProgress progress){
 
-        Headers allHeaders = null;
-        if (request.allHeaders != null){
-            allHeaders = Headers.of(request.allHeaders);
-        }
+        Headers allHeaders = Headers.of(request.allHeaders);
 
         okhttp3.Request.Builder requestBuilder = null;
-        if (request.httpMethod == Request.HttpMethodGet){
+        if (request.httpMethod.equals(Request.HttpMethodGet)){
             requestBuilder = new okhttp3.Request.Builder().get().url(request.urlString);
-            if (allHeaders != null && request.allHeaders != null){
-                for (String key : request.allHeaders.keySet()){
-                    String value = request.allHeaders.get(key);
-                    requestBuilder.header(key, value);
-                }
+            for (String key : request.allHeaders.keySet()){
+                String value = request.allHeaders.get(key);
+                requestBuilder.header(key, value);
             }
-        } else if (request.httpMethod == Request.HttpMethodPOST){
+        } else if (request.httpMethod.equals(Request.HttpMethodPOST)){
             requestBuilder = new okhttp3.Request.Builder().url(request.urlString);
-
-            if (allHeaders != null){
-                requestBuilder = requestBuilder.headers(allHeaders);
-            }
+            requestBuilder = requestBuilder.headers(allHeaders);
 
             RequestBody rbody;
-            if (request.httpBody != null && request.httpBody.length > 0) {
+            if (request.httpBody.length > 0) {
                 MediaType type = MediaType.parse(DefaultMime);
-                if (request.allHeaders != null) {
-                    String contentType = request.allHeaders.get(ContentTypeHeader);
-                    if (contentType != null) {
-                        type = MediaType.parse(contentType);
-                    }
+                String contentType = request.allHeaders.get(ContentTypeHeader);
+                if (contentType != null) {
+                    type = MediaType.parse(contentType);
                 }
-                rbody = RequestBody.create(type, request.httpBody, 0, request.httpBody.length);
+//                rbody = RequestBody.create(type, request.httpBody, 0, request.httpBody.length);
+                rbody = new ByteBody(type, request.httpBody);
             } else {
-                rbody = RequestBody.create(null, new byte[0]);
+                rbody = new ByteBody(null, new byte[0]);
+//                rbody = RequestBody.create(null, new byte[0]);
             }
             rbody = new CountingRequestBody(rbody, new ProgressHandler() {
                 @Override
@@ -255,20 +241,13 @@ public class SystemHttpClient implements RequestClient {
             @Override public void callStart(Call call) {
                 metrics.startDate = new Date();
             }
-            @Override public void proxySelectStart(Call call,
-                                                   HttpUrl url) {
-            }
-            @Override public void proxySelectEnd(Call call,
-                                                 HttpUrl url,
-                                                 List<Proxy> proxies) {
-            }
             @Override public void dnsStart(Call call,
                                            String domainName) {
                 metrics.domainLookupStartDate = new Date();
             }
             @Override public void dnsEnd(Call call,
                                          String domainName,
-                                         @NotNull List<InetAddress> inetAddressList) {
+                                         List<InetAddress> inetAddressList) {
                 metrics.domainLookupEndDate = new Date();
             }
             @Override public void connectStart(Call call,
@@ -315,7 +294,7 @@ public class SystemHttpClient implements RequestClient {
                 metrics.requestEndDate = new Date();
                 metrics.countOfRequestBodyBytesSent = byteCount;
             }
-            @Override public void requestFailed(Call call, IOException ioe) {
+            public void requestFailed(Call call, IOException ioe) {
                 metrics.requestEndDate = new Date();
                 metrics.countOfRequestBodyBytesSent = 0;
             }
@@ -330,7 +309,7 @@ public class SystemHttpClient implements RequestClient {
             @Override public void responseBodyEnd(Call call, long byteCount) {
                 metrics.responseEndDate = new Date();
             }
-            @Override public void responseFailed(Call call, IOException ioe) {
+            public void responseFailed(Call call, IOException ioe) {
                 metrics.responseEndDate = new Date();
             }
             @Override public void callEnd(Call call) {

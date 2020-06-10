@@ -4,7 +4,6 @@ import com.qiniu.android.common.AutoZone;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.dns.DnsPrefrtcherTransaction;
 
-import org.jetbrains.annotations.TestOnly;
 
 /**
  * Created by yangsen on 2020/6/9
@@ -15,7 +14,6 @@ public class DnsTransactionTest extends BaseTest {
     private int completeCount = 0;
     private int successCount = 0;
 
-    @TestOnly
     public void testLocalLoad(){
 
         completeCount = 0;
@@ -85,7 +83,6 @@ public class DnsTransactionTest extends BaseTest {
     }
 
 
-    @TestOnly
     public void testCheckWhetherCachedValid(){
 
         completeCount = 0;

@@ -1,13 +1,10 @@
 package com.qiniu.android.common;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +32,8 @@ public class ZoneInfo {
     public ArrayList<String> allHosts;
     public JSONObject detailInfo;
     
-    public static ZoneInfo buildInfo(@NotNull ArrayList<String> mainHosts,
-                                     @Nullable ArrayList<String> ioHosts){
+    public static ZoneInfo buildInfo(ArrayList<String> mainHosts,
+                                     ArrayList<String> ioHosts){
         if (mainHosts == null){
             return null;
         }
@@ -66,10 +63,10 @@ public class ZoneInfo {
     }
 
     private ZoneInfo(int ttl,
-                     @Nullable UploadServerGroup acc,
-                     @Nullable UploadServerGroup src,
-                     @Nullable UploadServerGroup old_acc,
-                     @Nullable UploadServerGroup old_src) {
+                     UploadServerGroup acc,
+                     UploadServerGroup src,
+                     UploadServerGroup old_acc,
+                     UploadServerGroup old_src) {
 
         this.ttl = ttl;
         this.acc = acc;
@@ -84,7 +81,7 @@ public class ZoneInfo {
      * @return
      * @throws JSONException
      */
-    public static ZoneInfo buildFromJson(@NotNull JSONObject obj) throws JSONException {
+    public static ZoneInfo buildFromJson(JSONObject obj) throws JSONException {
         if (obj == null) {
             return null;
         }
