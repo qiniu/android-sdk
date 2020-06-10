@@ -59,7 +59,7 @@ public class TestFileRecorder extends InstrumentationTestCase {
         File f = File.createTempFile("qiniutest", "b");
         String folder = f.getParent();
         FileRecorder fr = new FileRecorder(folder);
-        config = new Configuration.Builder().recorder(fr).build();
+        config = new Configuration.Builder().recorder(fr).useHttps(false).build();
         uploadManager = new UploadManager(config);
 
         ACollectUploadInfoTest.testInit();
@@ -79,7 +79,7 @@ public class TestFileRecorder extends InstrumentationTestCase {
                 if (percent >= pos) {
                     cancelled = true;
                 }
-                Log.i("qiniutest", "progress " + percent);
+                Log.e("qiniutest", "progress " + percent);
             }
         }, new UpCancellationSignal() {
             @Override
