@@ -16,7 +16,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 |------------ |-----------------|------------------------|
 |  7.6.x        |  Android 5.0+     |        okhttp 4+         |
 |  7.5.x        |  Android 5.0+     |        okhttp 4+         |
-|  7.4.4        |  Android 4.4+     |        okhttp 3.12.6     |
+|  7.4.5        |  Android 2.3+     |        okhttp 3.12.6     |
 |  7.4.3        |  Android 2.3+     |        okhttp 3.12.6     |
 |  7.3.x        |  Android 2.3+     |        okhttp 3.11.0     |
 |  7.2.x        |  Android 2.3+     |        okhttp 3+         |
@@ -26,7 +26,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 
 ### 注意
 * 推荐使用最新版：7.6.3，7.6.3使用okhttp4.2.2
-* 7.4.4是在7.6.3版本上降低okhttp版本，其他功能不变
+* 7.4.5是在7.6.3版本上降低okhttp版本，其他功能不变
 * 从 7.3.13 开始，不在强制依赖 `happy-dns-android`，默认不再提供 `httpDns`，可以调用 `Configuration.Builder#dns(com.qiniu.android.http.Dns)`方法设置外部 `Dns`，自定义 `Dns` 要求实现 `com.qiniu.android.http.Dns` 接口。
 * 从7.5.0开始增加了DNS预取和缓存策略，减少dns解析错误
 * 如果可以明确 区域 的话，最好指定固定区域，这样可以少一步网络请求，少一步出错的可能。
