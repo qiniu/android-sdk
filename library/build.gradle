@@ -26,7 +26,7 @@ android {
     aaptOptions.useNewCruncher = false
     defaultConfig {
         //applicationId "com.qiniu.android"
-        minSdkVersion 18
+        minSdkVersion 9
         targetSdkVersion 26
         versionCode code
         versionName version
