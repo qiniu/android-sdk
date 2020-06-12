@@ -169,7 +169,7 @@ public class SyncFormUploadTest extends BaseTest {
         Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
 
         info = uploadManager.syncPut("", null, TestConfig.token_z0, null);
-        Assert.assertEquals(info.toString(), ResponseInfo.InvalidFile, info.statusCode);
+        Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
     }
 
 

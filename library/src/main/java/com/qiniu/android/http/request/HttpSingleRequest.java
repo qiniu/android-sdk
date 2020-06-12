@@ -88,7 +88,9 @@ public class HttpSingleRequest {
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
                 if (checkCancelHandler.checkCancel()) {
                     requstState.setUserCancel(true);
-                    client.cancel();
+                    if (client != null){
+                        client.cancel();
+                    }
                 } else if (progressHandler != null){
                     progressHandler.progress(totalBytesWritten, totalBytesExpectedToWrite);
                 }
