@@ -20,9 +20,7 @@ public final class FixedZone extends Zone {
      * 华东机房
      */
     static String[] arrayzone0 = new String[]{
-            "upload.qiniup.com", "upload-jjh.qiniup.com",
-            "upload-xs.qiniup.com", "up.qiniup.com",
-            "up-jjh.qiniup.com", "up-xs.qiniup.com",
+            "upload.qiniup.com", "up.qiniup.com",
             "upload.qbox.me", "up.qbox.me"
     };
     public static final Zone zone0 = new FixedZone(arrayzone0, new String[]{"iovip.qbox.me"});
@@ -40,9 +38,7 @@ public final class FixedZone extends Zone {
      * 华南机房
      */
     static String[] arrayzone2 = new String[]{
-            "upload-z2.qiniup.com", "upload-dg.qiniup.com",
-            "upload-fs.qiniup.com", "up-z2.qiniup.com",
-            "up-dg.qiniup.com", "up-fs.qiniup.com",
+            "upload-z2.qiniup.com", "up-z2.qiniup.com",
             "upload-z2.qbox.me", "up-z2.qbox.me"
     };
     public static final Zone zone2 = new FixedZone(arrayzone2, new String[]{"iovip-z2.qbox.me"});
