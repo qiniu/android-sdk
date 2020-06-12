@@ -78,7 +78,7 @@ public abstract class BaseUpload implements Runnable {
                       UploadOptions option,
                       Configuration config,
                       UpTaskCompletionHandler completionHandler) {
-        this(null, data, null, key, token, option, config, null, null, completionHandler);
+        this(null, data, fileName, key, token, option, config, null, null, completionHandler);
     }
 
     private void initData(){
@@ -94,17 +94,23 @@ public abstract class BaseUpload implements Runnable {
                 metrics.addMetrics(requestMetrics);
 
                 if (code == 0){
-                    prepareToUpload();
-                    startToUpload();
+                    int prepareCode = prepareToUpload();
+                    if (prepareCode == 0){
+                        startToUpload();
+                    } else {
+                        ResponseInfo responseInfoP = ResponseInfo.errorInfo(prepareCode, null);
+                        completeAction(responseInfoP, null);
+                    }
                 } else {
-                    completeAction(responseInfo, responseInfo.response);
+
                 }
             }
         });
     }
 
-    public void prepareToUpload(){
+    public int prepareToUpload(){
         setupRegions();
+        return 0;
     }
 
     public abstract void startToUpload();

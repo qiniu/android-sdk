@@ -30,13 +30,13 @@ public class DnsPrefrtcherTransaction {
 
 
     public static synchronized boolean addDnsCheckAndPrefetchTransaction(final Zone currentZone,
-                                                            final String token){
+                                                                         final String token){
         if (token == null || token.length() == 0){
             return false;
         }
 
         TransactionManager manager = TransactionManager.getInstance();
-        if (manager.existtransactionsForName(token)){
+        if (manager.existTransactionsForName(token)){
             return false;
         }
 
@@ -58,7 +58,7 @@ public class DnsPrefrtcherTransaction {
 
         String name = "dnsCheckWhetherCachedValidTransaction";
         TransactionManager manager = TransactionManager.getInstance();
-        if (manager.existtransactionsForName(name)){
+        if (manager.existTransactionsForName(name)){
             return false;
         }
 

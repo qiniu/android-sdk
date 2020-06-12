@@ -44,7 +44,7 @@ public class HttpSingleRequest {
         this.token = token;
         this.requestInfo = requestInfo;
         this.requstState = requstState;
-        currentRetryTime = 1;
+        this.currentRetryTime = 1;
     }
 
     public void request(Request request,
@@ -75,7 +75,7 @@ public class HttpSingleRequest {
             @Override
             public boolean checkCancel() {
                 boolean isCancel = requstState.getIsUserCancel();
-                if (isCancel == false && uploadOption.cancellationSignal != null) {
+                if (! isCancel && uploadOption.cancellationSignal != null) {
                     isCancel = uploadOption.cancellationSignal.isCancelled();
                 }
                 return isCancel;
@@ -86,7 +86,7 @@ public class HttpSingleRequest {
         client.request(request, isAsyn, config.proxy, new RequestClient.RequestClientProgress() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
-                if (checkCancelHandler.checkCancel() == true) {
+                if (checkCancelHandler.checkCancel()) {
                     requstState.setUserCancel(true);
                     client.cancel();
                 } else if (progressHandler != null){

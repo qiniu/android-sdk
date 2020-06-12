@@ -259,14 +259,17 @@ public class UploadManager {
         DnsPrefrtcherTransaction.addDnsCheckAndPrefetchTransaction(config.zone, token);
 
         if (file.length() <= config.putThreshold) {
+            ResponseInfo errorInfo = null;
             byte[] data = new byte[(int) file.length()];
             RandomAccessFile randomAccessFile = null;
             try {
                 randomAccessFile = new RandomAccessFile(file, "r");
                 randomAccessFile.seek(0);
                 randomAccessFile.read(data);
-            } catch (FileNotFoundException ignored) {
-            } catch (IOException ignored) {
+            } catch (FileNotFoundException e) {
+                errorInfo = ResponseInfo.fileError(e);
+            } catch (IOException e) {
+                errorInfo = ResponseInfo.fileError(e);
             } finally {
                 if (randomAccessFile != null){
                     try {
@@ -274,7 +277,11 @@ public class UploadManager {
                     } catch (IOException ignored){}
                 }
             }
-            putData(data, file.getName(), key, token, option, completionHandler);
+            if (errorInfo == null){
+                putData(data, file.getName(), key, token, option, completionHandler);
+            } else {
+                completeAction(token, key, errorInfo, null, null, completionHandler);
+            }
             return;
         }
 
@@ -311,6 +318,8 @@ public class UploadManager {
             responseInfo = ResponseInfo.zeroSize("no input data");
         } else if (input instanceof byte[] && ((byte[])input).length == 0){
             responseInfo = ResponseInfo.zeroSize("no input data");
+        } else if (input instanceof File && ((File)input).length() == 0){
+            responseInfo = ResponseInfo.zeroSize("file is empty");
         } else if (token == null || token.length() == 0){
             responseInfo = ResponseInfo.invalidToken("no token");
         }

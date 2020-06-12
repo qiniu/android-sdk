@@ -75,7 +75,7 @@ public class UploadSingleRequestMetrics {
         if (request.httpBody != null){
             bodyLength = request.httpBody.length;
         }
-        return new Long((headerLength + bodyLength));
+        return (headerLength + bodyLength);
     }
     public Long bytesSend(){
         long totalBytes = totalBytes().longValue();
@@ -83,13 +83,13 @@ public class UploadSingleRequestMetrics {
         if (bytesSend > totalBytes){
             bytesSend = totalBytes;
         }
-        return new Long(bytesSend);
+        return bytesSend;
     }
 
 
     private Long time(Date startDate, Date endDate){
         if (startDate != null && endDate != null){
-            return new Long((endDate.getTime() - startDate.getTime()));
+            return (endDate.getTime() - startDate.getTime());
         } else {
             return null;
         }

@@ -67,12 +67,22 @@ public abstract class PartsUpload extends BaseUpload {
     }
 
     @Override
-    public void prepareToUpload() {
-        super.prepareToUpload();
+    public int prepareToUpload() {
+        int code = super.prepareToUpload();
+        if (code != 0){
+            return code;
+        }
+
         recoveryUploadInfoFromRecord();
         if (uploadFileInfo == null){
             uploadFileInfo = new UploadFileInfo(file.length(), PartsUpload.blockSize, getUploadChunkSize(), file.lastModified());
         }
+
+        if (randomAccessFile == null){
+            code = ResponseInfo.LocalIOError;
+        }
+
+        return code;
     }
 
     @Override

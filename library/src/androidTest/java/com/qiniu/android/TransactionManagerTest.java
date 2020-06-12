@@ -55,8 +55,8 @@ public class TransactionManagerTest extends BaseTest {
 
         wait(null, 10);
 
-        assertFalse(manager.existtransactionsForName(normalName));
-        assertTrue(manager.existtransactionsForName(timeName));
+        assertFalse(manager.existTransactionsForName(normalName));
+        assertTrue(manager.existTransactionsForName(timeName));
     }
 
 }

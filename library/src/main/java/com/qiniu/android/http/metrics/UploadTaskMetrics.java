@@ -21,7 +21,9 @@ public class UploadTaskMetrics {
         long time = 0;
         for (String key : metricsInfo.keySet()){
             UploadRegionRequestMetrics metrics = metricsInfo.get(key);
-            time += metrics.totalElaspsedTime();
+            if (metrics != null){
+                time += metrics.totalElaspsedTime();
+            }
         }
         return time;
     }
@@ -30,7 +32,9 @@ public class UploadTaskMetrics {
         long count = 0;
         for (String key : metricsInfo.keySet()){
             UploadRegionRequestMetrics metrics = metricsInfo.get(key);
-            count += metrics.requestCount();
+            if (metrics != null){
+                count += metrics.requestCount();
+            }
         }
         return count;
     }
@@ -39,7 +43,9 @@ public class UploadTaskMetrics {
         long bytesSend = 0;
         for (String key : metricsInfo.keySet()){
             UploadRegionRequestMetrics metrics = metricsInfo.get(key);
-            bytesSend += metrics.bytesSend();
+            if (metrics != null){
+                bytesSend += metrics.bytesSend();
+            }
         }
         return bytesSend;
     }
@@ -48,7 +54,8 @@ public class UploadTaskMetrics {
         long count = 0;
         for (String key : metricsInfo.keySet()){
             UploadRegionRequestMetrics metrics = metricsInfo.get(key);
-            if (metrics.region != null && metrics.region.getZoneInfo() != null
+            if (metrics !=null
+                    && metrics.region != null && metrics.region.getZoneInfo() != null
                     && !metrics.region.getZoneInfo().regionId.equals(ZoneInfo.EmptyRegionId)){
                 count += 1;
             }

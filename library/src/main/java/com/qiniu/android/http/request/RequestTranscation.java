@@ -157,8 +157,8 @@ public class RequestTranscation {
         String filePairBehindString = String.format("\r\n--%s--\r\n", boundary);
 
         byte[] paramPair = paramPairString.toString().getBytes();
-        byte[] filePairFront = filePairFrontString.toString().getBytes();
-        byte[] filePairBehind = filePairBehindString.toString().getBytes();
+        byte[] filePairFront = filePairFrontString.getBytes();
+        byte[] filePairBehind = filePairBehindString.getBytes();
         byte[] body = new byte[paramPair.length + filePairFront.length + data.length + filePairBehind.length];
         System.arraycopy(paramPair, 0, body, 0, paramPair.length);
         System.arraycopy(filePairFront, 0, body, paramPair.length, filePairFront.length);

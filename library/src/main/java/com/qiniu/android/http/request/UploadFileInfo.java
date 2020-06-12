@@ -350,7 +350,7 @@ public class UploadFileInfo {
                 blockIndex = jsonObject.getInt("blockIndex");
                 isCompleted = jsonObject.getBoolean("isCompleted");
                 progress = jsonObject.getDouble("progress");
-            } catch (JSONException e){};
+            } catch (JSONException ignored){}
             UploadData uploadData = new UploadData(offset, size, index, blockIndex);
             uploadData.isCompleted = isCompleted;
             uploadData.progress = progress;

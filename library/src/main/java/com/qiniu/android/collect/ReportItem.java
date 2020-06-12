@@ -116,7 +116,7 @@ public class ReportItem {
         String errorType = null;
         if (responseInfo.statusCode > 199 && responseInfo.statusCode < 300) {
 
-        } else if (responseInfo.statusCode > 299){
+        } else if (responseInfo.statusCode > 299 && responseInfo.statusCode < 600){
             errorType = "response_error";
         } else if (responseInfo.statusCode == ResponseInfo.InvalidFile
                 || responseInfo.statusCode == -1009){
@@ -136,6 +136,8 @@ public class ReportItem {
         } else if (responseInfo.statusCode == ResponseInfo.Cancelled
                 || responseInfo.statusCode == -999){
             errorType = "user_canceled";
+        } else if (responseInfo.statusCode == ResponseInfo.LocalIOError){
+            errorType = "local_io_error";
         } else {
             errorType = "unknown_error";
         }

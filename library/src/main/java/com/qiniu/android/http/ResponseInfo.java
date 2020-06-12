@@ -14,6 +14,7 @@ import java.util.Map;
  * 定义HTTP请求的日志信息和常规方法
  */
 public final class ResponseInfo {
+    public static final int ResquestSuccess = 200;
     public static final int ZeroSizeFile = -6;
     public static final int InvalidToken = -5;
     public static final int InvalidArgument = -4;
@@ -23,7 +24,8 @@ public final class ResponseInfo {
 
     public static final int Crc32NotMatch = -406;
 
-    public static final int UnknownError = 0;
+    public static final int UnknownError = 10000;
+    public static final int LocalIOError = 10001;
 
     // <-- error code copy from ios
     public static final int TimedOut = -1001;
@@ -31,6 +33,7 @@ public final class ResponseInfo {
     public static final int CannotConnectToHost = -1004;
     public static final int NetworkConnectionLost = -1005;
     public static final int NetworkSSLError = -1200;
+
 
     // -->
     /**
@@ -178,7 +181,7 @@ public final class ResponseInfo {
     }
 
     public boolean isOK() {
-        return statusCode == 200 && error == null && (hasReqId() || response != null);
+        return statusCode == ResquestSuccess && error == null && (hasReqId() || response != null);
     }
 
     public boolean couldRetry(){

@@ -216,11 +216,9 @@ public class SystemHttpClient implements RequestClient {
                 if (contentType != null) {
                     type = MediaType.parse(contentType);
                 }
-//                rbody = RequestBody.create(type, request.httpBody, 0, request.httpBody.length);
                 rbody = new ByteBody(type, request.httpBody);
             } else {
                 rbody = new ByteBody(null, new byte[0]);
-//                rbody = RequestBody.create(null, new byte[0]);
             }
             rbody = new CountingRequestBody(rbody, new ProgressHandler() {
                 @Override

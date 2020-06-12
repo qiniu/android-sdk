@@ -39,7 +39,7 @@ public class TransactionManager {
     }
 
     /// 是否存在某个名称的事务
-    public boolean existtransactionsForName(String name){
+    public boolean existTransactionsForName(String name){
         boolean isExist = false;
         for (Transaction transaction : transactionList){
             if ((name == null && transaction.name == null)
