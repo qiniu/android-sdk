@@ -1,13 +1,10 @@
 package com.qiniu.android.collect;
 
 
-import android.util.Log;
-
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.request.RequestTranscation;
-import com.qiniu.android.http.request.UploadFileInfo;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.LogUtil;

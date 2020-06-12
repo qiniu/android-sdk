@@ -3,6 +3,7 @@ package com.qiniu.android;
 import com.qiniu.android.common.AutoZone;
 import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.http.dns.DnsPrefetcher;
+
 import java.util.List;
 
 /**

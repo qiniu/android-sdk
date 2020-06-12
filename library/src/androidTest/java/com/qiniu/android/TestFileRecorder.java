@@ -163,9 +163,6 @@ public class TestFileRecorder extends BaseTest {
         template(4 * 1024 + 1, 0.5);
     }
 
-    public void test8M1K() throws Throwable {
-        template(8 * 1024 + 1, 0.8);
-    }
 
     public void testLastModify() throws IOException {
         File f = File.createTempFile("qiniutest", "b");

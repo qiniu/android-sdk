@@ -2,6 +2,7 @@ package com.qiniu.android.bigdata.client;
 
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.http.CancellationHandler;
+import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.request.httpclient.CountingRequestBody;
 import com.qiniu.android.http.request.httpclient.MultipartBody;
 import com.qiniu.android.http.ProgressHandler;
@@ -10,7 +11,6 @@ import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.UrlConverter;
 import com.qiniu.android.http.UserAgent;
 import com.qiniu.android.http.dns.Dns;
-import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.AsyncRun;

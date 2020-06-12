@@ -147,14 +147,20 @@ public final class StringUtils {
      */
     public static byte[] toByteArray(Object obj) {
         byte[] bytes = null;
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(bos);
-            oos.writeObject(obj);
-            oos.flush();
-            bytes = bos.toByteArray();
-            oos.close();
-            bos.close();
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            try {
+                ObjectOutputStream oos = new ObjectOutputStream(bos);
+                try {
+                    oos.writeObject(obj);
+                    oos.flush();
+                    bytes = bos.toByteArray();
+                } finally {
+                    oos.close();
+                }
+            } finally {
+                bos.close();
+            }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -171,14 +177,17 @@ public final class StringUtils {
         Object obj = null;
         try {
             ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-            ObjectInputStream ois = new ObjectInputStream(bis);
-            obj = ois.readObject();
-            ois.close();
-            bis.close();
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
+            try {
+                ObjectInputStream ois = new ObjectInputStream(bis);
+                obj = ois.readObject();
+                ois.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            } finally {
+                bis.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return obj;
     }
@@ -197,6 +206,32 @@ public final class StringUtils {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static String getBucket(String token) {
+        String[] strings = token.split(":");
+        String policy = null;
+        try {
+            policy = new String(UrlSafeBase64.decode(strings[2]), Constants.UTF_8);
+            JSONObject obj = new JSONObject(policy);
+            String scope = obj.getString("scope");
+            String bkt = scope.split(":")[0];
+            return bkt;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    public static String upperCase(String str) {
+        if (str.length() <= 0 || str == null) {
+            return "";
+        }
+        char[] ch = str.toCharArray();
+        if (ch[0] >= 'a' && ch[0] <= 'z') {
+            ch[0] = (char) (ch[0] - 32);
+        }
+        return new String(ch);
     }
 
 }

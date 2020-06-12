@@ -14,11 +14,21 @@ https://github.com/qiniudemo/qiniu-lab-android
 
 | Qiniu SDK 版本 | 最低 Android版本   |       依赖库版本           | 
 |------------ |-----------------|------------------------|
-|  7.5.x        |  Android 4.0+     |        okhttp 4+         |
+|  7.6.x        |  Android 5.0+     |        okhttp 4+         |
+|  7.5.x        |  Android 5.0+     |        okhttp 4+         |
+|  7.4.3        |  Android 2.3+     |        okhttp 3.12.6     |
+|  7.3.x        |  Android 2.3+     |        okhttp 3.11.0     |
 |  7.2.x        |  Android 2.3+     |        okhttp 3+         |
 |  7.1.x        |  Android 2.3+     |        okhttp 2.6+       |
 | 7.0.8,7.0.9   |  Android 2.2+     | android-async-http 1.4.9 |
 |  7.0.7        |  Android 2.2+     | android-async-http 1.4.8 |
+
+### 注意
+* 推荐使用最新版：7.6.3，7.6.3使用okhttp4.2.2
+* 7.4.3是在7.5.2版本上降低okhttp版本，其他功能不变
+* 从 7.3.13 开始，不在强制依赖 `happy-dns-android`，默认不再提供 `httpDns`，可以调用 `Configuration.Builder#dns(com.qiniu.android.http.Dns)`方法设置外部 `Dns`，自定义 `Dns` 要求实现 `com.qiniu.android.http.Dns` 接口。
+* 从7.5.0开始增加了DNS预取和缓存策略，减少dns解析错误
+* 如果可以明确 区域 的话，最好指定固定区域，这样可以少一步网络请求，少一步出错的可能。
 
 ### 直接安装
 将sdk jar文件 复制到项目中去，[jar包下载地址](http://search.maven.org/#search%7Cga%7C1%7Ccom%2Fqiniu%2Fqiniu-android-sdk) , 下载对应的jar包，以及搜索下载对应的依赖库
@@ -31,6 +41,8 @@ https://github.com/qiniudemo/qiniu-lab-android
 
 ## 使用方法
 UploadManager 可以创建一次，一直使用。
+7.6.2调用AndroidNetwork.getMobileDbm可以获取网络信号强度
+需要Manifest.permission.ACCESS_FINE_LOCATION和Manifest.permission.ACCESS_COARSE_LOCATION权限
 ```java
 import com.qiniu.android.storage.UploadManager;
 ...
