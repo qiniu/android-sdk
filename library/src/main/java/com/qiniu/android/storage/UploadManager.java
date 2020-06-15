@@ -267,9 +267,9 @@ public class UploadManager {
                 randomAccessFile.seek(0);
                 randomAccessFile.read(data);
             } catch (FileNotFoundException e) {
-                errorInfo = ResponseInfo.fileError(e);
+                errorInfo = ResponseInfo.localIOError("get upload file data error");
             } catch (IOException e) {
-                errorInfo = ResponseInfo.fileError(e);
+                errorInfo = ResponseInfo.localIOError("get upload file data error");
             } finally {
                 if (randomAccessFile != null){
                     try {

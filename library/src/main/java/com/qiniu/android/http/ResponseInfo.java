@@ -21,11 +21,11 @@ public final class ResponseInfo {
     public static final int InvalidFile = -3;
     public static final int Cancelled = -2;
     public static final int NetworkError = -1;
+    public static final int LocalIOError = -7;
 
     public static final int Crc32NotMatch = -406;
 
     public static final int UnknownError = 10000;
-    public static final int LocalIOError = 10001;
 
     // <-- error code copy from ios
     public static final int TimedOut = -1001;
@@ -138,6 +138,10 @@ public final class ResponseInfo {
 
     public static ResponseInfo networkError(String desc) {
         return errorInfo(NetworkError, desc);
+    }
+
+    public static ResponseInfo localIOError(String desc) {
+        return errorInfo(LocalIOError, desc);
     }
 
     public static ResponseInfo errorInfo(int statusCode, String error) {

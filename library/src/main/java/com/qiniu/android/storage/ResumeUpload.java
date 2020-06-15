@@ -129,18 +129,16 @@ public class ResumeUpload extends PartsUpload {
                            final RequestProgressHandler progressHandler,
                            final UploadChunkCompleteHandler completeHandler){
 
-        chunk.isUploading = true;
-        chunk.isCompleted = false;
-
         byte[] chunkData = getDataWithChunk(chunk, block);
         if (chunkData == null){
-            ResponseInfo responseInfo = ResponseInfo.invalidArgument("upload chunk was null");
-            completeAction(responseInfo, responseInfo.response);
-
-            chunk.isUploading = false;
-            chunk.isCompleted = false;
+            uploadChunkErrorResponseInfo = ResponseInfo.localIOError("get chunk data error");
+            uploadChunkErrorResponse = uploadChunkErrorResponseInfo.response;
+            completeHandler.complete();
             return;
         }
+
+        chunk.isUploading = true;
+        chunk.isCompleted = false;
 
         RequestTranscation transcation = createUploadRequestTranscation();
         transcation.makeBlock(block.offset, block.size, chunkData, true, progressHandler, new RequestTranscation.RequestCompleteHandler() {
@@ -176,18 +174,16 @@ public class ResumeUpload extends PartsUpload {
                              final RequestProgressHandler progressHandler,
                              final UploadChunkCompleteHandler completeHandler){
 
-        chunk.isUploading = true;
-        chunk.isCompleted = false;
-
         byte[] chunkData = getDataWithChunk(chunk, block);
         if (chunkData == null){
-            ResponseInfo responseInfo = ResponseInfo.invalidArgument("upload chunk was null");
-            completeAction(responseInfo, responseInfo.response);
-
-            chunk.isUploading = false;
-            chunk.isCompleted = false;
+            uploadChunkErrorResponseInfo = ResponseInfo.localIOError("get chunk data error");
+            uploadChunkErrorResponse = uploadChunkErrorResponseInfo.response;
+            completeHandler.complete();
             return;
         }
+
+        chunk.isUploading = true;
+        chunk.isCompleted = false;
 
         RequestTranscation transcation = createUploadRequestTranscation();
         transcation.uploadChunk(block.context, block.offset, chunkData, chunk.offset, true, progressHandler, new RequestTranscation.RequestCompleteHandler() {

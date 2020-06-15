@@ -210,15 +210,11 @@ public class UploadDomainRegion implements UploadRegion {
                 if (ipNumbers.length == 4){
                     int firstNumber = Integer.parseInt(ipNumbers[0]);
                     if (firstNumber > 0 && firstNumber < 127) {
-                        type = "ipv4-A";
+                        type = "ipv4-A-" + firstNumber;
                     } else if (firstNumber > 127 && firstNumber <= 191) {
-                        type = "ipv4-B";
+                        type = "ipv4-B-" + firstNumber + ipNumbers[1];
                     } else if (firstNumber > 191 && firstNumber <= 223) {
-                        type = "ipv4-C";
-                    } else if (firstNumber > 223 && firstNumber <= 239) {
-                        type = "ipv4-D";
-                    } else if (firstNumber > 239 && firstNumber < 255) {
-                        type = "ipv4-E";
+                        type = "ipv4-C-"+ firstNumber + ipNumbers[1] + ipNumbers[2];
                     }
                 }
             }

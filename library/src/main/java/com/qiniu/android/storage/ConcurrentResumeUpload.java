@@ -154,11 +154,19 @@ public class ConcurrentResumeUpload extends PartsUpload {
                            final RequestProgressHandler progressHandler,
                            final UploadBlockCompleteHandler completeHandler){
 
+        byte[] chunkData = getDataWithChunk(chunk, block);
+        if (chunkData == null){
+            uploadBlockErrorResponseInfo = ResponseInfo.localIOError("get chunk data error");
+            uploadBlockErrorResponse = uploadBlockErrorResponseInfo.response;
+            completeHandler.complete();
+            return;
+        }
+
         chunk.isUploading = true;
         chunk.isCompleted = false;
 
         RequestTranscation transcation = createUploadRequestTranscation();
-        transcation.makeBlock(block.offset, block.size, getDataWithChunk(chunk, block), true, progressHandler, new RequestTranscation.RequestCompleteHandler() {
+        transcation.makeBlock(block.offset, block.size, chunkData, true, progressHandler, new RequestTranscation.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 addRegionRequestMetricsOfOneFlow(requestMetrics);

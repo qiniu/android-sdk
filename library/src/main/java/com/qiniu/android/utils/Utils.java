@@ -51,6 +51,9 @@ public class Utils {
     }
 
     public static String formEscape(String string){
+        if (string == null){
+            return null;
+        }
         String ret = string;
         ret = ret.replace("\\", "\\\\");
         ret = ret.replace("\"", "\\\"");

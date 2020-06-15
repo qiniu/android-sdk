@@ -73,7 +73,7 @@ public abstract class PartsUpload extends BaseUpload {
             return code;
         }
 
-        recoveryUploadInfoFromRecord();
+        recoverUploadInfoFromRecord();
         if (uploadFileInfo == null){
             uploadFileInfo = new UploadFileInfo(file.length(), PartsUpload.blockSize, getUploadChunkSize(), file.lastModified());
         }
@@ -141,7 +141,7 @@ public abstract class PartsUpload extends BaseUpload {
         }
     }
 
-    private void recoveryUploadInfoFromRecord(){
+    private void recoverUploadInfoFromRecord(){
         String key = recorderKey;
         if (recorder == null || key == null || key.length() == 0){
             return;
