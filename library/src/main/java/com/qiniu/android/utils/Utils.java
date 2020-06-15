@@ -49,4 +49,11 @@ public class Utils {
         String directory = ContextGetter.applicationContext().getCacheDir().getAbsolutePath() + "/qiniu";
         return directory;
     }
+
+    public static String formEscape(String string){
+        String ret = string;
+        ret = ret.replace("\\", "\\\\");
+        ret = ret.replace("\"", "\\\"");
+        return ret;
+    }
 }

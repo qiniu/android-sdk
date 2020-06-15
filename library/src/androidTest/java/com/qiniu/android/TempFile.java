@@ -14,10 +14,13 @@ public final class TempFile {
     }
 
     public static File createFile(int kiloSize) throws IOException {
+        return createFile(kiloSize, "qiniu_" + (1024 * kiloSize) + "k");
+    }
+    public static File createFile(int kiloSize, String fileName) throws IOException {
         FileOutputStream fos = null;
         try {
             long size = (long) (1024 * kiloSize);
-            File f = File.createTempFile("qiniu_" + kiloSize + "k", ".tmp");
+            File f = File.createTempFile(fileName, ".tmp");
             f.createNewFile();
             fos = new FileOutputStream(f);
             byte[] b = getByte(1023 * 4);

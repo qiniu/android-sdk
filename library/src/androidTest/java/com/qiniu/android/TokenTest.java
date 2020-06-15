@@ -4,6 +4,7 @@ import android.test.AndroidTestCase;
 
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.Utils;
 
 import junit.framework.Assert;
 

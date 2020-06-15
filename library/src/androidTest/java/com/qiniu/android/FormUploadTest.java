@@ -13,8 +13,10 @@ import com.qiniu.android.utils.LogUtil;
 
 import junit.framework.Assert;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -197,8 +199,48 @@ public class FormUploadTest extends BaseTest {
                 fail("Qiniu.TestPutBytes " + ex.getMessage());
             }
         }
-
-
     }
 
+
+    public void testPutFileWithAutoZone() throws Throwable {
+        //params
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("x:foo", "foo");
+        params.put("x:bar", "bar");
+        //mime type
+        final String mimeType = "text/plain";
+        final UploadOptions options = new UploadOptions(params, mimeType, true, null, null);
+        byte[] putData = "hello qiniu cloud storage".getBytes();
+
+        for (Map.Entry<String, String> bucketToken : this.bucketTokenMap.entrySet()) {
+            final CountDownLatch signal = new CountDownLatch(1);
+            final String bucket = bucketToken.getKey();
+            final String upToken = bucketToken.getValue();
+            final String expectKey = String.format("androidsdk/file/%s/qiniu_put_bytes_测试.txt", bucket);
+
+            final String fileName = "\"-file-\"";
+            final File file = TempFile.createFile(1, fileName);
+            uploadManager.put(file, expectKey, upToken, new UpCompletionHandler() {
+                public void complete(String key, ResponseInfo info, JSONObject response) {
+                    LogUtil.i("upload result of bucket " + bucket);
+                    LogUtil.d(info.toString());
+
+                    assertTrue(info.isOK());
+                    assertTrue(info.reqId != null);
+                    assertTrue(key == expectKey);
+                    try {
+                        String responseFname = response.getString("fname");
+                        String localFname = file.getName();
+                        assertTrue(responseFname.equals(localFname));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    signal.countDown();
+                }
+            }, options);
+
+            signal.await(120, TimeUnit.SECONDS);
+        }
+    }
 }

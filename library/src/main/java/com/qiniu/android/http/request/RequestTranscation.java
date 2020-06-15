@@ -16,6 +16,7 @@ import com.qiniu.android.utils.Crc32;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.UrlSafeBase64;
+import com.qiniu.android.utils.Utils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -23,6 +24,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
+
+import okhttp3.internal.Util;
 
 public class RequestTranscation {
 
@@ -152,6 +155,8 @@ public class RequestTranscation {
             paramPairString.append(String.format("--%s\r\n%s; name=\"%s\"\r\n\r\n", boundary, disposition, key));
             paramPairString.append(String.format("%s\r\n", value));
         }
+
+        fileName = Utils.formEscape(fileName);
 
         String filePairFrontString = String.format("--%s\r\n%s; name=\"%s\"; filename=\"%s\"\nContent-Type:%s\r\n\r\n", boundary, disposition, "file", fileName, uploadOption.mimeType);
         String filePairBehindString = String.format("\r\n--%s--\r\n", boundary);
