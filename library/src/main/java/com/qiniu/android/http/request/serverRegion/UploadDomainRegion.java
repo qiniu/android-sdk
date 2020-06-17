@@ -4,9 +4,11 @@ import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.request.UploadRegion;
 import com.qiniu.android.http.request.UploadServerInterface;
+import com.qiniu.android.utils.StringUtils;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -227,9 +229,8 @@ public class UploadDomainRegion implements UploadRegion {
             return type;
         }
 
-        private String getIPV6StringType(String ipv4String){
-            String type = null;
-            String[] ipNumberStrings = ipv4String.split(":");
+        private String getIPV6StringType(String ipv6String){
+            String[] ipNumberStrings = ipv6String.split(":");
             String[] ipNumberStringsReal = new String[]{"0000", "0000", "0000", "0000", "0000", "0000", "0000", "0000"};
             String[] suppleStrings = new String[]{"0000", "000", "00", "0", ""};
             int i = 0;
@@ -257,9 +258,9 @@ public class UploadDomainRegion implements UploadRegion {
                 j--;
                 indexReal--;
             }
-            return type;
+            String[] typeNumbers = Arrays.copyOfRange(ipNumberStringsReal, 0, 4);
+            return StringUtils.join(typeNumbers, "-");
         }
-
     }
 
     private static class UploadIpGroup{
