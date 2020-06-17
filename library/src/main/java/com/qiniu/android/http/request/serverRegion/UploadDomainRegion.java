@@ -204,22 +204,62 @@ public class UploadDomainRegion implements UploadRegion {
                 return type;
             }
             if (ip.contains(":")) {
-                type = "ipv6";
+                type = getIPV6StringType(ip);
             } else if (ip.contains(".")){
-                String[] ipNumbers = ip.split("\\.");
-                if (ipNumbers.length == 4){
-                    int firstNumber = Integer.parseInt(ipNumbers[0]);
-                    if (firstNumber > 0 && firstNumber < 127) {
-                        type = "ipv4-A-" + firstNumber;
-                    } else if (firstNumber > 127 && firstNumber <= 191) {
-                        type = "ipv4-B-" + firstNumber + ipNumbers[1];
-                    } else if (firstNumber > 191 && firstNumber <= 223) {
-                        type = "ipv4-C-"+ firstNumber + ipNumbers[1] + ipNumbers[2];
-                    }
+                type = getIPV4StringType(ip);
+            }
+            return type;
+        }
+
+        private String getIPV4StringType(String ipv4String){
+            String type = null;
+            String[] ipNumbers = ipv4String.split("\\.");
+            if (ipNumbers.length == 4){
+                int firstNumber = Integer.parseInt(ipNumbers[0]);
+                if (firstNumber > 0 && firstNumber < 127) {
+                    type = "ipv4-A-" + firstNumber;
+                } else if (firstNumber > 127 && firstNumber <= 191) {
+                    type = "ipv4-B-" + firstNumber + ipNumbers[1];
+                } else if (firstNumber > 191 && firstNumber <= 223) {
+                    type = "ipv4-C-"+ firstNumber + ipNumbers[1] + ipNumbers[2];
                 }
             }
             return type;
         }
+
+        private String getIPV6StringType(String ipv4String){
+            String type = null;
+            String[] ipNumberStrings = ipv4String.split(":");
+            String[] ipNumberStringsReal = new String[]{"0000", "0000", "0000", "0000", "0000", "0000", "0000", "0000"};
+            String[] suppleStrings = new String[]{"0000", "000", "00", "0", ""};
+            int i = 0;
+            while (i < ipNumberStrings.length){
+                String ipNumberString = ipNumberStrings[i];
+                if (ipNumberString.length() > 0){
+                    ipNumberString = suppleStrings[ipNumberString.length()] + ipNumberString;
+                    ipNumberStringsReal[i] = ipNumberString;
+                } else {
+                    break;
+                }
+                i++;
+            }
+
+            int j = ipNumberStrings.length - 1;
+            int indexReal = ipNumberStringsReal.length - 1;
+            while (i < j){
+                String ipNumberString = ipNumberStrings[j];
+                if (ipNumberString.length() > 0){
+                    ipNumberString = suppleStrings[ipNumberString.length()] + ipNumberString;
+                    ipNumberStringsReal[indexReal] = ipNumberString;
+                } else {
+                    break;
+                }
+                j--;
+                indexReal--;
+            }
+            return type;
+        }
+
     }
 
     private static class UploadIpGroup{
