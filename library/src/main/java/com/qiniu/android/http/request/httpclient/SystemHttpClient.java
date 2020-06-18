@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.ProtocolException;
 import java.net.Proxy;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -82,22 +83,8 @@ public class SystemHttpClient implements RequestClient {
                 @Override
                 public void onFailure(Call call, IOException e) {
                     e.printStackTrace();
-                    int statusCode = NetworkError;
                     String msg = e.getMessage();
-                    if (msg != null && msg.contains("Canceled")){
-                        statusCode = ResponseInfo.Cancelled;
-                    } else if (e instanceof CancellationHandler.CancellationException) {
-                        statusCode = ResponseInfo.Cancelled;
-                    } else if (e instanceof UnknownHostException) {
-                        statusCode = ResponseInfo.UnknownHost;
-                    } else if (msg != null && msg.indexOf("Broken pipe") == 0) {
-                        statusCode = ResponseInfo.NetworkConnectionLost;
-                    } else if (e instanceof SocketTimeoutException) {
-                        statusCode = ResponseInfo.TimedOut;
-                    } else if (e instanceof java.net.ConnectException) {
-                        statusCode = ResponseInfo.CannotConnectToHost;
-                    }
-                    handleError(request, statusCode, msg, complete);
+                    handleError(request, getStatusCodeByException(e), msg, complete);
                 }
 
                 @Override
@@ -112,20 +99,8 @@ public class SystemHttpClient implements RequestClient {
                 handleResponse(request, response, complete);
             } catch (Exception e) {
                 e.printStackTrace();
-                int statusCode = NetworkError;
                 String msg = e.getMessage();
-                if (e instanceof UnknownHostException) {
-                    statusCode = ResponseInfo.UnknownHost;
-                } else if (msg != null && msg.indexOf("Broken pipe") == 0) {
-                    statusCode = ResponseInfo.NetworkConnectionLost;
-                } else if (e instanceof SocketTimeoutException) {
-                    statusCode = ResponseInfo.TimedOut;
-                } else if (e instanceof java.net.ConnectException) {
-                    statusCode = ResponseInfo.CannotConnectToHost;
-                } else if(e instanceof SSLException){
-                    statusCode = ResponseInfo.NetworkSSLError;
-                }
-                handleError(request, statusCode, msg, complete);
+                handleError(request, getStatusCodeByException(e), msg, complete);
             }
 
         }
@@ -320,9 +295,9 @@ public class SystemHttpClient implements RequestClient {
     }
 
     private synchronized void handleError(Request request,
-                             int responseCode,
-                             String errorMsg,
-                             RequestClientCompleteHandler complete){
+                                          int responseCode,
+                                          String errorMsg,
+                                          RequestClientCompleteHandler complete){
         if (metrics == null || metrics.response != null) {
             return;
         }
@@ -335,8 +310,8 @@ public class SystemHttpClient implements RequestClient {
     }
 
     private synchronized void handleResponse(Request request,
-                                okhttp3.Response response,
-                                RequestClientCompleteHandler complete){
+                                             okhttp3.Response response,
+                                             RequestClientCompleteHandler complete){
         if (metrics == null || metrics.response != null) {
             return;
         }
@@ -364,15 +339,16 @@ public class SystemHttpClient implements RequestClient {
             errorMessage = response.message();
         } else if (responseContentType(response) != "application/json"){
             String responseString = new String(responseBody);
-            if (responseString != null && responseString.length() > 0){
+            if (responseString.length() > 0){
                 try {
                     responseJson = new JSONObject(responseString);
-                } catch (Exception e) {}
+                } catch (Exception ignored) {}
             }
         } else {
             try {
                 responseJson = buildJsonResp(responseBody);
             } catch (Exception e) {
+                statusCode = ResponseInfo.PasrseError;
                 errorMessage = e.getMessage();
             }
         }
@@ -396,6 +372,27 @@ public class SystemHttpClient implements RequestClient {
             return "";
         }
         return mediaType.type() + "/" + mediaType.subtype();
+    }
+
+    private int getStatusCodeByException(Exception e){
+        int statusCode = NetworkError;
+        String msg = e.getMessage();
+        if (msg != null && msg.contains("Canceled")){
+            statusCode = ResponseInfo.Cancelled;
+        } else if (e instanceof CancellationHandler.CancellationException) {
+            statusCode = ResponseInfo.Cancelled;
+        } else if (e instanceof UnknownHostException) {
+            statusCode = ResponseInfo.UnknownHost;
+        } else if (msg != null && msg.indexOf("Broken pipe") == 0) {
+            statusCode = ResponseInfo.NetworkConnectionLost;
+        } else if (e instanceof SocketTimeoutException) {
+            statusCode = ResponseInfo.TimedOut;
+        } else if (e instanceof java.net.ConnectException) {
+            statusCode = ResponseInfo.CannotConnectToHost;
+        } else if (e instanceof ProtocolException) {
+            statusCode = ResponseInfo.NetworkProtocolError;
+        }
+        return statusCode;
     }
 
     private static JSONObject buildJsonResp(byte[] body) throws Exception {

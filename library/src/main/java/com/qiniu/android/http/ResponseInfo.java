@@ -22,6 +22,7 @@ public final class ResponseInfo {
     public static final int Cancelled = -2;
     public static final int NetworkError = -1;
     public static final int LocalIOError = -7;
+    public static final int MaliciousResponseError = -8;
 
     public static final int Crc32NotMatch = -406;
 
@@ -33,7 +34,9 @@ public final class ResponseInfo {
     public static final int CannotConnectToHost = -1004;
     public static final int NetworkConnectionLost = -1005;
     public static final int NetworkSSLError = -1200;
-
+    public static final int NetworkProtocolError = 100;
+    public static final int NetworkSlow = -1009;
+    public static final int PasrseError= -1015;
 
     // -->
     /**
@@ -170,6 +173,13 @@ public final class ResponseInfo {
                 xvia = responseHeader.get("fw-via");
             }
         }
+
+        if (response != null && (reqId == null || xlog == null)){
+            responseCode = MaliciousResponseError;
+            errorMessage = "this is a malicious response";
+            response = null;
+        }
+
         ResponseInfo responseInfo = new ResponseInfo(response, responseHeader, responseCode, reqId, xlog, xvia, host, errorMessage);
         return responseInfo;
     }

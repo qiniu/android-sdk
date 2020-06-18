@@ -118,26 +118,28 @@ public class ReportItem {
 
         } else if (responseInfo.statusCode > 299 && responseInfo.statusCode < 600){
             errorType = "response_error";
-        } else if (responseInfo.statusCode == ResponseInfo.InvalidFile
-                || responseInfo.statusCode == -1009){
+        } else if (responseInfo.statusCode == ResponseInfo.NetworkError){
             errorType = "network_error";
-        } else if (responseInfo.statusCode == -1001){
+        } else if (responseInfo.statusCode == ResponseInfo.TimedOut){
             errorType = "timeout";
-        } else if (responseInfo.statusCode == -1004){
+        } else if (responseInfo.statusCode == ResponseInfo.CannotConnectToHost){
             errorType = "cannot_connect_to_host";
-        } else if (responseInfo.statusCode == -1005 || responseInfo.statusCode == -1011){
+        } else if (responseInfo.statusCode == ResponseInfo.NetworkConnectionLost){
             errorType = "transmission_error";
-        } else if (responseInfo.statusCode == -2001 ||responseInfo.statusCode == -9807){
+        } else if (responseInfo.statusCode == ResponseInfo.NetworkSSLError){
             errorType = "ssl_error";
-        } else if (responseInfo.statusCode == -1015 || responseInfo.statusCode == -1016 || responseInfo.statusCode == -1017){
+        } else if (responseInfo.statusCode == ResponseInfo.PasrseError){
             errorType = "parse_error";
-        } else if (responseInfo.statusCode == -1007 || responseInfo.statusCode == -1010){
+        } else if (responseInfo.statusCode == ResponseInfo.MaliciousResponseError){
             errorType = "malicious_response";
-        } else if (responseInfo.statusCode == ResponseInfo.Cancelled
-                || responseInfo.statusCode == -999){
+        } else if (responseInfo.statusCode == ResponseInfo.Cancelled){
             errorType = "user_canceled";
         } else if (responseInfo.statusCode == ResponseInfo.LocalIOError){
             errorType = "local_io_error";
+        } else if (responseInfo.statusCode == ResponseInfo.NetworkProtocolError){
+            errorType = "protocol_error";
+        } else if (responseInfo.statusCode == ResponseInfo.NetworkSlow){
+            errorType = "network_slow";
         } else {
             errorType = "unknown_error";
         }
@@ -157,24 +159,21 @@ public class ReportItem {
         } else if (responseInfo.statusCode == ResponseInfo.InvalidToken
                 || responseInfo.statusCode == ResponseInfo.InvalidArgument){
             result = "invalid_args";
-        } else if (responseInfo.statusCode == ResponseInfo.Cancelled
-                || responseInfo.statusCode == -999){
+        } else if (responseInfo.statusCode == ResponseInfo.Cancelled){
             result = "user_canceled";
         } else if (responseInfo.statusCode == ResponseInfo.NetworkError){
-            result = "zero_size_file";
-        } else if (responseInfo.statusCode == -1009){
             result = "network_error";
-        } else if (responseInfo.statusCode == -1001){
+        } else if (responseInfo.statusCode == ResponseInfo.TimedOut){
             result = "timeout";
-        } else if (responseInfo.statusCode == -1004){
+        } else if (responseInfo.statusCode == ResponseInfo.CannotConnectToHost){
             result = "cannot_connect_to_host";
-        } else if (responseInfo.statusCode == -1005 || responseInfo.statusCode == -1011){
+        } else if (responseInfo.statusCode == ResponseInfo.NetworkConnectionLost){
             result = "transmission_error";
-        } else if (responseInfo.statusCode == -2001 ||responseInfo.statusCode == -9807){
+        } else if (responseInfo.statusCode == ResponseInfo.NetworkSSLError){
             result = "ssl_error";
-        } else if (responseInfo.statusCode == -1015 || responseInfo.statusCode == -1016 || responseInfo.statusCode == -1017){
+        } else if (responseInfo.statusCode == ResponseInfo.PasrseError){
             result = "parse_error";
-        } else if (responseInfo.statusCode == -1007 || responseInfo.statusCode == -1010){
+        } else if (responseInfo.statusCode == ResponseInfo.MaliciousResponseError){
             result = "malicious_response";
         } else {
             result = "unknown_error";
