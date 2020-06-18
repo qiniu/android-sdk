@@ -31,17 +31,30 @@ public class ZoneInfo {
     public String regionId;
     public ArrayList<String> allHosts;
     public JSONObject detailInfo;
-    
+
     public static ZoneInfo buildInfo(ArrayList<String> mainHosts,
+                                     ArrayList<String> ioHosts){
+        return buildInfo(mainHosts, null, ioHosts);
+    }
+
+    public static ZoneInfo buildInfo(ArrayList<String> mainHosts,
+                                     ArrayList<String> oldHosts,
                                      ArrayList<String> ioHosts){
         if (mainHosts == null){
             return null;
         }
 
-        HashMap<String, Object> up_acc = new HashMap<>();
         HashMap<String, Object> up = new HashMap<>();
+
+        HashMap<String, Object> up_acc = new HashMap<>();
         up_acc.put("main", mainHosts);
         up.put("acc", up_acc);
+
+        if (oldHosts != null){
+            HashMap<String, Object> up_old_acc = new HashMap<>();
+            up_old_acc.put("main", oldHosts);
+            up.put("old_acc", up_old_acc);
+        }
 
         HashMap<String, Object> io_src = new HashMap<>();
         HashMap<String, Object> io = new HashMap<>();
