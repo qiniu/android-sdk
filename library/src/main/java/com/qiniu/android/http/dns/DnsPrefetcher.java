@@ -90,7 +90,7 @@ public class DnsPrefetcher {
         endPreFetch();
     }
 
-    public boolean checkAndPrefetchDnsIfNeed(Zone currentZone, String token){
+    public boolean checkAndPrefetchDnsIfNeed(Zone currentZone, UpToken token){
         if (!prepareToPreFetch()){
             return false;
         }
@@ -322,7 +322,7 @@ public class DnsPrefetcher {
     }
 
 
-    private String[] getAllPreHost(Zone currentZone, String token){
+    private String[] getAllPreHost(Zone currentZone, UpToken token){
 
         HashSet<String> fetchHosts = new HashSet<String>();
 
@@ -338,13 +338,13 @@ public class DnsPrefetcher {
         return fetchHosts.toArray(new String[0]);
     }
 
-    private String[] getCurrentZoneHosts(Zone currentZone, String token){
+    private String[] getCurrentZoneHosts(Zone currentZone, UpToken token){
         if (currentZone == null || token == null){
             return null;
         }
 
         final CountDownLatch completeSignal = new CountDownLatch(1);
-        currentZone.preQuery(UpToken.parse(token), new Zone.QueryHandler() {
+        currentZone.preQuery(token, new Zone.QueryHandler() {
             @Override
             public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics) {
                 completeSignal.countDown();
@@ -354,7 +354,7 @@ public class DnsPrefetcher {
             completeSignal.await(30, TimeUnit.SECONDS);
         } catch (InterruptedException e) {}
 
-        ZonesInfo autoZonesInfo = currentZone.getZonesInfo(UpToken.parse(token));
+        ZonesInfo autoZonesInfo = currentZone.getZonesInfo(token);
         ArrayList<String> autoHosts = new ArrayList<>();
         for (ZoneInfo zoneInfo : autoZonesInfo.zonesInfo) {
             if (zoneInfo != null && zoneInfo.allHosts != null){

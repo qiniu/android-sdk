@@ -3,6 +3,7 @@ package com.qiniu.android;
 import com.qiniu.android.common.AutoZone;
 import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.http.dns.DnsPrefetcher;
+import com.qiniu.android.storage.UpToken;
 
 import java.util.List;
 
@@ -52,7 +53,7 @@ public class DnsApiTest extends BaseTest {
         FixedZone fixedZone = new FixedZone(new String[]{host});
 
         final DnsPrefetcher dnsPrefetcher = DnsPrefetcher.getInstance();
-        dnsPrefetcher.checkAndPrefetchDnsIfNeed(fixedZone, TestConfig.token_z0);
+        dnsPrefetcher.checkAndPrefetchDnsIfNeed(fixedZone, UpToken.parse(TestConfig.token_z0));
 
         wait(new WaitConditional() {
             @Override
@@ -81,7 +82,7 @@ public class DnsApiTest extends BaseTest {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    boolean isSuccess = dnsPrefetcher.checkAndPrefetchDnsIfNeed(zone, TestConfig.token_z0);
+                    boolean isSuccess = dnsPrefetcher.checkAndPrefetchDnsIfNeed(zone, UpToken.parse(TestConfig.token_z0));
                     synchronized (this){
                         if (isSuccess){
                             param.successCount += 1;

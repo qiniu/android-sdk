@@ -1,6 +1,7 @@
 package com.qiniu.android.http.dns;
 
 import com.qiniu.android.common.Zone;
+import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.transaction.TransactionManager;
 
 /**
@@ -30,17 +31,17 @@ public class DnsPrefetchTransaction {
 
 
     public static synchronized boolean addDnsCheckAndPrefetchTransaction(final Zone currentZone,
-                                                                         final String token){
-        if (token == null || token.length() == 0){
+                                                                         final UpToken token){
+        if (token == null || token.token == null || token.token.length() == 0){
             return false;
         }
 
         TransactionManager manager = TransactionManager.getInstance();
-        if (manager.existTransactionsForName(token)){
+        if (manager.existTransactionsForName(token.token)){
             return false;
         }
 
-        TransactionManager.Transaction loadDns = new TransactionManager.Transaction(token, 0, new Runnable() {
+        TransactionManager.Transaction loadDns = new TransactionManager.Transaction(token.token, 0, new Runnable() {
             @Override
             public void run() {
                 DnsPrefetcher.getInstance().checkAndPrefetchDnsIfNeed(currentZone, token);

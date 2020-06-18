@@ -3,6 +3,7 @@ package com.qiniu.android;
 import com.qiniu.android.common.AutoZone;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.dns.DnsPrefetchTransaction;
+import com.qiniu.android.storage.UpToken;
 
 
 /**
@@ -59,7 +60,7 @@ public class DnsTransactionTest extends BaseTest {
                 @Override
                 public void run() {
 
-                    boolean isSuccess = DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(zone, TestConfig.token_z0);
+                    boolean isSuccess = DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(zone, UpToken.parse(TestConfig.token_z0));
                     if (isSuccess){
                         successCount += 1;
                     }

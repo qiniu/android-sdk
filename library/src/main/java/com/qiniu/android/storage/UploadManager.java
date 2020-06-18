@@ -223,7 +223,7 @@ public class UploadManager {
             return;
         }
 
-        DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(config.zone, token);
+        DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(config.zone, t);
 
 
         BaseUpload.UpTaskCompletionHandler completionHandlerP = new BaseUpload.UpTaskCompletionHandler() {
@@ -249,7 +249,7 @@ public class UploadManager {
             return;
         }
 
-        DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(config.zone, token);
+        DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(config.zone, t);
 
         if (file.length() <= config.putThreshold) {
             ResponseInfo errorInfo = null;
