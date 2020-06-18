@@ -26,6 +26,7 @@ build/
 
 # System
 .DS_Store
+java_pid*
 
 # Android Studio
 .idea/workspace.xml
