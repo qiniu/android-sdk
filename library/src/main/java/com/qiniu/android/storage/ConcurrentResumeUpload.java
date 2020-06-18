@@ -123,29 +123,31 @@ public class ConcurrentResumeUpload extends PartsUpload {
             return;
         }
 
-        final UploadFileInfo.UploadData chunk = uploadFileInfo.nextUploadData();
-        UploadFileInfo.UploadBlock block = chunk != null ? uploadFileInfo.blockWithIndex(chunk.blockIndex) : null;
+        synchronized (this) {
+            final UploadFileInfo.UploadData chunk = uploadFileInfo.nextUploadData();
+            UploadFileInfo.UploadBlock block = chunk != null ? uploadFileInfo.blockWithIndex(chunk.blockIndex) : null;
 
-        RequestProgressHandler progressHandler = new RequestProgressHandler() {
-            @Override
-            public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
-                chunk.progress = (double)totalBytesWritten / (double)totalBytesExpectedToWrite;
-                double percent = uploadFileInfo.progress();
-                if (percent > 0.95){
-                    percent = 0.95;
+            RequestProgressHandler progressHandler = new RequestProgressHandler() {
+                @Override
+                public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
+                    chunk.progress = (double) totalBytesWritten / (double) totalBytesExpectedToWrite;
+                    double percent = uploadFileInfo.progress();
+                    if (percent > 0.95) {
+                        percent = 0.95;
+                    }
+                    if (percent > previousPercent) {
+                        previousPercent = percent;
+                    } else {
+                        percent = previousPercent;
+                    }
+                    option.progressHandler.progress(key, percent);
                 }
-                if (percent > previousPercent){
-                    previousPercent = percent;
-                } else {
-                    percent = previousPercent;
-                }
-                option.progressHandler.progress(key, percent);
+            };
+            if (chunk != null) {
+                makeBlock(block, chunk, progressHandler, completeHandler);
+            } else {
+                completeHandler.complete();
             }
-        };
-        if (chunk != null){
-            makeBlock(block, chunk, progressHandler, completeHandler);
-        } else {
-            completeHandler.complete();
         }
     }
 

@@ -130,7 +130,7 @@ public class ConcurrentResumeUploadTest extends BaseTest {
         String[] s = new String[]{"up.qbox.me"};
         Zone z = new FixedZone(s);
         Configuration c = new Configuration.Builder()
-                .zone(z).useHttps(true)
+                .zone(z).useConcurrentResumeUpload(true).useHttps(true)
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
         final UploadOptions options = getUploadOptions();

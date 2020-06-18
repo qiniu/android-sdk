@@ -82,7 +82,7 @@ public class HttpSingleRequest {
             }
         };
 
-        LogUtil.w(("== request host:" + request.host + " ip:" + request.ip));
+        LogUtil.w(("== request url:" + request.urlString + " ip:" + request.ip));
         client.request(request, isAsync, config.proxy, new RequestClient.RequestClientProgress() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
@@ -117,9 +117,8 @@ public class HttpSingleRequest {
                         try {
                             Thread.sleep(config.retryInterval);
                         } catch (InterruptedException ignored) {
-                        } finally {
-                            retryRequest(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, completeHandler);
                         }
+                        retryRequest(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, completeHandler);
                     }
                 } else {
                     completeAction(responseInfo, response, metrics, completeHandler);
