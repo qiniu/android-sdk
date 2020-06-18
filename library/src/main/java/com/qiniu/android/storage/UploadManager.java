@@ -7,6 +7,7 @@ import com.qiniu.android.http.dns.DnsPrefetchTransaction;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.Utils;
+import com.qiniu.android.utils.Wait;
 
 import org.json.JSONObject;
 
@@ -15,8 +16,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+
 
 public class UploadManager {
 
@@ -119,7 +119,8 @@ public class UploadManager {
                                 String token,
                                 UploadOptions options) {
 
-        final CountDownLatch completeSingle = new CountDownLatch(1);
+        final Wait wait = new Wait();
+
         final ArrayList<ResponseInfo> responseInfos = new ArrayList<ResponseInfo>();
         UpCompletionHandler completionHandler = new UpCompletionHandler() {
             @Override
@@ -127,16 +128,13 @@ public class UploadManager {
                 if (info != null) {
                     responseInfos.add(info);
                 }
-                completeSingle.countDown();
+                wait.stopWait();
             }
         };
 
         if (!checkAndNotifyError(key, token, data, completionHandler)){
             putData(data, null, key, token, options, completionHandler);
-            try {
-                completeSingle.await(1200, TimeUnit.SECONDS);
-            } catch (InterruptedException ignored) {
-            }
+            wait.startWait();
         }
 
         if (responseInfos.size() > 0){
@@ -224,7 +222,6 @@ public class UploadManager {
         }
 
         DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(config.zone, t);
-
 
         BaseUpload.UpTaskCompletionHandler completionHandlerP = new BaseUpload.UpTaskCompletionHandler() {
             @Override

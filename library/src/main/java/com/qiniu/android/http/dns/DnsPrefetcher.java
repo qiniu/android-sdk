@@ -13,6 +13,7 @@ import com.qiniu.android.storage.persistent.DnsCacheFile;
 import com.qiniu.android.utils.AndroidNetwork;
 import com.qiniu.android.utils.UrlSafeBase64;
 import com.qiniu.android.utils.Utils;
+import com.qiniu.android.utils.Wait;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -27,8 +28,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Created by yangsen on 2020/5/28
@@ -343,16 +342,16 @@ public class DnsPrefetcher {
             return null;
         }
 
-        final CountDownLatch completeSignal = new CountDownLatch(1);
+        final Wait wait = new Wait();
+
         currentZone.preQuery(token, new Zone.QueryHandler() {
             @Override
             public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics) {
-                completeSignal.countDown();
+                wait.stopWait();
             }
         });
-        try {
-            completeSignal.await(30, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {}
+
+        wait.startWait();
 
         ZonesInfo autoZonesInfo = currentZone.getZonesInfo(token);
         ArrayList<String> autoHosts = new ArrayList<>();
