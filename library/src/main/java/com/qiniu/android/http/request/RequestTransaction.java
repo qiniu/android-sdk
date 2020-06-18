@@ -81,7 +81,7 @@ public class RequestTransaction {
         this.uploadOption = uploadOption;
         this.key = key;
         this.token = token;
-        this.userAgent = UserAgent.instance().getUa((token.accessKey != null ? token.accessKey : "pandora"));
+        this.userAgent = UserAgent.instance().getUa((token.accessKey != null ? token.accessKey : ""));
     }
 
     private void initData(UploadRegion targetRegion,
@@ -96,25 +96,21 @@ public class RequestTransaction {
     }
 
 
-    public void queryUploadHosts(boolean isAsyn,
+    public void queryUploadHosts(boolean isAsync,
                                  final RequestCompleteHandler completeHandler){
         requestInfo.requestType = UploadRequestInfo.RequestTypeUCQuery;
 
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
             @Override
             public boolean shouldRetry(ResponseInfo responseInfo, JSONObject response) {
-                if (!responseInfo.isOK()){
-                    return true;
-                } else {
-                    return false;
-                }
+                return !responseInfo.isOK();
             }
         };
 
         HashMap<String, String> header = new HashMap<>();
         header.put("User-Agent", userAgent);
         String action = "/v3/query?ak=" + (token.accessKey != null ? token.accessKey : "") + "&bucket=" + (token.bucket != null ? token.bucket : "") ;
-        regionRequest.get(action, isAsyn, header, shouldRetryHandler, new HttpRegionRequest.RequestCompleteHandler() {
+        regionRequest.get(action, isAsync, header, shouldRetryHandler, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 completeHandler.complete(responseInfo, requestMetrics, response);
@@ -124,7 +120,7 @@ public class RequestTransaction {
 
     public void uploadFormData(byte[] data,
                                String fileName,
-                               boolean isAsyn,
+                               boolean isAsync,
                                final RequestProgressHandler progressHandler,
                                final RequestCompleteHandler completeHandler){
 
@@ -178,17 +174,13 @@ public class RequestTransaction {
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
             @Override
             public boolean shouldRetry(ResponseInfo responseInfo, JSONObject response) {
-            if (!responseInfo.isOK()){
-                return true;
-            } else {
-                return false;
-            }
+                return ! responseInfo.isOK();
             }
         };
-        regionRequest.post(null, isAsyn, body, header, shouldRetryHandler, progressHandler, new HttpRegionRequest.RequestCompleteHandler() {
+        regionRequest.post(null, isAsync, body, header, shouldRetryHandler, progressHandler, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-            completeHandler.complete(responseInfo, requestMetrics, response);
+                completeHandler.complete(responseInfo, requestMetrics, response);
             }
         });
     }
@@ -196,7 +188,7 @@ public class RequestTransaction {
     public void makeBlock(long blockOffset,
                           long blockSize,
                           byte[] firstChunkData,
-                          boolean isAsyn,
+                          boolean isAsync,
                           final RequestProgressHandler progressHandler,
                           final RequestCompleteHandler completeHandler){
 
@@ -214,29 +206,24 @@ public class RequestTransaction {
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
             @Override
             public boolean shouldRetry(ResponseInfo responseInfo, JSONObject response) {
-            if (response == null) {
-                return true;
-            }
+                if (response == null) {
+                    return true;
+                }
 
-            String ctx = null;
-            String crcServer = null;
-            try {
-                ctx = response.getString("ctx");
-                crcServer = String.valueOf(response.getLong("crc32"));
-            } catch (JSONException e) {}
+                String ctx = null;
+                String crcServer = null;
+                try {
+                    ctx = response.getString("ctx");
+                    crcServer = String.valueOf(response.getLong("crc32"));
+                } catch (JSONException e) {}
 
-            if (!responseInfo.isOK()
-                || ctx == null || crcServer == null || (!chunkCrc.equals(crcServer))){
-                return true;
-            } else {
-                return false;
-            }
+                return !responseInfo.isOK() || ctx == null || crcServer == null || !chunkCrc.equals(crcServer);
             }
         };
-        regionRequest.post(action, isAsyn, firstChunkData, header, shouldRetryHandler, progressHandler, new HttpRegionRequest.RequestCompleteHandler() {
+        regionRequest.post(action, isAsync, firstChunkData, header, shouldRetryHandler, progressHandler, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-            completeHandler.complete(responseInfo, requestMetrics, response);
+                completeHandler.complete(responseInfo, requestMetrics, response);
             }
         });
     }
@@ -245,7 +232,7 @@ public class RequestTransaction {
                             long blockOffset,
                             byte[] chunkData,
                             long chunkOffest,
-                            boolean isAsyn,
+                            boolean isAsync,
                             final RequestProgressHandler progressHandler,
                             final RequestCompleteHandler completeHandler){
 
@@ -266,29 +253,24 @@ public class RequestTransaction {
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
             @Override
             public boolean shouldRetry(ResponseInfo responseInfo, JSONObject response) {
-            if (response == null) {
-                return true;
-            }
+                if (response == null) {
+                    return true;
+                }
 
-            String ctx = null;
-            String crcServer = null;
-            try {
-                ctx = response.getString("ctx");
-                crcServer = String.valueOf(response.getLong("crc32"));
-            } catch (JSONException e) {}
+                String ctx = null;
+                String crcServer = null;
+                try {
+                    ctx = response.getString("ctx");
+                    crcServer = String.valueOf(response.getLong("crc32"));
+                } catch (JSONException e) {}
 
-            if (!responseInfo.isOK()
-                || ctx == null || crcServer == null || (!chunkCrc.equals(crcServer))){
-                return true;
-            } else {
-                return false;
-            }
+                return ! responseInfo.isOK() || ctx == null || crcServer == null || !chunkCrc.equals(crcServer);
             }
         };
-        regionRequest.post(action, isAsyn, chunkData, header, shouldRetryHandler, progressHandler, new HttpRegionRequest.RequestCompleteHandler() {
+        regionRequest.post(action, isAsync, chunkData, header, shouldRetryHandler, progressHandler, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-            completeHandler.complete(responseInfo, requestMetrics, response);
+                completeHandler.complete(responseInfo, requestMetrics, response);
             }
         });
     }
@@ -296,7 +278,7 @@ public class RequestTransaction {
     public void makeFile(long fileSize,
                          String fileName,
                          String[] blockContexts,
-                         boolean isAsyn,
+                         boolean isAsync,
                          final RequestCompleteHandler completeHandler){
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeMkfile;
@@ -339,24 +321,20 @@ public class RequestTransaction {
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
             @Override
             public boolean shouldRetry(ResponseInfo responseInfo, JSONObject response) {
-            if (!responseInfo.isOK()){
-                return true;
-            } else {
-                return false;
-            }
+                return !responseInfo.isOK();
             }
         };
-        regionRequest.post(action, isAsyn, body, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
+        regionRequest.post(action, isAsync, body, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-            completeHandler.complete(responseInfo, requestMetrics, response);
+                completeHandler.complete(responseInfo, requestMetrics, response);
             }
         });
     }
 
     public void reportLog(byte[] logData,
                           String logClientId,
-                          boolean isAsyn,
+                          boolean isAsync,
                           final RequestCompleteHandler completeHandler){
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeUpLog;
@@ -374,14 +352,10 @@ public class RequestTransaction {
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
             @Override
             public boolean shouldRetry(ResponseInfo responseInfo, JSONObject response) {
-                if (!responseInfo.isOK()){
-                    return true;
-                } else {
-                    return false;
-                }
+                return !responseInfo.isOK();
             }
         };
-        regionRequest.post("/log/4", isAsyn, logData, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
+        regionRequest.post("/log/4", isAsync, logData, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 completeHandler.complete(responseInfo, requestMetrics, response);

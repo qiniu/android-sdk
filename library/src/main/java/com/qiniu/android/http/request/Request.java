@@ -33,10 +33,6 @@ public class Request {
     }
 
     public boolean isValid() {
-        if (this.urlString == null || httpMethod == null) {
-            return true;
-        } else {
-            return false;
-        }
+        return this.urlString == null || httpMethod == null;
     }
 }

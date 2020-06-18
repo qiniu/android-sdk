@@ -59,7 +59,7 @@ public class SystemHttpClient implements RequestClient {
 
     @Override
     public void request(final Request request,
-                        boolean isAsync,
+                        boolean isAsyncc,
                         ProxyConfiguration connectionProxy,
                         RequestClientProgress progress,
                         final RequestClientCompleteHandler complete) {
@@ -78,7 +78,7 @@ public class SystemHttpClient implements RequestClient {
         ResponseTag tag = new ResponseTag();
         call = httpClient.newCall(requestBuilder.tag(tag).build());
 
-        if (isAsync){
+        if (isAsyncc){
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {

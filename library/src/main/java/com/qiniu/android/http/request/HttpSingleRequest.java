@@ -48,24 +48,24 @@ public class HttpSingleRequest {
     }
 
     public void request(Request request,
-                        boolean isAsyn,
-                        boolean isSkipDns,
+                        boolean isAsync,
+                        boolean toSkipDns,
                         RequestShouldRetryHandler shouldRetryHandler,
                         RequestProgressHandler progressHandler,
                         RequestCompleteHandler completeHandler){
         currentRetryTime = 1;
         requestMetricsList = new ArrayList<>();
-        retryRequest(request, isAsyn, isSkipDns, shouldRetryHandler, progressHandler, completeHandler);
+        retryRequest(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, completeHandler);
     }
 
     private void retryRequest(final Request request,
-                              final boolean isAsyn,
-                              final boolean isSkipDns,
+                              final boolean isAsync,
+                              final boolean toSkipDns,
                               final RequestShouldRetryHandler shouldRetryHandler,
                               final RequestProgressHandler progressHandler,
                               final RequestCompleteHandler completeHandler){
 
-        if (isSkipDns){
+        if (toSkipDns){
             client = new SystemHttpClient();
         } else {
             client = new SystemHttpClient();
@@ -74,16 +74,16 @@ public class HttpSingleRequest {
         final CheckCancelHandler checkCancelHandler = new CheckCancelHandler() {
             @Override
             public boolean checkCancel() {
-                boolean isCancel = requstState.getIsUserCancel();
-                if (! isCancel && uploadOption.cancellationSignal != null) {
-                    isCancel = uploadOption.cancellationSignal.isCancelled();
+                boolean isCancelled = requstState.isUserCancel();
+                if (! isCancelled && uploadOption.cancellationSignal != null) {
+                    isCancelled = uploadOption.cancellationSignal.isCancelled();
                 }
-                return isCancel;
+                return isCancelled;
             }
         };
 
         LogUtil.w(("== request host:" + request.host + " ip:" + request.ip));
-        client.request(request, isAsyn, config.proxy, new RequestClient.RequestClientProgress() {
+        client.request(request, isAsync, config.proxy, new RequestClient.RequestClientProgress() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
                 if (checkCancelHandler.checkCancel()) {
@@ -106,11 +106,11 @@ public class HttpSingleRequest {
                     && responseInfo.couldHostRetry()){
                     currentRetryTime += 1;
 
-                    if (isAsyn) {
+                    if (isAsync) {
                         AsyncRun.runInBack(config.retryInterval, new Runnable() {
                             @Override
                             public void run() {
-                                retryRequest(request, isAsyn, isSkipDns, shouldRetryHandler, progressHandler, completeHandler);
+                                retryRequest(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, completeHandler);
                             }
                         });
                     } else {
@@ -118,7 +118,7 @@ public class HttpSingleRequest {
                             Thread.sleep(config.retryInterval);
                         } catch (InterruptedException ignored) {
                         } finally {
-                            retryRequest(request, isAsyn, isSkipDns, shouldRetryHandler, progressHandler, completeHandler);
+                            retryRequest(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, completeHandler);
                         }
                     }
                 } else {

@@ -9,7 +9,7 @@ import org.json.JSONObject;
 
 public class FormUpload extends BaseUpload {
 
-    private boolean isAsyn = true;
+    private boolean isAsync = true;
     private double previousPercent;
     private RequestTransaction uploadTransaction;
 
@@ -45,7 +45,7 @@ public class FormUpload extends BaseUpload {
                 }
             }
         };
-        uploadTransaction.uploadFormData(data, fileName, isAsyn, progressHandler, new RequestTransaction.RequestCompleteHandler() {
+        uploadTransaction.uploadFormData(data, fileName, isAsync, progressHandler, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 addRegionRequestMetricsOfOneFlow(requestMetrics);

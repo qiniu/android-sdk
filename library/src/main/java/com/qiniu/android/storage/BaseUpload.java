@@ -102,7 +102,7 @@ public abstract class BaseUpload implements Runnable {
                         completeAction(responseInfoP, null);
                     }
                 } else {
-
+                    completeAction(responseInfo, responseInfo.response);
                 }
             }
         });

@@ -43,28 +43,28 @@ public class HttpRegionRequest {
     }
 
     public void get(String action,
-                    boolean isAsyn,
+                    boolean isAsync,
                     Map<String, String>header,
                     RequestShouldRetryHandler shouldRetryHandler,
                     RequestCompleteHandler completeHandler){
         requestMetrics = new UploadRegionRequestMetrics(region);
-        performRequest(getNextServer(null), action, isAsyn, null, header, "GET", shouldRetryHandler, null, completeHandler);
+        performRequest(getNextServer(null), action, isAsync, null, header, "GET", shouldRetryHandler, null, completeHandler);
     }
 
     public void post(String action,
-                     boolean isAsyn,
+                     boolean isAsync,
                      byte[] data,
                      Map<String, String>header,
                      RequestShouldRetryHandler shouldRetryHandler,
                      RequestProgressHandler progressHandler,
                      RequestCompleteHandler completeHandler){
         requestMetrics = new UploadRegionRequestMetrics(region);
-        performRequest(getNextServer(null), action, isAsyn, data, header, "POST", shouldRetryHandler, progressHandler, completeHandler);
+        performRequest(getNextServer(null), action, isAsync, data, header, "POST", shouldRetryHandler, progressHandler, completeHandler);
     }
 
     private void performRequest(UploadServerInterface server,
                                 final String action,
-                                final boolean isAsyn,
+                                final boolean isAsync,
                                 final byte[] data,
                                 final Map<String, String>header,
                                 final String method,
@@ -88,19 +88,19 @@ public class HttpRegionRequest {
 
         currentServer = server;
 
-        boolean isSkipDns;
+        boolean toSkipDns;
         String scheme = config.useHttps ? "https://" : "http://";
         String urlString = scheme + serverHost + (action != null ? action : "");
         if (serverIP != null && serverIP.length() > 0) {
-            isSkipDns = false;
+            toSkipDns = false;
         } else {
-            isSkipDns = true;
+            toSkipDns = true;
         }
         Request request = new Request(urlString, method, header, data, config.connectTimeout);
         request.host = serverHost;
         request.ip = serverIP;
         request.inetAddress = server.getInetAddress();
-        singleRequest.request(request, isAsyn, isSkipDns, shouldRetryHandler, progressHandler, new HttpSingleRequest.RequestCompleteHandler() {
+        singleRequest.request(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, new HttpSingleRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, ArrayList<UploadSingleRequestMetrics> requestMetricsList, JSONObject response) {
 
@@ -112,7 +112,7 @@ public class HttpRegionRequest {
 
                     UploadServerInterface newServer = getNextServer(responseInfo);
                     if (newServer != null){
-                        performRequest(newServer, action, isAsyn, data, header, method, shouldRetryHandler, progressHandler, completeHandler);
+                        performRequest(newServer, action, isAsync, data, header, method, shouldRetryHandler, progressHandler, completeHandler);
                     } else {
                         completeAction(responseInfo, response, completeHandler);
                     }

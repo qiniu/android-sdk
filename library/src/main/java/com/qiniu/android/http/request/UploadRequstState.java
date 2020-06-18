@@ -4,7 +4,7 @@ public class UploadRequstState {
 
     private boolean isUserCancel;
 
-    public boolean getIsUserCancel(){
+    public boolean isUserCancel(){
         return isUserCancel;
     }
 

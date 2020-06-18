@@ -17,10 +17,6 @@ public class UploadRequestInfo {
     public String currentRegionId;
 
     public boolean shouldReportRequestLog(){
-        if (requestType.equals(RequestTypeUpLog)){
-            return false;
-        } else {
-            return true;
-        }
+        return requestType.equals(RequestTypeUpLog);
     }
 }

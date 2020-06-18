@@ -215,15 +215,15 @@ public class UploadDomainRegion implements UploadRegion {
 
         private String getIPV4StringType(String ipv4String){
             String type = null;
-            String[] ipNumbers = ipv4String.split("\\.");
-            if (ipNumbers.length == 4){
-                int firstNumber = Integer.parseInt(ipNumbers[0]);
+            String[] ipNumberStrings = ipv4String.split("\\.");
+            if (ipNumberStrings.length == 4){
+                int firstNumber = Integer.parseInt(ipNumberStrings[0]);
                 if (firstNumber > 0 && firstNumber < 127) {
                     type = "ipv4-A-" + firstNumber;
                 } else if (firstNumber > 127 && firstNumber <= 191) {
-                    type = "ipv4-B-" + firstNumber + ipNumbers[1];
+                    type = "ipv4-B-" + firstNumber + ipNumberStrings[1];
                 } else if (firstNumber > 191 && firstNumber <= 223) {
-                    type = "ipv4-C-"+ firstNumber + ipNumbers[1] + ipNumbers[2];
+                    type = "ipv4-C-"+ firstNumber + ipNumberStrings[1] + ipNumberStrings[2];
                 }
             }
             return type;

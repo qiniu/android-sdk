@@ -19,7 +19,7 @@ public interface RequestClient {
     }
 
     public void request(Request request,
-                        boolean isAsyn,
+                        boolean isAsync,
                         ProxyConfiguration connectionProxy,
                         RequestClientProgress progress,
                         RequestClientCompleteHandler complete);

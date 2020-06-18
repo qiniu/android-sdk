@@ -8,14 +8,14 @@ import com.qiniu.android.transaction.TransactionManager;
  */
 public class DnsPrefetchTransaction {
 
-    private static boolean isLoadedDns = false;
+    private static boolean isDnsLoaded = false;
 
     public static synchronized boolean addDnsLocalLoadTransaction(){
-        if (isLoadedDns){
+        if (isDnsLoaded){
             return false;
         }
 
-        isLoadedDns = true;
+        isDnsLoaded = true;
 
         TransactionManager.Transaction loadDns = new TransactionManager.Transaction("loadDns", 0, new Runnable() {
             @Override

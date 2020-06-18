@@ -80,7 +80,9 @@ public final class UserAgent {
 
     public String getUa(String part) {
         String _part = ("" + part).trim();
-        _part = _part.substring(0, Math.min(16, _part.length()));
+        if (_part.length() > 15) {
+            _part = _part.substring(0, Math.min(16, _part.length()));
+        }
         return new String((ua + "; " + _part + ")").getBytes(Charset.forName("ISO-8859-1")));
     }
 

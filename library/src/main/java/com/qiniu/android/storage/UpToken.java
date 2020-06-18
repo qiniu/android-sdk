@@ -9,7 +9,7 @@ import org.json.JSONObject;
  * 内部使用的客户端 token 检查.
  */
 public final class UpToken {
-//    public static UpToken NULL = new UpToken("", "", "");
+
     public final String token;
     public final String accessKey;
     public final String bucket;
