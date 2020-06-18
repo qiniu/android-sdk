@@ -1,7 +1,7 @@
 package com.qiniu.android.common;
 
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.request.RequestTranscation;
+import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.storage.UpToken;
 
@@ -20,7 +20,7 @@ public final class AutoZone extends Zone {
      */
     private String ucServer;
     private Map<String, ZonesInfo> ZonesInfoMap = new ConcurrentHashMap<>();
-    private ArrayList<RequestTranscation> transcations = new ArrayList<>();
+    private ArrayList<RequestTransaction> transactions = new ArrayList<>();
 
     //私有云可能改变ucServer
     public void setUcServer(String ucServer) {
@@ -52,8 +52,8 @@ public final class AutoZone extends Zone {
             completeHandler.complete(0, null, null);
             return;
         }
-        final RequestTranscation transcation = createUploadRequestTranscation(token);
-        transcation.quertUploadHosts(true, new RequestTranscation.RequestCompleteHandler() {
+        final RequestTransaction transaction = createUploadRequestTransaction(token);
+        transaction.queryUploadHosts(true, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 if (responseInfo != null && responseInfo.isOK() && response != null){
@@ -69,26 +69,26 @@ public final class AutoZone extends Zone {
                         completeHandler.complete(0, responseInfo, requestMetrics);
                     }
                 }
-                destoryUploadRequestTranscation(transcation);
+                destoryUploadRequestTransaction(transaction);
             }
         });
 
     }
 
 
-    private RequestTranscation createUploadRequestTranscation(UpToken token){
+    private RequestTransaction createUploadRequestTransaction(UpToken token){
         ArrayList<String> hosts = new ArrayList<>();
         hosts.add(getUcServer());
 
         ArrayList<String> ioHosts = new ArrayList<>();
         ioHosts.add(ZoneInfo.SDKDefaultIOHost);
 
-        RequestTranscation transcation = new RequestTranscation(hosts, ioHosts, token);
-        transcations.add(transcation);
-        return transcation;
+        RequestTransaction transaction = new RequestTransaction(hosts, ioHosts, token);
+        transactions.add(transaction);
+        return transaction;
     }
 
-    private void destoryUploadRequestTranscation(RequestTranscation transcation){
-        transcations.remove(transcation);
+    private void destoryUploadRequestTransaction(RequestTransaction transaction){
+        transactions.remove(transaction);
     }
 }

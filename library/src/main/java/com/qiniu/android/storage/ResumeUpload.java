@@ -1,7 +1,7 @@
 package com.qiniu.android.storage;
 
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.request.RequestTranscation;
+import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.request.UploadFileInfo;
 import com.qiniu.android.http.request.UploadRegion;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
@@ -18,7 +18,7 @@ import java.util.ArrayList;
 public class ResumeUpload extends PartsUpload {
 
     private double previousPercent;
-    private RequestTranscation uploadTranscation;
+    private RequestTransaction uploadTransaction;
 
     private ResponseInfo uploadChunkErrorResponseInfo;
     private JSONObject uploadChunkErrorResponse;
@@ -140,8 +140,8 @@ public class ResumeUpload extends PartsUpload {
         chunk.isUploading = true;
         chunk.isCompleted = false;
 
-        RequestTranscation transcation = createUploadRequestTranscation();
-        transcation.makeBlock(block.offset, block.size, chunkData, true, progressHandler, new RequestTranscation.RequestCompleteHandler() {
+        RequestTransaction transaction = createUploadRequestTransaction();
+        transaction.makeBlock(block.offset, block.size, chunkData, true, progressHandler, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
@@ -185,8 +185,8 @@ public class ResumeUpload extends PartsUpload {
         chunk.isUploading = true;
         chunk.isCompleted = false;
 
-        RequestTranscation transcation = createUploadRequestTranscation();
-        transcation.uploadChunk(block.context, block.offset, chunkData, chunk.offset, true, progressHandler, new RequestTranscation.RequestCompleteHandler() {
+        RequestTransaction transaction = createUploadRequestTransaction();
+        transaction.uploadChunk(block.context, block.offset, chunkData, chunk.offset, true, progressHandler, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
@@ -218,7 +218,7 @@ public class ResumeUpload extends PartsUpload {
     private void makeFile(final UploadFileCompleteHandler completeHandler){
         UploadFileInfo uploadFileInfo = getUploadFileInfo();
 
-        RequestTranscation transcation = createUploadRequestTranscation();
+        RequestTransaction transaction = createUploadRequestTransaction();
         ArrayList<String> contextsList = uploadFileInfo.allBlocksContexts();
 
         if (contextsList == null || contextsList.size() == 0){
@@ -228,7 +228,7 @@ public class ResumeUpload extends PartsUpload {
         }
 
         String[] contexts = contextsList.toArray(new String[contextsList.size()]);
-        transcation.makeFile(uploadFileInfo.size, fileName,  contexts, true, new RequestTranscation.RequestCompleteHandler(){
+        transaction.makeFile(uploadFileInfo.size, fileName,  contexts, true, new RequestTransaction.RequestCompleteHandler(){
 
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
@@ -239,10 +239,10 @@ public class ResumeUpload extends PartsUpload {
         });
     }
 
-    private RequestTranscation createUploadRequestTranscation(){
-        RequestTranscation transcation = new RequestTranscation(config, option, getTargetRegion(), getCurrentRegion(), key, token);
-        uploadTranscation = transcation;
-        return transcation;
+    private RequestTransaction createUploadRequestTransaction(){
+        RequestTransaction transaction = new RequestTransaction(config, option, getTargetRegion(), getCurrentRegion(), key, token);
+        uploadTransaction = transaction;
+        return transaction;
     }
 
     private byte[] getDataWithChunk(UploadFileInfo.UploadData chunk,

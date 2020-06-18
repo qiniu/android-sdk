@@ -2,7 +2,7 @@ package com.qiniu.android;
 
 import com.qiniu.android.common.AutoZone;
 import com.qiniu.android.common.Zone;
-import com.qiniu.android.http.dns.DnsPrefrtcherTransaction;
+import com.qiniu.android.http.dns.DnsPrefetchTransaction;
 
 
 /**
@@ -24,7 +24,7 @@ public class DnsTransactionTest extends BaseTest {
                 @Override
                 public void run() {
 
-                    boolean isSuccess = DnsPrefrtcherTransaction.addDnsLocalLoadTransaction();
+                    boolean isSuccess = DnsPrefetchTransaction.addDnsLocalLoadTransaction();
                     if (isSuccess){
                         successCount += 1;
                     }
@@ -59,7 +59,7 @@ public class DnsTransactionTest extends BaseTest {
                 @Override
                 public void run() {
 
-                    boolean isSuccess = DnsPrefrtcherTransaction.addDnsCheckAndPrefetchTransaction(zone, TestConfig.token_z0);
+                    boolean isSuccess = DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(zone, TestConfig.token_z0);
                     if (isSuccess){
                         successCount += 1;
                     }
@@ -94,7 +94,7 @@ public class DnsTransactionTest extends BaseTest {
                 @Override
                 public void run() {
 
-                    boolean isSuccess = DnsPrefrtcherTransaction.setDnsCheckWhetherCachedValidTransactionAction();
+                    boolean isSuccess = DnsPrefetchTransaction.setDnsCheckWhetherCachedValidTransactionAction();
                     if (isSuccess){
                         successCount += 1;
                     }

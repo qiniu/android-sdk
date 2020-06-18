@@ -6,7 +6,7 @@ import com.qiniu.android.transaction.TransactionManager;
 /**
  * Created by yangsen on 2020/6/4
  */
-public class DnsPrefrtcherTransaction {
+public class DnsPrefetchTransaction {
 
     private static boolean isLoadedDns = false;
 

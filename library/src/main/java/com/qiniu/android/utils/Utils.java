@@ -13,7 +13,7 @@ public class Utils {
     }
 
     public static String sdkLanguage(){
-        return "Java";
+        return "Android";
     }
 
     public static Integer getCurrentProcessID(){

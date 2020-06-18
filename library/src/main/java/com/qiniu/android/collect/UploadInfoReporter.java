@@ -4,7 +4,7 @@ package com.qiniu.android.collect;
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
-import com.qiniu.android.http.request.RequestTranscation;
+import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.LogUtil;
@@ -27,10 +27,10 @@ public class UploadInfoReporter {
     private File recorderFile = new File(config.recordDirectory + "/qiniu.log");
     private File recorderTempFile = new File(config.recordDirectory + "/qiniuTemp.log");
     private String X_Log_Client_Id;
-    private RequestTranscation transcation;
+    private RequestTransaction transaction;
 
     // 是否正在向服务上报中
-    private boolean isReportting = false;
+    private boolean isReporting = false;
 
     private static UploadInfoReporter instance = new UploadInfoReporter();
 
@@ -130,32 +130,32 @@ public class UploadInfoReporter {
     }
 
     private void reportToServerIfNeeded(String tokenString){
-        if (isReportting){
+        if (isReporting){
             return;
         }
-        boolean needResport = false;
+        boolean needToResport = false;
         long currentTime = new Date().getTime();
 
         if (recorderTempFile.exists()){
-            needResport = true;
+            needToResport = true;
         } else if ((recorderFile.length() > config.uploadThreshold)
              && (lastReportTime == 0 || (currentTime - lastReportTime) > config.interval * 60)){
             boolean isSuccess = recorderFile.renameTo(recorderTempFile);
             if (isSuccess) {
-                needResport = true;
+                needToResport = true;
             }
         }
-        if (needResport && !this.isReportting){
+        if (needToResport && !this.isReporting){
             reportToServer(tokenString);
         }
     }
 
     private void reportToServer(String tokenString){
 
-        isReportting = true;
+        isReporting = true;
 
-        RequestTranscation transcation = createUploadRequestTranscation(tokenString);
-        if (transcation == null){
+        RequestTransaction transaction = createUploadRequestTransaction(tokenString);
+        if (transaction == null){
             return;
         }
 
@@ -164,7 +164,7 @@ public class UploadInfoReporter {
             return;
         }
 
-        transcation.reportLog(logData, X_Log_Client_Id, true, new RequestTranscation.RequestCompleteHandler() {
+        transaction.reportLog(logData, X_Log_Client_Id, true, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 if (responseInfo.isOK()){
@@ -176,7 +176,7 @@ public class UploadInfoReporter {
                     }
                     cleanTempLogFile();
                 }
-                isReportting = false;
+                isReporting = false;
             }
         });
 
@@ -193,7 +193,6 @@ public class UploadInfoReporter {
         try {
             randomAccessFile = new RandomAccessFile(recorderTempFile, "r");
             data = new byte[(int)length];
-            randomAccessFile.seek(0);
             randomAccessFile.read(data);
         } catch (FileNotFoundException ignored) {
         } catch (IOException e) {
@@ -207,7 +206,7 @@ public class UploadInfoReporter {
         return data;
     }
 
-    private RequestTranscation createUploadRequestTranscation(String tokenString){
+    private RequestTransaction createUploadRequestTransaction(String tokenString){
         if (config == null){
             return null;
         }
@@ -221,8 +220,8 @@ public class UploadInfoReporter {
         ArrayList<String> ioHosts = new ArrayList<>();
         ioHosts.add(ZoneInfo.SDKDefaultIOHost);
 
-        transcation = new RequestTranscation(hosts, ioHosts, token);
-        return transcation;
+        transaction = new RequestTransaction(hosts, ioHosts, token);
+        return transaction;
     }
 
 }

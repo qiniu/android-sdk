@@ -2,16 +2,11 @@ package com.qiniu.android.storage;
 
 import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
-import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.dns.DnsPrefrtcherTransaction;
-import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.http.dns.DnsPrefetchTransaction;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
-import com.qiniu.android.http.request.Request;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.Utils;
-
-import junit.framework.Assert;
 
 import org.json.JSONObject;
 
@@ -20,7 +15,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -49,8 +43,8 @@ public class UploadManager {
      */
     public UploadManager(Configuration config) {
         this.config = config;
-        DnsPrefrtcherTransaction.addDnsLocalLoadTransaction();
-        DnsPrefrtcherTransaction.setDnsCheckWhetherCachedValidTransactionAction();
+        DnsPrefetchTransaction.addDnsLocalLoadTransaction();
+        DnsPrefetchTransaction.setDnsCheckWhetherCachedValidTransactionAction();
     }
 
     /**
@@ -184,7 +178,6 @@ public class UploadManager {
         try {
             randomAccessFile = new RandomAccessFile(file, "r");
             data = new byte[(int)file.length()];
-            randomAccessFile.seek(0);
             randomAccessFile.read(data, 0, (int)file.length());
         } catch (FileNotFoundException e) {
             return ResponseInfo.fileError(e);
@@ -230,7 +223,7 @@ public class UploadManager {
             return;
         }
 
-        DnsPrefrtcherTransaction.addDnsCheckAndPrefetchTransaction(config.zone, token);
+        DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(config.zone, token);
 
 
         BaseUpload.UpTaskCompletionHandler completionHandlerP = new BaseUpload.UpTaskCompletionHandler() {
@@ -256,7 +249,7 @@ public class UploadManager {
             return;
         }
 
-        DnsPrefrtcherTransaction.addDnsCheckAndPrefetchTransaction(config.zone, token);
+        DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(config.zone, token);
 
         if (file.length() <= config.putThreshold) {
             ResponseInfo errorInfo = null;
@@ -264,7 +257,6 @@ public class UploadManager {
             RandomAccessFile randomAccessFile = null;
             try {
                 randomAccessFile = new RandomAccessFile(file, "r");
-                randomAccessFile.seek(0);
                 randomAccessFile.read(data);
             } catch (FileNotFoundException e) {
                 errorInfo = ResponseInfo.localIOError("get upload file data error");

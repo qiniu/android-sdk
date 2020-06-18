@@ -1,7 +1,7 @@
 package com.qiniu.android.storage;
 
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.request.RequestTranscation;
+import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.request.UploadFileInfo;
 import com.qiniu.android.http.request.UploadRegion;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
@@ -21,7 +21,7 @@ public class ConcurrentResumeUpload extends PartsUpload {
     private GroupTaskThread groupTaskThread;
 
     private double previousPercent;
-    private ArrayList<RequestTranscation> uploadTranscations;
+    private ArrayList<RequestTransaction> uploadTransactions;
 
     private ResponseInfo uploadBlockErrorResponseInfo;
     private JSONObject uploadBlockErrorResponse;
@@ -47,7 +47,7 @@ public class ConcurrentResumeUpload extends PartsUpload {
     @Override
     public void startToUpload() {
         previousPercent = 0;
-        uploadTranscations = new ArrayList<RequestTranscation>();
+        uploadTransactions = new ArrayList<RequestTransaction>();
         uploadBlockErrorResponseInfo = null;
         uploadBlockErrorResponse = null;
 
@@ -165,8 +165,8 @@ public class ConcurrentResumeUpload extends PartsUpload {
         chunk.isUploading = true;
         chunk.isCompleted = false;
 
-        RequestTranscation transcation = createUploadRequestTranscation();
-        transcation.makeBlock(block.offset, block.size, chunkData, true, progressHandler, new RequestTranscation.RequestCompleteHandler() {
+        RequestTransaction transaction = createUploadRequestTransaction();
+        transaction.makeBlock(block.offset, block.size, chunkData, true, progressHandler, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
@@ -197,30 +197,30 @@ public class ConcurrentResumeUpload extends PartsUpload {
     private void makeFile(final UploadFileCompleteHandler completeHandler){
         UploadFileInfo uploadFileInfo = getUploadFileInfo();
 
-        final RequestTranscation transcation = createUploadRequestTranscation();
+        final RequestTransaction transaction = createUploadRequestTransaction();
         ArrayList<String> contextsList = uploadFileInfo.allBlocksContexts();
         String[] contexts = contextsList.toArray(new String[contextsList.size()]);
-        transcation.makeFile(uploadFileInfo.size, fileName,  contexts, true, new RequestTranscation.RequestCompleteHandler(){
+        transaction.makeFile(uploadFileInfo.size, fileName,  contexts, true, new RequestTransaction.RequestCompleteHandler(){
 
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
-                destoryUploadRequestTranscation(transcation);
+                destoryUploadRequestTransaction(transaction);
                 completeHandler.complete(responseInfo, response);
             }
         });
     }
 
-    private RequestTranscation createUploadRequestTranscation(){
-        RequestTranscation transcation = new RequestTranscation(config, option, getTargetRegion(), getCurrentRegion(), key, token);
-        uploadTranscations.add(transcation);
-        return transcation;
+    private RequestTransaction createUploadRequestTransaction(){
+        RequestTransaction transaction = new RequestTransaction(config, option, getTargetRegion(), getCurrentRegion(), key, token);
+        uploadTransactions.add(transaction);
+        return transaction;
     }
 
-    private void destoryUploadRequestTranscation(RequestTranscation transcation){
-        if (transcation != null){
-            uploadTranscations.remove(transcation);
+    private void destoryUploadRequestTransaction(RequestTransaction transaction){
+        if (transaction != null){
+            uploadTransactions.remove(transaction);
         }
     }
 

@@ -1,7 +1,7 @@
 package com.qiniu.android.storage;
 
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.request.RequestTranscation;
+import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 
@@ -11,7 +11,7 @@ public class FormUpload extends BaseUpload {
 
     private boolean isAsyn = true;
     private double previousPercent;
-    private RequestTranscation uploadTranscation;
+    private RequestTransaction uploadTransaction;
 
     public FormUpload(byte[] data,
                       String key,
@@ -26,7 +26,7 @@ public class FormUpload extends BaseUpload {
     @Override
     public void startToUpload() {
 
-        uploadTranscation = new RequestTranscation(config, option, getTargetRegion(), getCurrentRegion(), key, token);
+        uploadTransaction = new RequestTransaction(config, option, getTargetRegion(), getCurrentRegion(), key, token);
 
         RequestProgressHandler progressHandler = new RequestProgressHandler() {
             @Override
@@ -45,7 +45,7 @@ public class FormUpload extends BaseUpload {
                 }
             }
         };
-        uploadTranscation.uploadFormData(data, fileName, isAsyn, progressHandler, new RequestTranscation.RequestCompleteHandler() {
+        uploadTransaction.uploadFormData(data, fileName, isAsyn, progressHandler, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 addRegionRequestMetricsOfOneFlow(requestMetrics);

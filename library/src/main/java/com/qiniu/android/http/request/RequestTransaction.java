@@ -27,7 +27,7 @@ import java.util.Set;
 
 import okhttp3.internal.Util;
 
-public class RequestTranscation {
+public class RequestTransaction {
 
     private final Configuration config;
     private final UploadOptions uploadOption;
@@ -40,18 +40,18 @@ public class RequestTranscation {
     private HttpRegionRequest regionRequest;
 
 
-    public RequestTranscation(ArrayList<String> hosts,
+    public RequestTransaction(ArrayList<String> hosts,
                               UpToken token){
         this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, null, null, token);
     }
 
-    public RequestTranscation(ArrayList<String> hosts,
+    public RequestTransaction(ArrayList<String> hosts,
                               ArrayList<String> ioHosts,
                               UpToken token){
         this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, ioHosts, null, token);
     }
 
-    public RequestTranscation(Configuration config,
+    public RequestTransaction(Configuration config,
                               UploadOptions uploadOption,
                               ArrayList<String> hosts,
                               ArrayList<String> ioHosts,
@@ -63,7 +63,7 @@ public class RequestTranscation {
         this.initData(region, region);
     }
 
-    public RequestTranscation(Configuration config,
+    public RequestTransaction(Configuration config,
                               UploadOptions uploadOption,
                               UploadRegion targetRegion,
                               UploadRegion currentRegion,
@@ -73,7 +73,7 @@ public class RequestTranscation {
         this.initData(targetRegion, currentRegion);
     }
 
-    private RequestTranscation(Configuration config,
+    private RequestTransaction(Configuration config,
                                UploadOptions uploadOption,
                                String key,
                                UpToken token) {
@@ -96,7 +96,7 @@ public class RequestTranscation {
     }
 
 
-    public void quertUploadHosts(boolean isAsyn,
+    public void queryUploadHosts(boolean isAsyn,
                                  final RequestCompleteHandler completeHandler){
         requestInfo.requestType = UploadRequestInfo.RequestTypeUCQuery;
 

@@ -178,22 +178,22 @@ public class TestFileRecorder extends BaseTest {
         fr.set(key, data);
         byte[] data2 = fr.get(key);
 
-        File recoderFile = new File(folder, hash(key));
+        File recorderFile = new File(folder, hash(key));
 
-        long m1 = recoderFile.lastModified();
+        long m1 = recorderFile.lastModified();
 
         assertEquals(3, data2.length);
         assertEquals('8', data2[1]);
 
-        recoderFile.setLastModified(new Date().getTime() - 1000 * 3600 * 48 + 2300);
+        recorderFile.setLastModified(new Date().getTime() - 1000 * 3600 * 48 + 2300);
         data2 = fr.get(key);
         assertEquals(3, data2.length);
         assertEquals('8', data2[1]);
 
         // 让记录文件过期，两天
-        recoderFile.setLastModified(new Date().getTime() - 1000 * 3600 * 48 - 2300);
+        recorderFile.setLastModified(new Date().getTime() - 1000 * 3600 * 48 - 2300);
 
-        long m2 = recoderFile.lastModified();
+        long m2 = recorderFile.lastModified();
 
         // 过期后，记录数据作废
         byte[] data3 = fr.get(key);
@@ -207,7 +207,7 @@ public class TestFileRecorder extends BaseTest {
             e.printStackTrace();
         }
         fr.set(key, data);
-        long m4 = recoderFile.lastModified();
+        long m4 = recorderFile.lastModified();
         assertTrue(m4 > m1);
     }
 }

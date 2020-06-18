@@ -175,19 +175,11 @@ public class TransactionManager {
         }
 
         private boolean shouldAction(long time){
-            if (time < actionTime){
-                return false;
-            } else {
-                return true;
-            }
+            return time >= actionTime;
         }
 
         private boolean maybeCompleted(long time){
-            if (time >= actionTime && type == TransactionTypeNormal) {
-                return true;
-            } else {
-                return false;
-            }
+            return shouldAction(time) && type == TransactionTypeNormal;
         }
 
         private void handleAction(long time){

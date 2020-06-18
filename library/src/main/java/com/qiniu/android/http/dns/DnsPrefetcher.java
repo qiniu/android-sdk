@@ -49,19 +49,19 @@ public class DnsPrefetcher {
 
     public boolean recoverCache(){
 
-        DnsCacheFile recoder = null;
+        DnsCacheFile recorder = null;
         try {
-            recoder = new DnsCacheFile(Config.dnscacheDir);
+            recorder = new DnsCacheFile(Config.dnscacheDir);
         } catch (IOException e) {
             return true;
         }
 
-        String dnsCache = recoder.getFileName();
+        String dnsCache = recorder.getFileName();
         if (dnsCache == null || dnsCache.length() == 0){
             return true;
         }
 
-        byte[] data = recoder.get(dnsCache);
+        byte[] data = recorder.get(dnsCache);
         if (data == null){
             return true;
         }
@@ -86,7 +86,7 @@ public class DnsPrefetcher {
             return;
         }
         preFetchHosts(getLocalPreHost());
-        recoderDnsCache();
+        recorderDnsCache();
         endPreFetch();
     }
 
@@ -96,7 +96,7 @@ public class DnsPrefetcher {
         }
 
         preFetchHosts(getCurrentZoneHosts(currentZone, token));
-        recoderDnsCache();
+        recorderDnsCache();
         endPreFetch();
         return true;
     }
@@ -132,7 +132,7 @@ public class DnsPrefetcher {
         }
 
         preFetchHosts(addressDictionary.keySet().toArray(new String[0]));
-        recoderDnsCache();
+        recorderDnsCache();
         endPreFetch();
     }
 
@@ -151,12 +151,12 @@ public class DnsPrefetcher {
             clearPreHosts();
         }
 
-        setIsPrefetching(true);
+        setPrefetching(true);
         return true;
     }
 
     private void endPreFetch(){
-        setIsPrefetching(false);
+        setPrefetching(false);
     }
 
     private void preFetchHosts(String[] fetchHosts){
@@ -249,7 +249,7 @@ public class DnsPrefetcher {
         return false;
     }
 
-    private boolean recoderDnsCache(){
+    private boolean recorderDnsCache(){
         String currentTime = Utils.currentTimestamp() + "";
         String localIp = AndroidNetwork.getHostIP();
 
@@ -261,19 +261,19 @@ public class DnsPrefetcher {
 
         String cacheKey = dnsCacheKey.toString();
 
-        DnsCacheFile recoder = null;
+        DnsCacheFile recorder = null;
         try {
-            recoder = new DnsCacheFile(Config.dnscacheDir);
+            recorder = new DnsCacheFile(Config.dnscacheDir);
         } catch (IOException e) {
             return false;
         }
 
         setDnsCacheKey(dnsCacheKey);
 
-        return recoderDnsCache(recoder, cacheKey);
+        return recorderDnsCache(recorder, cacheKey);
     }
 
-    private boolean recoderDnsCache(Recorder recorder, String cacheKey){
+    private boolean recorderDnsCache(Recorder recorder, String cacheKey){
 
         JSONObject addressInfo = new JSONObject();
         for (String key : addressDictionary.keySet()){
@@ -387,7 +387,7 @@ public class DnsPrefetcher {
     public synchronized boolean isPrefetching() {
         return isPrefetching;
     }
-    private synchronized void setIsPrefetching(boolean isPrefetching) {
+    private synchronized void setPrefetching(boolean isPrefetching) {
         this.isPrefetching = isPrefetching;
     }
 

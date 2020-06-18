@@ -1,7 +1,7 @@
 package com.qiniu.android;
 
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.request.RequestTranscation;
+import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.storage.Configuration;
@@ -17,7 +17,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 
-public class RequestTranscationTest extends BaseTest {
+public class RequestTransactionTest extends BaseTest {
 
     public void testUCQuery(){
 
@@ -28,8 +28,8 @@ public class RequestTranscationTest extends BaseTest {
 
         final WaitCondition waitCondition = new WaitCondition();
 
-        RequestTranscation requestTranscation = new RequestTranscation(hosts, token);
-        requestTranscation.quertUploadHosts(true, new RequestTranscation.RequestCompleteHandler() {
+        RequestTransaction requestTransaction = new RequestTransaction(hosts, token);
+        requestTransaction.queryUploadHosts(true, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 Assert.assertTrue("pass", responseInfo.isOK());
@@ -50,17 +50,17 @@ public class RequestTranscationTest extends BaseTest {
         hosts.add("upload.qiniup.com");
 
         byte[] data = "你好".getBytes();
-        RequestTranscation requestTranscation = new RequestTranscation(new Configuration.Builder().build(),
+        RequestTransaction requestTransaction = new RequestTransaction(new Configuration.Builder().build(),
                 UploadOptions.defaultOptions(),
                 hosts, null,
-                "android-transcation-form",
+                "android-transaction-form",
                 token);
-        requestTranscation.uploadFormData(data, null, true, new RequestProgressHandler() {
+        requestTransaction.uploadFormData(data, null, true, new RequestProgressHandler() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
                 LogUtil.i(("== progress: " + (totalBytesWritten*1.0/totalBytesExpectedToWrite)));
             }
-        }, new RequestTranscation.RequestCompleteHandler() {
+        }, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 Assert.assertTrue("pass", responseInfo.isOK());
@@ -76,7 +76,7 @@ public class RequestTranscationTest extends BaseTest {
 
         final WaitCondition waitCondition = new WaitCondition();
 
-        makeBlock(new RequestTranscation.RequestCompleteHandler() {
+        makeBlock(new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 
@@ -93,7 +93,7 @@ public class RequestTranscationTest extends BaseTest {
                         return;
                     }
 
-                    uploadChunk(ct, new RequestTranscation.RequestCompleteHandler(){
+                    uploadChunk(ct, new RequestTransaction.RequestCompleteHandler(){
                         @Override
                         public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 
@@ -110,7 +110,7 @@ public class RequestTranscationTest extends BaseTest {
                                     return;
                                 }
 
-                                makeFile(new String[]{ct_02}, new RequestTranscation.RequestCompleteHandler() {
+                                makeFile(new String[]{ct_02}, new RequestTransaction.RequestCompleteHandler() {
                                     @Override
                                     public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                                         Assert.assertTrue("pass", responseInfo.isOK());
@@ -133,15 +133,15 @@ public class RequestTranscationTest extends BaseTest {
         wait(waitCondition, 60);
     }
 
-    private void makeBlock(RequestTranscation.RequestCompleteHandler completeHandler){
+    private void makeBlock(RequestTransaction.RequestCompleteHandler completeHandler){
         UpToken token = UpToken.parse(TestConfig.token_z0);
 
         ArrayList<String> hosts = new ArrayList<String>();
         hosts.add("upload.qiniup.com");
 
         byte[] data = new byte[2*1024*1024];
-        RequestTranscation requestTranscation = new RequestTranscation(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, null, "android-transcation-block", token);
-        requestTranscation.makeBlock(0, 3*1024*1024, data, true, new RequestProgressHandler() {
+        RequestTransaction requestTransaction = new RequestTransaction(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, null, "android-transaction-block", token);
+        requestTransaction.makeBlock(0, 3*1024*1024, data, true, new RequestProgressHandler() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
                 LogUtil.i(("== progress: " + (totalBytesWritten*1.0/totalBytesExpectedToWrite)));
@@ -149,15 +149,15 @@ public class RequestTranscationTest extends BaseTest {
         }, completeHandler);
     }
 
-    private void uploadChunk(String ct, RequestTranscation.RequestCompleteHandler completeHandler){
+    private void uploadChunk(String ct, RequestTransaction.RequestCompleteHandler completeHandler){
         UpToken token = UpToken.parse(TestConfig.token_z0);
 
         ArrayList<String> hosts = new ArrayList<String>();
         hosts.add("upload.qiniup.com");
 
         byte[] data = new byte[1*1024*1024];
-        RequestTranscation requestTranscation = new RequestTranscation(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, null,"android-transcation-block", token);
-        requestTranscation.uploadChunk(ct,0, data, 2*1024*1024,true, new RequestProgressHandler() {
+        RequestTransaction requestTransaction = new RequestTransaction(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, null,"android-transaction-block", token);
+        requestTransaction.uploadChunk(ct,0, data, 2*1024*1024,true, new RequestProgressHandler() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
                 LogUtil.i(("== progress: " + (totalBytesWritten*1.0/totalBytesExpectedToWrite)));
@@ -165,13 +165,13 @@ public class RequestTranscationTest extends BaseTest {
         }, completeHandler);
     }
 
-    private void makeFile(String[] blockContexts, RequestTranscation.RequestCompleteHandler completeHandler){
+    private void makeFile(String[] blockContexts, RequestTransaction.RequestCompleteHandler completeHandler){
         UpToken token = UpToken.parse(TestConfig.token_z0);
 
         ArrayList<String> hosts = new ArrayList<String>();
         hosts.add("upload.qiniup.com");
 
-        RequestTranscation requestTranscation = new RequestTranscation(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts,null, "android-transcation-block", token);
-        requestTranscation.makeFile(3*1024*1024, "android-transcation-block-fileName", blockContexts, true, completeHandler);
+        RequestTransaction requestTransaction = new RequestTransaction(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts,null, "android-transaction-block", token);
+        requestTransaction.makeFile(3*1024*1024, "android-transaction-block-fileName", blockContexts, true, completeHandler);
     }
 }
