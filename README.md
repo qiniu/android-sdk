@@ -16,7 +16,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 |------------ |-----------------|------------------------|
 |  7.6.x        |  Android 5.0+     |        okhttp 4+         |
 |  7.5.x        |  Android 5.0+     |        okhttp 4+         |
-|  7.4.5        |  Android 2.3+     |        okhttp 3.12.6     |
+|  7.4.6        |  Android 2.3+     |        okhttp 3.12.6     |
 |  7.4.3        |  Android 2.3+     |        okhttp 3.12.6     |
 |  7.3.x        |  Android 2.3+     |        okhttp 3.11.0     |
 |  7.2.x        |  Android 2.3+     |        okhttp 3+         |
