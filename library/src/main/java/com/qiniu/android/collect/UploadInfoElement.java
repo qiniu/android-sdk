@@ -39,7 +39,7 @@ public class UploadInfoElement {
         private long tid;
         //在AutoZone或者dnsprefetch之后，根据host得到区域，如果自定义域名且本次没有dns预取，字段将为空
         private String target_region_id;
-        private String current_region_id
+        private String current_region_id;
         private String error_type;
         private String error_description;
         private String up_type;
