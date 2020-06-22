@@ -39,6 +39,7 @@ public class UploadInfoElement {
         private long tid;
         //在AutoZone或者dnsprefetch之后，根据host得到区域，如果自定义域名且本次没有dns预取，字段将为空
         private String target_region_id;
+        private String current_region_id
         private String error_type;
         private String error_description;
         private String up_type;
@@ -311,6 +312,13 @@ public class UploadInfoElement {
 
         public void setPrefetched_ip_count(long prefetched_ip_count) {
             this.prefetched_ip_count = prefetched_ip_count;
+        }
+        public void setCurrent_region_id(String current_region_id) {
+            this.current_region_id = current_region_id;
+        }
+
+        public String getCurrent_region_id() {
+            return current_region_id;
         }
     }
 

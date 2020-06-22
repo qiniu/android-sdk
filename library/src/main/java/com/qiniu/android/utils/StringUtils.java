@@ -161,7 +161,7 @@ public final class StringUtils {
             } finally {
                 bos.close();
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return bytes;
