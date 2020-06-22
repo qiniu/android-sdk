@@ -13,13 +13,13 @@ public class UploadRegionRequestMetrics {
         this.region = region;
     }
 
-    public Long totalElaspsedTime(){
+    public Long totalElapsedTime(){
         if (metricsList.size() == 0){
             return 0l;
         }
         long time = 0;
         for (UploadSingleRequestMetrics metrics : metricsList){
-            time += metrics.totalElaspsedTime();
+            time += metrics.totalElapsedTime();
         }
         return time;
     }

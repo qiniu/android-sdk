@@ -343,7 +343,7 @@ public class UploadManager {
         item.setReport(ReportItem.LogTypeQuality, ReportItem.QualityKeyLogType);
         item.setReport((Utils.currentTimestamp()/1000), ReportItem.QualityKeyUpTime);
         item.setReport(ReportItem.qualityResult(responseInfo), ReportItem.QualityKeyResult);
-        item.setReport(taskMetricsP.totalElaspsedTime(), ReportItem.QualityKeyTotalElapsedTime);
+        item.setReport(taskMetricsP.totalElapsedTime(), ReportItem.QualityKeyTotalElapsedTime);
         item.setReport(taskMetricsP.requestCount(), ReportItem.QualityKeyRequestsCount);
         item.setReport(taskMetricsP.regionCount(), ReportItem.QualityKeyRegionsCount);
         item.setReport(taskMetricsP.bytesSend(), ReportItem.QualityKeyBytesSent);

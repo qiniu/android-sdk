@@ -180,7 +180,7 @@ public final class Configuration {
             return this;
         }
 
-        public Builder putThreshhold(int size) {
+        public Builder putThreshold(int size) {
             this.putThreshold = size;
             return this;
         }

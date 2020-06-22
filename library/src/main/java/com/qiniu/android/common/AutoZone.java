@@ -69,7 +69,7 @@ public final class AutoZone extends Zone {
                         completeHandler.complete(0, responseInfo, requestMetrics);
                     }
                 }
-                destoryUploadRequestTransaction(transaction);
+                destroyUploadRequestTransaction(transaction);
             }
         });
 
@@ -88,7 +88,7 @@ public final class AutoZone extends Zone {
         return transaction;
     }
 
-    private void destoryUploadRequestTransaction(RequestTransaction transaction){
+    private void destroyUploadRequestTransaction(RequestTransaction transaction){
         transactions.remove(transaction);
     }
 }

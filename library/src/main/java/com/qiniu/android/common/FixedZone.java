@@ -73,9 +73,9 @@ public final class FixedZone extends Zone {
     }
 
     public FixedZone(ZoneInfo zoneInfo) {
-        ArrayList<ZoneInfo> zoneInfos = new ArrayList<>();
-        zoneInfos.add(zoneInfo);
-        this.zonesInfo = new ZonesInfo(zoneInfos);
+        ArrayList<ZoneInfo> zoneInfoList = new ArrayList<>();
+        zoneInfoList.add(zoneInfo);
+        this.zonesInfo = new ZonesInfo(zoneInfoList);
     }
 
     public FixedZone(ZonesInfo zonesInfo){

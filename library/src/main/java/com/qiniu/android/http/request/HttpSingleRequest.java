@@ -28,7 +28,7 @@ public class HttpSingleRequest {
     private final UploadOptions uploadOption;
     private final UpToken token;
     private final UploadRequestInfo requestInfo;
-    private final UploadRequstState requstState;
+    private final UploadRequstState requestState;
 
     private ArrayList <UploadSingleRequestMetrics> requestMetricsList;
 
@@ -43,7 +43,7 @@ public class HttpSingleRequest {
         this.uploadOption = uploadOption;
         this.token = token;
         this.requestInfo = requestInfo;
-        this.requstState = requstState;
+        this.requestState = requstState;
         this.currentRetryTime = 1;
     }
 
@@ -74,7 +74,7 @@ public class HttpSingleRequest {
         final CheckCancelHandler checkCancelHandler = new CheckCancelHandler() {
             @Override
             public boolean checkCancel() {
-                boolean isCancelled = requstState.isUserCancel();
+                boolean isCancelled = requestState.isUserCancel();
                 if (! isCancelled && uploadOption.cancellationSignal != null) {
                     isCancelled = uploadOption.cancellationSignal.isCancelled();
                 }
@@ -87,7 +87,7 @@ public class HttpSingleRequest {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
                 if (checkCancelHandler.checkCancel()) {
-                    requstState.setUserCancel(true);
+                    requestState.setUserCancel(true);
                     if (client != null){
                         client.cancel();
                     }
@@ -164,7 +164,7 @@ public class HttpSingleRequest {
         item.setReport(requestMetricsP.remotePort, ReportItem.RequestKeyPort);
         item.setReport(requestInfo.bucket, ReportItem.RequestKeyTargetBucket);
         item.setReport(requestInfo.key, ReportItem.RequestKeyTargetKey);
-        item.setReport(requestMetricsP.totalElaspsedTime(), ReportItem.RequestKeyTotalElapsedTime);
+        item.setReport(requestMetricsP.totalElapsedTime(), ReportItem.RequestKeyTotalElapsedTime);
         item.setReport(requestMetricsP.totalDnsTime(), ReportItem.RequestKeyDnsElapsedTime);
         item.setReport(requestMetricsP.totalConnectTime(), ReportItem.RequestKeyConnectElapsedTime);
         item.setReport(requestMetricsP.totalSecureConnectTime(), ReportItem.RequestKeyTLSConnectElapsedTime);

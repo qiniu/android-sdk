@@ -42,7 +42,7 @@ public class UploadSingleRequestMetrics {
     public Integer remotePort;
 
 
-    public Long totalElaspsedTime(){
+    public Long totalElapsedTime(){
         return time(startDate, endDate);
     }
     public Long totalDnsTime(){

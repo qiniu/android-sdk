@@ -197,7 +197,7 @@ public abstract class PartsUpload extends BaseUpload {
         item.setReport((Utils.currentTimestamp()/1000), ReportItem.BlockKeyUpTime);
         item.setReport(currentZoneRegionId, ReportItem.BlockKeyTargetRegionId);
         item.setReport(targetZoneRegionId, ReportItem.BlockKeyCurrentRegionId);
-        item.setReport(metrics.totalElaspsedTime(), ReportItem.BlockKeyTotalElapsedTime);
+        item.setReport(metrics.totalElapsedTime(), ReportItem.BlockKeyTotalElapsedTime);
         item.setReport(metrics.bytesSend(), ReportItem.BlockKeyBytesSent);
         item.setReport(recoveredFrom, ReportItem.BlockKeyRecoveredFrom);
         item.setReport(file.length(), ReportItem.BlockKeyFileSize);

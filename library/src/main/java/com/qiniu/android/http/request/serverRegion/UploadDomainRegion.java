@@ -14,7 +14,7 @@ import java.util.List;
 
 public class UploadDomainRegion implements UploadRegion {
 
-    private boolean isAllFreezed;
+    private boolean isAllFrozen;
     private ArrayList<String> domainHostList;
     private HashMap<String, UploadServerDomain> domainHashMap;
     private ArrayList<String> oldDomainHostList;
@@ -34,7 +34,7 @@ public class UploadDomainRegion implements UploadRegion {
 
         this.zoneInfo = zoneInfo;
 
-        isAllFreezed = false;
+        isAllFrozen = false;
         ArrayList<String> domainHostList = new ArrayList<>();
         ArrayList<ZoneInfo.UploadServerGroup> serverGroups = new ArrayList<>();
         if (zoneInfo.acc != null){
@@ -72,7 +72,7 @@ public class UploadDomainRegion implements UploadRegion {
 
     @Override
     public UploadServerInterface getNextServer(boolean isOldServer, UploadServerInterface freezeServer) {
-        if (isAllFreezed){
+        if (isAllFrozen){
             return null;
         }
         if (freezeServer != null && freezeServer.getServerId() != null){
@@ -101,7 +101,7 @@ public class UploadDomainRegion implements UploadRegion {
         }
 
         if (server == null){
-            isAllFreezed = true;
+            isAllFrozen = true;
         }
 
         return server;
@@ -123,7 +123,7 @@ public class UploadDomainRegion implements UploadRegion {
 
     private static class UploadServerDomain{
 
-        private boolean isAllFreezed = false;
+        private boolean isAllFrozen = false;
         protected final String host;
         protected ArrayList<UploadIpGroup> ipGroupList = new ArrayList<>();
 
@@ -132,7 +132,7 @@ public class UploadDomainRegion implements UploadRegion {
         }
 
         protected UploadServerInterface getServer(){
-            if (isAllFreezed || host == null || host.length() == 0){
+            if (isAllFrozen || host == null || host.length() == 0){
                 return null;
             }
 
@@ -149,13 +149,13 @@ public class UploadDomainRegion implements UploadRegion {
                     }
                 }
                 if (server == null){
-                    isAllFreezed = true;
+                    isAllFrozen = true;
                 }
                 return server;
             } else if (!UploadServerFreezeManager.getInstance().isFreezeHost(host, null)){
                 return new UploadServer(host, host, null);
             } else {
-                isAllFreezed = true;
+                isAllFrozen = true;
                 return null;
             }
         }

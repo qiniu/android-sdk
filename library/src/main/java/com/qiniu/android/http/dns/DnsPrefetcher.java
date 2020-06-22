@@ -100,7 +100,7 @@ public class DnsPrefetcher {
         return true;
     }
 
-    public void invalidInetAdress(InetAddress inetAddress){
+    public void invalidInetAddress(InetAddress inetAddress){
         List<InetAddress> inetAddressList = addressDictionary.get(inetAddress.getHostAddress());
         ArrayList<InetAddress> inetAddressListNew = new ArrayList<>();
         for (InetAddress inetAddressP : inetAddressList){

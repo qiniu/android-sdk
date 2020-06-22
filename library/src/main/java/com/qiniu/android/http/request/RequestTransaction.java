@@ -284,7 +284,7 @@ public class RequestTransaction {
         requestInfo.requestType = UploadRequestInfo.RequestTypeMkfile;
 
         if (blockContexts == null){
-            ResponseInfo responseInfo = ResponseInfo.invalidArgument("invalid blockcontexts");
+            ResponseInfo responseInfo = ResponseInfo.invalidArgument("invalid blockContexts");
             completeHandler.complete(responseInfo, null, responseInfo.response);
             return;
         }

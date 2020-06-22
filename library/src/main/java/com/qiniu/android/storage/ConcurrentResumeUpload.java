@@ -208,7 +208,7 @@ public class ConcurrentResumeUpload extends PartsUpload {
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
-                destoryUploadRequestTransaction(transaction);
+                destroyUploadRequestTransaction(transaction);
                 completeHandler.complete(responseInfo, response);
             }
         });
@@ -220,7 +220,7 @@ public class ConcurrentResumeUpload extends PartsUpload {
         return transaction;
     }
 
-    private void destoryUploadRequestTransaction(RequestTransaction transaction){
+    private void destroyUploadRequestTransaction(RequestTransaction transaction){
         if (transaction != null){
             uploadTransactions.remove(transaction);
         }
