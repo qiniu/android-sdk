@@ -16,7 +16,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 |------------ |-----------------|------------------------|
 |  7.6.x        |  Android 5.0+     |        okhttp 4+         |
 |  7.5.x        |  Android 5.0+     |        okhttp 4+         |
-|  7.4.5        |  Android 4.0+     |        okhttp 3.12.6     |
+|  7.4.6        |  Android 4.0+     |        okhttp 3.12.6     |
 |  7.3.x        |  Android 2.3+     |        okhttp 3.11.0     |
 |  7.2.x        |  Android 2.3+     |        okhttp 3+         |
 |  7.1.x        |  Android 2.3+     |        okhttp 2.6+       |
@@ -24,8 +24,8 @@ https://github.com/qiniudemo/qiniu-lab-android
 |  7.0.7        |  Android 2.2+     | android-async-http 1.4.8 |
 
 ### 注意
-* 推荐使用最新版：7.6.3，7.6.3使用okhttp4.2.2
-* 7.4.5是在7.6.3版本上降低okhttp版本，其他功能不变，AndroidNetwork.getMobileDbm()可以获取手机信号强度，需要如下权限(API>=18时生效)
+* 推荐使用最新版：7.6.4，7.6.3使用okhttp4.2.2
+* 7.4.6是在7.6.4版本上降低okhttp版本，其他功能不变，AndroidNetwork.getMobileDbm()可以获取手机信号强度，需要如下权限(API>=18时生效)
 ```
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
