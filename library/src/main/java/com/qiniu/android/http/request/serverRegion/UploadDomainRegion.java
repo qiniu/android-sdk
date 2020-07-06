@@ -7,7 +7,6 @@ import com.qiniu.android.http.request.UploadRegion;
 import com.qiniu.android.http.request.UploadServerInterface;
 import com.qiniu.android.utils.StringUtils;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -145,7 +144,8 @@ public class UploadDomainRegion implements UploadRegion {
                 UploadServer server = null;
                 for (UploadIpGroup ipGroup : ipGroupList){
                     if (!UploadServerFreezeManager.getInstance().isFreezeHost(host, ipGroup.groupType)){
-                        server = new UploadServer(host, host, ipGroup.getNetworkAddress());
+                        IDnsNetworkAddress networkAddress = ipGroup.getNetworkAddress();
+                        server = new UploadServer(host, host, networkAddress.getIpValue(), networkAddress.getSourceValue(), networkAddress.getTimestampValue());
                         break;
                     }
                 }
@@ -154,7 +154,7 @@ public class UploadDomainRegion implements UploadRegion {
                 }
                 return server;
             } else if (!UploadServerFreezeManager.getInstance().isFreezeHost(host, null)){
-                return new UploadServer(host, host, null);
+                return new UploadServer(host, host, null, null, null);
             } else {
                 isAllFrozen = true;
                 return null;

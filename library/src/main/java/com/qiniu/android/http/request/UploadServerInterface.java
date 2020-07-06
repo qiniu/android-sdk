@@ -8,9 +8,11 @@ public interface UploadServerInterface {
 
     String getServerId();
 
-    IDnsNetworkAddress getNetworkAddress();
+    String getHost();
 
     String getIp();
 
-    String getHost();
+    String getSource();
+
+    Long getIpPrefetchedTime();
 }

@@ -1,20 +1,25 @@
 package com.qiniu.android.http.request.serverRegion;
 
-import com.qiniu.android.http.dns.IDnsNetworkAddress;
 import com.qiniu.android.http.request.UploadServerInterface;
-
-import java.net.InetAddress;
 
 public class UploadServer implements UploadServerInterface {
 
     private final String serverId;
     private final String host;
-    private final IDnsNetworkAddress networkAddress;
+    private final String ip;
+    private final String source;
+    private final Long ipPrefetchedTime;
 
-    public UploadServer(String serverId, String host, IDnsNetworkAddress networkAddress) {
+    public UploadServer(String serverId,
+                        String host,
+                        String ip,
+                        String source,
+                        Long ipPrefetchedTime) {
         this.serverId = serverId;
         this.host = host;
-        this.networkAddress = networkAddress;
+        this.ip = ip;
+        this.source = source;
+        this.ipPrefetchedTime = ipPrefetchedTime;
     }
 
     @Override
@@ -23,17 +28,18 @@ public class UploadServer implements UploadServerInterface {
     }
 
     @Override
-    public IDnsNetworkAddress getNetworkAddress() {
-        return networkAddress;
+    public String getIp() {
+        return ip;
     }
 
     @Override
-    public String getIp() {
-        if (networkAddress == null){
-            return null;
-        } else {
-            return networkAddress.getIpValue();
-        }
+    public String getSource() {
+        return source;
+    }
+
+    @Override
+    public Long getIpPrefetchedTime() {
+        return ipPrefetchedTime;
     }
 
     @Override

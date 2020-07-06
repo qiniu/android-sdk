@@ -75,8 +75,9 @@ public class ReportItem {
     public static final String RequestKeyClientTime = "client_time";
     public static final String RequestKeyNetworkType = "network_type";
     public static final String RequestKeySignalStrength = "signal_strength";
-    public static final String RequestKeyPreetchedIpCount = "prefetched_ip_count";
-
+    public static final String RequestKeyPrefetchedDnsSource = "prefetched_dns_source";
+    public static final String RequestKeyPrefetchedBefore = "prefetched_before";
+    public static final String RequestKeyPrefetchedErrorMessage = "prefetched_error_message";
 
     // 分块上传统计⽇志
     public static final String BlockKeyLogType = "log_type";

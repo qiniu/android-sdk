@@ -46,6 +46,8 @@ public class DnsPrefetcher {
         return dnsPrefetcher;
     }
 
+    public String lastPrefetchedErrorMessage;
+
     public boolean recoverCache(){
 
         DnsCacheFile recorder = null;
