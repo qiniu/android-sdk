@@ -147,7 +147,11 @@ public class ReportItem {
     }
 
     public static String qualityResult(ResponseInfo responseInfo){
-        String result = null;
+        String result = requestReportErrorType(responseInfo);
+        if (result != null) {
+            return result;
+        }
+
         if (responseInfo.statusCode > 199 && responseInfo.statusCode < 300) {
             result = "ok";
         } else if (responseInfo.statusCode > 399 && responseInfo.statusCode < 500) {
@@ -159,22 +163,6 @@ public class ReportItem {
         } else if (responseInfo.statusCode == ResponseInfo.InvalidToken
                 || responseInfo.statusCode == ResponseInfo.InvalidArgument){
             result = "invalid_args";
-        } else if (responseInfo.statusCode == ResponseInfo.Cancelled){
-            result = "user_canceled";
-        } else if (responseInfo.statusCode == ResponseInfo.NetworkError){
-            result = "network_error";
-        } else if (responseInfo.statusCode == ResponseInfo.TimedOut){
-            result = "timeout";
-        } else if (responseInfo.statusCode == ResponseInfo.CannotConnectToHost){
-            result = "cannot_connect_to_host";
-        } else if (responseInfo.statusCode == ResponseInfo.NetworkConnectionLost){
-            result = "transmission_error";
-        } else if (responseInfo.statusCode == ResponseInfo.NetworkSSLError){
-            result = "ssl_error";
-        } else if (responseInfo.statusCode == ResponseInfo.PasrseError){
-            result = "parse_error";
-        } else if (responseInfo.statusCode == ResponseInfo.MaliciousResponseError){
-            result = "malicious_response";
         } else {
             result = "unknown_error";
         }
