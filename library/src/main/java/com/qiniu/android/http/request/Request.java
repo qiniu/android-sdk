@@ -18,7 +18,7 @@ public class Request {
 
     public String host;
     public String ip;
-    public UploadServerInterface uploadServer;
+    public IUploadServer uploadServer;
 
     public Request(String urlString,
                    String httpMethod,

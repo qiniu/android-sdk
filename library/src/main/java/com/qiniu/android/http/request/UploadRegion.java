@@ -8,5 +8,5 @@ public interface UploadRegion {
 
     public void setupRegionData(ZoneInfo zoneInfo);
 
-    public UploadServerInterface getNextServer(boolean isOldServer, UploadServerInterface freezeServer);
+    public IUploadServer getNextServer(boolean isOldServer, IUploadServer freezeServer);
 }

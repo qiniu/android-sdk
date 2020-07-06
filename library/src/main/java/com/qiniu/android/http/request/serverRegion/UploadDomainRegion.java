@@ -4,7 +4,7 @@ import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.dns.IDnsNetworkAddress;
 import com.qiniu.android.http.request.UploadRegion;
-import com.qiniu.android.http.request.UploadServerInterface;
+import com.qiniu.android.http.request.IUploadServer;
 import com.qiniu.android.utils.StringUtils;
 
 import java.util.ArrayList;
@@ -71,7 +71,7 @@ public class UploadDomainRegion implements UploadRegion {
     }
 
     @Override
-    public UploadServerInterface getNextServer(boolean isOldServer, UploadServerInterface freezeServer) {
+    public IUploadServer getNextServer(boolean isOldServer, IUploadServer freezeServer) {
         if (isAllFrozen){
             return null;
         }
@@ -89,7 +89,7 @@ public class UploadDomainRegion implements UploadRegion {
 
         ArrayList<String> hostList = isOldServer ? oldDomainHostList : domainHostList;
         HashMap<String, UploadServerDomain> domainInfo = isOldServer ? oldDomainHashMap : domainHashMap;
-        UploadServerInterface server = null;
+        IUploadServer server = null;
         for (String host : hostList) {
             UploadServerDomain domain = domainInfo.get(host);
             if (domain != null){
@@ -131,7 +131,7 @@ public class UploadDomainRegion implements UploadRegion {
             this.host = host;
         }
 
-        protected UploadServerInterface getServer(){
+        protected IUploadServer getServer(){
             if (isAllFrozen || host == null || host.length() == 0){
                 return null;
             }

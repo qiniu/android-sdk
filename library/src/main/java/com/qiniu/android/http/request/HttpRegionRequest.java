@@ -24,7 +24,7 @@ public class HttpRegionRequest {
 
     private boolean isUseOldServer;
     private HttpSingleRequest singleRequest;
-    private UploadServerInterface currentServer;
+    private IUploadServer currentServer;
     private UploadRegionRequestMetrics requestMetrics;
 
     public HttpRegionRequest(Configuration config,
@@ -62,7 +62,7 @@ public class HttpRegionRequest {
         performRequest(getNextServer(null), action, isAsync, data, header, "POST", shouldRetryHandler, progressHandler, completeHandler);
     }
 
-    private void performRequest(UploadServerInterface server,
+    private void performRequest(IUploadServer server,
                                 final String action,
                                 final boolean isAsync,
                                 final byte[] data,
@@ -110,7 +110,7 @@ public class HttpRegionRequest {
                         && config.allowBackupHost
                         && responseInfo.couldRegionRetry()){
 
-                    UploadServerInterface newServer = getNextServer(responseInfo);
+                    IUploadServer newServer = getNextServer(responseInfo);
                     if (newServer != null){
                         performRequest(newServer, action, isAsync, data, header, method, shouldRetryHandler, progressHandler, completeHandler);
                     } else {
@@ -134,7 +134,7 @@ public class HttpRegionRequest {
         }
     }
 
-    private UploadServerInterface getNextServer(ResponseInfo responseInfo){
+    private IUploadServer getNextServer(ResponseInfo responseInfo){
         if (responseInfo == null) {
             return region.getNextServer(false, null);
         }

@@ -1,8 +1,8 @@
 package com.qiniu.android.http.request.serverRegion;
 
-import com.qiniu.android.http.request.UploadServerInterface;
+import com.qiniu.android.http.request.IUploadServer;
 
-public class UploadServer implements UploadServerInterface {
+public class UploadServer implements IUploadServer {
 
     private final String serverId;
     private final String host;

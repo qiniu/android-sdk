@@ -4,7 +4,7 @@ import com.qiniu.android.http.dns.IDnsNetworkAddress;
 
 import java.net.InetAddress;
 
-public interface UploadServerInterface {
+public interface IUploadServer {
 
     String getServerId();
 
