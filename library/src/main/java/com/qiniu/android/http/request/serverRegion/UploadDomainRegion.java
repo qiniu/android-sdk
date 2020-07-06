@@ -2,6 +2,7 @@ package com.qiniu.android.http.request.serverRegion;
 
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.dns.DnsPrefetcher;
+import com.qiniu.android.http.dns.IDnsNetworkAddress;
 import com.qiniu.android.http.request.UploadRegion;
 import com.qiniu.android.http.request.UploadServerInterface;
 import com.qiniu.android.utils.StringUtils;
@@ -144,7 +145,7 @@ public class UploadDomainRegion implements UploadRegion {
                 UploadServer server = null;
                 for (UploadIpGroup ipGroup : ipGroupList){
                     if (!UploadServerFreezeManager.getInstance().isFreezeHost(host, ipGroup.groupType)){
-                        server = new UploadServer(host, host, ipGroup.getInetAddress());
+                        server = new UploadServer(host, host, ipGroup.getNetworkAddress());
                         break;
                     }
                 }
@@ -165,32 +166,32 @@ public class UploadDomainRegion implements UploadRegion {
                return;
            }
 
-           List<InetAddress> inetAddresses = DnsPrefetcher.getInstance().getInetAddressByHost(host);
-           if (inetAddresses == null || inetAddresses.size() == 0){
+           List<IDnsNetworkAddress> networkAddresses = DnsPrefetcher.getInstance().getInetAddressByHost(host);
+           if (networkAddresses == null || networkAddresses.size() == 0){
                return;
            }
 
-           HashMap<String, ArrayList<InetAddress>> ipGroupInfos = new HashMap<>();
-           for (InetAddress inetAddress : inetAddresses){
-               String ipValue = inetAddress.getHostAddress();
+           HashMap<String, ArrayList<IDnsNetworkAddress>> ipGroupInfo = new HashMap<>();
+           for (IDnsNetworkAddress networkAddress : networkAddresses){
+               String ipValue = networkAddress.getIpValue();
                if (ipValue == null){
                    continue;
                }
                String groupType = getIpType(ipValue);
                if (groupType != null){
-                   ArrayList<InetAddress> inetAddressArrayList = ipGroupInfos.get(groupType);
-                   if (inetAddressArrayList == null) {
-                       inetAddressArrayList = new ArrayList<>();
+                   ArrayList<IDnsNetworkAddress> groupNetworkAddresses = ipGroupInfo.get(groupType);
+                   if (groupNetworkAddresses == null) {
+                       groupNetworkAddresses = new ArrayList<>();
                    }
-                   inetAddressArrayList.add(inetAddress);
-                   ipGroupInfos.put(groupType, inetAddressArrayList);
+                   groupNetworkAddresses.add(networkAddress);
+                   ipGroupInfo.put(groupType, groupNetworkAddresses);
                }
            }
 
            ArrayList<UploadIpGroup> ipGroupList = new ArrayList<>();
-           for (String groupType : ipGroupInfos.keySet()){
-               ArrayList<InetAddress> inetAddressList = ipGroupInfos.get(groupType);
-               UploadIpGroup ipGroup = new UploadIpGroup(groupType, inetAddressList);
+           for (String groupType : ipGroupInfo.keySet()){
+               ArrayList<IDnsNetworkAddress> addresses = ipGroupInfo.get(groupType);
+               UploadIpGroup ipGroup = new UploadIpGroup(groupType, addresses);
                ipGroupList.add(ipGroup);
            }
            this.ipGroupList = ipGroupList;
@@ -265,20 +266,20 @@ public class UploadDomainRegion implements UploadRegion {
 
     private static class UploadIpGroup{
         private final String groupType;
-        private final ArrayList<InetAddress> inetAddressArrayList;
+        private final ArrayList<IDnsNetworkAddress> addressList;
 
         protected UploadIpGroup(String groupType,
-                                ArrayList<InetAddress> inetAddressArrayList) {
+                                ArrayList<IDnsNetworkAddress> addressList) {
             this.groupType = groupType;
-            this.inetAddressArrayList = inetAddressArrayList;
+            this.addressList = addressList;
         }
 
-        protected InetAddress getInetAddress(){
-            if (inetAddressArrayList == null || inetAddressArrayList.size() == 0){
+        protected IDnsNetworkAddress getNetworkAddress(){
+            if (addressList == null || addressList.size() == 0){
                 return null;
             } else {
-                int index = (int)(Math.random()*inetAddressArrayList.size());
-                return inetAddressArrayList.get(index);
+                int index = (int)(Math.random()*addressList.size());
+                return addressList.get(index);
             }
         }
 

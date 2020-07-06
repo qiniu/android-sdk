@@ -36,7 +36,7 @@ public class DnsPrefetcher {
 
     private boolean isPrefetching = false;
     private DnsCacheKey dnsCacheKey = null;
-    private HashMap<String, List<InetAddress>> addressDictionary = new HashMap<>();
+    private HashMap<String, List<IDnsNetworkAddress>> addressDictionary = new HashMap<>();
     private final HappyDns happyDns = new HappyDns();
 
     private final static DnsPrefetcher dnsPrefetcher = new DnsPrefetcher();
@@ -100,23 +100,27 @@ public class DnsPrefetcher {
         return true;
     }
 
-    public void invalidInetAddress(InetAddress inetAddress){
-        List<InetAddress> inetAddressList = addressDictionary.get(inetAddress.getHostAddress());
-        ArrayList<InetAddress> inetAddressListNew = new ArrayList<>();
-        for (InetAddress inetAddressP : inetAddressList){
-            if (!inetAddressP.equals(inetAddress)){
-                inetAddressListNew.add(inetAddressP);
+    public void invalidNetworkAddress(IDnsNetworkAddress address){
+        if (address == null || address.getHostValue() == null){
+            return;
+        }
+        String host = address.getHostValue();
+        List<IDnsNetworkAddress> addressList = addressDictionary.get(host);
+        ArrayList<IDnsNetworkAddress> addressListNew = new ArrayList<>();
+        for (IDnsNetworkAddress addressP : addressList){
+            if (!addressP.getIpValue().equals(addressP.getIpValue())){
+                addressListNew.add(addressP);
             }
         }
-        addressDictionary.put(inetAddress.getHostName(), inetAddressListNew);
+        addressDictionary.put(host, addressListNew);
     }
 
-    public List<InetAddress> getInetAddressByHost(String host){
+    public List<IDnsNetworkAddress> getInetAddressByHost(String host){
         if (!isDnsOpen()){
             return null;
         }
 
-        List<InetAddress> addressList = addressDictionary.get(host);
+        List<IDnsNetworkAddress> addressList = addressDictionary.get(host);
         if (addressList != null && addressList.size() > 0){
             return addressList;
         } else {
@@ -198,14 +202,24 @@ public class DnsPrefetcher {
             return false;
         }
 
-        List<InetAddress> preAddressList = addressDictionary.get(preHost);
+        List<IDnsNetworkAddress> preAddressList = addressDictionary.get(preHost);
         if (preAddressList != null && preAddressList.size() > 0){
             return true;
         }
 
-        List<InetAddress> addressList = null;
+        List<IDnsNetworkAddress> addressList = new ArrayList<>();
         try {
-            addressList = dns.lookup(preHost);
+            List<IDnsNetworkAddress> preIAddressList = dns.lookup(preHost);
+            if (preAddressList != null && preAddressList.size() > 0){
+                for (IDnsNetworkAddress preIAddress : preIAddressList) {
+                    DnsNetworkAddress address = new DnsNetworkAddress(preIAddress.getHostValue(),
+                            preIAddress.getIpValue(),
+                            preIAddress.getTtlValue(),
+                            preIAddress.getSourceValue(),
+                            preIAddress.getTimestampValue());
+                    addressList.add(address);
+                }
+            }
         } catch (UnknownHostException e) {}
         if (addressList != null && addressList.size() > 0){
             addressDictionary.put(preHost, addressList);
@@ -227,19 +241,15 @@ public class DnsPrefetcher {
         Iterator<String> hosts = addressInfo.keys();
         while (hosts.hasNext()){
             String host = hosts.next();
-            ArrayList<InetAddress> addressList = new ArrayList<>();
+            ArrayList<IDnsNetworkAddress> addressList = new ArrayList<>();
             try {
-                JSONArray addressDicList = addressInfo.getJSONArray(host);
-                for(int i=0; i<addressDicList.length(); i++){
-                    JSONObject addressDic = addressDicList.getJSONObject(i);
-                    String hostP = addressDic.getString("host");
-                    String ipString = addressDic.getString("ip");
-                    InetAddress inetAddress = InetAddress.getByAddress(hostP, UrlSafeBase64.decode(ipString));
-                    addressList.add(inetAddress);
+                JSONArray addressJsonList = addressInfo.getJSONArray(host);
+                for(int i=0; i<addressJsonList.length(); i++){
+                    JSONObject addressJson = addressJsonList.getJSONObject(i);
+                    DnsNetworkAddress address = DnsNetworkAddress.address(addressJson);
+                    addressList.add(address);
                 }
             } catch (JSONException ignored) {
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
             }
 
             addressDictionary.put(host, addressList);
@@ -276,23 +286,19 @@ public class DnsPrefetcher {
 
         JSONObject addressInfo = new JSONObject();
         for (String key : addressDictionary.keySet()){
-            List<InetAddress> addressModelList = addressDictionary.get(key);
-            JSONArray addressDicList = new JSONArray();
+            List<IDnsNetworkAddress> addressModelList = addressDictionary.get(key);
+            JSONArray addressJsonList = new JSONArray();
 
-            for (InetAddress ipInfo : addressModelList){
-                JSONObject addressDic = new JSONObject();
-                if (ipInfo.getHostName() != null && ipInfo.getHostAddress() != null) {
-                    try {
-                        addressDic.put("host", ipInfo.getHostName());
-                        addressDic.put("ip", UrlSafeBase64.encodeToString(ipInfo.getAddress()));
-                        addressDicList.put(addressDic);
-                    } catch (JSONException ignored) {
-                    }
+            for (IDnsNetworkAddress address : addressModelList){
+                if (address.getHostValue() != null && address.getIpValue() != null) {
+                    DnsNetworkAddress addressObject = (DnsNetworkAddress)address;
+                    JSONObject addressJson = addressObject.toJson();
+                    addressJsonList.put(addressJson);
                 }
             }
 
             try {
-                addressInfo.put(key, addressDicList);
+                addressInfo.put(key, addressJsonList);
             } catch (JSONException ignored) {}
         }
 
@@ -395,5 +401,105 @@ public class DnsPrefetcher {
     }
     private synchronized void setDnsCacheKey(DnsCacheKey dnsCacheKey) {
         this.dnsCacheKey = dnsCacheKey;
+    }
+
+
+
+    private static class DnsNetworkAddress implements  IDnsNetworkAddress{
+
+        private final String hostValue;
+        private final String ipValue;
+        private final Long ttlValue;
+        private final String sourceValue;
+        private final Long timestampValue;
+
+        private static DnsNetworkAddress address(JSONObject jsonObject){
+            String hostValue = null;
+            String ipValue = null;
+            Long ttlValue = null;
+            String sourceValue = null;
+            Long timestampValue = null;
+            try {
+                hostValue = jsonObject.getString("hostValue");
+            } catch (JSONException e) {}
+            try {
+                ipValue = jsonObject.getString("ipValue");
+            } catch (JSONException e) {}
+            try {
+                ttlValue = jsonObject.getLong("ttlValue");
+            } catch (JSONException e) {}
+            try {
+                timestampValue = jsonObject.getLong("timestampValue");
+            } catch (JSONException e) {}
+            try {
+                sourceValue = jsonObject.getString("sourceValue");
+            } catch (JSONException e) {}
+
+            DnsNetworkAddress networkAddress = new DnsNetworkAddress(hostValue, ipValue, ttlValue, sourceValue, timestampValue);
+            return networkAddress;
+        }
+
+        private static DnsNetworkAddress address(IDnsNetworkAddress address){
+            DnsNetworkAddress networkAddress = null;
+
+            return networkAddress;
+        }
+
+        private DnsNetworkAddress(String hostValue,
+                                  String ipValue,
+                                  Long ttlValue,
+                                  String sourceValue,
+                                  Long timestampValue) {
+            this.hostValue = hostValue;
+            this.ipValue = ipValue;
+            this.ttlValue = ttlValue;
+            this.sourceValue = sourceValue;
+            this.timestampValue = timestampValue;
+        }
+
+        private JSONObject toJson(){
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("hostValue", this.hostValue);
+            } catch (JSONException e) {}
+            try {
+                jsonObject.put("ipValue", this.ipValue);
+            } catch (JSONException e) {}
+            try {
+                jsonObject.put("ttlValue", this.ttlValue);
+            } catch (JSONException e) {}
+            try {
+                jsonObject.put("timestampValue", this.timestampValue);
+            } catch (JSONException e) {}
+            try {
+                jsonObject.put("sourceValue", this.sourceValue);
+            } catch (JSONException e) {}
+            return jsonObject;
+        }
+
+        @Override
+        public String getHostValue() {
+            return hostValue;
+        }
+
+        @Override
+        public String getIpValue() {
+            return ipValue;
+        }
+
+        @Override
+        public Long getTtlValue() {
+            return ttlValue;
+        }
+
+        @Override
+        public String getSourceValue() {
+            return sourceValue;
+        }
+
+        @Override
+        public Long getTimestampValue() {
+            return timestampValue;
+        }
     }
 }

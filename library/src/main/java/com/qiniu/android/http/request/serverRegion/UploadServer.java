@@ -1,5 +1,6 @@
 package com.qiniu.android.http.request.serverRegion;
 
+import com.qiniu.android.http.dns.IDnsNetworkAddress;
 import com.qiniu.android.http.request.UploadServerInterface;
 
 import java.net.InetAddress;
@@ -8,12 +9,12 @@ public class UploadServer implements UploadServerInterface {
 
     private final String serverId;
     private final String host;
-    private final InetAddress inetAddress;
+    private final IDnsNetworkAddress networkAddress;
 
-    public UploadServer(String serverId, String host, InetAddress inetAddress) {
+    public UploadServer(String serverId, String host, IDnsNetworkAddress networkAddress) {
         this.serverId = serverId;
         this.host = host;
-        this.inetAddress = inetAddress;
+        this.networkAddress = networkAddress;
     }
 
     @Override
@@ -22,16 +23,16 @@ public class UploadServer implements UploadServerInterface {
     }
 
     @Override
-    public InetAddress getInetAddress() {
-        return inetAddress;
+    public IDnsNetworkAddress getNetworkAddress() {
+        return networkAddress;
     }
 
     @Override
     public String getIp() {
-        if (inetAddress == null){
+        if (networkAddress == null){
             return null;
         } else {
-            return inetAddress.getHostAddress();
+            return networkAddress.getIpValue();
         }
     }
 

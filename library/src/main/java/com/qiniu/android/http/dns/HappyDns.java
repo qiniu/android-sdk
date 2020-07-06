@@ -33,14 +33,14 @@ public class HappyDns implements Dns {
     }
 
     @Override
-    public List<InetAddress> lookup(String hostname) throws UnknownHostException {
+    public List<IDnsNetworkAddress> lookup(String hostname) throws UnknownHostException {
         Domain domain = new Domain(hostname);
-        List<InetAddress> inetAddressList = null;
-        try {
-            inetAddressList = Arrays.asList(dnsManager.queryInetAdress(domain));
-        } catch (IOException ignored) {
-        }
-        return inetAddressList;
+        List<IDnsNetworkAddress> addressList = null;
+//        try {
+//            addressList = Arrays.asList(dnsManager.queryInetAdress(domain));
+//        } catch (IOException ignored) {
+//        }
+        return addressList;
     }
 
 
@@ -52,7 +52,7 @@ public class HappyDns implements Dns {
             long timestamp = Utils.currentTimestamp();
             int ttl = 120;
             ArrayList<Record> records = new ArrayList<>();
-            List<InetAddress> inetAddresses = new SystemDns().lookup(domain.domain);
+            List<InetAddress> inetAddresses = new SystemDns().lookupInetAddress(domain.domain);
             for(InetAddress inetAddress : inetAddresses){
                 Record record = new Record(inetAddress.getHostAddress(), Record.TYPE_A, ttl, timestamp);
                 records.add(record);

@@ -1,6 +1,7 @@
 package com.qiniu.android;
 
 import com.qiniu.android.http.dns.HappyDns;
+import com.qiniu.android.http.dns.IDnsNetworkAddress;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -15,7 +16,7 @@ public class HappyDnsTest extends BaseTest {
     public void testDns(){
 
         HappyDns happyDns = new HappyDns();
-        List<InetAddress> inetAddressList = new ArrayList<>();
+        List<IDnsNetworkAddress> inetAddressList = new ArrayList<>();
 
         try {
             inetAddressList = happyDns.lookup("qiniu.com");

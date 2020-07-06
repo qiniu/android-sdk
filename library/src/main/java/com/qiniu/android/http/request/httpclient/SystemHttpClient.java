@@ -130,12 +130,12 @@ public class SystemHttpClient implements RequestClient {
         clientBuilder.dns(new Dns() {
             @Override
             public List<InetAddress> lookup(String s) throws UnknownHostException {
-                if (request.inetAddress != null && s.equals(request.host)){
+                if (request.getInetAddress() != null && s.equals(request.host)){
                     List<InetAddress> inetAddressList = new ArrayList<>();
-                    inetAddressList.add(request.inetAddress);
+                    inetAddressList.add(request.getInetAddress());
                     return inetAddressList;
                 } else {
-                    return new SystemDns().lookup(s);
+                    return new SystemDns().lookupInetAddress(s);
                 }
             }
         });

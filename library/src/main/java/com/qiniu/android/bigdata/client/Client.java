@@ -3,6 +3,7 @@ package com.qiniu.android.bigdata.client;
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.http.CancellationHandler;
 import com.qiniu.android.http.dns.DnsPrefetcher;
+import com.qiniu.android.http.dns.IDnsNetworkAddress;
 import com.qiniu.android.http.request.httpclient.CountingRequestBody;
 import com.qiniu.android.http.request.httpclient.MultipartBody;
 import com.qiniu.android.http.ProgressHandler;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -65,8 +67,20 @@ public final class Client {
         builder.dns(new okhttp3.Dns() {
             @Override
             public List<InetAddress> lookup(String hostname) throws UnknownHostException {
-               if (DnsPrefetcher.getInstance().getInetAddressByHost(hostname) != null) {
-                    return DnsPrefetcher.getInstance().getInetAddressByHost(hostname);
+
+                List<IDnsNetworkAddress> networkAddressList = DnsPrefetcher.getInstance().getInetAddressByHost(hostname);
+                if (networkAddressList != null && networkAddressList.size() > 0) {
+                    List<InetAddress> inetAddressList = new ArrayList<>();
+                    for (IDnsNetworkAddress networkAddress : networkAddressList){
+                        InetAddress address = null;
+                        if (networkAddress.getIpValue() != null && (address = InetAddress.getByName(networkAddress.getIpValue())) != null){
+                            inetAddressList.add(address);
+                        }
+                    }
+
+                    if (inetAddressList.size() > 0) {
+                        return inetAddressList;
+                    }
                 }
                 return okhttp3.Dns.SYSTEM.lookup(hostname);
             }

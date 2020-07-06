@@ -99,7 +99,7 @@ public class HttpRegionRequest {
         Request request = new Request(urlString, method, header, data, config.connectTimeout);
         request.host = serverHost;
         request.ip = serverIP;
-        request.inetAddress = server.getInetAddress();
+        request.networkAddress = server.getNetworkAddress();
         singleRequest.request(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, new HttpSingleRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, ArrayList<UploadSingleRequestMetrics> requestMetricsList, JSONObject response) {
