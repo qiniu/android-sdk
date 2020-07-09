@@ -1,7 +1,5 @@
 package com.qiniu.android.storage;
 
-import android.util.Log;
-
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.common.ZonesInfo;
@@ -9,8 +7,7 @@ import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.request.UploadRegion;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
-import com.qiniu.android.http.request.serverRegion.UploadDomainRegion;
-import com.qiniu.android.utils.AsyncRun;
+import com.qiniu.android.http.serverRegion.UploadDomainRegion;
 
 import org.json.JSONObject;
 

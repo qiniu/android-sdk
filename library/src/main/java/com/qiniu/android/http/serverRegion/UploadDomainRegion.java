@@ -1,4 +1,4 @@
-package com.qiniu.android.http.request.serverRegion;
+package com.qiniu.android.http.serverRegion;
 
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.dns.DnsPrefetcher;
@@ -6,11 +6,14 @@ import com.qiniu.android.http.dns.IDnsNetworkAddress;
 import com.qiniu.android.http.request.UploadRegion;
 import com.qiniu.android.http.request.IUploadServer;
 import com.qiniu.android.utils.StringUtils;
+import com.qiniu.android.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+
+import okhttp3.internal.Util;
 
 public class UploadDomainRegion implements UploadRegion {
 
@@ -177,7 +180,7 @@ public class UploadDomainRegion implements UploadRegion {
                if (ipValue == null){
                    continue;
                }
-               String groupType = getIpType(ipValue);
+               String groupType = Utils.getIpType(ipValue, host);
                if (groupType != null){
                    ArrayList<IDnsNetworkAddress> groupNetworkAddresses = ipGroupInfo.get(groupType);
                    if (groupNetworkAddresses == null) {
@@ -198,69 +201,7 @@ public class UploadDomainRegion implements UploadRegion {
         }
 
         protected void freeze(String ip){
-            UploadServerFreezeManager.getInstance().freezeHost(host, getIpType(ip));
-        }
-
-        private String getIpType(String ip){
-            String type = null;
-            if (ip == null || ip.length() == 0) {
-                return type;
-            }
-            if (ip.contains(":")) {
-                type = getIPV6StringType(ip);
-            } else if (ip.contains(".")){
-                type = getIPV4StringType(ip);
-            }
-            return type;
-        }
-
-        private String getIPV4StringType(String ipv4String){
-            String type = null;
-            String[] ipNumberStrings = ipv4String.split("\\.");
-            if (ipNumberStrings.length == 4){
-                int firstNumber = Integer.parseInt(ipNumberStrings[0]);
-                if (firstNumber > 0 && firstNumber < 127) {
-                    type = "ipv4-A-" + firstNumber;
-                } else if (firstNumber > 127 && firstNumber <= 191) {
-                    type = "ipv4-B-" + firstNumber + ipNumberStrings[1];
-                } else if (firstNumber > 191 && firstNumber <= 223) {
-                    type = "ipv4-C-"+ firstNumber + ipNumberStrings[1] + ipNumberStrings[2];
-                }
-            }
-            return type;
-        }
-
-        private String getIPV6StringType(String ipv6String){
-            String[] ipNumberStrings = ipv6String.split(":");
-            String[] ipNumberStringsReal = new String[]{"0000", "0000", "0000", "0000", "0000", "0000", "0000", "0000"};
-            String[] suppleStrings = new String[]{"0000", "000", "00", "0", ""};
-            int i = 0;
-            while (i < ipNumberStrings.length){
-                String ipNumberString = ipNumberStrings[i];
-                if (ipNumberString.length() > 0){
-                    ipNumberString = suppleStrings[ipNumberString.length()] + ipNumberString;
-                    ipNumberStringsReal[i] = ipNumberString;
-                } else {
-                    break;
-                }
-                i++;
-            }
-
-            int j = ipNumberStrings.length - 1;
-            int indexReal = ipNumberStringsReal.length - 1;
-            while (i < j){
-                String ipNumberString = ipNumberStrings[j];
-                if (ipNumberString.length() > 0){
-                    ipNumberString = suppleStrings[ipNumberString.length()] + ipNumberString;
-                    ipNumberStringsReal[indexReal] = ipNumberString;
-                } else {
-                    break;
-                }
-                j--;
-                indexReal--;
-            }
-            String[] typeNumbers = Arrays.copyOfRange(ipNumberStringsReal, 0, 4);
-            return StringUtils.join(typeNumbers, "-");
+            UploadServerFreezeManager.getInstance().freezeHost(host, Utils.getIpType(ip, this.host));
         }
     }
 

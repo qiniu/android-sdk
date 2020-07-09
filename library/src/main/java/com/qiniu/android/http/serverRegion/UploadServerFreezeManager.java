@@ -1,11 +1,9 @@
-package com.qiniu.android.http.request.serverRegion;
+package com.qiniu.android.http.serverRegion;
 
 import com.qiniu.android.utils.Utils;
 
 import java.util.Date;
 import java.util.HashMap;
-
-import okhttp3.internal.Util;
 
 /**
  * Created by yangsen on 2020/6/3

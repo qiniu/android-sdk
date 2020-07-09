@@ -1,4 +1,4 @@
-package com.qiniu.android.http.request.serverRegion;
+package com.qiniu.android.http.serverRegion;
 
 import com.qiniu.android.http.request.IUploadServer;
 

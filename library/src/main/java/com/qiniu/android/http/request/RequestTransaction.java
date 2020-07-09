@@ -1,14 +1,12 @@
 package com.qiniu.android.http.request;
 
-import android.util.Log;
-
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.UserAgent;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.request.handler.RequestShouldRetryHandler;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
-import com.qiniu.android.http.request.serverRegion.UploadDomainRegion;
+import com.qiniu.android.http.serverRegion.UploadDomainRegion;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
@@ -24,8 +22,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
-
-import okhttp3.internal.Util;
 
 public class RequestTransaction {
 
