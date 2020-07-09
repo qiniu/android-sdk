@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -24,10 +23,9 @@ public class HappyDns implements Dns {
     private DnsManager dnsManager;
 
     public HappyDns(){
-        IResolver[] resolvers = new IResolver[3];
+        IResolver[] resolvers = new IResolver[2];
         resolvers[0] = new SystemResolver();
-        resolvers[1] = AndroidDnsServer.defaultResolver();
-        resolvers[2] = new DnspodFree();
+        resolvers[1] = new DnspodFree();
 
         dnsManager = new DnsManager(NetworkInfo.normal, resolvers);
     }
@@ -36,10 +34,28 @@ public class HappyDns implements Dns {
     public List<IDnsNetworkAddress> lookup(String hostname) throws UnknownHostException {
         Domain domain = new Domain(hostname);
         List<IDnsNetworkAddress> addressList = null;
-//        try {
-//            addressList = Arrays.asList(dnsManager.queryInetAdress(domain));
-//        } catch (IOException ignored) {
-//        }
+        try {
+            Record[] records = dnsManager.queryRecords(domain);
+            if (records != null && records.length > 0){
+                addressList = new ArrayList<>();
+                for (Record record : records) {
+                    String source = "";
+                    if (record.source == Record.Source.System) {
+                        source = "system";
+                    } else if (record.source == Record.Source.DnspodFree ||
+                            record.source == Record.Source.DnspodEnterprise) {
+                        source = "httpdns";
+                    } else if (record.source == Record.Source.Unknown) {
+                        source = "none";
+                    } else {
+                        source = "customized";
+                    }
+                    DnsNetworkAddress address = new DnsNetworkAddress(hostname, record.value, (long)record.ttl, source, record.timeStamp);
+                    addressList.add(address);
+                }
+            }
+        } catch (IOException ignored) {
+        }
         return addressList;
     }
 
@@ -54,7 +70,7 @@ public class HappyDns implements Dns {
             ArrayList<Record> records = new ArrayList<>();
             List<InetAddress> inetAddresses = new SystemDns().lookupInetAddress(domain.domain);
             for(InetAddress inetAddress : inetAddresses){
-                Record record = new Record(inetAddress.getHostAddress(), Record.TYPE_A, ttl, timestamp);
+                Record record = new Record(inetAddress.getHostAddress(), Record.TYPE_A, ttl, timestamp, Record.Source.System);
                 records.add(record);
             }
             return records.toArray(new Record[0]);

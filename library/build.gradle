@@ -51,7 +51,7 @@ android {
 
 dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.2.2'
-    implementation 'com.qiniu:happy-dns:0.2.13'
+    implementation 'com.qiniu:happy-dns:0.2.16'
     // for javax.annotation.Nullable use in custom MultipartBody and Headers implements.
 //    implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
