@@ -8,7 +8,7 @@ import org.json.JSONObject;
 /**
  * 内部使用的客户端 token 检查.
  */
-public final class UpToken {
+ public final class UpToken {
 
     public final String token;
     public final String accessKey;

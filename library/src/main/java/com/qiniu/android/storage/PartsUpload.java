@@ -21,9 +21,9 @@ public abstract class PartsUpload extends BaseUpload {
     private static final String kRecordFileInfoKey = "recordFileInfo";
     private static final String kRecordZoneInfoKey = "recordZoneInfo";
 
-    public static long blockSize = 4*1024*1024;
+    protected static long blockSize = 4*1024*1024;
     // 定制chunk大小 在执行run之前赋值
-    public Long chunkSize;
+    protected Long chunkSize;
 
     // 断点续传时，起始上传偏移, 暂只做为日志打点，不参与上传逻辑
     private Long recoveredFrom;
@@ -31,14 +31,14 @@ public abstract class PartsUpload extends BaseUpload {
 
     private RandomAccessFile randomAccessFile;
 
-    public PartsUpload(File file,
-                       String key,
-                       UpToken token,
-                       UploadOptions option,
-                       Configuration config,
-                       Recorder recorder,
-                       String recorderKey,
-                       UpTaskCompletionHandler completionHandler) {
+    protected PartsUpload(File file,
+                          String key,
+                          UpToken token,
+                         UploadOptions option,
+                         Configuration config,
+                        Recorder recorder,
+                        String recorderKey,
+                        UpTaskCompletionHandler completionHandler) {
         super(file, key, token, option, config, recorder, recorderKey, completionHandler);
         RandomAccessFile randomAccessFile = null;
         if (file != null){
@@ -49,7 +49,7 @@ public abstract class PartsUpload extends BaseUpload {
         this.randomAccessFile = randomAccessFile;
     }
 
-    public UploadFileInfo getUploadFileInfo(){
+    protected UploadFileInfo getUploadFileInfo(){
         return uploadFileInfo;
     }
 
@@ -62,12 +62,12 @@ public abstract class PartsUpload extends BaseUpload {
         }
     }
 
-    public RandomAccessFile getRandomAccessFile() {
+    protected RandomAccessFile getRandomAccessFile() {
         return randomAccessFile;
     }
 
     @Override
-    public int prepareToUpload() {
+    protected int prepareToUpload() {
         int code = super.prepareToUpload();
         if (code != 0){
             return code;
@@ -86,7 +86,7 @@ public abstract class PartsUpload extends BaseUpload {
     }
 
     @Override
-    public boolean switchRegionAndUpload() {
+    protected boolean switchRegionAndUpload() {
         reportBlock();
         if (uploadFileInfo != null){
             uploadFileInfo.clearUploadState();
@@ -100,13 +100,13 @@ public abstract class PartsUpload extends BaseUpload {
     }
 
     @Override
-    public void completeAction(ResponseInfo responseInfo, JSONObject response) {
+    protected void completeAction(ResponseInfo responseInfo, JSONObject response) {
         reportBlock();
         closeUploadFileInfo();
         super.completeAction(responseInfo, response);
     }
 
-    public void recordUploadInfo(){
+    protected void recordUploadInfo(){
         String key = recorderKey;
         if (recorder == null || key == null || key.length() == 0){
             return;
@@ -131,7 +131,7 @@ public abstract class PartsUpload extends BaseUpload {
         }
     }
 
-    public void removeUploadInfoRecord(){
+    protected void removeUploadInfoRecord(){
         recoveredFrom = null;
         if (uploadFileInfo != null){
             uploadFileInfo.clearUploadState();

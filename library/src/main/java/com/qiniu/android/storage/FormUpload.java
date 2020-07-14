@@ -13,18 +13,18 @@ public class FormUpload extends BaseUpload {
     private double previousPercent;
     private RequestTransaction uploadTransaction;
 
-    public FormUpload(byte[] data,
-                      String key,
-                      String fileName,
-                      UpToken token,
-                      UploadOptions option,
-                      Configuration config,
-                      UpTaskCompletionHandler completionHandler) {
+    protected FormUpload(byte[] data,
+                          String key,
+                          String fileName,
+                          UpToken token,
+                          UploadOptions option,
+                          Configuration config,
+                       UpTaskCompletionHandler completionHandler) {
         super(data, key, fileName, token, option, config, completionHandler);
     }
 
     @Override
-    public void startToUpload() {
+    protected void startToUpload() {
 
         uploadTransaction = new RequestTransaction(config, option, getTargetRegion(), getCurrentRegion(), key, token);
 

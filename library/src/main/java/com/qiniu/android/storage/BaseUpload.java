@@ -57,24 +57,24 @@ public abstract class BaseUpload implements Runnable {
         this.initData();
     }
 
-    public BaseUpload(File file,
-                      String key,
-                      UpToken token,
-                      UploadOptions option,
-                      Configuration config,
-                      Recorder recorder,
-                      String recorderKey,
-                      UpTaskCompletionHandler completionHandler) {
+    protected BaseUpload(File file,
+                        String key,
+                        UpToken token,
+                        UploadOptions option,
+                        Configuration config,
+                        Recorder recorder,
+                        String recorderKey,
+                        UpTaskCompletionHandler completionHandler) {
         this(file, null, file.getName(), key, token, option, config, recorder, recorderKey, completionHandler);
     }
 
-    public BaseUpload(byte[] data,
-                      String key,
-                      String fileName,
-                      UpToken token,
-                      UploadOptions option,
-                      Configuration config,
-                      UpTaskCompletionHandler completionHandler) {
+    protected BaseUpload(byte[] data,
+                         String key,
+                         String fileName,
+                         UpToken token,
+                         UploadOptions option,
+                         Configuration config,
+                         UpTaskCompletionHandler completionHandler) {
         this(null, data, fileName, key, token, option, config, null, null, completionHandler);
     }
 
@@ -105,14 +105,14 @@ public abstract class BaseUpload implements Runnable {
         });
     }
 
-    public int prepareToUpload(){
+    protected int prepareToUpload(){
         setupRegions();
         return 0;
     }
 
-    public abstract void startToUpload();
+    protected abstract void startToUpload();
 
-    public boolean switchRegionAndUpload(){
+    protected boolean switchRegionAndUpload(){
         if (currentRegionRequestMetrics != null){
             metrics.addMetrics(currentRegionRequestMetrics);
             currentRegionRequestMetrics = null;
@@ -124,7 +124,7 @@ public abstract class BaseUpload implements Runnable {
         return isSwitched;
     }
 
-    public void completeAction(ResponseInfo responseInfo,
+    protected void completeAction(ResponseInfo responseInfo,
                                JSONObject response){
         if (currentRegionRequestMetrics != null && metrics != null){
             metrics.addMetrics(currentRegionRequestMetrics);
@@ -156,7 +156,7 @@ public abstract class BaseUpload implements Runnable {
         metrics.regions = defaultRegions;
     }
 
-    public void insertRegionAtFirstByZoneInfo(ZoneInfo zoneInfo){
+    protected void insertRegionAtFirstByZoneInfo(ZoneInfo zoneInfo){
         if (zoneInfo == null){
             return;
         }
@@ -169,7 +169,7 @@ public abstract class BaseUpload implements Runnable {
         regions.add(0, region);
     }
 
-    public boolean switchRegion(){
+    protected boolean switchRegion(){
         if (regions == null) {
             return false;
         }
@@ -184,7 +184,7 @@ public abstract class BaseUpload implements Runnable {
         return ret;
     }
 
-    public UploadRegion getTargetRegion(){
+    protected UploadRegion getTargetRegion(){
         if (regions == null || regions.size() == 0){
             return null;
         } else {
@@ -192,7 +192,7 @@ public abstract class BaseUpload implements Runnable {
         }
     }
 
-    public UploadRegion getCurrentRegion(){
+    protected UploadRegion getCurrentRegion(){
         if (regions == null){
             return null;
         }
@@ -206,12 +206,12 @@ public abstract class BaseUpload implements Runnable {
     }
 
 
-    public UploadRegionRequestMetrics getCurrentRegionRequestMetrics() {
+    protected UploadRegionRequestMetrics getCurrentRegionRequestMetrics() {
         return currentRegionRequestMetrics;
     }
 
     // 一个上传流程可能会发起多个上传操作（如：上传多个分片），每个上传操作均是以一个Region的host做重试操作
-    public void addRegionRequestMetricsOfOneFlow(UploadRegionRequestMetrics metrics){
+    protected void addRegionRequestMetricsOfOneFlow(UploadRegionRequestMetrics metrics){
         if (metrics == null){
             return;
         }
@@ -222,10 +222,10 @@ public abstract class BaseUpload implements Runnable {
         }
     }
 
-    public interface UpTaskCompletionHandler {
-        public void complete(ResponseInfo responseInfo,
-                             String key,
-                             UploadTaskMetrics requestMetrics,
-                             JSONObject response);
+    protected interface UpTaskCompletionHandler {
+        void complete(ResponseInfo responseInfo,
+                      String key,
+                      UploadTaskMetrics requestMetrics,
+                      JSONObject response);
     }
 }

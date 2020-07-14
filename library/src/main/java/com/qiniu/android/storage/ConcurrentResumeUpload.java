@@ -38,14 +38,14 @@ public class ConcurrentResumeUpload extends PartsUpload {
     }
 
     @Override
-    public int prepareToUpload() {
+    protected int prepareToUpload() {
         chunkSize = blockSize;
 
         return super.prepareToUpload();
     }
 
     @Override
-    public void startToUpload() {
+    protected void startToUpload() {
         previousPercent = 0;
         uploadTransactions = new ArrayList<RequestTransaction>();
         uploadBlockErrorResponseInfo = null;

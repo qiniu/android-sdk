@@ -23,19 +23,19 @@ public class ResumeUpload extends PartsUpload {
     private ResponseInfo uploadChunkErrorResponseInfo;
     private JSONObject uploadChunkErrorResponse;
 
-    public ResumeUpload(File file,
-                        String key,
-                        UpToken token,
-                        UploadOptions option,
-                        Configuration config,
-                        Recorder recorder,
-                        String recorderKey,
-                        UpTaskCompletionHandler completionHandler) {
+    protected ResumeUpload(File file,
+                           String key,
+                           UpToken token,
+                           UploadOptions option,
+                           Configuration config,
+                           Recorder recorder,
+                           String recorderKey,
+                           UpTaskCompletionHandler completionHandler) {
         super(file, key, token, option, config, recorder, recorderKey, completionHandler);
     }
 
     @Override
-    public void startToUpload() {
+    protected void startToUpload() {
         previousPercent = 0;
         uploadChunkErrorResponseInfo = null;
         uploadChunkErrorResponse = null;
