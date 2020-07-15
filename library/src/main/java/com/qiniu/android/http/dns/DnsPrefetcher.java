@@ -9,9 +9,7 @@ import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.storage.Recorder;
 import com.qiniu.android.storage.UpToken;
-import com.qiniu.android.storage.persistent.DnsCacheFile;
 import com.qiniu.android.utils.AndroidNetwork;
-import com.qiniu.android.utils.UrlSafeBase64;
 import com.qiniu.android.utils.Utils;
 import com.qiniu.android.utils.Wait;
 
@@ -20,7 +18,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;

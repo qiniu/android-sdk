@@ -17,6 +17,7 @@ public class SystemDns implements Dns {
         return Arrays.asList(addressArray);
     }
 
+    @Override
     public List<IDnsNetworkAddress> lookup(String hostname) throws UnknownHostException {
         ArrayList<IDnsNetworkAddress> addressList = new ArrayList<>();
         InetAddress[] addressArray = InetAddress.getAllByName(hostname);

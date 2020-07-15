@@ -360,9 +360,9 @@ public class RequestTransaction {
     }
 
     public interface RequestCompleteHandler {
-        public void complete(ResponseInfo responseInfo,
-                             UploadRegionRequestMetrics requestMetrics,
-                             JSONObject response);
+         void complete(ResponseInfo responseInfo,
+                       UploadRegionRequestMetrics requestMetrics,
+                       JSONObject response);
     }
 
 }

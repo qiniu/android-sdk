@@ -14,7 +14,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class HttpRegionRequest {
+class HttpRegionRequest {
 
     private final Configuration config;
     private final UploadOptions uploadOption;
@@ -27,12 +27,12 @@ public class HttpRegionRequest {
     private IUploadServer currentServer;
     private UploadRegionRequestMetrics requestMetrics;
 
-    public HttpRegionRequest(Configuration config,
-                             UploadOptions uploadOption,
-                             UpToken token,
-                             UploadRegion region,
-                             UploadRequestInfo requestInfo,
-                             UploadRequstState requestState) {
+    protected HttpRegionRequest(Configuration config,
+                                UploadOptions uploadOption,
+                                UpToken token,
+                                UploadRegion region,
+                                UploadRequestInfo requestInfo,
+                                UploadRequstState requestState) {
         this.config = config;
         this.uploadOption = uploadOption;
         this.token = token;
@@ -42,22 +42,22 @@ public class HttpRegionRequest {
         singleRequest = new HttpSingleRequest(config, uploadOption, token, requestInfo, requestState);
     }
 
-    public void get(String action,
-                    boolean isAsync,
-                    Map<String, String>header,
-                    RequestShouldRetryHandler shouldRetryHandler,
-                    RequestCompleteHandler completeHandler){
+    protected void get(String action,
+                        boolean isAsync,
+                        Map<String, String>header,
+                        RequestShouldRetryHandler shouldRetryHandler,
+                        RequestCompleteHandler completeHandler){
         requestMetrics = new UploadRegionRequestMetrics(region);
         performRequest(getNextServer(null), action, isAsync, null, header, "GET", shouldRetryHandler, null, completeHandler);
     }
 
-    public void post(String action,
-                     boolean isAsync,
-                     byte[] data,
-                     Map<String, String>header,
-                     RequestShouldRetryHandler shouldRetryHandler,
-                     RequestProgressHandler progressHandler,
-                     RequestCompleteHandler completeHandler){
+    protected void post(String action,
+                        boolean isAsync,
+                        byte[] data,
+                        Map<String, String>header,
+                        RequestShouldRetryHandler shouldRetryHandler,
+                        RequestProgressHandler progressHandler,
+                        RequestCompleteHandler completeHandler){
         requestMetrics = new UploadRegionRequestMetrics(region);
         performRequest(getNextServer(null), action, isAsync, data, header, "POST", shouldRetryHandler, progressHandler, completeHandler);
     }
@@ -146,7 +146,7 @@ public class HttpRegionRequest {
     }
 
 
-    public interface RequestCompleteHandler {
+    protected interface RequestCompleteHandler {
         void complete(ResponseInfo responseInfo,
                       UploadRegionRequestMetrics requestMetrics,
                       JSONObject response);

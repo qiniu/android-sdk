@@ -5,7 +5,7 @@ import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.dns.DnsPrefetcher;
-import com.qiniu.android.http.request.httpclient.SystemHttpClient;
+import com.qiniu.android.http.request.httpclient.SystemHttpClientI;
 import com.qiniu.android.http.request.handler.CheckCancelHandler;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.request.handler.RequestShouldRetryHandler;
@@ -22,7 +22,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 
-public class HttpSingleRequest {
+class HttpSingleRequest {
 
     private int currentRetryTime;
     private final Configuration config;
@@ -33,13 +33,13 @@ public class HttpSingleRequest {
 
     private ArrayList <UploadSingleRequestMetrics> requestMetricsList;
 
-    private RequestClient client;
+    private IRequestClient client;
 
-    public HttpSingleRequest(Configuration config,
-                             UploadOptions uploadOption,
-                             UpToken token,
-                             UploadRequestInfo requestInfo,
-                             UploadRequstState requstState) {
+    protected HttpSingleRequest(Configuration config,
+                                UploadOptions uploadOption,
+                                UpToken token,
+                                UploadRequestInfo requestInfo,
+                                UploadRequstState requstState) {
         this.config = config;
         this.uploadOption = uploadOption;
         this.token = token;
@@ -48,12 +48,12 @@ public class HttpSingleRequest {
         this.currentRetryTime = 1;
     }
 
-    public void request(Request request,
-                        boolean isAsync,
-                        boolean toSkipDns,
-                        RequestShouldRetryHandler shouldRetryHandler,
-                        RequestProgressHandler progressHandler,
-                        RequestCompleteHandler completeHandler){
+    protected void request(Request request,
+                           boolean isAsync,
+                           boolean toSkipDns,
+                           RequestShouldRetryHandler shouldRetryHandler,
+                           RequestProgressHandler progressHandler,
+                           RequestCompleteHandler completeHandler){
         currentRetryTime = 1;
         requestMetricsList = new ArrayList<>();
         retryRequest(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, completeHandler);
@@ -67,9 +67,9 @@ public class HttpSingleRequest {
                               final RequestCompleteHandler completeHandler){
 
         if (toSkipDns){
-            client = new SystemHttpClient();
+            client = new SystemHttpClientI();
         } else {
-            client = new SystemHttpClient();
+            client = new SystemHttpClientI();
         }
 
         final CheckCancelHandler checkCancelHandler = new CheckCancelHandler() {
@@ -84,7 +84,7 @@ public class HttpSingleRequest {
         };
 
         LogUtil.w(("== request url:" + request.urlString + " ip:" + request.ip));
-        client.request(request, isAsync, config.proxy, new RequestClient.RequestClientProgress() {
+        client.request(request, isAsync, config.proxy, new IRequestClient.RequestClientProgress() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
                 if (checkCancelHandler.checkCancel()) {
@@ -96,7 +96,7 @@ public class HttpSingleRequest {
                     progressHandler.progress(totalBytesWritten, totalBytesExpectedToWrite);
                 }
             }
-        }, new RequestClient.RequestClientCompleteHandler() {
+        }, new IRequestClient.RequestClientCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
                 if (metrics != null){
@@ -209,10 +209,10 @@ public class HttpSingleRequest {
         UploadInfoReporter.getInstance().report(item, token.token);
     }
 
-    public interface RequestCompleteHandler {
-        public void complete(ResponseInfo responseInfo,
-                             ArrayList<UploadSingleRequestMetrics> requestMetricsList,
-                             JSONObject response);
+    protected interface RequestCompleteHandler {
+        void complete(ResponseInfo responseInfo,
+                      ArrayList<UploadSingleRequestMetrics> requestMetricsList,
+                      JSONObject response);
     }
 }
 

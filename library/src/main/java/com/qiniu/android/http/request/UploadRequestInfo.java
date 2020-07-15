@@ -1,22 +1,22 @@
 package com.qiniu.android.http.request;
 
-public class UploadRequestInfo {
+class UploadRequestInfo {
 
-    public static final String RequestTypeUCQuery = "uc_query";
-    public static final String RequestTypeForm = "form";
-    public static final String RequestTypeMkblk = "mkblk";
-    public static final String RequestTypeBput = "bput";
-    public static final String RequestTypeMkfile = "mkfile";
-    public static final String RequestTypeUpLog = "uplog";
+    protected static final String RequestTypeUCQuery = "uc_query";
+    protected static final String RequestTypeForm = "form";
+    protected static final String RequestTypeMkblk = "mkblk";
+    protected static final String RequestTypeBput = "bput";
+    protected static final String RequestTypeMkfile = "mkfile";
+    protected static final String RequestTypeUpLog = "uplog";
 
-    public String requestType;
-    public String bucket;
-    public String key;
-    public Long fileOffset;
-    public String targetRegionId;
-    public String currentRegionId;
+    protected String requestType;
+    protected String bucket;
+    protected String key;
+    protected Long fileOffset;
+    protected String targetRegionId;
+    protected String currentRegionId;
 
-    public boolean shouldReportRequestLog(){
+    protected boolean shouldReportRequestLog(){
         return requestType.equals(RequestTypeUpLog);
     }
 }

@@ -4,9 +4,9 @@ import com.qiniu.android.common.ZoneInfo;
 
 public interface UploadRegion {
 
-    public ZoneInfo getZoneInfo();
+    ZoneInfo getZoneInfo();
 
-    public void setupRegionData(ZoneInfo zoneInfo);
+    void setupRegionData(ZoneInfo zoneInfo);
 
-    public IUploadServer getNextServer(boolean isOldServer, IUploadServer freezeServer);
+    IUploadServer getNextServer(boolean isOldServer, IUploadServer freezeServer);
 }

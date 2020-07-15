@@ -1,5 +1,7 @@
 package com.qiniu.android.http.request;
 
+import com.qiniu.android.http.request.IUploadServer;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -18,7 +20,8 @@ public class Request {
 
     public String host;
     public String ip;
-    public IUploadServer uploadServer;
+
+    protected IUploadServer uploadServer;
 
     public Request(String urlString,
                    String httpMethod,
@@ -45,7 +48,7 @@ public class Request {
         }
     }
 
-    public boolean isValid() {
+    protected boolean isValid() {
         return this.urlString == null || httpMethod == null;
     }
 }

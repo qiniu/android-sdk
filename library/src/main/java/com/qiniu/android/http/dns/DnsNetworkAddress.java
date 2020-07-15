@@ -3,7 +3,7 @@ package com.qiniu.android.http.dns;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class DnsNetworkAddress implements  IDnsNetworkAddress{
+class DnsNetworkAddress implements  IDnsNetworkAddress{
 
     private final String hostValue;
     private final String ipValue;
@@ -11,7 +11,7 @@ public class DnsNetworkAddress implements  IDnsNetworkAddress{
     private final String sourceValue;
     private final Long timestampValue;
 
-    public static DnsNetworkAddress address(JSONObject jsonObject){
+    protected static DnsNetworkAddress address(JSONObject jsonObject){
         String hostValue = null;
         String ipValue = null;
         Long ttlValue = null;
@@ -37,13 +37,13 @@ public class DnsNetworkAddress implements  IDnsNetworkAddress{
         return networkAddress;
     }
 
-    public static DnsNetworkAddress address(IDnsNetworkAddress address){
+    protected static DnsNetworkAddress address(IDnsNetworkAddress address){
         DnsNetworkAddress networkAddress = null;
 
         return networkAddress;
     }
 
-    public DnsNetworkAddress(String hostValue,
+    protected DnsNetworkAddress(String hostValue,
                               String ipValue,
                               Long ttlValue,
                               String sourceValue,
@@ -55,7 +55,7 @@ public class DnsNetworkAddress implements  IDnsNetworkAddress{
         this.timestampValue = timestampValue;
     }
 
-    public JSONObject toJson(){
+    protected JSONObject toJson(){
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("hostValue", this.hostValue);

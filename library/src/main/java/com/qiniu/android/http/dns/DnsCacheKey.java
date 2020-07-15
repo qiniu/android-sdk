@@ -8,49 +8,49 @@ import org.json.JSONObject;
  * Created by jemy on 2019/9/23.
  */
 
-public class DnsCacheKey {
+class DnsCacheKey {
     private String currentTime;
     private String localIp;
     private String akScope;
 
-    public DnsCacheKey() {}
+    protected DnsCacheKey() {}
 
-    public DnsCacheKey(String currentTime, String localIp) {
+    protected DnsCacheKey(String currentTime, String localIp) {
         this.currentTime = currentTime;
         this.localIp = localIp;
     }
 
-    public DnsCacheKey(String currentTime, String localIp, String akScope) {
+    protected DnsCacheKey(String currentTime, String localIp, String akScope) {
         this.currentTime = currentTime;
         this.localIp = localIp;
         this.akScope = akScope;
     }
 
-    public String getCurrentTime() {
+    protected String getCurrentTime() {
         return currentTime;
     }
 
-    public String getAkScope() {
+    protected String getAkScope() {
         return akScope;
     }
 
-    public String getLocalIp() {
+    protected String getLocalIp() {
         return localIp;
     }
 
-    public void setAkScope(String akScope) {
+    protected void setAkScope(String akScope) {
         this.akScope = akScope;
     }
 
-    public void setCurrentTime(String currentTime) {
+    protected void setCurrentTime(String currentTime) {
         this.currentTime = currentTime;
     }
 
-    public void setLocalIp(String localIp) {
+    protected void setLocalIp(String localIp) {
         this.localIp = localIp;
     }
 
-    public static DnsCacheKey toCacheKey(String key) {
+    protected static DnsCacheKey toCacheKey(String key) {
         try {
             JSONObject object = new JSONObject(key);
             return new DnsCacheKey(object.getString("currentTime"), object.getString("localIp"), object.getString("akScope"));

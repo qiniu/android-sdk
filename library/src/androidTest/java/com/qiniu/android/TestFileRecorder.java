@@ -7,7 +7,7 @@ import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.storage.persistent.FileRecorder;
+import com.qiniu.android.storage.FileRecorder;
 import com.qiniu.android.utils.Etag;
 import com.qiniu.android.utils.LogUtil;
 

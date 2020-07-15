@@ -5,15 +5,12 @@ import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.dns.IDnsNetworkAddress;
 import com.qiniu.android.http.request.UploadRegion;
 import com.qiniu.android.http.request.IUploadServer;
-import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.Utils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import okhttp3.internal.Util;
 
 public class UploadDomainRegion implements UploadRegion {
 
