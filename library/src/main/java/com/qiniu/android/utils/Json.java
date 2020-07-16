@@ -1,6 +1,5 @@
 package com.qiniu.android.utils;
 
-//import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

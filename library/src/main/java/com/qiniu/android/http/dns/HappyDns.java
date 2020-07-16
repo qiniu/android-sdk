@@ -6,7 +6,6 @@ import com.qiniu.android.dns.IResolver;
 import com.qiniu.android.dns.NetworkInfo;
 import com.qiniu.android.dns.Record;
 import com.qiniu.android.dns.http.DnspodFree;
-import com.qiniu.android.dns.local.AndroidDnsServer;
 import com.qiniu.android.utils.Utils;
 
 import java.io.IOException;

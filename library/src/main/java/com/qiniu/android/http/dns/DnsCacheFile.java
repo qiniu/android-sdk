@@ -1,6 +1,5 @@
 package com.qiniu.android.http.dns;
 
-import com.qiniu.android.http.dns.DnsCacheKey;
 import com.qiniu.android.storage.Recorder;
 
 import java.io.File;

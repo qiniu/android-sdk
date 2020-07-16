@@ -1,7 +1,5 @@
 package com.qiniu.android.common;
 
-import android.util.Log;
-
 import com.qiniu.android.BaseTest;
 import com.qiniu.android.TestConfig;
 import com.qiniu.android.http.ResponseInfo;

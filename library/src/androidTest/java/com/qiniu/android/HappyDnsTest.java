@@ -3,7 +3,6 @@ package com.qiniu.android;
 import com.qiniu.android.http.dns.HappyDns;
 import com.qiniu.android.http.dns.IDnsNetworkAddress;
 
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;

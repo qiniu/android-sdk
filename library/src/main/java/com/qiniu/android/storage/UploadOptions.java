@@ -1,7 +1,6 @@
 package com.qiniu.android.storage;
 
 import android.os.Looper;
-import android.util.Log;
 
 import com.qiniu.android.utils.AndroidNetwork;
 import com.qiniu.android.utils.LogUtil;

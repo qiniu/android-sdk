@@ -1,6 +1,5 @@
 package com.qiniu.android.http.dns;
 
-import android.util.Log;
 
 public interface IDnsNetworkAddress {
     /// 域名

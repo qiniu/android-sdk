@@ -4,8 +4,6 @@ import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.storage.UpToken;
 
-import java.net.URI;
-
 /**
  * Created by bailong on 15/10/10.
  */

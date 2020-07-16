@@ -1,7 +1,5 @@
 package com.qiniu.android.common;
 
-import android.os.Environment;
-
 import com.qiniu.android.http.dns.Dns;
 import com.qiniu.android.utils.ContextGetter;
 import com.qiniu.android.utils.Utils;

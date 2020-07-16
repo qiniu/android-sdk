@@ -1,7 +1,6 @@
 package com.qiniu.android.utils;
 
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 public class Wait {
 

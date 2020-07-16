@@ -1,15 +1,10 @@
 package com.qiniu.android.common;
 
-import android.util.Log;
-
 import com.qiniu.android.storage.UpToken;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+
 
 /**
  * Created by long on 2016/9/29.

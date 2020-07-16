@@ -1,6 +1,5 @@
 package com.qiniu.android.http.dns;
 
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 

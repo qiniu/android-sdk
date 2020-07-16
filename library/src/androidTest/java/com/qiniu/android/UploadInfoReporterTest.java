@@ -1,7 +1,6 @@
 package com.qiniu.android;
 
 import android.test.AndroidTestCase;
-import android.util.Log;
 
 import com.qiniu.android.collect.ReportConfig;
 import com.qiniu.android.collect.ReportItem;

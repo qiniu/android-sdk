@@ -1,8 +1,6 @@
 package com.qiniu.android.http.request.httpclient;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import okhttp3.MediaType;

@@ -1,7 +1,5 @@
 package com.qiniu.android.http.request.httpclient;
 
-import android.util.Log;
-
 import com.qiniu.android.http.CancellationHandler;
 import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.utils.AsyncRun;
