@@ -21,12 +21,17 @@ public class HappyDns implements Dns {
 
     private DnsManager dnsManager;
 
+
     public HappyDns(){
         IResolver[] resolvers = new IResolver[2];
         resolvers[0] = new SystemResolver();
         resolvers[1] = new DnspodFree();
 
         dnsManager = new DnsManager(NetworkInfo.normal, resolvers);
+    }
+
+    void setQueryErrorHandler(DnsQueryErrorHandler handler){
+        dnsManager.queryErrorHandler = handler;
     }
 
     @Override
@@ -74,5 +79,9 @@ public class HappyDns implements Dns {
             }
             return records.toArray(new Record[0]);
         }
+    }
+
+
+    interface DnsQueryErrorHandler extends DnsManager.QueryErrorHandler {
     }
 }
