@@ -80,7 +80,7 @@ public class AutoZoneTest extends AndroidTestCase {
             @Override
             public void onFailure(int reason) {
                 countDownLatch.countDown();
-                fail();
+                fail(reason + "");
             }
         });
         try {
