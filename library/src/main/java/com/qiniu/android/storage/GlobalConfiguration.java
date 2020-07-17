@@ -30,6 +30,21 @@ public class GlobalConfiguration {
      */
     public String dnsCacheDir = Utils.sdkDirectory() + "/dnsCache/";
 
+    /**
+     *  是否开启网络检测
+     */
+    public boolean isCheckOpen = true;
+
+    /**
+     *  单个IP一次检测次数 默认：2次
+     */
+    public int maxCheckCount = 2;
+
+    /**
+     * 单个IP检测的最长时间 maxTime >= 1 && maxTime <= 600  默认：9秒
+     */
+    public int maxTime = 9;
+
 
     private static GlobalConfiguration configuration = new GlobalConfiguration();
     private GlobalConfiguration(){
@@ -37,6 +52,4 @@ public class GlobalConfiguration {
     public static GlobalConfiguration getInstance(){
         return configuration;
     }
-
-
 }

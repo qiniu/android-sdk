@@ -1,5 +1,6 @@
 package com.qiniu.android.http.networkCheck;
 
+import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.utils.Utils;
 
 import java.util.HashMap;
@@ -9,8 +10,6 @@ public class NetworkCheckManager {
     enum NetworkCheckStatus {
         A, B, C, D, Unknown
     }
-
-    public boolean isCheckOpen = true;
 
     private NetworkChecker networkChecker = new NetworkChecker();
     HashMap<String, String> checkingIPTypeInfo = new HashMap<>();
@@ -29,25 +28,11 @@ public class NetworkCheckManager {
         return networkCheckManager;
     }
 
-
-    public int maxCheckCount(){
-        return networkChecker.maxCheckCount;
-    }
-
-    public void setMaxCheckCount(int maxCheckCount){
-        networkChecker.maxCheckCount = maxCheckCount;
-    }
-
-    public int checkMaxTime(){
-        return networkChecker.maxTime;
-    }
-
-    public void setCheckMaxTime(int checkMaxTime){
-        networkChecker.maxTime = checkMaxTime;
-    }
-
-
     public NetworkCheckStatus getIPNetworkStatus(String ip, String host){
+        if (GlobalConfiguration.getInstance().isCheckOpen == false){
+            return NetworkCheckStatus.Unknown;
+        }
+
         String ipType = Utils.getIpType(ip, host);
         NetworkCheckStatusInfo statusInfo = statusInfoDictionary.get(ipType);
         if (statusInfo != null){
@@ -58,6 +43,10 @@ public class NetworkCheckManager {
     }
 
     public void preCheckIPNetworkStatus(String[] ipArray, String host){
+        if (GlobalConfiguration.getInstance().isCheckOpen == false){
+            return;
+        }
+
         for (String ip : ipArray) {
             String ipType = Utils.getIpType(ip, host);
             if (ipType != null && statusInfoDictionary.get(ipType) != null && checkingIPTypeInfo.get(ipType) != null) {

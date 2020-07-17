@@ -1,5 +1,7 @@
 package com.qiniu.android.http.networkCheck;
 
+import com.qiniu.android.storage.GlobalConfiguration;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Timer;
@@ -7,10 +9,6 @@ import java.util.TimerTask;
 
 class NetworkChecker {
 
-    // 单个IP一次检测次数 默认：2次
-    protected int maxCheckCount = 2;
-    // 单个IP检测的最长时间 maxTime >= 1 && maxTime <= 15 单位：秒  默认：9秒
-    protected int maxTime = 9;
     protected NetworkCheckerListener networkCheckerListener;
 
     private Timer timer;
@@ -39,7 +37,7 @@ class NetworkChecker {
 
         checkerInfo.stop();
 
-        if (checkerInfo.shouldCheck(maxCheckCount)) {
+        if (checkerInfo.shouldCheck(GlobalConfiguration.getInstance().maxCheckCount)) {
             ipCheckComplete(ip);
             return false;
         } else {
@@ -56,6 +54,7 @@ class NetworkChecker {
         checkerInfo.start();
 
         // -----------------
+        createTimer();
 
         return true;
     }
@@ -73,7 +72,7 @@ class NetworkChecker {
         Date currentDate = new Date();
         for (String ip : checkerInfoDictionary.keySet()){
             NetworkCheckerInfo checkerInfo = checkerInfoDictionary.get(ip);
-            if (checkerInfo.isTimeout(currentDate, maxTime)){
+            if (checkerInfo.isTimeout(currentDate, GlobalConfiguration.getInstance().maxTime)){
                 disconnect(ip);
                 performCheckIFNeeded(ip);
             }
@@ -91,8 +90,8 @@ class NetworkChecker {
         checkerInfoDictionary.remove(ip);
 
         if (networkCheckerListener != null){
-            long time = checkerInfo.time / maxCheckCount;
-            networkCheckerListener.checkComplete(ip, checkerInfo.host, Math.min(time, (long)maxTime * 1000));
+            long time = checkerInfo.time / GlobalConfiguration.getInstance().maxCheckCount;
+            networkCheckerListener.checkComplete(ip, checkerInfo.host, Math.min(time, (long)GlobalConfiguration.getInstance().maxTime * 1000));
         }
 
         if (checkerInfoDictionary.size() == 0){
@@ -109,7 +108,7 @@ class NetworkChecker {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-
+                checkTimeout();
             }
         }, 1);
     }
