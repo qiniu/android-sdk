@@ -1,6 +1,5 @@
 package com.qiniu.android.http.networkCheck;
 
-import java.sql.Time;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Timer;
