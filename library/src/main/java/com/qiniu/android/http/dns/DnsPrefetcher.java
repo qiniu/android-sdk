@@ -7,6 +7,7 @@ import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.common.ZonesInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.storage.Recorder;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.AndroidNetwork;
@@ -41,7 +42,7 @@ public class DnsPrefetcher {
         happyDns.setQueryErrorHandler(new HappyDns.DnsQueryErrorHandler() {
             @Override
             public void queryError(Exception e, String host) {
-                lastPrefetchedErrorMessage = e.getMessage();
+                lastPrefetchErrorMessage = e.getMessage();
             }
         });
     }
@@ -50,13 +51,13 @@ public class DnsPrefetcher {
         return dnsPrefetcher;
     }
 
-    public String lastPrefetchedErrorMessage;
+    public String lastPrefetchErrorMessage;
 
     public boolean recoverCache(){
 
         DnsCacheFile recorder = null;
         try {
-            recorder = new DnsCacheFile(Config.dnscacheDir);
+            recorder = new DnsCacheFile(GlobalConfiguration.getInstance().dnsCacheDir);
         } catch (IOException e) {
             return true;
         }
@@ -171,7 +172,7 @@ public class DnsPrefetcher {
     private void preFetchHosts(String[] fetchHosts){
         String[] nextFetchHosts = fetchHosts;
 
-        nextFetchHosts = preFetchHosts(nextFetchHosts, Config.dns);
+        nextFetchHosts = preFetchHosts(nextFetchHosts, GlobalConfiguration.getInstance().dns);
         nextFetchHosts = preFetchHosts(nextFetchHosts, happyDns);
     }
 
@@ -188,7 +189,7 @@ public class DnsPrefetcher {
             int rePreNum = 0;
             boolean isSuccess = false;
 
-            while (rePreNum < Config.dnsRepreHostNum){
+            while (rePreNum < GlobalConfiguration.getInstance().dnsRepreHostNum){
                 if (preFetchHost(host, dns)){
                     isSuccess = true;
                     break;
@@ -220,7 +221,7 @@ public class DnsPrefetcher {
                 for (IDnsNetworkAddress preIAddress : preIAddressList) {
                     DnsNetworkAddress address = new DnsNetworkAddress(preIAddress.getHostValue(),
                             preIAddress.getIpValue(),
-                            preIAddress.getTtlValue(),
+                            preIAddress.getTtlValue() != null ? preIAddress.getTtlValue() : GlobalConfiguration.getInstance().dnsCacheTime,
                             preIAddress.getSourceValue(),
                             preIAddress.getTimestampValue());
                     addressList.add(address);
@@ -278,7 +279,7 @@ public class DnsPrefetcher {
 
         DnsCacheFile recorder = null;
         try {
-            recorder = new DnsCacheFile(Config.dnscacheDir);
+            recorder = new DnsCacheFile(GlobalConfiguration.getInstance().dnsCacheDir);
         } catch (IOException e) {
             return false;
         }
@@ -392,7 +393,7 @@ public class DnsPrefetcher {
     }
 
     public boolean isDnsOpen(){
-        return true;
+        return GlobalConfiguration.getInstance().isDnsOpen;
     }
 
     public synchronized boolean isPrefetching() {
