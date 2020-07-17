@@ -39,26 +39,6 @@ public final class Config {
      * 默认使用当前应用的缓存目录： getCacheDir()
      */
     public static String recordDir = null;
-    /**
-     *   是否开启dns预解析 默认开启
-     */
-    public static boolean isDnsOpen = true;
-    /**
-     *   dns预取缓存时间  单位：秒
-     */
-    public static int dnsCacheTime = 2 * 60;
-    /**
-     *   dns 预取失败后 会进行重新预取  rePreHostNum为最多尝试次数
-     */
-    public static int dnsRepreHostNum = 2;
-    /**
-     *   自定义DNS解析客户端host
-     */
-    public static Dns dns = null;
-    /**
-     *   dns解析结果本地缓存路径
-     */
-    public static final String dnscacheDir = Utils.sdkDirectory() + "/dnschache/";
 
 
     static {

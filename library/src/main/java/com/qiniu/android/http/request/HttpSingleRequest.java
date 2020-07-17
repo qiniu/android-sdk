@@ -204,7 +204,7 @@ class HttpSingleRequest {
             Long prefetchTime = request.uploadServer.getIpPrefetchedTime() - currentTimestamp;
             item.setReport(prefetchTime, ReportItem.RequestKeyPrefetchedBefore);
         }
-        item.setReport(DnsPrefetcher.getInstance().lastPrefetchedErrorMessage, ReportItem.RequestKeyPrefetchedErrorMessage);
+        item.setReport(DnsPrefetcher.getInstance().lastPrefetchErrorMessage, ReportItem.RequestKeyPrefetchedErrorMessage);
 
         UploadInfoReporter.getInstance().report(item, token.token);
     }
