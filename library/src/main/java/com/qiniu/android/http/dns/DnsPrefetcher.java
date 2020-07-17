@@ -37,7 +37,14 @@ public class DnsPrefetcher {
     private final HappyDns happyDns = new HappyDns();
 
     private final static DnsPrefetcher dnsPrefetcher = new DnsPrefetcher();
-    private DnsPrefetcher(){}
+    private DnsPrefetcher(){
+        happyDns.setQueryErrorHandler(new HappyDns.DnsQueryErrorHandler() {
+            @Override
+            public void queryError(Exception e, String host) {
+                lastPrefetchedErrorMessage = e.getMessage();
+            }
+        });
+    }
 
     public static DnsPrefetcher getInstance(){
         return dnsPrefetcher;
