@@ -4,7 +4,6 @@ import com.qiniu.android.common.AutoZone;
 import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.storage.UpToken;
-
 import java.util.List;
 
 /**
@@ -13,6 +12,9 @@ import java.util.List;
 
 public class DnsApiTest extends BaseTest {
 
+    @Override
+    protected void setUp() throws Exception {
+    }
 
     public void testLocalLoad() {
 
