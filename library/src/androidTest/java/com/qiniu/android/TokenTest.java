@@ -11,7 +11,7 @@ import junit.framework.Assert;
  */
 public class TokenTest extends AndroidTestCase {
     public void testRight() {
-        UpToken t = UpToken.parse(TestConfig.token_z0);
+        UpToken t = UpToken.parse(TestConfig.commonToken);
         Assert.assertNotSame(t, UpToken.NULL);
     }
 

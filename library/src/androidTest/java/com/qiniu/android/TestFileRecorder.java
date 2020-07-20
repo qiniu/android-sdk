@@ -89,7 +89,7 @@ public class TestFileRecorder extends InstrumentationTestCase {
         });
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(tempFile, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
+                uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         Log.i("qiniutest", k + rinfo);
                         key = k;
@@ -125,7 +125,7 @@ public class TestFileRecorder extends InstrumentationTestCase {
 
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(tempFile, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
+                uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         Log.i("qiniutest", k + rinfo);
                         key = k;

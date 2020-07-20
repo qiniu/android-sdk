@@ -19,7 +19,7 @@ public final class TestConfig {
     public static final String token_z2 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:S9V-5ttyKKfzH59Ncs7wooEOpc4=:eyJzY29wZSI6InNkay16MiIsImRlYWRsaW5lIjoxNTk1MDU4MzY0fQ==";
     //北美上传凭证
     public static final String bucket_na0 = "sdk-na0";
-    public static final String token_na0 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:K-4seSpuZ1XivgHK_VrZVt4z5Pw=:eyJzY29wZSI6InNkay1uYTAiLCJkZWFkbGluZSI6MTU5NTA1ODM4NX0=";
+    public static final String token_na0 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:hNobj3oBf2OxjafAlH6przLDAOs=:eyJzY29wZSI6InNkay1uYTAiLCJkZWFkbGluZSI6MTU5NTMxNDIyN30=";
     public static final String ak = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW";
 
 

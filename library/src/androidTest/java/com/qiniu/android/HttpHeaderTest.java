@@ -22,7 +22,7 @@ public class HttpHeaderTest extends AndroidTestCase {
 
     public void testValue(){
 
-        assertTrue(headers.getDate("date") != null);
+        assertTrue(headers.values("date") != null);
         assertTrue(headers.values("host") != null);
     }
 
