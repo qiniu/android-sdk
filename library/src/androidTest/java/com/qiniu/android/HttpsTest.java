@@ -38,9 +38,10 @@ public class HttpsTest extends BaseTest {
 
     @SmallTest
     public void testPost1() throws Throwable {
+
         info = null;
         httpManager.asyncPost("https://www.baidu.com/", "hello".getBytes(), null,
-                UpToken.parse(TestConfig.token_z0), "hello".getBytes().length, null, new CompletionHandler() {
+                UpToken.parse(TestConfig.commonToken), "hello".getBytes().length, null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
                         LogUtil.d(rinfo.toString());
@@ -58,6 +59,7 @@ public class HttpsTest extends BaseTest {
                 }
             }
         }, 5);
+
 
         assertEquals(info.error, 200, info.statusCode);
     }

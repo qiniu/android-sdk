@@ -3,7 +3,7 @@ package com.qiniu.android;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.request.Request;
 import com.qiniu.android.http.request.IRequestClient;
-import com.qiniu.android.http.request.httpclient.SystemHttpClientI;
+import com.qiniu.android.http.request.httpclient.SystemHttpClient;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 
 
@@ -20,7 +20,7 @@ public class SystemHttpClientTest extends BaseTest {
         Request request = new Request("https://uc.qbox.me/v3/query?ak=jH983zIUFIP1OVumiBVGeAfiLYJvwrF45S-t22eu&bucket=zone0-space",
                 null, null, null, 15);
 
-        SystemHttpClientI client = new SystemHttpClientI();
+        SystemHttpClient client = new SystemHttpClient();
         client.request(request, true, null, null, new IRequestClient.RequestClientCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
@@ -39,7 +39,7 @@ public class SystemHttpClientTest extends BaseTest {
         Request request = new Request("http://www.baidu.com/",
                 Request.HttpMethodPOST, null, "hello".getBytes(), 15);
 
-        SystemHttpClientI client = new SystemHttpClientI();
+        SystemHttpClient client = new SystemHttpClient();
         client.request(request, true, null, null, new IRequestClient.RequestClientCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {

@@ -109,7 +109,7 @@ public class CancelTest extends InstrumentationTestCase {
         });
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(tempFile, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
+                uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         temp.expectKey = expectKey;
                         temp.key = k;
@@ -173,7 +173,7 @@ public class CancelTest extends InstrumentationTestCase {
         });
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(tempDate, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
+                uploadManager.put(tempDate, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         temp.expectKey = expectKey;
                         temp.key = k;
