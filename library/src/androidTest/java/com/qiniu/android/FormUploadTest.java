@@ -33,23 +33,24 @@ public class FormUploadTest extends BaseTest {
     public void setUp() throws Exception {
         this.uploadManager = new UploadManager();
         this.bucketTokenMap = new HashMap<>();
-        this.bucketTokenMap.put(TestConfig.bucket_z0, TestConfig.token_z0);
-        this.bucketTokenMap.put(TestConfig.bucket_z1, TestConfig.token_z1);
-        this.bucketTokenMap.put(TestConfig.bucket_z2, TestConfig.token_z2);
+//        this.bucketTokenMap.put(TestConfig.bucket_z0, TestConfig.token_z0);
+//        this.bucketTokenMap.put(TestConfig.bucket_z1, TestConfig.token_z1);
+//        this.bucketTokenMap.put(TestConfig.bucket_z2, TestConfig.token_z2);
         this.bucketTokenMap.put(TestConfig.bucket_na0, TestConfig.token_na0);
 
         this.bucketZoneMap = new HashMap<>();
-        this.bucketZoneMap.put(TestConfig.bucket_z0, FixedZone.zone0);
+
+//        this.bucketZoneMap.put(TestConfig.bucket_z0, FixedZone.zone0);
 //        this.bucketZoneMap.put(TestConfig.bucket_z1, FixedZone.zone1);
-        //this.bucketZoneMap.put(TestConfig.bucket_z2, FixedZone.zone2);
-        //this.bucketZoneMap.put(TestConfig.bucket_na0, FixedZone.zoneNa0);
+//        this.bucketZoneMap.put(TestConfig.bucket_z2, FixedZone.zone2);
+        this.bucketZoneMap.put(TestConfig.bucket_na0, FixedZone.zoneNa0);
 
 
         //mock
         this.mockBucketZoneMap = new HashMap<>();
-        this.mockBucketZoneMap.put(TestConfig.bucket_z0, TestConfig.mock_bucket_zone0);
-        this.mockBucketZoneMap.put(TestConfig.bucket_z1, TestConfig.mock_bucket_zone1);
-        this.mockBucketZoneMap.put(TestConfig.bucket_z2, TestConfig.mock_bucket_zone2);
+//        this.mockBucketZoneMap.put(TestConfig.bucket_z0, TestConfig.mock_bucket_zone0);
+//        this.mockBucketZoneMap.put(TestConfig.bucket_z1, TestConfig.mock_bucket_zone1);
+//        this.mockBucketZoneMap.put(TestConfig.bucket_z2, TestConfig.mock_bucket_zone2);
         this.mockBucketZoneMap.put(TestConfig.bucket_na0, TestConfig.mock_bucket_zoneNa0);
 
     }

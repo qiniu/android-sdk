@@ -91,7 +91,7 @@ public class ResumeUploadTest extends BaseTest {
         final UploadOptions options = getUploadOptions();
         AsyncRun.runInMain(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(f, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
+                uploadManager.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         LogUtil.i(k + rinfo);
                         key = k;
@@ -125,14 +125,14 @@ public class ResumeUploadTest extends BaseTest {
 
         final String expectKey = "android-resume-test2-" + size + "k";
         final File f = TempFile.createFile(size);
-        String[] s = new String[]{"up.qbox.me"};
+        String[] s = new String[]{"up-na0.qbox.me"};
         Zone z = new FixedZone(s);
         Configuration c = new Configuration.Builder()
                 .zone(z).useHttps(true).useConcurrentResumeUpload(false)
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
         final UploadOptions options = getUploadOptions();
-        uploadManager2.put(f, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
+        uploadManager2.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                 LogUtil.i(k + rinfo);
                 key = k;

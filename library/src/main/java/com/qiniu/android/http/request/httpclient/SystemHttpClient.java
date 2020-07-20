@@ -44,7 +44,7 @@ import okhttp3.Response;
 
 import static com.qiniu.android.http.ResponseInfo.NetworkError;
 
-public class SystemHttpClientI implements IRequestClient {
+public class SystemHttpClient implements IRequestClient {
 
     public static final String ContentTypeHeader = "Content-Type";
     public static final String DefaultMime = "application/octet-stream";
@@ -82,7 +82,12 @@ public class SystemHttpClientI implements IRequestClient {
                 public void onFailure(Call call, IOException e) {
                     e.printStackTrace();
                     String msg = e.getMessage();
-                    handleError(request, getStatusCodeByException(e), msg, complete);
+                    int status = getStatusCodeByException(e);
+                    if (call.isCanceled()){
+                        status = ResponseInfo.Cancelled;
+                        msg = "user cancelled";
+                    }
+                    handleError(request, status, msg, complete);
                 }
 
                 @Override
@@ -98,7 +103,12 @@ public class SystemHttpClientI implements IRequestClient {
             } catch (Exception e) {
                 e.printStackTrace();
                 String msg = e.getMessage();
-                handleError(request, getStatusCodeByException(e), msg, complete);
+                int status = getStatusCodeByException(e);
+                if (call.isCanceled()){
+                    status = ResponseInfo.Cancelled;
+                    msg = "user cancelled";
+                }
+                handleError(request, status, msg, complete);
             }
 
         }

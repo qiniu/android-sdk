@@ -43,8 +43,9 @@ public class HttpTest extends BaseTest {
 
     @SmallTest
     public void testPost1() throws Throwable {
+
         httpManager.asyncPost("http://www.baidu.com",
-                "hello".getBytes(), null, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
+                "hello".getBytes(), null, UpToken.parse(TestConfig.commonToken), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
@@ -72,7 +73,7 @@ public class HttpTest extends BaseTest {
     public void testPost2() throws Throwable {
 
         httpManager.asyncPost("http://up.qiniu.com", "hello".getBytes(), null,
-                UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
+                UpToken.parse(TestConfig.commonToken), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
@@ -99,8 +100,9 @@ public class HttpTest extends BaseTest {
     public void testPost3() throws Throwable {
         AsyncRun.runInMain(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
+
                 httpManager.asyncPost("http://httpbin.org/status/500", "hello".getBytes(),
-                        null, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
+                        null, UpToken.parse(TestConfig.commonToken), "hello".getBytes().length,
                         null, new CompletionHandler() {
                             @Override
                             public void complete(ResponseInfo rinfo, JSONObject response) {
@@ -132,7 +134,7 @@ public class HttpTest extends BaseTest {
             public void run() {
                 httpManager.asyncPost("http://httpbin.org/status/418",
                         "hello".getBytes(),
-                        null, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
+                        null, UpToken.parse(TestConfig.commonToken), "hello".getBytes().length,
                         null, new CompletionHandler() {
                             @Override
                             public void complete(ResponseInfo rinfo, JSONObject response) {
@@ -161,8 +163,9 @@ public class HttpTest extends BaseTest {
     @SmallTest
     public void testPostNoDomain() throws Throwable {
 
+
         httpManager.asyncPost("http://no-domain.qiniu.com", "hello".getBytes(),
-                null, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
+                null, UpToken.parse(TestConfig.commonToken), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
@@ -212,8 +215,9 @@ public class HttpTest extends BaseTest {
     public void testPostIP() throws Throwable {
         info = null;
         StringMap x = new StringMap().put("Host", "up.qiniu.com");
+
         httpManager.asyncPost("http://124.160.115.112", "hello".getBytes(),
-                x, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
+                x, UpToken.parse(TestConfig.commonToken), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
@@ -242,8 +246,9 @@ public class HttpTest extends BaseTest {
         StringMap x = new StringMap();
         ProxyConfiguration p = new ProxyConfiguration("115.238.101.32", 80);
         Client c = new Client(p, 10, 30, null, null);
+
         c.asyncPost("http://upproxy1.qiniu.com", "hello".getBytes(),
-                x, UpToken.parse(TestConfig.token_z0), "hello".getBytes().length,
+                x, UpToken.parse(TestConfig.commonToken), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {

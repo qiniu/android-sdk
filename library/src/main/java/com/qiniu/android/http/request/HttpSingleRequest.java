@@ -5,7 +5,7 @@ import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.dns.DnsPrefetcher;
-import com.qiniu.android.http.request.httpclient.SystemHttpClientI;
+import com.qiniu.android.http.request.httpclient.SystemHttpClient;
 import com.qiniu.android.http.request.handler.CheckCancelHandler;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.request.handler.RequestShouldRetryHandler;
@@ -67,9 +67,9 @@ class HttpSingleRequest {
                               final RequestCompleteHandler completeHandler){
 
         if (toSkipDns){
-            client = new SystemHttpClientI();
+            client = new SystemHttpClient();
         } else {
-            client = new SystemHttpClientI();
+            client = new SystemHttpClient();
         }
 
         final CheckCancelHandler checkCancelHandler = new CheckCancelHandler() {

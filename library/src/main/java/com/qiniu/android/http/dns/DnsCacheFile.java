@@ -19,7 +19,7 @@ public class DnsCacheFile implements Recorder {
     public DnsCacheFile(String directory) throws IOException {
         this.directory = directory;
         f = new File(directory);
-        if (!f.exists()) {
+        if (f.isDirectory() || !f.exists()) {
             boolean r = f.mkdirs();
             if (!r) {
                 throw new IOException("mkdir failed");
