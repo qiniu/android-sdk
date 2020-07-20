@@ -22,6 +22,10 @@ public final class TestConfig {
     public static final String token_na0 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:K-4seSpuZ1XivgHK_VrZVt4z5Pw=:eyJzY29wZSI6InNkay1uYTAiLCJkZWFkbGluZSI6MTU5NTA1ODM4NX0=";
     public static final String ak = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW";
 
+
+    //测试通用的token
+    public static final String commonToken = token_na0;
+
     //dns prefetch token
     public static final String uptoken_prefetch = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:WYvuul25V_gUskDyy16eTI9KH_Y=:eyJzY29wZSI6Ind4YXBwdGVzdCIsImRlYWRsaW5lIjoxNTk0MjI0NzYyfQ==";
 
