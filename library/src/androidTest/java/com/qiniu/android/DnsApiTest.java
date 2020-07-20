@@ -26,6 +26,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -39,6 +41,33 @@ public class DnsApiTest extends AndroidTestCase {
     @Override
     protected void setUp() throws Exception {
         configuration = new Configuration.Builder().build();
+        DnsPrefetcher dnsPrefetcher = DnsPrefetcher.getDnsPrefetcher();
+        dnsPrefetcher.setToken(TestConfig.commonToken);
+    }
+
+    public void testConcurrentHashMap(){
+        InetAddress address = null;
+        try {
+            address = InetAddress.getByName("127.0.0.1");
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
+        if (address == null){
+            return;
+        }
+
+        List<InetAddress> addressList = new ArrayList<>();
+        addressList.add(address);
+
+        ConcurrentHashMap<String, List<InetAddress>> hashMap = new ConcurrentHashMap<>();
+        hashMap.put("localhost", addressList);
+
+        DnsPrefetcher dnsPrefetcher = DnsPrefetcher.getDnsPrefetcher();
+        dnsPrefetcher.setConcurrentHashMap(hashMap);
+
+        assertTrue(hashMap == dnsPrefetcher.getConcurrentHashMap());
+
     }
 
     public void testDns() throws Throwable {

@@ -4,6 +4,8 @@ import android.os.Environment;
 
 import com.qiniu.android.utils.ContextGetter;
 
+import java.io.File;
+
 /**
  * Created by Simon on 11/22/16.
  */
@@ -76,7 +78,7 @@ public final class Config {
     /**
      * dns缓存信息目录
      */
-    public static String dnscacheDir = Environment.getExternalStorageDirectory() + "/dnschache/";
+    public static String dnscacheDir = Environment.getExternalStorageDirectory() + File.separator + "dnschache" + File.separator;
 
     /**
      * preQuery host

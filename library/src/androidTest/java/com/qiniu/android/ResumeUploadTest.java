@@ -95,7 +95,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
         final UploadOptions options = getUploadOptions();
         runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                uploadManager.put(f, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
+                uploadManager.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
                     public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                         Log.i("qiniutest", k + rinfo);
                         key = k;
@@ -138,7 +138,7 @@ public class ResumeUploadTest extends InstrumentationTestCase {
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
         final UploadOptions options = getUploadOptions();
-        uploadManager2.put(f, expectKey, TestConfig.token_z0, new UpCompletionHandler() {
+        uploadManager2.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                 Log.i("qiniutest", k + rinfo);
                 key = k;

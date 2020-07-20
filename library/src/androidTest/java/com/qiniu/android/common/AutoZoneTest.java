@@ -45,17 +45,24 @@ public class AutoZoneTest extends AndroidTestCase {
 ////        assertTrue(zoneInfo.upDomainsList.contains("upload-nb.qiniup.com"));
 //    }
 
-//    public void testHttpFail() {
-//        AutoZone zone = new AutoZone();
-//        ZoneInfo zoneInfo = zone.zoneInfo(ak + "_not_be_ak", bkt);
-//        assertNull(zoneInfo);
-//    }
+    public void testHttpFail() {
+        AutoZone zone = new AutoZone();
+        ZoneInfo zoneInfo = zone.zoneInfo(ak + "_not_be_ak", bkt);
+        assertNull(zoneInfo);
+    }
 
 //    public void testSplitE() {
 //        String s1 = "bkt:key";
 //        String s2 = "bkt";
 //        Assert.assertEquals(s1.split(":")[0], s2.split(":")[0]);
 //    }
+
+    public void testUCServer(){
+        String ucServer = "ucserver.test";
+        AutoZone autoZone = new AutoZone();
+        autoZone.setUcServer(ucServer);
+        assertTrue(autoZone.getUcServer() == ucServer);
+    }
 
     public void testC1() {
         AutoZone autoZone = new AutoZone();
@@ -80,7 +87,7 @@ public class AutoZoneTest extends AndroidTestCase {
             @Override
             public void onFailure(int reason) {
                 countDownLatch.countDown();
-                fail();
+                fail(reason + "");
             }
         });
         try {

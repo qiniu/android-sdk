@@ -36,7 +36,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
         byte[] b = "hello".getBytes();
-        info = uploadManager.syncPut(b, expectKey, TestConfig.token_z0, opt);
+        info = uploadManager.syncPut(b, expectKey, TestConfig.commonToken, opt);
         resp = info.response;
 
 //        Assert.assertTrue(info.toString(), info.isOK());
@@ -55,7 +55,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
 
-        info = uploadManager.syncPut("".getBytes(), expectKey, TestConfig.token_z0, opt);
+        info = uploadManager.syncPut("".getBytes(), expectKey, TestConfig.commonToken, opt);
         resp = info.response;
 
 //        key = resp.optString("key");
@@ -72,7 +72,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        info = uploadManager.syncPut("hello".getBytes(), expectKey, TestConfig.token_z0, opt);
+        info = uploadManager.syncPut("hello".getBytes(), expectKey, TestConfig.commonToken, opt);
 
         resp = info.response;
 //        key = resp.optString("key");
@@ -136,7 +136,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        info = uploadManager.syncPut(f, expectKey, TestConfig.token_z0, opt);
+        info = uploadManager.syncPut(f, expectKey, TestConfig.commonToken, opt);
 
         resp = info.response;
 //        key = resp.optString("key");
@@ -158,7 +158,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        info = uploadManager.syncPut(f, expectKey, TestConfig.token_z0, opt);
+        info = uploadManager.syncPut(f, expectKey, TestConfig.commonToken, opt);
 
         resp = info.response;
         Assert.assertEquals(f.toString(), 0, f.length());
@@ -171,10 +171,10 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
 
     @SmallTest
     public void test0byte() {
-        info = uploadManager.syncPut(new byte[0], null, TestConfig.token_z0, null);
+        info = uploadManager.syncPut(new byte[0], null, TestConfig.commonToken, null);
         Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
 
-        info = uploadManager.syncPut("", null, TestConfig.token_z0, null);
+        info = uploadManager.syncPut("", null, TestConfig.commonToken, null);
         Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
     }
 
@@ -192,7 +192,7 @@ public class SyncFormUploadTest extends InstrumentationTestCase {
                 .useHttps(true)
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
-        info = uploadManager2.syncPut("hello".getBytes(), expectKey, TestConfig.token_z0, opt);
+        info = uploadManager2.syncPut("hello".getBytes(), expectKey, TestConfig.commonToken, opt);
 
         resp = info.response;
 //        key = resp.optString("key");
