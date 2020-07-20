@@ -70,11 +70,32 @@ public class AutoZoneTest extends BaseTest {
 //        Assert.assertEquals(s1.split(":")[0], s2.split(":")[0]);
 //    }
 
+    private boolean isTestUCServerComplete = false;
     public void testUCServer(){
         String ucServer = "ucserver.test";
         AutoZone autoZone = new AutoZone();
         autoZone.setUcServer(ucServer);
         assertTrue(autoZone.getUcServer() == ucServer);
+
+        UpToken token = UpToken.parse(TestConfig.commonToken);
+
+        autoZone.preQuery(token, new Zone.QueryHandler() {
+            @Override
+            public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics) {
+                assertTrue(code == 0);
+                assertTrue(responseInfo.statusCode != 200);
+                isTestUCServerComplete = true;
+            }
+        });
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                return !isTestUCServerComplete;
+            }
+        }, 60);
+
+        assertTrue(autoZone.getZonesInfo(null) == null);
     }
 
     public void testMufiHttp() {
@@ -113,8 +134,8 @@ public class AutoZoneTest extends BaseTest {
     }
 
     private void zoneRequest(final CompleteHandlder completeHandlder){
-        AutoZone zone = new AutoZone();
-        UpToken token = UpToken.parse(TestConfig.token_z0);
+        final AutoZone zone = new AutoZone();
+        final UpToken token = UpToken.parse(TestConfig.commonToken);
 
         zone.preQuery(token, new Zone.QueryHandler() {
             @Override
@@ -124,8 +145,14 @@ public class AutoZoneTest extends BaseTest {
                 } else {
                     completeHandlder.complete(false);
                 }
+
+                ZonesInfo zonesInfo = zone.getZonesInfo(token);
+                if (zonesInfo != null){
+                    LogUtil.i(zonesInfo.toString());
+                }
             }
         });
+
     }
 
     private interface CompleteHandlder {

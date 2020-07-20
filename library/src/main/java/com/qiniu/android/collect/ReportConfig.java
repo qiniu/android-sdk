@@ -8,7 +8,7 @@ public class ReportConfig {
     /**
      * 是否开启sdk上传信息搜集  默认为YES
      */
-    public final boolean isReportEnable;
+    public boolean isReportEnable;
 
     /**
      * 每次上传最小时间间隔  单位：分钟  默认为10分钟
