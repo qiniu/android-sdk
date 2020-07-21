@@ -79,8 +79,8 @@ public class CancelTest extends BaseTest {
         final File tempFile = TempFile.createFile(size);
         final String expectKey = "file_" + UUID.randomUUID().toString();
         Map<String, String> params = new HashMap<String, String>();
-        params.put("x:a", "test2");
-//        params.put("x:b", "test2");
+        params.put("x:a", "test");
+        params.put("x:b", "test2");
 
         final Temp temp = new Temp();
         temp.cancelled = false;

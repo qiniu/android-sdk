@@ -304,7 +304,7 @@ public class RequestTransaction {
             for (String paramKey : paramKeySet) {
                 String value = uploadOption.params.get(paramKey);
                 if (value != null){
-                    String param = "/" + paramKey + "/" + value;
+                    String param = "/" + paramKey + "/" + UrlSafeBase64.encodeToString(value);
                     action = action + param;
                 }
             }
