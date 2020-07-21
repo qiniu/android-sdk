@@ -2,6 +2,7 @@ package com.qiniu.android;
 
 import com.qiniu.android.http.dns.DnsCacheFile;
 import com.qiniu.android.storage.GlobalConfiguration;
+import com.qiniu.android.utils.LogUtil;
 
 import java.io.IOException;
 
@@ -24,7 +25,7 @@ public class DnsCacheFileTest extends BaseTest {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        LogUtil.i("DnsCacheFile name:" + file.getFileName());
         assertTrue(file != null);
 
     }

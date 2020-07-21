@@ -37,12 +37,6 @@ class DnsNetworkAddress implements  IDnsNetworkAddress{
         return networkAddress;
     }
 
-    protected static DnsNetworkAddress address(IDnsNetworkAddress address){
-        DnsNetworkAddress networkAddress = null;
-
-        return networkAddress;
-    }
-
     protected DnsNetworkAddress(String hostValue,
                               String ipValue,
                               Long ttlValue,

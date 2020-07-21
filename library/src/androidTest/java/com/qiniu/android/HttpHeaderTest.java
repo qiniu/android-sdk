@@ -2,7 +2,9 @@ package com.qiniu.android;
 import android.test.AndroidTestCase;
 
 import com.qiniu.android.http.Headers;
+import com.qiniu.android.http.HttpDate;
 
+import java.util.Date;
 import java.util.HashMap;
 
 public class HttpHeaderTest extends AndroidTestCase {
@@ -33,7 +35,7 @@ public class HttpHeaderTest extends AndroidTestCase {
 
     public void testBuilder(){
         String dateKey = "date";
-        String dateValue = "2020-07-15 20:02:30";
+        String dateValue = HttpDate.format(new Date());
         String hostKey = "host";
         String hostValue = "127.0.0.1";
 
@@ -44,11 +46,16 @@ public class HttpHeaderTest extends AndroidTestCase {
 
         String host = headers0.get(hostKey);
         assertTrue(headers0.get(dateKey).equals(dateValue));
+        assertTrue(headers0.getDate(dateKey) != null);
         assertTrue(headers0.get(hostKey).equals(hostValue));
 
         Headers.Builder builder1 = new Headers.Builder();
         builder1.addAll(headers0);
         assertTrue(builder1.get(dateKey).equals(dateValue));
+
+
+        Headers headers = Headers.of(hostKey, hostValue, dateKey, dateValue);
+        assertTrue(headers.get(dateKey).equals(dateValue));
 
     }
 }

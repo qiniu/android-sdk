@@ -136,7 +136,7 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo fileError(Exception e) {
-        return errorInfo(InvalidFile, e.getMessage());
+        return errorInfo(InvalidFile, e != null ? e.getMessage() : null);
     }
 
     public static ResponseInfo networkError(String desc) {

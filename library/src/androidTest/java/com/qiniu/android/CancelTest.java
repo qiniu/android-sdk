@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Simon on 2015/4/15.
  */
-public class CancelTest extends InstrumentationTestCase {
+public class CancelTest extends BaseTest {
     private volatile UploadManager uploadManager;
     private volatile UploadOptions options;
 
@@ -39,6 +39,11 @@ public class CancelTest extends InstrumentationTestCase {
 
 
     public void testFile() throws Throwable {
+        Temp[] ts = new Temp[]{templateFile(8 * 1024 + 1, 0.6)};
+        checkTemp(ts, "testFile");
+    }
+
+    public void testMultiFile() throws Throwable {
         Temp[] ts = new Temp[]{templateFile(400, 0.2), templateFile(700, 0.2), templateFile(1024, 0.51), templateFile(4 * 1024, 0.5), templateFile(8 * 1024 + 1, 0.6)};
         checkTemp(ts, "testFile");
     }
@@ -74,8 +79,8 @@ public class CancelTest extends InstrumentationTestCase {
         final File tempFile = TempFile.createFile(size);
         final String expectKey = "file_" + UUID.randomUUID().toString();
         Map<String, String> params = new HashMap<String, String>();
-        params.put("x:a", "test");
-        params.put("x:b", "test2");
+        params.put("x:a", "test2");
+//        params.put("x:b", "test2");
 
         final Temp temp = new Temp();
         temp.cancelled = false;
@@ -93,6 +98,8 @@ public class CancelTest extends InstrumentationTestCase {
         t.setDaemon(true);
         t.start();
 
+        final WaitCondition waitCondition = new WaitCondition();
+
         options = new UploadOptions(params, null, false, new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
@@ -107,27 +114,51 @@ public class CancelTest extends InstrumentationTestCase {
                 return temp.cancelled;
             }
         });
-        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
-            public void run() {
-                uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
-                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        temp.expectKey = expectKey;
-                        temp.key = k;
-                        temp.info = rinfo;
-                        temp.resp = response;
-                        signal.countDown();
-                        LogUtil.i(k + rinfo);
-                    }
-                }, options);
-            }
-        });
 
-        try {
-            signal.await(570, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", temp.info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                temp.expectKey = expectKey;
+                temp.key = k;
+                temp.info = rinfo;
+                temp.resp = response;
+                signal.countDown();
+                LogUtil.i(k + rinfo);
+
+                waitCondition.shouldWait = false;
+            }
+        }, options);
+
+        wait(waitCondition, 10 * 60);
+        assertTrue(temp.info != null);
+        assertTrue(temp.info.statusCode == ResponseInfo.Cancelled);
+
+
+        waitCondition.shouldWait = true;
+
+        // 断点续传
+        options = new UploadOptions(params, null, false, new UpProgressHandler() {
+            @Override
+            public void progress(String key, double percent) {
+                LogUtil.i(pos + ": progress " + percent);
+            }
+        }, null);
+        uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                temp.expectKey = expectKey;
+                temp.key = k;
+                temp.info = rinfo;
+                temp.resp = response;
+                signal.countDown();
+                LogUtil.i(k + rinfo);
+
+                waitCondition.shouldWait = false;
+            }
+        }, options);
+
+        wait(waitCondition, 10 * 60);
+
+        assertTrue(temp.info != null);
+        assertTrue(temp.info.isOK());
 
         TempFile.remove(tempFile);
         return temp;
@@ -171,20 +202,18 @@ public class CancelTest extends InstrumentationTestCase {
                 return temp.cancelled;
             }
         });
-        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
-            public void run() {
-                uploadManager.put(tempDate, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
-                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        temp.expectKey = expectKey;
-                        temp.key = k;
-                        temp.info = rinfo;
-                        temp.resp = response;
-                        signal.countDown();
-                        LogUtil.i(k + rinfo);
-                    }
-                }, options);
+
+        uploadManager.put(tempDate, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                temp.expectKey = expectKey;
+                temp.key = k;
+                temp.info = rinfo;
+                temp.resp = response;
+                signal.countDown();
+                LogUtil.i(k + rinfo);
             }
-        });
+        }, options);
+
 
         try {
             signal.await(570, TimeUnit.SECONDS); // wait for callback
