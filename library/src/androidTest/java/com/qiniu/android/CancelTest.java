@@ -3,6 +3,7 @@ package com.qiniu.android;
 import android.test.InstrumentationTestCase;
 
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressHandler;
@@ -16,6 +17,7 @@ import junit.framework.Assert;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;

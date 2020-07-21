@@ -12,6 +12,8 @@ import org.json.JSONObject;
 
 import java.util.HashMap;
 
+import okhttp3.MediaType;
+
 public class ClientTest extends BaseTest {
 
     public void testSyncGet(){
@@ -45,6 +47,7 @@ public class ClientTest extends BaseTest {
         postArgs.data = "123".getBytes();
         postArgs.mimeType = "text/plain";
         postArgs.params = new StringMap();
+        postArgs.params.put("x:foo", "foo");
 
         UpToken token = UpToken.parse(TestConfig.commonToken);
 
