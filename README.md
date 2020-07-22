@@ -41,7 +41,18 @@ https://github.com/qiniudemo/qiniu-lab-android
 [happy-dns下载地址](https://repo1.maven.org/maven2/com/qiniu/happy-dns/)
 
 ### 通过maven
-* 如果在Adroid Studio中使用，添加dependencies `compile 'com.qiniu:qiniu-android-sdk:7.6.+'` 或在项目中添加maven依赖
+* Adroid Studio中添加dependencies 或者 在项目中添加maven依赖
+```
+// 1. 直接导入
+implementation 'com.qiniu:qiniu-android-sdk:7.6.+'
+
+// 2. 如果要修改okhttp依赖的版本，可采用以下方式（强烈建议使用七牛库依赖的okhttp版本）
+implementation ('com.qiniu:qiniu-android-sdk:7.6.+'){
+    exclude (group: 'com.squareup.okhttp3', module: 'okhttp')
+}
+implementation 'com.squareup.okhttp3:okhttp:4.2.2'
+
+```
 * 如果是eclipse, 也可以直接添加依赖来处理。
 
 ## 使用方法
