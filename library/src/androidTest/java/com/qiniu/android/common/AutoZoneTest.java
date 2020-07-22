@@ -90,15 +90,23 @@ public class AutoZoneTest extends AndroidTestCase {
                 fail(reason + "");
             }
         });
-        try {
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        ZoneInfo info = autoZone.zoneInfo(ak, bkt);
 
+        boolean wait = true;
+        while (wait){
+
+            wait = false;
+            
+            try {
+                countDownLatch.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                wait = true;
+            }
+        }
+
+        ZoneInfo info = autoZone.zoneInfo(ak, bkt);
         ZoneInfo info2 = autoZone.zoneInfo(ak, bkt);
-        Assert.assertSame(info, info2);
+        assertSame(info, info2);
 
     }
 
