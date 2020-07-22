@@ -81,7 +81,10 @@ public class ConcurrentResumeUploadTest extends BaseTest {
 
     public void setUp() throws Exception {
         Configuration config = new Configuration.Builder()
-                .useConcurrentResumeUpload(true).concurrentTaskCount(3)
+                .useConcurrentResumeUpload(true).concurrentTaskCount(3).proxy(null)
+                .chunkSize(2*1024*1024).putThreshold(4*1024*1024).connectTimeout(90)
+                .responseTimeout(60).retryMax(2).retryInterval(2).allowBackupHost(true)
+                .urlConverter(null).dns(null).dnsCacheTimeMs(120)
                 .build();
         uploadManager = new UploadManager(config);
     }

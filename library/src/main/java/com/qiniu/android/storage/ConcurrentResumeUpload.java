@@ -106,7 +106,7 @@ public class ConcurrentResumeUpload extends PartsUpload {
         final UploadFileInfo uploadFileInfo = getUploadFileInfo();
         if (uploadFileInfo == null){
             if (uploadBlockErrorResponseInfo == null){
-                uploadBlockErrorResponseInfo = ResponseInfo.invalidArgument("regions error");
+                uploadBlockErrorResponseInfo = ResponseInfo.invalidArgument("file error");
                 uploadBlockErrorResponse = uploadBlockErrorResponseInfo.response;
             }
             completeHandler.complete();

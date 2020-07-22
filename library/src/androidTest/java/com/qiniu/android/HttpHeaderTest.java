@@ -76,4 +76,36 @@ public class HttpHeaderTest extends AndroidTestCase {
         headers1 = builder1.build();
         assertTrue(headers1.get("time") == null);
     }
+
+
+    public void testBuilderError(){
+
+        Headers headers = null;
+
+        String headersString = null;
+        try {
+            headers = Headers.of(headersString);
+        } catch (Exception e){
+            assertTrue(true);
+        }
+
+        try {
+            headers = Headers.of("key");
+        } catch (Exception e){
+            assertTrue(true);
+        }
+
+        try {
+            headers = Headers.of("key", null);
+        } catch (Exception e){
+            assertTrue(true);
+        }
+
+        try {
+            headers = Headers.of("key", "");
+        } catch (Exception e){
+            assertTrue(true);
+        }
+
+    }
 }
