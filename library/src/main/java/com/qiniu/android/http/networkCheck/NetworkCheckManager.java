@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 public class NetworkCheckManager {
 
-    enum NetworkCheckStatus {
+    public enum NetworkCheckStatus {
         A, B, C, D, Unknown
     }
 
@@ -20,7 +20,7 @@ public class NetworkCheckManager {
         networkChecker.networkCheckerListener = new NetworkChecker.NetworkCheckerListener() {
             @Override
             public void checkComplete(String ip, String host, long time) {
-                checkComplete(ip, host, time);
+                checkCompleteAction(ip, host, time);
             }
         };
     }
@@ -49,7 +49,7 @@ public class NetworkCheckManager {
 
         for (String ip : ipArray) {
             String ipType = Utils.getIpType(ip, host);
-            if (ipType != null && statusInfoDictionary.get(ipType) != null && checkingIPTypeInfo.get(ipType) != null) {
+            if (ipType != null && statusInfoDictionary.get(ipType) == null && checkingIPTypeInfo.get(ipType) == null) {
                 checkingIPTypeInfo.put(ipType, ip);
                 networkChecker.checkIP(ip, host);
             }
@@ -63,7 +63,7 @@ public class NetworkCheckManager {
         }
     }
 
-    private void checkComplete(String ip, String host, long time){
+    private void checkCompleteAction(String ip, String host, long time){
         String ipType = Utils.getIpType(ip, host);
         if (ipType == null && ipType.length() == 0){
             return;

@@ -43,7 +43,7 @@ public class GlobalConfiguration {
     /**
      * 单个IP检测的最长时间 maxTime >= 1 && maxTime <= 600  默认：9秒
      */
-    public int maxTime = 9;
+    public int maxCheckTime = 9;
 
 
     private static GlobalConfiguration configuration = new GlobalConfiguration();

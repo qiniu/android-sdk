@@ -6,19 +6,21 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 class NetworkChecker {
 
-    protected NetworkCheckerListener networkCheckerListener;
+    NetworkCheckerListener networkCheckerListener;
 
-    private Timer timer;
-    private HashMap<String, NetworkDetector> socketInfoDictionary = new HashMap<>();
+    private ExecutorService networkDetectorService = Executors.newFixedThreadPool(1);
+    private HashMap<String, NetworkDetector> detectorInfoDictionary = new HashMap<>();
     private HashMap<String, NetworkCheckerInfo> checkerInfoDictionary = new HashMap<>();
 
-    protected NetworkChecker(){
+    NetworkChecker(){
     }
 
-    protected boolean checkIP(String ip, String host){
+    boolean checkIP(String ip, String host){
         synchronized (this){
             if (ip == null || ip.length() == 0 || checkerInfoDictionary.get(ip) != null){
                 return false;
@@ -37,7 +39,7 @@ class NetworkChecker {
 
         checkerInfo.stop();
 
-        if (checkerInfo.shouldCheck(GlobalConfiguration.getInstance().maxCheckCount)) {
+        if (!checkerInfo.shouldCheck(GlobalConfiguration.getInstance().maxCheckCount)) {
             ipCheckComplete(ip);
             return false;
         } else {
@@ -45,39 +47,30 @@ class NetworkChecker {
         }
     }
 
-    private boolean connect(String ip){
+    private boolean connect(final String ip){
         NetworkCheckerInfo checkerInfo = checkerInfoDictionary.get(ip);
         if (checkerInfo == null){
             return false;
         }
 
         checkerInfo.start();
-
-        // -----------------
-        createTimer();
+        networkDetectorService.submit(new Runnable() {
+            @Override
+            public void run() {
+                NetworkDetector networkDetector = new NetworkDetector(ip, 80);
+                detectorInfoDictionary.put(ip, networkDetector);
+                boolean success = networkDetector.check(GlobalConfiguration.getInstance().maxCheckTime);
+                networkDetector.cancel();
+                if (success){
+                    performCheckIFNeeded(ip);
+                    detectorInfoDictionary.remove(ip);
+                }
+            }
+        });
 
         return true;
     }
 
-    private void disconnect(String ip){
-        NetworkDetector detecter = socketInfoDictionary.get(ip);
-        if (detecter == null){
-            return;
-        }
-
-        // -----------------
-    }
-
-    private void checkTimeout(){
-        Date currentDate = new Date();
-        for (String ip : checkerInfoDictionary.keySet()){
-            NetworkCheckerInfo checkerInfo = checkerInfoDictionary.get(ip);
-            if (checkerInfo.isTimeout(currentDate, GlobalConfiguration.getInstance().maxTime)){
-                disconnect(ip);
-                performCheckIFNeeded(ip);
-            }
-        }
-    }
 
     private void ipCheckComplete(String ip){
         if (checkerInfoDictionary.get(ip) == null){
@@ -91,31 +84,9 @@ class NetworkChecker {
 
         if (networkCheckerListener != null){
             long time = checkerInfo.time / GlobalConfiguration.getInstance().maxCheckCount;
-            networkCheckerListener.checkComplete(ip, checkerInfo.host, Math.min(time, (long)GlobalConfiguration.getInstance().maxTime * 1000));
+            networkCheckerListener.checkComplete(ip, checkerInfo.host, Math.min(time, (long)GlobalConfiguration.getInstance().maxCheckTime * 1000));
         }
 
-        if (checkerInfoDictionary.size() == 0){
-            invalidateTimer();
-        }
-    }
-
-
-    private synchronized void createTimer(){
-        if (timer != null){
-            return;
-        }
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                checkTimeout();
-            }
-        }, 1);
-    }
-
-    private synchronized void invalidateTimer(){
-        timer.cancel();
-        timer = null;
     }
 
 
@@ -155,17 +126,10 @@ class NetworkChecker {
             return count > this.count;
         }
 
-        private boolean isTimeout(Date date, int maxTime){
-            if (startDate == null || date == null || maxTime < 1){
-                return true;
-            }
-            long time = (long)(date.getTime() - startDate.getTime() * 0.001);
-            return time > maxTime;
-        }
     }
 
 
-    protected interface NetworkCheckerListener {
+    interface NetworkCheckerListener {
         void checkComplete(String ip, String host, long time);
     }
 }

@@ -18,14 +18,14 @@ class NetworkDetector {
         this.currentSocket = new Socket();
     }
 
-    boolean check(){
+    boolean check(int timeout){
 
         boolean success = true;
         try  {
             InetAddress address = InetAddress.getByName(host);
             SocketAddress socketAddress = new InetSocketAddress(address, port);
 
-            currentSocket.connect(socketAddress);
+            currentSocket.connect(socketAddress, timeout * 1000);
         } catch (Exception e){
             success = false;
         }
