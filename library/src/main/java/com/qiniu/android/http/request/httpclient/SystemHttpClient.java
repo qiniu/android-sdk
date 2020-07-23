@@ -57,7 +57,7 @@ public class SystemHttpClient implements IRequestClient {
 
     @Override
     public void request(final Request request,
-                        boolean isAsyncc,
+                        boolean isAsync,
                         ProxyConfiguration connectionProxy,
                         RequestClientProgress progress,
                         final RequestClientCompleteHandler complete) {
@@ -76,7 +76,7 @@ public class SystemHttpClient implements IRequestClient {
         ResponseTag tag = new ResponseTag();
         call = httpClient.newCall(requestBuilder.tag(tag).build());
 
-        if (isAsyncc){
+        if (isAsync){
             call.enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
@@ -123,6 +123,9 @@ public class SystemHttpClient implements IRequestClient {
 
     private OkHttpClient createHttpClient(final Request request,
                                           ProxyConfiguration connectionProxy){
+        if (request == null){
+            return null;
+        }
 
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
         if (connectionProxy != null) {
@@ -178,6 +181,9 @@ public class SystemHttpClient implements IRequestClient {
 
     private okhttp3.Request.Builder createRequestBuilder(Request request,
                                                          final RequestClientProgress progress){
+        if (request == null){
+            return null;
+        }
 
         Headers allHeaders = Headers.of(request.allHeaders);
 

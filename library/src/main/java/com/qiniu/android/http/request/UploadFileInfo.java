@@ -173,9 +173,9 @@ public class UploadFileInfo {
         public String context;
 
         public UploadBlock(long offset,
-                            long blockSize,
-                            long dataSize,
-                            int index) {
+                           long blockSize,
+                           long dataSize,
+                           int index) {
             this.offset = offset;
             this.size = blockSize;
             this.index = index;

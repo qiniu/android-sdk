@@ -1,14 +1,14 @@
 package com.qiniu.android.http.request;
 
-class UploadRequstState {
+class UploadRequestState {
 
-    private boolean isUserCancel;
+    boolean isUserCancel;
 
-    protected boolean isUserCancel(){
+    boolean isUserCancel(){
         return isUserCancel;
     }
 
-    protected void setUserCancel(boolean isUserCancel) {
+    void setUserCancel(boolean isUserCancel) {
         synchronized (this) {
             this.isUserCancel = isUserCancel;
         }

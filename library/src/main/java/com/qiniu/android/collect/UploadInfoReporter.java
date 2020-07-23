@@ -42,6 +42,10 @@ public class UploadInfoReporter {
 
     public synchronized void report(ReportItem reportItem,
                                     final String tokenString){
+        if (reportItem == null){
+            return;
+        }
+
         final String jsonString = reportItem.toJson();
         if (!checkReportAvailable() || jsonString == null){
             return;

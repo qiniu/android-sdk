@@ -84,55 +84,20 @@ public class ResumeUploadTest extends BaseTest {
         uploadManager = new UploadManager(config);
     }
 
-    private void template(int size) throws Throwable {
-
-        final String expectKey = "android-resume-test1-" + size + "k";
-        final File f = TempFile.createFile(size);
-        final UploadOptions options = getUploadOptions();
-        AsyncRun.runInMain(new Runnable() { // THIS IS THE KEY TO SUCCESS
-            public void run() {
-                uploadManager.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
-                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        LogUtil.i(k + rinfo);
-                        key = k;
-                        info = rinfo;
-                        resp = response;
-                    }
-                }, options);
-            }
-        });
-
-        wait(new WaitConditional() {
-            @Override
-            public boolean shouldWait() {
-                if (resp == null){
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        }, 1200);
-
-        assertTrue(info.toString(), info.isOK());
-        assertNotNull(info.reqId);
-        assertEquals(info.toString(), expectKey, key);
-        String hash = resp.getString("hash");
-        assertEquals(hash, Etag.file(f));
-        TempFile.remove(f);
-    }
-
-    private void template2(int size) throws Throwable {
+    private void template(int size, boolean useHttps) throws Throwable {
 
         final String expectKey = "android-resume-test2-" + size + "k";
         final File f = TempFile.createFile(size);
         String[] s = new String[]{"up-na0.qbox.me"};
         Zone z = new FixedZone(s);
-        Configuration c = new Configuration.Builder()
-                .zone(z).useHttps(true).useConcurrentResumeUpload(false)
-                .build();
-        UploadManager uploadManager2 = new UploadManager(c);
+
+        Configuration.Builder builder = new Configuration.Builder()
+                .zone(z).useConcurrentResumeUpload(false)
+                .useHttps(useHttps);
+        Configuration configuration = builder.build();
+        UploadManager uploadManager = new UploadManager(configuration);
         final UploadOptions options = getUploadOptions();
-        uploadManager2.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+        uploadManager.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                 LogUtil.i(k + rinfo);
                 key = k;
@@ -162,32 +127,233 @@ public class ResumeUploadTest extends BaseTest {
 
     @LargeTest
     public void test4M1K() throws Throwable {
-        template(1024 * 4 + 1);
+        template(1024 * 4 + 1, false);
     }
 
     @LargeTest
     public void test8M1L() throws Throwable {
-        template(1024 * 8 + 1);
+        template(1024 * 8 + 1, false);
     }
 
     @LargeTest
     public void test20M1K() throws Throwable {
-        template(1024 * 20 + 1);
+        template(1024 * 20 + 1, false);
     }
 
     @LargeTest
-    public void test4M1k2() throws Throwable {
-        template2(1024 * 4 + 1);
+    public void test4M1kHttps() throws Throwable {
+        template(1024 * 4 + 1, true);
     }
 
     @LargeTest
-    public void test8M1k2() throws Throwable {
-        template2(1024 * 8 + 1);
+    public void test8M1kHttps() throws Throwable {
+        template(1024 * 8 + 1, true);
     }
 
     @LargeTest
-    public void test20M1k2() throws Throwable {
-        template2(1024 * 20 + 1);
+    public void test20M1kHttps() throws Throwable {
+        template(1024 * 20 + 1, true);
     }
 
+
+    @LargeTest
+    public void testError() throws Throwable {
+
+        final String expectKey = "android-resume-error-test2";
+        final File f = TempFile.createFile(1);;
+        String[] s = new String[]{""};
+        Zone z = new FixedZone(s);
+
+        Configuration.Builder builder = new Configuration.Builder()
+                .zone(z).useConcurrentResumeUpload(false)
+                .useHttps(true);
+        Configuration configuration = builder.build();
+        UploadManager uploadManager = new UploadManager(configuration);
+        final UploadOptions options = getUploadOptions();
+        uploadManager.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                LogUtil.i(k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+            }
+        }, options);
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 1200);
+
+        assertTrue(info.toString(), !info.isOK());
+        assertNotNull(info.reqId == null);
+        assertEquals(info.toString(), expectKey, key);
+
+        TempFile.remove(f);
+    }
+
+    @LargeTest
+    public void testNoTokenError() throws Throwable {
+
+        final String expectKey = "android-resume-noToken-test2";
+        final File f = TempFile.createFile(1);
+        String[] s = new String[]{"up-na0.qbox.me"};
+        Zone z = new FixedZone(s);
+
+        Configuration.Builder builder = new Configuration.Builder()
+                .zone(z).useConcurrentResumeUpload(false)
+                .useHttps(true);
+        Configuration configuration = builder.build();
+        UploadManager uploadManager = new UploadManager(configuration);
+        final UploadOptions options = getUploadOptions();
+
+        // file
+        uploadManager.put(f, expectKey, null, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                LogUtil.i(k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+            }
+        }, options);
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 1200);
+
+        assertTrue(info.toString(), !info.isOK());
+        assertEquals(info.toString(), expectKey, key);
+        TempFile.remove(f);
+
+        // data
+        byte[] data = new byte[]{0, 1};
+        uploadManager.put(data, expectKey, "1", new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                LogUtil.i(k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+            }
+        }, options);
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 1200);
+
+        assertTrue(info.toString(), !info.isOK());
+        assertEquals(info.toString(), expectKey, key);
+        TempFile.remove(f);
+    }
+
+
+    @LargeTest
+    public void testNoDataError() throws Throwable {
+
+        final String expectKey = "android-resume-noToken-test2";
+        String[] s = new String[]{"up-na0.qbox.me"};
+        Zone z = new FixedZone(s);
+
+        Configuration.Builder builder = new Configuration.Builder()
+                .zone(z).useConcurrentResumeUpload(false)
+                .useHttps(true);
+        Configuration configuration = builder.build();
+        UploadManager uploadManager = new UploadManager(configuration);
+        final UploadOptions options = getUploadOptions();
+
+        // file
+        File f = null;
+        uploadManager.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                LogUtil.i(k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+            }
+        }, options);
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 1200);
+
+        assertTrue(info.toString(), !info.isOK());
+        assertEquals(info.toString(), expectKey, key);
+        TempFile.remove(f);
+
+        // file path
+        String fPath = null;
+        uploadManager.put(fPath, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                LogUtil.i(k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+            }
+        }, options);
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 1200);
+
+        assertTrue(info.toString(), !info.isOK());
+        assertEquals(info.toString(), expectKey, key);
+        TempFile.remove(f);
+
+        // data
+        byte[] data = null;
+        uploadManager.put(data, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                LogUtil.i(k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+            }
+        }, options);
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 1200);
+
+        assertTrue(info.toString(), !info.isOK());
+        assertEquals(info.toString(), expectKey, key);
+    }
 }

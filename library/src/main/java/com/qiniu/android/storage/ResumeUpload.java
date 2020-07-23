@@ -79,7 +79,7 @@ public class ResumeUpload extends PartsUpload {
         final UploadFileInfo uploadFileInfo = getUploadFileInfo();
         if (uploadFileInfo == null){
             if (uploadChunkErrorResponseInfo == null){
-                uploadChunkErrorResponseInfo = ResponseInfo.invalidArgument("regions error");
+                uploadChunkErrorResponseInfo = ResponseInfo.invalidArgument("file error");
                 uploadChunkErrorResponse = uploadChunkErrorResponseInfo.response;
             }
             completeHandler.complete();

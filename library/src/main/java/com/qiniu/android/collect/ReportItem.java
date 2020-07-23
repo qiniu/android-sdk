@@ -148,10 +148,8 @@ public class ReportItem {
     }
 
     public static String qualityResult(ResponseInfo responseInfo){
-        String result = requestReportErrorType(responseInfo);
-        if (result != null) {
-            return result;
-        }
+
+        String result = null;
 
         if (responseInfo.statusCode > 199 && responseInfo.statusCode < 300) {
             result = "ok";
@@ -164,9 +162,12 @@ public class ReportItem {
         } else if (responseInfo.statusCode == ResponseInfo.InvalidToken
                 || responseInfo.statusCode == ResponseInfo.InvalidArgument){
             result = "invalid_args";
-        } else {
-            result = "unknown_error";
         }
+
+        if (result == null){
+            result = requestReportErrorType(responseInfo);
+        }
+
         return result;
     }
 }

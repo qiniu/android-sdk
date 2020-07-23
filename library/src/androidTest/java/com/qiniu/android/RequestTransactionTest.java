@@ -174,4 +174,19 @@ public class RequestTransactionTest extends BaseTest {
         RequestTransaction requestTransaction = new RequestTransaction(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts,null, "android-transaction-block", token);
         requestTransaction.makeFile(3*1024*1024, "android-transaction-block-fileName", blockContexts, true, completeHandler);
     }
+
+
+    public void testMakeFileError(){
+        final WaitCondition waitCondition = new WaitCondition();
+
+        makeFile(null, new RequestTransaction.RequestCompleteHandler() {
+            @Override
+            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                Assert.assertTrue("pass", !responseInfo.isOK());
+                waitCondition.shouldWait = false;
+            }
+        });
+
+        wait(waitCondition, 60);
+    }
 }

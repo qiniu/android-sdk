@@ -40,7 +40,7 @@ import org.json.JSONObject;
         try {
             String dtokenString = new String(dtoken);
             obj = new JSONObject(dtokenString);
-        } catch (JSONException e) {
+        } catch (Exception e) {
             return null;
         }
         String scope = obj.optString("scope");

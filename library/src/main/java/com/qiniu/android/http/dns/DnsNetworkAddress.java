@@ -11,7 +11,7 @@ class DnsNetworkAddress implements  IDnsNetworkAddress{
     private final String sourceValue;
     private final Long timestampValue;
 
-    protected static DnsNetworkAddress address(JSONObject jsonObject){
+    static DnsNetworkAddress address(JSONObject jsonObject){
         String hostValue = null;
         String ipValue = null;
         Long ttlValue = null;
@@ -37,17 +37,11 @@ class DnsNetworkAddress implements  IDnsNetworkAddress{
         return networkAddress;
     }
 
-    protected static DnsNetworkAddress address(IDnsNetworkAddress address){
-        DnsNetworkAddress networkAddress = null;
-
-        return networkAddress;
-    }
-
-    protected DnsNetworkAddress(String hostValue,
-                              String ipValue,
-                              Long ttlValue,
-                              String sourceValue,
-                              Long timestampValue) {
+    DnsNetworkAddress(String hostValue,
+                      String ipValue,
+                      Long ttlValue,
+                      String sourceValue,
+                      Long timestampValue) {
         this.hostValue = hostValue;
         this.ipValue = ipValue;
         this.ttlValue = ttlValue;
@@ -55,7 +49,7 @@ class DnsNetworkAddress implements  IDnsNetworkAddress{
         this.timestampValue = timestampValue;
     }
 
-    protected JSONObject toJson(){
+    JSONObject toJson(){
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("hostValue", this.hostValue);

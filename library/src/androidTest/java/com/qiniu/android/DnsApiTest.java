@@ -3,6 +3,7 @@ package com.qiniu.android;
 import com.qiniu.android.common.AutoZone;
 import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.http.dns.DnsPrefetcher;
+import com.qiniu.android.http.dns.IDnsNetworkAddress;
 import com.qiniu.android.storage.UpToken;
 import java.util.List;
 
@@ -44,8 +45,10 @@ public class DnsApiTest extends BaseTest {
         final DnsPrefetcher dnsPrefetcher = DnsPrefetcher.getInstance();
         dnsPrefetcher.recoverCache();
 
-        List addressList = dnsPrefetcher.getInetAddressByHost(host);
+        List<IDnsNetworkAddress> addressList = dnsPrefetcher.getInetAddressByHost(host);
         assertTrue(addressList.size() > 0);
+
+        dnsPrefetcher.invalidNetworkAddress(addressList.get(0));
     }
 
 

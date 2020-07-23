@@ -44,6 +44,10 @@ public final class UrlSafeBase64 {
      * @return 原始数据
      */
     public static byte[] decode(String data) {
-        return Base64.decode(data, Base64.URL_SAFE | Base64.NO_WRAP);
+        try {
+            return Base64.decode(data, Base64.URL_SAFE | Base64.NO_WRAP);
+        } catch (RuntimeException e){
+            return null;
+        }
     }
 }

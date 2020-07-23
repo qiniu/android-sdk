@@ -10,6 +10,9 @@ import java.io.IOException;
  */
 public final class TempFile {
     public static void remove(File f) {
+        if (f == null){
+            return;
+        }
         f.delete();
     }
 

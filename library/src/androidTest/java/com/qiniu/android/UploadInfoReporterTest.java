@@ -1,7 +1,5 @@
 package com.qiniu.android;
 
-import android.test.AndroidTestCase;
-
 import com.qiniu.android.collect.ReportConfig;
 import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
@@ -18,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by yangsen on 2020/5/25
  */
-public class UploadInfoReporterTest extends AndroidTestCase {
+public class UploadInfoReporterTest extends BaseTest {
 
     private CountDownLatch signal = null;
 
@@ -26,6 +24,26 @@ public class UploadInfoReporterTest extends AndroidTestCase {
         int totalCount = 50;
         int completeCount = 0;
     }
+
+    public void testNoReporter(){
+        ReportConfig.getInstance().isReportEnable = false;
+
+        report(null);
+        ReportItem item = new ReportItem();
+        item.setReport(ReportItem.LogTypeQuality, ReportItem.QualityKeyLogType);
+        item.setReport((new Date().getTime() / 1000), ReportItem.QualityKeyUpTime);
+        item.setReport("ok", ReportItem.QualityKeyResult);
+        item.setReport(1, ReportItem.QualityKeyTotalElapsedTime);
+        item.setReport(1, ReportItem.QualityKeyRequestsCount);
+        item.setReport(1, ReportItem.QualityKeyRegionsCount);
+        item.setReport(1, ReportItem.QualityKeyBytesSent);
+        report(item);
+
+        wait(null, 1);
+
+        ReportConfig.getInstance().isReportEnable = true;
+    }
+
     public void testSave(){
 
         UploadInfoReporter.getInstance().clean();
@@ -49,11 +67,7 @@ public class UploadInfoReporterTest extends AndroidTestCase {
             }).start();
         }
 
-        try {
-            signal.await(5, TimeUnit.SECONDS); // wait for callback
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(null, 5);
 
         File logFile = new File(ReportConfig.getInstance().recordDirectory + "/qiniu.log");
         showContent(logFile);

@@ -81,6 +81,9 @@ public class UploadManager {
                     String token,
                     UpCompletionHandler completionHandler,
                     final UploadOptions options) {
+        if (checkAndNotifyError(key, token, filePath, completionHandler)){
+            return;
+        }
         put(new File(filePath), key, token, completionHandler, options);
     }
 
@@ -91,18 +94,18 @@ public class UploadManager {
      * @param file     上传的文件对象
      * @param key      上传文件保存的文件名
      * @param token    上传凭证
-     * @param complete 上传完成的后续处理动作
+     * @param completionHandler 上传完成的后续处理动作
      * @param options  上传数据的可选参数
      */
     public void put(final File file,
                     final String key,
                     final String token,
-                    final UpCompletionHandler complete,
+                    final UpCompletionHandler completionHandler,
                     final UploadOptions options) {
-        if (checkAndNotifyError(key, token, file, complete)){
+        if (checkAndNotifyError(key, token, file, completionHandler)){
             return;
         }
-        putFile(file, key, token, options, complete);
+        putFile(file, key, token, options, completionHandler);
     }
 
     /**
