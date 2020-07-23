@@ -32,7 +32,7 @@ public class RequestTransaction {
     private final String userAgent;
 
     private UploadRequestInfo requestInfo;
-    private UploadRequstState requstState;
+    private UploadRequestState requstState;
     private HttpRegionRequest regionRequest;
 
 
@@ -83,7 +83,7 @@ public class RequestTransaction {
     private void initData(UploadRegion targetRegion,
                           UploadRegion currentRegion){
 
-        this.requstState = new UploadRequstState();
+        this.requstState = new UploadRequestState();
         this.requestInfo = new UploadRequestInfo();
         this.requestInfo.targetRegionId = targetRegion.getZoneInfo().getRegionId();
         this.requestInfo.currentRegionId = currentRegion.getZoneInfo().getRegionId();

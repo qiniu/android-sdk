@@ -27,12 +27,12 @@ class HttpRegionRequest {
     private IUploadServer currentServer;
     private UploadRegionRequestMetrics requestMetrics;
 
-    protected HttpRegionRequest(Configuration config,
-                                UploadOptions uploadOption,
-                                UpToken token,
-                                UploadRegion region,
-                                UploadRequestInfo requestInfo,
-                                UploadRequstState requestState) {
+    HttpRegionRequest(Configuration config,
+                      UploadOptions uploadOption,
+                      UpToken token,
+                      UploadRegion region,
+                      UploadRequestInfo requestInfo,
+                      UploadRequestState requestState) {
         this.config = config;
         this.uploadOption = uploadOption;
         this.token = token;
@@ -42,22 +42,22 @@ class HttpRegionRequest {
         singleRequest = new HttpSingleRequest(config, uploadOption, token, requestInfo, requestState);
     }
 
-    protected void get(String action,
-                        boolean isAsync,
-                        Map<String, String>header,
-                        RequestShouldRetryHandler shouldRetryHandler,
-                        RequestCompleteHandler completeHandler){
+    void get(String action,
+             boolean isAsync,
+             Map<String, String>header,
+             RequestShouldRetryHandler shouldRetryHandler,
+             RequestCompleteHandler completeHandler){
         requestMetrics = new UploadRegionRequestMetrics(region);
         performRequest(getNextServer(null), action, isAsync, null, header, "GET", shouldRetryHandler, null, completeHandler);
     }
 
-    protected void post(String action,
-                        boolean isAsync,
-                        byte[] data,
-                        Map<String, String>header,
-                        RequestShouldRetryHandler shouldRetryHandler,
-                        RequestProgressHandler progressHandler,
-                        RequestCompleteHandler completeHandler){
+    void post(String action,
+              boolean isAsync,
+              byte[] data,
+              Map<String, String>header,
+              RequestShouldRetryHandler shouldRetryHandler,
+              RequestProgressHandler progressHandler,
+              RequestCompleteHandler completeHandler){
         requestMetrics = new UploadRegionRequestMetrics(region);
         performRequest(getNextServer(null), action, isAsync, data, header, "POST", shouldRetryHandler, progressHandler, completeHandler);
     }
@@ -146,7 +146,7 @@ class HttpRegionRequest {
     }
 
 
-    protected interface RequestCompleteHandler {
+    interface RequestCompleteHandler {
         void complete(ResponseInfo responseInfo,
                       UploadRegionRequestMetrics requestMetrics,
                       JSONObject response);

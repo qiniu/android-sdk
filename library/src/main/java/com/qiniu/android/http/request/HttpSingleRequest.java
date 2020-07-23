@@ -29,31 +29,31 @@ class HttpSingleRequest {
     private final UploadOptions uploadOption;
     private final UpToken token;
     private final UploadRequestInfo requestInfo;
-    private final UploadRequstState requestState;
+    private final UploadRequestState requestState;
 
     private ArrayList <UploadSingleRequestMetrics> requestMetricsList;
 
     private IRequestClient client;
 
-    protected HttpSingleRequest(Configuration config,
-                                UploadOptions uploadOption,
-                                UpToken token,
-                                UploadRequestInfo requestInfo,
-                                UploadRequstState requstState) {
+    HttpSingleRequest(Configuration config,
+                      UploadOptions uploadOption,
+                      UpToken token,
+                      UploadRequestInfo requestInfo,
+                      UploadRequestState requestState) {
         this.config = config;
         this.uploadOption = uploadOption;
         this.token = token;
         this.requestInfo = requestInfo;
-        this.requestState = requstState;
+        this.requestState = requestState;
         this.currentRetryTime = 1;
     }
 
-    protected void request(Request request,
-                           boolean isAsync,
-                           boolean toSkipDns,
-                           RequestShouldRetryHandler shouldRetryHandler,
-                           RequestProgressHandler progressHandler,
-                           RequestCompleteHandler completeHandler){
+    void request(Request request,
+                 boolean isAsync,
+                 boolean toSkipDns,
+                 RequestShouldRetryHandler shouldRetryHandler,
+                 RequestProgressHandler progressHandler,
+                 RequestCompleteHandler completeHandler){
         currentRetryTime = 1;
         requestMetricsList = new ArrayList<>();
         retryRequest(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, completeHandler);
@@ -209,7 +209,7 @@ class HttpSingleRequest {
         UploadInfoReporter.getInstance().report(item, token.token);
     }
 
-    protected interface RequestCompleteHandler {
+    interface RequestCompleteHandler {
         void complete(ResponseInfo responseInfo,
                       ArrayList<UploadSingleRequestMetrics> requestMetricsList,
                       JSONObject response);
