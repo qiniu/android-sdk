@@ -153,7 +153,7 @@ public class FastDatePrinterTest extends BaseTest {
                 Locale.getDefault());
         dateString = datePrinter.format(date);
         LogUtil.i("== date:" + dateString);
-        assertTrue(dateString, (dateString.equals("+08 2020-07-23 11:18:26") || dateString.equals("+08 2020-07-23 03:18:26")));
+        assertTrue(dateString, (dateString.equals("+08 2020-07-23 11:18:26") || dateString.equals("Z 2020-07-23 03:18:26")));
 
 
         // Z
@@ -163,7 +163,7 @@ public class FastDatePrinterTest extends BaseTest {
                 Locale.getDefault());
         dateString = datePrinter.format(date);
         LogUtil.i("== date:" + dateString);
-        assertTrue(dateString, (dateString.equals("+0800 2020-07-23 11:18:26") || dateString.equals("+0800 2020-07-23 03:18:26")));
+        assertTrue(dateString, (dateString.equals("+0800 2020-07-23 11:18:26") || dateString.equals("+0000 2020-07-23 03:18:26")));
 
 
         // //
