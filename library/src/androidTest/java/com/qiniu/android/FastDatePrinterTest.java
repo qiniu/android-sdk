@@ -133,7 +133,7 @@ public class FastDatePrinterTest extends BaseTest {
                 Locale.getDefault());
         dateString = datePrinter.format(date);
         LogUtil.i("== date:" + dateString);
-        assertTrue(dateString, (dateString.equals("11 2020-07-23 11:18:26") || dateString.equals("11 2020-07-23 03:18:26")));
+        assertTrue(dateString, (dateString.equals("11 2020-07-23 11:18:26") || dateString.equals("3 2020-07-23 03:18:26")));
 
 
         // k
@@ -143,7 +143,7 @@ public class FastDatePrinterTest extends BaseTest {
                 Locale.getDefault());
         dateString = datePrinter.format(date);
         LogUtil.i("== date:" + dateString);
-        assertTrue(dateString, (dateString.equals("11 2020-07-23 11:18:26") || dateString.equals("11 2020-07-23 03:18:26")));
+        assertTrue(dateString, (dateString.equals("11 2020-07-23 11:18:26") || dateString.equals("3 2020-07-23 03:18:26")));
 
 
         // X

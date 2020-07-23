@@ -38,7 +38,7 @@ public class HttpTest extends BaseTest {
 
     @Override
     protected void setUp() throws Exception {
-        httpManager = new Client();
+        httpManager = new Client(null, 90, 90, null, null);
     }
 
     @SmallTest
