@@ -14,7 +14,7 @@ public class TokenTest extends AndroidTestCase {
 
         UpToken t = UpToken.parse(TestConfig.commonToken);
 
-        assertTrue(UpToken.isInvalid(t));
+        assertTrue(!UpToken.isInvalid(t));
         assertTrue(t.toString() != null);
         assertNotSame(t, null);
     }

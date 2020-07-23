@@ -2,8 +2,6 @@ package com.qiniu.android;
 
 import com.qiniu.android.http.request.UploadFileInfo;
 
-import java.util.ArrayList;
-
 public class UploadFileInfoTest extends BaseTest {
 
     public void testCreateFromJsonError(){
@@ -13,6 +11,7 @@ public class UploadFileInfoTest extends BaseTest {
 
         assertTrue(fileInfo == null);
 
+        fileInfo = new UploadFileInfo(0, 1 , 1, 2);
         assertTrue(fileInfo.progress() == 0);
 
         assertTrue(fileInfo.blockWithIndex(0) == null);
@@ -29,9 +28,11 @@ public class UploadFileInfoTest extends BaseTest {
 
         assertTrue(block == null);
 
+        block = new UploadFileInfo.UploadBlock(0, 0, 1, 0);
+
         assertTrue(block.progress() == 0);
 
-        assertTrue(block.uploadDataList == null);
+        assertTrue(block.uploadDataList.size() == 0);
 
         assertTrue(block.isCompleted() == true);
 
