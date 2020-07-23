@@ -20,7 +20,7 @@ public class FastDatePrinterTest extends BaseTest {
                 Locale.getDefault());
         String dateString = datePrinter.format(date);
         LogUtil.i("== date:" + dateString);
-        assertTrue(dateString, dateString.equals("20-07-23 11:18:26"));
+        assertTrue("[" + dateString + "==" + "20-07-23 11:18:26" + "]", dateString.equals("20-07-23 11:18:26"));
 
         datePrinter = new FastDatePrinter(
                 "yyyy-MM-dd HH:mm:ss",
