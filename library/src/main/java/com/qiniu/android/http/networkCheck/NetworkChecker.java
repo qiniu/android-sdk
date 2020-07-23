@@ -12,7 +12,7 @@ class NetworkChecker {
     protected NetworkCheckerListener networkCheckerListener;
 
     private Timer timer;
-    private HashMap<String, NetworkDetecter> socketInfoDictionary = new HashMap<>();
+    private HashMap<String, NetworkDetector> socketInfoDictionary = new HashMap<>();
     private HashMap<String, NetworkCheckerInfo> checkerInfoDictionary = new HashMap<>();
 
     protected NetworkChecker(){
@@ -60,7 +60,7 @@ class NetworkChecker {
     }
 
     private void disconnect(String ip){
-        NetworkDetecter detecter = socketInfoDictionary.get(ip);
+        NetworkDetector detecter = socketInfoDictionary.get(ip);
         if (detecter == null){
             return;
         }
