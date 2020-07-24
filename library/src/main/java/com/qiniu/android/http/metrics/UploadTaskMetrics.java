@@ -1,17 +1,17 @@
 package com.qiniu.android.http.metrics;
 
 import com.qiniu.android.common.ZoneInfo;
-import com.qiniu.android.http.request.UploadRegion;
+import com.qiniu.android.http.request.IUploadRegion;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class UploadTaskMetrics {
 
-    public ArrayList<UploadRegion> regions;
+    public ArrayList<IUploadRegion> regions;
     private HashMap<String, UploadRegionRequestMetrics> metricsInfo;
 
-    public UploadTaskMetrics(ArrayList<UploadRegion> regions) {
+    public UploadTaskMetrics(ArrayList<IUploadRegion> regions) {
         this.regions = regions;
         this.metricsInfo = new HashMap<String, UploadRegionRequestMetrics>();
     }

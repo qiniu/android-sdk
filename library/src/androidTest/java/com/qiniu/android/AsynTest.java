@@ -11,7 +11,7 @@ public class AsynTest extends BaseTest {
         int completeCount;
         int successCount;
     }
-    public void testAsynMain(){
+    public void testAsyncMain(){
 
         final TestParam testParam = new TestParam();
         testParam.maxCount = 100;
@@ -49,7 +49,7 @@ public class AsynTest extends BaseTest {
         assertTrue((testParam.successCount == testParam.maxCount));
     }
 
-    public void testAsynBg(){
+    public void testAsyncBg(){
         final TestParam testParam = new TestParam();
         testParam.maxCount = 100;
         testParam.completeCount = 0;

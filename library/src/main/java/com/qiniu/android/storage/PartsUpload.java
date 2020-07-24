@@ -6,7 +6,7 @@ import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.request.UploadFileInfo;
-import com.qiniu.android.http.request.UploadRegion;
+import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.utils.Utils;
 
 import org.json.JSONException;
@@ -17,7 +17,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-public abstract class PartsUpload extends BaseUpload {
+abstract class PartsUpload extends BaseUpload {
     private static final String kRecordFileInfoKey = "recordFileInfo";
     private static final String kRecordZoneInfoKey = "recordZoneInfo";
 
@@ -114,7 +114,7 @@ public abstract class PartsUpload extends BaseUpload {
 
         JSONObject zoneInfo = null;
         JSONObject fileInfo = null;
-        UploadRegion currentRegion = getCurrentRegion();
+        IUploadRegion currentRegion = getCurrentRegion();
         if (currentRegion != null && currentRegion.getZoneInfo() != null){
             zoneInfo = currentRegion.getZoneInfo().detailInfo;
         }
