@@ -79,8 +79,8 @@ public class NetworkCheckerManagerTest extends BaseTest {
 
     private  void getIPListNetworkStatus(String[] ipArray, String host){
         for (String ip : ipArray) {
-            NetworkCheckManager.NetworkCheckStatus status = NetworkCheckManager.getInstance().getIPNetworkStatus(ip, host);
-            String statusString = new String[]{"A", "B", "C", "D", "Unknown"}[status.ordinal()];
+            int status = NetworkCheckManager.getInstance().getIPNetworkStatus(ip, host);
+            String statusString = new String[]{"A", "B", "C", "D", "Unknown"}[status];
             LogUtil.i("host:" + host + ", ip:" + ip + ", status:" + statusString);
         }
     }

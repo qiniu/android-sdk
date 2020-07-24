@@ -5,11 +5,14 @@ import com.qiniu.android.utils.Utils;
 
 import java.util.HashMap;
 
+
 public class NetworkCheckManager {
 
-    public enum NetworkCheckStatus {
-        A, B, C, D, Unknown
-    }
+    public static int NetworkCheckStatusA = 0;
+    public static int NetworkCheckStatusB = 1;
+    public static int NetworkCheckStatusC = 2;
+    public static int NetworkCheckStatusD = 3;
+    public static int NetworkCheckStatusUnknown = 4;
 
     private NetworkChecker networkChecker = new NetworkChecker();
     HashMap<String, String> checkingIPTypeInfo = new HashMap<>();
@@ -28,9 +31,9 @@ public class NetworkCheckManager {
         return networkCheckManager;
     }
 
-    public NetworkCheckStatus getIPNetworkStatus(String ip, String host){
+    public int getIPNetworkStatus(String ip, String host){
         if (GlobalConfiguration.getInstance().isCheckOpen == false){
-            return NetworkCheckStatus.Unknown;
+            return NetworkCheckStatusUnknown;
         }
 
         String ipType = Utils.getIpType(ip, host);
@@ -38,7 +41,7 @@ public class NetworkCheckManager {
         if (statusInfo != null){
             return statusInfo.status;
         } else {
-            return NetworkCheckStatus.Unknown;
+            return NetworkCheckStatusUnknown;
         }
     }
 
@@ -77,25 +80,25 @@ public class NetworkCheckManager {
         checkingIPTypeInfo.remove(ipType);
     }
 
-    private NetworkCheckStatus getNetworkCheckStatus(long time){
-        NetworkCheckStatus status = NetworkCheckStatus.Unknown;
+    private int getNetworkCheckStatus(long time){
+        int status = NetworkCheckStatusUnknown;
         if (time < 1){
-            status = NetworkCheckStatus.Unknown;
+            status = NetworkCheckStatusUnknown;
         } else if (time < 150){
-            status = NetworkCheckStatus.A;
+            status = NetworkCheckStatusA;
         } else if (time < 500){
-            status = NetworkCheckStatus.B;
+            status = NetworkCheckStatusB;
         } else if (time < 2000){
-            status = NetworkCheckStatus.C;
+            status = NetworkCheckStatusC;
         } else {
-            status = NetworkCheckStatus.D;
+            status = NetworkCheckStatusD;
         }
         return status;
     }
 
 
     private class NetworkCheckStatusInfo {
-        private NetworkCheckStatus status;
+        private int status;
         private String checkedIP;
         private String checkedHost;
     }

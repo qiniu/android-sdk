@@ -6,7 +6,7 @@ import com.qiniu.android.http.UserAgent;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.request.handler.RequestShouldRetryHandler;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
-import com.qiniu.android.http.serverRegion.IUploadDomainRegion;
+import com.qiniu.android.http.serverRegion.UploadDomainRegion;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
@@ -54,7 +54,7 @@ public class RequestTransaction {
                               String key,
                               UpToken token){
         this(config, uploadOption, key, token);
-        IUploadRegion region = new IUploadDomainRegion();
+        IUploadRegion region = new UploadDomainRegion();
         region.setupRegionData(ZoneInfo.buildInfo(hosts, ioHosts));
         this.initData(region, region);
     }
