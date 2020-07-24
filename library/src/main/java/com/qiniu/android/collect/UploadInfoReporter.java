@@ -137,19 +137,19 @@ public class UploadInfoReporter {
         if (isReporting){
             return;
         }
-        boolean needToResport = false;
+        boolean needToReport = false;
         long currentTime = new Date().getTime();
 
         if (recorderTempFile.exists()){
-            needToResport = true;
+            needToReport = true;
         } else if ((recorderFile.length() > config.uploadThreshold)
              && (lastReportTime == 0 || (currentTime - lastReportTime) > config.interval * 60)){
             boolean isSuccess = recorderFile.renameTo(recorderTempFile);
             if (isSuccess) {
-                needToResport = true;
+                needToReport = true;
             }
         }
-        if (needToResport && !this.isReporting){
+        if (needToReport && !this.isReporting){
             reportToServer(tokenString);
         }
     }
