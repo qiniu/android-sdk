@@ -3,7 +3,7 @@ package com.qiniu.android.storage;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.request.UploadFileInfo;
-import com.qiniu.android.http.request.UploadRegion;
+import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.utils.GroupTaskThread;
@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
-public class ConcurrentResumeUpload extends PartsUpload {
+class ConcurrentResumeUpload extends PartsUpload {
 
     private GroupTaskThread groupTaskThread;
 
@@ -26,14 +26,14 @@ public class ConcurrentResumeUpload extends PartsUpload {
     private ResponseInfo uploadBlockErrorResponseInfo;
     private JSONObject uploadBlockErrorResponse;
 
-    public ConcurrentResumeUpload(File file,
-                                  String key,
-                                  UpToken token,
-                                  UploadOptions option,
-                                  Configuration config,
-                                  Recorder recorder,
-                                  String recorderKey,
-                                  UpTaskCompletionHandler completionHandler) {
+    protected ConcurrentResumeUpload(File file,
+                                    String key,
+                                    UpToken token,
+                                    UploadOptions option,
+                                    Configuration config,
+                                    Recorder recorder,
+                                    String recorderKey,
+                                    UpTaskCompletionHandler completionHandler) {
         super(file, key, token, option, config, recorder, recorderKey, completionHandler);
     }
 
@@ -113,7 +113,7 @@ public class ConcurrentResumeUpload extends PartsUpload {
             return;
         }
 
-        UploadRegion currentRegion = getCurrentRegion();
+        IUploadRegion currentRegion = getCurrentRegion();
         if (currentRegion == null){
             if (uploadBlockErrorResponseInfo == null){
                 uploadBlockErrorResponseInfo = ResponseInfo.invalidArgument("server error");

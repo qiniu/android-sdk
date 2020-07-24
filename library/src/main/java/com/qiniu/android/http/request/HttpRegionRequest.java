@@ -19,7 +19,7 @@ class HttpRegionRequest {
     private final Configuration config;
     private final UploadOptions uploadOption;
     private final UpToken token;
-    private final UploadRegion region;
+    private final IUploadRegion region;
     private final UploadRequestInfo requestInfo;
 
     private boolean isUseOldServer;
@@ -30,7 +30,7 @@ class HttpRegionRequest {
     HttpRegionRequest(Configuration config,
                       UploadOptions uploadOption,
                       UpToken token,
-                      UploadRegion region,
+                      IUploadRegion region,
                       UploadRequestInfo requestInfo,
                       UploadRequestState requestState) {
         this.config = config;

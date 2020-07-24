@@ -4,34 +4,34 @@ import com.qiniu.android.common.Zone;
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.common.ZonesInfo;
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.request.UploadRegion;
+import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
-import com.qiniu.android.http.serverRegion.UploadDomainRegion;
+import com.qiniu.android.http.serverRegion.IUploadDomainRegion;
 
 import org.json.JSONObject;
 
 import java.io.File;
 import java.util.ArrayList;
 
-public abstract class BaseUpload implements Runnable {
-    public final String key;
-    public final String fileName;
-    public final byte[] data;
-    public final File file;
-    public final UpToken token;
-    public final UploadOptions option;
-    public final Configuration config;
-    public final Recorder recorder;
-    public final String recorderKey;
-    public final UpTaskCompletionHandler completionHandler;
+abstract class BaseUpload implements Runnable {
+    protected final String key;
+    protected final String fileName;
+    protected final byte[] data;
+    protected final File file;
+    protected final UpToken token;
+    protected final UploadOptions option;
+    protected final Configuration config;
+    protected final Recorder recorder;
+    protected final String recorderKey;
+    protected final UpTaskCompletionHandler completionHandler;
 
 
     private UploadRegionRequestMetrics currentRegionRequestMetrics;
     private UploadTaskMetrics metrics = new UploadTaskMetrics(null);
 
     private int currentRegionIndex;
-    private ArrayList<UploadRegion> regions;
+    private ArrayList<IUploadRegion> regions;
 
     private BaseUpload(File file,
                        byte[] data,
@@ -146,9 +146,9 @@ public abstract class BaseUpload implements Runnable {
         }
         ArrayList<ZoneInfo> zoneInfos = zonesInfo.zonesInfo;
 
-        ArrayList<UploadRegion> defaultRegions = new ArrayList<>();
+        ArrayList<IUploadRegion> defaultRegions = new ArrayList<>();
         for (ZoneInfo zoneInfo : zoneInfos) {
-            UploadDomainRegion region = new UploadDomainRegion();
+            IUploadDomainRegion region = new IUploadDomainRegion();
             region.setupRegionData(zoneInfo);
             defaultRegions.add(region);
         }
@@ -160,12 +160,12 @@ public abstract class BaseUpload implements Runnable {
         if (zoneInfo == null){
             return;
         }
-        UploadDomainRegion region = new UploadDomainRegion();
+        IUploadDomainRegion region = new IUploadDomainRegion();
         region.setupRegionData(zoneInfo);
         insertRegionAtFirst(region);
     }
 
-    private void insertRegionAtFirst(UploadRegion region){
+    private void insertRegionAtFirst(IUploadRegion region){
         regions.add(0, region);
     }
 
@@ -184,7 +184,7 @@ public abstract class BaseUpload implements Runnable {
         return ret;
     }
 
-    protected UploadRegion getTargetRegion(){
+    protected IUploadRegion getTargetRegion(){
         if (regions == null || regions.size() == 0){
             return null;
         } else {
@@ -192,11 +192,11 @@ public abstract class BaseUpload implements Runnable {
         }
     }
 
-    protected UploadRegion getCurrentRegion(){
+    protected IUploadRegion getCurrentRegion(){
         if (regions == null){
             return null;
         }
-        UploadRegion region = null;
+        IUploadRegion region = null;
         synchronized (this){
             if (currentRegionIndex < regions.size()){
                 region = regions.get(currentRegionIndex);

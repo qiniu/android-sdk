@@ -7,19 +7,19 @@ import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 
 import org.json.JSONObject;
 
-public class FormUpload extends BaseUpload {
+class FormUpload extends BaseUpload {
 
     private boolean isAsync = true;
     private double previousPercent;
     private RequestTransaction uploadTransaction;
 
     protected FormUpload(byte[] data,
-                          String key,
-                          String fileName,
-                          UpToken token,
-                          UploadOptions option,
-                          Configuration config,
-                       UpTaskCompletionHandler completionHandler) {
+                         String key,
+                         String fileName,
+                         UpToken token,
+                         UploadOptions option,
+                         Configuration config,
+                         UpTaskCompletionHandler completionHandler) {
         super(data, key, fileName, token, option, config, completionHandler);
     }
 

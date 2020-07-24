@@ -3,7 +3,7 @@ package com.qiniu.android.storage;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.request.UploadFileInfo;
-import com.qiniu.android.http.request.UploadRegion;
+import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 
@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
-public class ResumeUpload extends PartsUpload {
+class ResumeUpload extends PartsUpload {
 
     private double previousPercent;
     private RequestTransaction uploadTransaction;
@@ -86,7 +86,7 @@ public class ResumeUpload extends PartsUpload {
             return;
         }
 
-        UploadRegion currentRegion = getCurrentRegion();
+        IUploadRegion currentRegion = getCurrentRegion();
         if (currentRegion == null){
             if (uploadChunkErrorResponseInfo == null){
                 uploadChunkErrorResponseInfo = ResponseInfo.invalidArgument("server error");

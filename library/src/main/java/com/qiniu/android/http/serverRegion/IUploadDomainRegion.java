@@ -3,7 +3,7 @@ package com.qiniu.android.http.serverRegion;
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.dns.IDnsNetworkAddress;
-import com.qiniu.android.http.request.UploadRegion;
+import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.request.IUploadServer;
 import com.qiniu.android.utils.Utils;
 
@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 
 
-public class UploadDomainRegion implements UploadRegion {
+public class IUploadDomainRegion implements IUploadRegion {
 
     private boolean isAllFrozen;
     private ArrayList<String> domainHostList;

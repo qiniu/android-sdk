@@ -58,17 +58,13 @@ public final class Configuration {
     /**
      * 特别定制的url转换
      */
-    public UrlConverter urlConverter;
+    public final UrlConverter urlConverter;
 
-    /**
-     * dns 解析客户端
-     */
-    public Dns dns;
 
     /**
      * 上传区域
      */
-    public Zone zone;
+    public final Zone zone;
 
     /**
      * 使用https域名
@@ -84,11 +80,6 @@ public final class Configuration {
      * 并发分片上传的并发任务个数，在concurrentResumeUpload为YES时有效，默认为3个
      */
     public final int concurrentTaskCount;
-
-    /**
-     * dns预取缓存时间
-     */
-    public long dnsCacheTimeMs;
 
 
     private Configuration(Builder builder) {
@@ -108,8 +99,6 @@ public final class Configuration {
 
         proxy = builder.proxy;
 
-        dnsCacheTimeMs = builder.dnsCacheTimeMs;
-
         urlConverter = builder.urlConverter;
 
         useHttps = builder.useHttps;
@@ -118,7 +107,6 @@ public final class Configuration {
         concurrentTaskCount = builder.concurrentTaskCount;
 
         zone = builder.zone != null ? builder.zone : new AutoZone();
-        dns = builder.dns;
     }
 
     private KeyGenerator getKeyGen(KeyGenerator keyGen) {
@@ -150,9 +138,6 @@ public final class Configuration {
         private UrlConverter urlConverter = null;
         private boolean useConcurrentResumeUpload = false;
         private int concurrentTaskCount = 3;
-
-        private Dns dns = null;
-        private long dnsCacheTimeMs = 60 * 60 * 24 * 1000;
 
         public Builder zone(Zone zone) {
             this.zone = zone;
@@ -225,18 +210,8 @@ public final class Configuration {
             return this;
         }
 
-        public Builder dns(Dns dns) {
-            this.dns = dns;
-            return this;
-        }
-
         public Builder useHttps(boolean useHttps) {
             this.useHttps = useHttps;
-            return this;
-        }
-
-        public Builder dnsCacheTimeMs(long dnsCacheTimeMs) {
-            this.dnsCacheTimeMs = dnsCacheTimeMs;
             return this;
         }
 

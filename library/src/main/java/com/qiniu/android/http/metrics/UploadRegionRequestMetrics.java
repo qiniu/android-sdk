@@ -1,15 +1,15 @@
 package com.qiniu.android.http.metrics;
 
-import com.qiniu.android.http.request.UploadRegion;
+import com.qiniu.android.http.request.IUploadRegion;
 
 import java.util.ArrayList;
 
 public class UploadRegionRequestMetrics {
 
-    public final UploadRegion region;
+    public final IUploadRegion region;
     private ArrayList <UploadSingleRequestMetrics> metricsList = new ArrayList<>();
 
-    public UploadRegionRequestMetrics(UploadRegion region) {
+    public UploadRegionRequestMetrics(IUploadRegion region) {
         this.region = region;
     }
 
