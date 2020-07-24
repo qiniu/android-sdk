@@ -75,7 +75,7 @@ public class AutoZoneTest extends BaseTest {
         String ucServer = "ucserver.test";
         AutoZone autoZone = new AutoZone();
         autoZone.setUcServer(ucServer);
-        assertTrue(autoZone.getUcServer() == ucServer);
+        assertTrue(autoZone.getUcServer().get(0) == ucServer);
 
         UpToken token = UpToken.parse(TestConfig.commonToken);
 

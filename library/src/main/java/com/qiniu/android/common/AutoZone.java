@@ -27,11 +27,16 @@ public final class AutoZone extends Zone {
         this.ucServer = ucServer;
     }
 
-    public String getUcServer() {
+    public ArrayList<String> getUcServer() {
         if (ucServer != null){
-            return ucServer;
+            ArrayList<String> serverList = new ArrayList<>();
+            serverList.add(ucServer);
+            return serverList;
         } else {
-            return Config.preQueryHost;
+            ArrayList<String> serverList = new ArrayList<>();
+            serverList.add(Config.preQueryHost00);
+            serverList.add(Config.preQueryHost01);
+            return serverList;
         }
     }
 
@@ -77,8 +82,7 @@ public final class AutoZone extends Zone {
 
 
     private RequestTransaction createUploadRequestTransaction(UpToken token){
-        ArrayList<String> hosts = new ArrayList<>();
-        hosts.add(getUcServer());
+        ArrayList<String> hosts = getUcServer();
 
         ArrayList<String> ioHosts = new ArrayList<>();
         ioHosts.add(ZoneInfo.SDKDefaultIOHost);
