@@ -57,7 +57,7 @@ class NetworkChecker {
         networkDetectorService.submit(new Runnable() {
             @Override
             public void run() {
-                
+
                 checkerInfo.start();
 
                 NetworkDetector networkDetector = new NetworkDetector(ip, 80);
