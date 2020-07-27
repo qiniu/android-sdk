@@ -30,7 +30,7 @@ class NetworkDetector {
             success = false;
         }
 
-        return success & cancel();
+        return success;
     }
 
     boolean cancel(){

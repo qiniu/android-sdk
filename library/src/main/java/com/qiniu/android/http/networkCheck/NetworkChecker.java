@@ -63,10 +63,14 @@ class NetworkChecker {
                 NetworkDetector networkDetector = new NetworkDetector(ip, 80);
                 detectorInfoDictionary.put(ip, networkDetector);
                 boolean success = networkDetector.check(GlobalConfiguration.getInstance().maxCheckTime);
-                if (success){
-                    performCheckIFNeeded(ip);
-                    detectorInfoDictionary.remove(ip);
+                if (! success){
+                    checkerInfo.addErrorTime(GlobalConfiguration.getInstance().maxCheckTime);
+                } else {
+                    networkDetector.cancel();
                 }
+                performCheckIFNeeded(ip);
+                detectorInfoDictionary.remove(ip);
+
             }
         });
 
@@ -126,6 +130,11 @@ class NetworkChecker {
 
         private boolean shouldCheck(int count){
             return count > this.count;
+        }
+
+        // 单位：秒
+        private void addErrorTime(long time){
+            this.time += time * 1000;
         }
 
     }
