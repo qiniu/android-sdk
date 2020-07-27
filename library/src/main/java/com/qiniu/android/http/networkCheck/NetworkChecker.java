@@ -48,19 +48,21 @@ class NetworkChecker {
     }
 
     private boolean connect(final String ip){
-        NetworkCheckerInfo checkerInfo = checkerInfoDictionary.get(ip);
+        final NetworkCheckerInfo checkerInfo = checkerInfoDictionary.get(ip);
         if (checkerInfo == null){
             return false;
         }
 
-        checkerInfo.start();
+
         networkDetectorService.submit(new Runnable() {
             @Override
             public void run() {
+                
+                checkerInfo.start();
+
                 NetworkDetector networkDetector = new NetworkDetector(ip, 80);
                 detectorInfoDictionary.put(ip, networkDetector);
                 boolean success = networkDetector.check(GlobalConfiguration.getInstance().maxCheckTime);
-                networkDetector.cancel();
                 if (success){
                     performCheckIFNeeded(ip);
                     detectorInfoDictionary.remove(ip);
