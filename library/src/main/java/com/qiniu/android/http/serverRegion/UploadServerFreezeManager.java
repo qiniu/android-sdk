@@ -10,7 +10,7 @@ import java.util.HashMap;
  */
 public class UploadServerFreezeManager {
 
-    private HashMap<String, UploadServerFreezeItem> freezeInfo = new HashMap<>();
+    private HashMap<String, UploadServerFreezeItem> frozenInfo = new HashMap<>();
     private final static UploadServerFreezeManager manager = new UploadServerFreezeManager();
 
     private UploadServerFreezeManager(){
@@ -24,13 +24,13 @@ public class UploadServerFreezeManager {
         if (host == null || host.length() == 0){
             return true;
         }
-        boolean isFreezed = true;
+        boolean isFrozen = true;
         String infoKey = getItemInfoKey(host, type);
-        UploadServerFreezeItem item = freezeInfo.get(infoKey);
-        if (item == null || !item.isFreezedByDate(new Date())){
-            isFreezed = false;
+        UploadServerFreezeItem item = frozenInfo.get(infoKey);
+        if (item == null || !item.isFrozenByDate(new Date())){
+            isFrozen = false;
         }
-        return isFreezed;
+        return isFrozen;
     }
 
     public void freezeHost(String host, String type){
@@ -38,10 +38,10 @@ public class UploadServerFreezeManager {
             return;
         }
         String infoKey = getItemInfoKey(host, type);
-        UploadServerFreezeItem item = freezeInfo.get(infoKey);
+        UploadServerFreezeItem item = frozenInfo.get(infoKey);
         if (item == null){
             item = new UploadServerFreezeItem(host, type);
-            freezeInfo.put(infoKey, item);
+            frozenInfo.put(infoKey, item);
         }
         item.freeze();
     }
@@ -61,12 +61,12 @@ public class UploadServerFreezeManager {
             this.type = type;
         }
 
-        protected synchronized boolean isFreezedByDate(Date date){
-            boolean isFreezed = true;
+        protected synchronized boolean isFrozenByDate(Date date){
+            boolean isFrozen = true;
             if (freezeDate == null || freezeDate.getTime() < date.getTime()){
-                isFreezed = false;
+                isFrozen = false;
             }
-            return isFreezed;
+            return isFrozen;
         }
 
         protected synchronized void freeze(){

@@ -7,7 +7,7 @@ import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
-import com.qiniu.android.http.serverRegion.IUploadDomainRegion;
+import com.qiniu.android.http.serverRegion.UploadDomainRegion;
 
 import org.json.JSONObject;
 
@@ -148,7 +148,7 @@ abstract class BaseUpload implements Runnable {
 
         ArrayList<IUploadRegion> defaultRegions = new ArrayList<>();
         for (ZoneInfo zoneInfo : zoneInfos) {
-            IUploadDomainRegion region = new IUploadDomainRegion();
+            UploadDomainRegion region = new UploadDomainRegion();
             region.setupRegionData(zoneInfo);
             defaultRegions.add(region);
         }
@@ -160,7 +160,7 @@ abstract class BaseUpload implements Runnable {
         if (zoneInfo == null){
             return;
         }
-        IUploadDomainRegion region = new IUploadDomainRegion();
+        UploadDomainRegion region = new UploadDomainRegion();
         region.setupRegionData(zoneInfo);
         insertRegionAtFirst(region);
     }

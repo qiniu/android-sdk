@@ -6,7 +6,7 @@ import com.qiniu.android.http.UserAgent;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.request.handler.RequestShouldRetryHandler;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
-import com.qiniu.android.http.serverRegion.IUploadDomainRegion;
+import com.qiniu.android.http.serverRegion.UploadDomainRegion;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
@@ -21,6 +21,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 public class RequestTransaction {
@@ -36,25 +37,25 @@ public class RequestTransaction {
     private HttpRegionRequest regionRequest;
 
 
-    public RequestTransaction(ArrayList<String> hosts,
+    public RequestTransaction(List<String> hosts,
                               UpToken token){
         this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, null, null, token);
     }
 
-    public RequestTransaction(ArrayList<String> hosts,
-                              ArrayList<String> ioHosts,
+    public RequestTransaction(List<String> hosts,
+                              List<String> ioHosts,
                               UpToken token){
         this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, ioHosts, null, token);
     }
 
     public RequestTransaction(Configuration config,
                               UploadOptions uploadOption,
-                              ArrayList<String> hosts,
-                              ArrayList<String> ioHosts,
+                              List<String> hosts,
+                              List<String> ioHosts,
                               String key,
                               UpToken token){
         this(config, uploadOption, key, token);
-        IUploadRegion region = new IUploadDomainRegion();
+        IUploadRegion region = new UploadDomainRegion();
         region.setupRegionData(ZoneInfo.buildInfo(hosts, ioHosts));
         this.initData(region, region);
     }

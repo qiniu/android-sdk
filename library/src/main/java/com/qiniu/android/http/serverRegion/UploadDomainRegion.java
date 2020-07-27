@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 
 
-public class IUploadDomainRegion implements IUploadRegion {
+public class UploadDomainRegion implements IUploadRegion {
 
     private boolean isAllFrozen;
     private ArrayList<String> domainHostList;
