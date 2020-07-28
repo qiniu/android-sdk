@@ -10,5 +10,5 @@ coverage:
         target: 80%
 
 comment:
-  layout: "header, diff, uncovered"
+  layout: "header, diff, uncovered, files"
   behavior: default
