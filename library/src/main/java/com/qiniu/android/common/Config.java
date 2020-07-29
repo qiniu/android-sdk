@@ -78,7 +78,8 @@ public final class Config {
     /**
      * preQuery host
      */
-    public static String preQueryHost = "uc.qbox.me";
+    public static String preQueryHost00 = "uc.qbox.me";
+    public static String preQueryHost01 = "api.qiniu.com";
 
     /**
      * 当网络切换到 wifi 下，切换到此设置

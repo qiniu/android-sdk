@@ -8,6 +8,7 @@ import com.qiniu.android.storage.UpToken;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,11 +28,16 @@ public final class AutoZone extends Zone {
         this.ucServer = ucServer;
     }
 
-    public String getUcServer() {
+    public List<String> getUcServerList() {
         if (ucServer != null){
-            return ucServer;
+            ArrayList<String> serverList = new ArrayList<>();
+            serverList.add(ucServer);
+            return serverList;
         } else {
-            return Config.preQueryHost;
+            ArrayList<String> serverList = new ArrayList<>();
+            serverList.add(Config.preQueryHost00);
+            serverList.add(Config.preQueryHost01);
+            return serverList;
         }
     }
 
@@ -77,8 +83,7 @@ public final class AutoZone extends Zone {
 
 
     private RequestTransaction createUploadRequestTransaction(UpToken token){
-        ArrayList<String> hosts = new ArrayList<>();
-        hosts.add(getUcServer());
+        List<String> hosts = getUcServerList();
 
         ArrayList<String> ioHosts = new ArrayList<>();
         ioHosts.add(ZoneInfo.SDKDefaultIOHost);

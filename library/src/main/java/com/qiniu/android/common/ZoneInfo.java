@@ -32,14 +32,14 @@ public class ZoneInfo {
     public ArrayList<String> allHosts;
     public JSONObject detailInfo;
 
-    public static ZoneInfo buildInfo(ArrayList<String> mainHosts,
-                                     ArrayList<String> ioHosts){
+    public static ZoneInfo buildInfo(List<String> mainHosts,
+                                     List<String> ioHosts){
         return buildInfo(mainHosts, null, ioHosts);
     }
 
-    public static ZoneInfo buildInfo(ArrayList<String> mainHosts,
-                                     ArrayList<String> oldHosts,
-                                     ArrayList<String> ioHosts){
+    public static ZoneInfo buildInfo(List<String> mainHosts,
+                                     List<String> oldHosts,
+                                     List<String> ioHosts){
         if (mainHosts == null){
             return null;
         }

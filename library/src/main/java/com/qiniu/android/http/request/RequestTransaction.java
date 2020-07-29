@@ -21,6 +21,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 public class RequestTransaction {
@@ -36,21 +37,21 @@ public class RequestTransaction {
     private HttpRegionRequest regionRequest;
 
 
-    public RequestTransaction(ArrayList<String> hosts,
+    public RequestTransaction(List<String> hosts,
                               UpToken token){
         this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, null, null, token);
     }
 
-    public RequestTransaction(ArrayList<String> hosts,
-                              ArrayList<String> ioHosts,
+    public RequestTransaction(List<String> hosts,
+                              List<String> ioHosts,
                               UpToken token){
         this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, ioHosts, null, token);
     }
 
     public RequestTransaction(Configuration config,
                               UploadOptions uploadOption,
-                              ArrayList<String> hosts,
-                              ArrayList<String> ioHosts,
+                              List<String> hosts,
+                              List<String> ioHosts,
                               String key,
                               UpToken token){
         this(config, uploadOption, key, token);

@@ -324,8 +324,8 @@ public class DnsPrefetcher {
         String[] fixedHosts = getFixedZoneHosts();
         localHosts.addAll(Arrays.asList(fixedHosts));
 
-        String ucHost = Config.preQueryHost;
-        localHosts.add(ucHost);
+        localHosts.add(Config.preQueryHost00);
+        localHosts.add(Config.preQueryHost01);
 
         String logReport = Config.upLogURL;
         localHosts.add(logReport);
