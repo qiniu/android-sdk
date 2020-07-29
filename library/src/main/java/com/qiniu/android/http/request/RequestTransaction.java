@@ -22,6 +22,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class RequestTransaction {
@@ -322,6 +323,145 @@ public class RequestTransaction {
             }
         };
         regionRequest.post(action, isAsync, body, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
+            @Override
+            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                completeHandler.complete(responseInfo, requestMetrics, response);
+            }
+        });
+    }
+
+
+    public void initPart(boolean isAsync,
+                         final RequestCompleteHandler completeHandler){
+
+        requestInfo.requestType = UploadRequestInfo.RequestTypeInitParts;
+
+        String token = String.format("UpToken %s", (this.token.token != null ? this.token.token : ""));
+        HashMap <String, String> header = new HashMap<String, String>();
+        header.put("Authorization", token);
+        header.put("Content-Type", "application/octet-stream");
+        header.put("User-Agent", userAgent);
+
+        String buckets = "/buckets/" + this.token.bucket;
+        String objects = "/objects/" + UrlSafeBase64.encodeToString(key);
+        String action = buckets + objects + "/uploads";
+
+        RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
+            @Override
+            public boolean shouldRetry(ResponseInfo responseInfo, JSONObject response) {
+                return !responseInfo.isOK();
+            }
+        };
+
+        regionRequest.post(action, isAsync, null, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
+            @Override
+            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                completeHandler.complete(responseInfo, requestMetrics, response);
+            }
+        });
+    }
+
+
+    public void uploadPart(boolean isAsync,
+                           String uploadId,
+                           int partIndex,
+                           byte[] partData,
+                           final RequestProgressHandler progressHandler,
+                           final RequestCompleteHandler completeHandler){
+
+        requestInfo.requestType = UploadRequestInfo.RequestTypeUploadPart;
+
+        String token = String.format("UpToken %s", (this.token.token != null ? this.token.token : ""));
+        HashMap <String, String> header = new HashMap<String, String>();
+        header.put("Authorization", token);
+        header.put("Content-Type", "application/octet-stream");
+        header.put("User-Agent", userAgent);
+
+        String buckets = "/buckets/" + this.token.bucket;
+        String objects = "/objects/" + UrlSafeBase64.encodeToString(key);
+        String uploads = "/uploads/" + uploadId;
+        String partNumber = "/" + partIndex;
+        String action = buckets + objects + uploads + partNumber;
+
+        final String md5 = null;
+        RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
+            @Override
+            public boolean shouldRetry(ResponseInfo responseInfo, JSONObject response) {
+                if (response == null) {
+                    return true;
+                }
+
+                String etag = null;
+                String serverMd5 = null;
+                try {
+                    etag = response.getString("etag");
+                    serverMd5 = response.getString("md5");
+                } catch (JSONException e) {}
+
+                return !responseInfo.isOK() || etag == null || (responseInfo.isOK() && uploadOption.checkCrc && (serverMd5 == null || !serverMd5.equals(md5)));
+            }
+        };
+        regionRequest.put(action, isAsync, partData, header, shouldRetryHandler, progressHandler, new HttpRegionRequest.RequestCompleteHandler() {
+            @Override
+            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                completeHandler.complete(responseInfo, requestMetrics, response);
+            }
+        });
+    }
+
+    public void completeParts(boolean isAsync,
+                              String fileName,
+                              String uploadId,
+                              List<Map<String, Object>> partInfoArray,
+                              final RequestCompleteHandler completeHandler){
+
+        requestInfo.requestType = UploadRequestInfo.RequestTypeCompletePart;
+
+        if (partInfoArray == null || partInfoArray.size() == 0) {
+            ResponseInfo responseInfo = ResponseInfo.invalidArgument("partInfoArray");
+            if (completeHandler != null) {
+                completeHandler.complete(responseInfo, null, responseInfo.response);
+            }
+            return;
+        }
+
+        String token = String.format("UpToken %s", (this.token.token != null ? this.token.token : ""));
+        HashMap <String, String> header = new HashMap<String, String>();
+        header.put("Authorization", token);
+        header.put("Content-Type", "application/octet-stream");
+        header.put("User-Agent", userAgent);
+
+        String buckets = "/buckets/" + this.token.bucket;
+        String objects = "/objects/" + UrlSafeBase64.encodeToString(key);
+        String uploads = "/uploads/" + uploadId;
+        String action = buckets + objects + uploads;
+
+        HashMap<String, Object> bodyMap = new HashMap<>();
+        if (partInfoArray != null){
+            bodyMap.put("parts", partInfoArray);
+        }
+        if (fileName != null) {
+            bodyMap.put("fname", fileName);
+        }
+        if (uploadOption.mimeType != null) {
+            bodyMap.put("mimeType", uploadOption.mimeType);
+        }
+        //todo: 待测试
+        if (uploadOption.metadata != null) {
+            bodyMap.put("metadata", uploadOption.metadata);
+        }
+        if (uploadOption.params != null) {
+            bodyMap.put("customVars", uploadOption.params);
+        }
+
+        RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
+            @Override
+            public boolean shouldRetry(ResponseInfo responseInfo, JSONObject response) {
+                return !responseInfo.isOK();
+            }
+        };
+
+        regionRequest.post(action, isAsync, null, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 completeHandler.complete(responseInfo, requestMetrics, response);

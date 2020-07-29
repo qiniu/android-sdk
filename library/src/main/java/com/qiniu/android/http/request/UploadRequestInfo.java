@@ -7,6 +7,9 @@ class UploadRequestInfo {
     static final String RequestTypeMkblk = "mkblk";
     static final String RequestTypeBput = "bput";
     static final String RequestTypeMkfile = "mkfile";
+    static final String RequestTypeInitParts = "init_parts";
+    static final String RequestTypeUploadPart = "upload_part";
+    static final String RequestTypeCompletePart = "complete_part";
     static final String RequestTypeUpLog = "uplog";
 
     String requestType;

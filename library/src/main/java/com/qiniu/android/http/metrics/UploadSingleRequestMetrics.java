@@ -91,7 +91,7 @@ public class UploadSingleRequestMetrics {
         if (startDate != null && endDate != null){
             return (endDate.getTime() - startDate.getTime());
         } else {
-            return null;
+            return 0l;
         }
     }
 }

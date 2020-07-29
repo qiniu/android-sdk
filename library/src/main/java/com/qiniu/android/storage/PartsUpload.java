@@ -5,8 +5,10 @@ import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.request.UploadFileInfo;
 import com.qiniu.android.http.request.IUploadRegion;
+import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.utils.Utils;
 
 import org.json.JSONException;
@@ -16,6 +18,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 abstract class PartsUpload extends BaseUpload {
     private static final String kRecordFileInfoKey = "recordFileInfo";
@@ -34,11 +39,11 @@ abstract class PartsUpload extends BaseUpload {
     protected PartsUpload(File file,
                           String key,
                           UpToken token,
-                         UploadOptions option,
-                         Configuration config,
-                        Recorder recorder,
-                        String recorderKey,
-                        UpTaskCompletionHandler completionHandler) {
+                          UploadOptions option,
+                          Configuration config,
+                          Recorder recorder,
+                          String recorderKey,
+                          UpTaskCompletionHandler completionHandler) {
         super(file, key, token, option, config, recorder, recorderKey, completionHandler);
         RandomAccessFile randomAccessFile = null;
         if (file != null){
@@ -75,7 +80,7 @@ abstract class PartsUpload extends BaseUpload {
 
         recoverUploadInfoFromRecord();
         if (uploadFileInfo == null){
-            uploadFileInfo = new UploadFileInfo(file.length(), PartsUpload.blockSize, getUploadChunkSize(), file.lastModified());
+            uploadFileInfo = new UploadFileInfo(file.length(), config.chunkSize, file.lastModified());
         }
 
         if (randomAccessFile == null){
@@ -168,12 +173,109 @@ abstract class PartsUpload extends BaseUpload {
         }
     }
 
-    private long getUploadChunkSize(){
-        if (chunkSize != null){
-            return  chunkSize;
-        } else {
-            return config.chunkSize;
+
+    protected void initPartFromServer(final UploadFileCompleteHandler completeHandler){
+
+        RequestTransaction transaction = createUploadRequestTransaction();
+        transaction.initPart(true, new RequestTransaction.RequestCompleteHandler() {
+            @Override
+            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+
+                addRegionRequestMetricsOfOneFlow(requestMetrics);
+
+                String uploadId = null;
+                Long expireAt = null;
+                try {
+                    uploadId = response.getString("uploadId");
+                    expireAt = response.getLong("expireAt");
+                } catch (JSONException e){
+                }
+
+                if (responseInfo.isOK() && uploadId != null && expireAt != null) {
+                    uploadFileInfo.uploadId = uploadId;
+                    uploadFileInfo.expireAt = expireAt;
+                    recordUploadInfo();
+                }
+                completeHandler.complete(responseInfo, response);
+            }
+        });
+    }
+
+    protected void uploadDataFromServer(final UploadFileInfo.UploadData data,
+                                        final RequestProgressHandler progressHandler,
+                                        final UploadFileCompleteHandler completeHandler){
+
+        byte[] uploadData = getUploadData(data);
+        if (uploadData == null) {
+            ResponseInfo responseInfo = ResponseInfo.localIOError("get data error");
+            completeHandler.complete(responseInfo, responseInfo.response);
+            return;
         }
+
+        data.isUploading = true;
+        data.isCompleted = false;
+
+        RequestTransaction transaction = createUploadRequestTransaction();
+        transaction.uploadPart(true, uploadFileInfo.uploadId, data.index, uploadData, progressHandler, new RequestTransaction.RequestCompleteHandler() {
+            @Override
+            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+
+                addRegionRequestMetricsOfOneFlow(requestMetrics);
+
+                String etag = null;
+                Long md5 = null;
+                if (response != null) {
+                    try {
+                        etag = response.getString("etag");
+                        md5 = response.getLong("md5");
+                    } catch (JSONException e) {
+                    }
+                }
+
+                if (responseInfo.isOK() && etag != null && md5 != null) {
+                    data.etag = etag;
+                    data.isUploading = false;
+                    data.isCompleted = true;
+                    recordUploadInfo();
+                } else {
+                    data.isUploading = false;
+                    data.isCompleted = false;
+                }
+                completeHandler.complete(responseInfo, response);
+            }
+        });
+    }
+
+    protected void completePartsFromServer(final UploadFileCompleteHandler completeHandler){
+
+        List<Map<String, Object>> partInfoArray = uploadFileInfo.getPartInfoArray();
+        RequestTransaction transaction = createUploadRequestTransaction();
+
+        transaction.completeParts(true, fileName, uploadFileInfo.uploadId, partInfoArray, new RequestTransaction.RequestCompleteHandler() {
+            @Override
+            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+
+                addRegionRequestMetricsOfOneFlow(requestMetrics);
+                completeHandler.complete(responseInfo, response);
+            }
+        });
+    }
+
+    protected abstract RequestTransaction createUploadRequestTransaction();
+
+    private byte[] getUploadData(UploadFileInfo.UploadData data){
+        RandomAccessFile randomAccessFile = getRandomAccessFile();
+        if (randomAccessFile == null || data == null){
+            return null;
+        }
+        byte[] uploadData = new byte[(int)data.size];
+        try {
+            randomAccessFile.seek(data.offset);
+            randomAccessFile.read(uploadData, 0, (int)data.size);
+        } catch (IOException e) {
+            uploadData = null;
+        }
+        return uploadData;
     }
 
     private void reportBlock(){
@@ -207,5 +309,9 @@ abstract class PartsUpload extends BaseUpload {
         item.setReport(Utils.currentTimestamp(), ReportItem.BlockKeyClientTime);
 
         UploadInfoReporter.getInstance().report(item, token.token);
+    }
+
+    protected interface UploadFileCompleteHandler{
+        void complete(ResponseInfo responseInfo, JSONObject response);
     }
 }

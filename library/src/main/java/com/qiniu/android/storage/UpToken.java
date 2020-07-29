@@ -44,7 +44,7 @@ import org.json.JSONObject;
             return null;
         }
         String scope = obj.optString("scope");
-        String bucket = null;
+        String bucket = "";
         if (scope.equals("")) {
             return null;
         } else {

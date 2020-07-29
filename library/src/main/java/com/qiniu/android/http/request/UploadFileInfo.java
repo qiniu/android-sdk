@@ -5,28 +5,33 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class UploadFileInfo {
 
     public final long size;
     public final long modifyTime;
-    public final ArrayList<UploadBlock> uploadBlocks;
+    public final ArrayList<UploadData> uploadDataList;
+
+    public String uploadId;
+    public Long expireAt;
 
     private UploadFileInfo(long size,
                            long modifyTime,
-                           ArrayList<UploadBlock> uploadBlocks) {
+                           ArrayList<UploadData> uploadDataList) {
         this.size = size;
         this.modifyTime = modifyTime;
-        this.uploadBlocks = uploadBlocks;
+        this.uploadDataList = uploadDataList;
     }
 
     public UploadFileInfo(long fileSize,
-                          long blockSize,
                           long dataSize,
                           long modifyTime){
         this.size = fileSize;
         this.modifyTime = modifyTime;
-        this.uploadBlocks =  createBlocks(blockSize, dataSize);
+        this.uploadDataList =  createDataList(dataSize);
     }
 
     public static UploadFileInfo fileFromJson(JSONObject jsonObject){
@@ -35,61 +40,66 @@ public class UploadFileInfo {
         }
         long size = 0;
         long modifyTime = 0;
-        ArrayList<UploadBlock> uploadBlocks = new ArrayList<UploadBlock>();
+        Long expireAt = null;
+        String uploadId = null;
+        ArrayList<UploadData> uploadDataList = new ArrayList<>();
         try {
             size = jsonObject.getLong("size");
             modifyTime = jsonObject.getLong("modifyTime");
-            JSONArray blockJsonArray = jsonObject.getJSONArray("uploadBlocks");
-            for (int i = 0; i < blockJsonArray.length(); i++) {
-                JSONObject blockJson = blockJsonArray.getJSONObject(i);
-                UploadBlock block = UploadBlock.blockFromJson(blockJson);
-                if (block != null){
-                    uploadBlocks.add(block);
+            expireAt = jsonObject.getLong("expireAt");
+            uploadId = jsonObject.getString("uploadId");
+            JSONArray dataJsonArray = jsonObject.getJSONArray("uploadDataList");
+            for (int i = 0; i < dataJsonArray.length(); i++) {
+                JSONObject dataJson = dataJsonArray.getJSONObject(i);
+                UploadData data = UploadData.dataFromJson(dataJson);
+                if (data != null){
+                    uploadDataList.add(data);
                 }
             }
         } catch (JSONException e){};
 
-        UploadFileInfo fileInfo = new UploadFileInfo(size, modifyTime, uploadBlocks);
+        UploadFileInfo fileInfo = new UploadFileInfo(size, modifyTime, uploadDataList);
+        fileInfo.expireAt = expireAt;
+        fileInfo.uploadId = uploadId;
         return fileInfo;
     }
 
-    private ArrayList<UploadBlock> createBlocks(long blockSize,
-                                                long dataSize){
+    private ArrayList<UploadData> createDataList(long dataSize){
         long offset = 0;
-        int blockIndex = 0;
-        ArrayList<UploadBlock> blocks = new ArrayList<>();
+        int dataIndex = 1;
+        ArrayList<UploadData> dataList = new ArrayList<UploadData>();
         while (offset < size){
             long lastSize = size - offset;
-            long blockSizeP = Math.min(lastSize, blockSize);
-            UploadBlock block = new UploadBlock(offset, blockSizeP, dataSize, blockIndex);
-            if (block != null){
-                blocks.add(block);
-                offset += blockSizeP;
-                blockIndex += 1;
+            long dataSizeP = Math.min(lastSize, dataSize);
+            UploadData data = new UploadData(offset, dataSizeP, dataIndex);
+            if (data != null){
+                dataList.add(data);
+                offset += dataSizeP;
+                dataIndex += 1;
             }
         }
-        return blocks;
+        return dataList;
     }
 
     public double progress(){
-        if (uploadBlocks == null || uploadBlocks.size() == 0){
+        if (uploadDataList == null) {
             return 0;
         }
         double progress = 0;
-        for (UploadBlock block : uploadBlocks) {
-            progress += block.progress() * ((double) block.size / (double) size);
+        for (UploadData data : uploadDataList) {
+            progress += data.progress * ((double) data.size / size);
         }
         return progress;
     }
 
     public UploadData nextUploadData(){
-        if (uploadBlocks == null || uploadBlocks.size() == 0) {
+        if (uploadDataList == null || uploadDataList.size() == 0){
             return null;
         }
         UploadData data = null;
-        for (UploadBlock block : uploadBlocks) {
-            data = block.nextUploadData();
-            if (data != null) {
+        for (UploadData dataP : uploadDataList) {
+            if (!dataP.isCompleted && !dataP.isUploading){
+                data = dataP;
                 break;
             }
         }
@@ -97,50 +107,39 @@ public class UploadFileInfo {
     }
 
     public void clearUploadState(){
-        if (uploadBlocks == null || uploadBlocks.size() == 0) {
-            return;
+        for (UploadData data : uploadDataList) {
+            data.clearUploadState();
         }
-        for (UploadBlock block : uploadBlocks) {
-            block.clearUploadState();
-        }
-    }
-
-    public UploadBlock blockWithIndex(int blockIndex){
-        if (uploadBlocks == null || uploadBlocks.size() == 0) {
-            return null;
-        }
-        UploadBlock block = null;
-        if (blockIndex < uploadBlocks.size()) {
-            block = uploadBlocks.get(blockIndex);
-        }
-        return block;
     }
 
     public boolean isAllUploaded(){
-        if (uploadBlocks == null || uploadBlocks.size() == 0) {
+        if (uploadDataList == null || uploadDataList.size() == 0) {
             return true;
         }
-        boolean isAllUploaded = true;
-        for (UploadBlock block : uploadBlocks) {
-            if (!block.isCompleted()) {
-                isAllUploaded = false;
+        boolean isCompleted = true;
+        for (UploadData data : uploadDataList) {
+            if (!data.isCompleted){
+                isCompleted = false;
                 break;
             }
         }
-        return isAllUploaded;
+        return isCompleted;
     }
 
-    public ArrayList<String> allBlocksContexts(){
-        if (uploadBlocks == null || uploadBlocks.size() == 0) {
+    public List<Map<String, Object>> getPartInfoArray(){
+        if (uploadId == null || uploadId.length() == 0) {
             return null;
         }
-        ArrayList<String> contexts = new ArrayList<String>();
-        for (UploadBlock block : uploadBlocks) {
-            if (block.context != null) {
-                contexts.add(block.context);
+        ArrayList<Map<String, Object>> infoArray = new ArrayList<>();
+        for (UploadData data : uploadDataList) {
+            if (data.etag != null) {
+                HashMap<String, Object>info = new HashMap<>();
+                info.put("etag", data.etag);
+                info.put("partNumber", data.index);
+                infoArray.add(info);
             }
         }
-        return contexts;
+        return infoArray;
     }
 
     public JSONObject toJsonObject(){
@@ -148,21 +147,24 @@ public class UploadFileInfo {
         try {
             jsonObject.put("size", size);
             jsonObject.put("modifyTime", modifyTime);
-            if (uploadBlocks != null && uploadBlocks.size() > 0){
-                JSONArray blockJsonArray = new JSONArray();
-                for (UploadBlock block : uploadBlocks) {
-                    JSONObject blockJson = block.toJsonObject();
-                    if (blockJson != null){
-                        blockJsonArray.put(blockJson);
+            jsonObject.put("expireAt", expireAt);
+            jsonObject.put("uploadId", uploadId);
+            if (uploadDataList != null && uploadDataList.size() > 0){
+                JSONArray dataJsonArray = new JSONArray();
+                for (UploadData data : uploadDataList) {
+                    JSONObject dataJson = data.toJsonObject();
+                    if (dataJson != null){
+                        dataJsonArray.put(dataJson);
                     }
                 }
-                jsonObject.put("uploadBlocks", blockJsonArray);
+                jsonObject.put("uploadDataList", dataJsonArray);
             }
         } catch (JSONException e) {}
         return jsonObject;
     }
 
 
+    /*
     public static class UploadBlock {
 
         public final long offset;
@@ -254,7 +256,7 @@ public class UploadFileInfo {
             while (offset < size){
                 long lastSize = size - offset;
                 long dataSizeP = Math.min(lastSize, dataSize);
-                UploadData data = new UploadData(offset, dataSizeP, dataIndex, index);
+                UploadData data = new UploadData(offset, dataSizeP, dataIndex);
                 if (data != null){
                     datas.add(data);
                     offset += dataSizeP;
@@ -308,26 +310,24 @@ public class UploadFileInfo {
             }
         }
     }
-
+*/
     public static class UploadData {
 
         public final long offset;
         public final long size;
         public final int index;
-        public final int blockIndex;
 
+        public String etag;
         public boolean isCompleted;
         public boolean isUploading;
         public double progress;
 
         public UploadData(long offset,
                           long size,
-                          int index,
-                          int blockIndex) {
+                          int index) {
             this.offset = offset;
             this.size = size;
             this.index = index;
-            this.blockIndex = blockIndex;
             this.isCompleted = false;
             this.isUploading = false;
             this.progress = 0;
@@ -340,18 +340,18 @@ public class UploadFileInfo {
             long offset = 0;
             long size = 0;
             int index = 0;
-            int blockIndex = 0;
+            String etag = null;
             boolean isCompleted = false;
             double progress = 0;
             try {
                 offset = jsonObject.getLong("offset");
                 size = jsonObject.getLong("size");
                 index = jsonObject.getInt("index");
-                blockIndex = jsonObject.getInt("blockIndex");
+                etag = jsonObject.getString("etag");
                 isCompleted = jsonObject.getBoolean("isCompleted");
                 progress = jsonObject.getDouble("progress");
             } catch (JSONException ignored){}
-            UploadData uploadData = new UploadData(offset, size, index, blockIndex);
+            UploadData uploadData = new UploadData(offset, size, index);
             uploadData.isCompleted = isCompleted;
             uploadData.progress = progress;
             return uploadData;
@@ -372,7 +372,7 @@ public class UploadFileInfo {
                 jsonObject.put("offset", offset);
                 jsonObject.put("size", size);
                 jsonObject.put("index", index);
-                jsonObject.put("blockIndex", blockIndex);
+                jsonObject.put("etag", etag);
                 jsonObject.put("isCompleted", isCompleted);
                 jsonObject.put("progress", progress);
             } catch (JSONException e) {

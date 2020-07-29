@@ -62,6 +62,17 @@ class HttpRegionRequest {
         performRequest(getNextServer(null), action, isAsync, data, header, "POST", shouldRetryHandler, progressHandler, completeHandler);
     }
 
+    void put(String action,
+             boolean isAsync,
+             byte[] data,
+             Map<String, String>header,
+             RequestShouldRetryHandler shouldRetryHandler,
+             RequestProgressHandler progressHandler,
+             RequestCompleteHandler completeHandler){
+        requestMetrics = new UploadRegionRequestMetrics(region);
+        performRequest(getNextServer(null), action, isAsync, data, header, "PUT", shouldRetryHandler, progressHandler, completeHandler);
+    }
+
     private void performRequest(IUploadServer server,
                                 final String action,
                                 final boolean isAsync,

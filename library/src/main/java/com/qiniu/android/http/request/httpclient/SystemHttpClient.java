@@ -194,7 +194,7 @@ public class SystemHttpClient implements IRequestClient {
                 String value = request.allHeaders.get(key);
                 requestBuilder.header(key, value);
             }
-        } else if (request.httpMethod.equals(Request.HttpMethodPOST)){
+        } else if (request.httpMethod.equals(Request.HttpMethodPOST) || request.httpMethod.equals(Request.HttpMethodPUT)){
             requestBuilder = new okhttp3.Request.Builder().url(request.urlString);
             requestBuilder = requestBuilder.headers(allHeaders);
 

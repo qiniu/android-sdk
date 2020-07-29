@@ -23,8 +23,8 @@ class ConcurrentResumeUpload extends PartsUpload {
     private double previousPercent;
     private ArrayList<RequestTransaction> uploadTransactions;
 
-    private ResponseInfo uploadBlockErrorResponseInfo;
-    private JSONObject uploadBlockErrorResponse;
+    private ResponseInfo uploadDataErrorResponseInfo;
+    private JSONObject uploadDataErrorResponse;
 
     protected ConcurrentResumeUpload(File file,
                                     String key,
@@ -47,49 +47,76 @@ class ConcurrentResumeUpload extends PartsUpload {
     @Override
     protected void startToUpload() {
         previousPercent = 0;
-        uploadTransactions = new ArrayList<RequestTransaction>();
-        uploadBlockErrorResponseInfo = null;
-        uploadBlockErrorResponse = null;
+        uploadTransactions = new ArrayList<>();
+        uploadDataErrorResponseInfo = null;
+        uploadDataErrorResponse = null;
 
-        GroupTaskThread.GroupTaskCompleteHandler completeHandler = new GroupTaskThread.GroupTaskCompleteHandler() {
+        // 1. 启动upload
+        initPartFromServer(new UploadFileCompleteHandler() {
             @Override
-            public void complete() {
-                UploadFileInfo uploadFileInfo = getUploadFileInfo();
-                if (!uploadFileInfo.isAllUploaded() || uploadBlockErrorResponseInfo != null){
-                    if (uploadBlockErrorResponseInfo.couldRetry() && config.allowBackupHost) {
-                        boolean isSwitched = switchRegionAndUpload();
-                        if (!isSwitched){
-                            completeAction(uploadBlockErrorResponseInfo, uploadBlockErrorResponse);
-                        }
-                    } else {
-                        completeAction(uploadBlockErrorResponseInfo, uploadBlockErrorResponse);
-                    }
-                } else {
-                    makeFile(new UploadFileCompleteHandler() {
-                        @Override
-                        public void complete(ResponseInfo responseInfo, JSONObject response) {
-                            if (responseInfo == null || !responseInfo.isOK()){
+            public void complete(ResponseInfo responseInfo, JSONObject response) {
+
+                UploadFileInfo fileInfo = getUploadFileInfo();
+                if (!responseInfo.isOK() || fileInfo.uploadId == null || fileInfo.uploadId.length() == 0){
+                    completeAction(responseInfo, response);
+                    return;
+                }
+
+                // 2. 上传数据
+                concurrentUploadRestData(new ResumeUploadCompleteHandler() {
+                    @Override
+                    public void complete() {
+
+                        UploadFileInfo uploadFileInfo = getUploadFileInfo();
+                        if (!uploadFileInfo.isAllUploaded() || uploadDataErrorResponseInfo != null){
+                            if (uploadDataErrorResponseInfo.couldRetry() && config.allowBackupHost) {
                                 boolean isSwitched = switchRegionAndUpload();
                                 if (!isSwitched){
-                                    completeAction(responseInfo, response);
+                                    completeAction(uploadDataErrorResponseInfo, uploadDataErrorResponse);
                                 }
                             } else {
-                                option.progressHandler.progress(key, 1.0);
-                                removeUploadInfoRecord();
-                                completeAction(responseInfo, response);
+                                completeAction(uploadDataErrorResponseInfo, uploadDataErrorResponse);
                             }
+                            return;
                         }
-                    });
-                }
+
+                        // 3. 组装文件
+                        completePartsFromServer(new UploadFileCompleteHandler() {
+                            @Override
+                            public void complete(ResponseInfo responseInfo, JSONObject response) {
+                                if (responseInfo == null || !responseInfo.isOK()){
+                                    boolean isSwitched = switchRegionAndUpload();
+                                    if (!isSwitched){
+                                        completeAction(responseInfo, response);
+                                    }
+                                } else {
+                                    option.progressHandler.progress(key, 1.0);
+                                    removeUploadInfoRecord();
+                                    completeAction(responseInfo, response);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    private void concurrentUploadRestData(final ResumeUploadCompleteHandler completeHandler){
+
+        GroupTaskThread.GroupTaskCompleteHandler taskCompleteHandler = new GroupTaskThread.GroupTaskCompleteHandler() {
+            @Override
+            public void complete() {
+                completeHandler.complete();
             }
         };
 
-        groupTaskThread = new GroupTaskThread(completeHandler);
+        groupTaskThread = new GroupTaskThread(taskCompleteHandler);
         for (int i = 0; i < config.concurrentTaskCount; i++) {
             groupTaskThread.addTask(new GroupTaskThread.GroupTask() {
                 @Override
                 public void run(final GroupTaskThread.GroupTask task) {
-                    uploadRestBlock(new UploadBlockCompleteHandler() {
+                    uploadRestData(new ResumeUploadCompleteHandler() {
                         @Override
                         public void complete() {
                             task.taskComplete();
@@ -102,12 +129,12 @@ class ConcurrentResumeUpload extends PartsUpload {
         groupTaskThread.start();
     }
 
-    private void uploadRestBlock(UploadBlockCompleteHandler completeHandler){
+    private void uploadRestData(final ResumeUploadCompleteHandler completeHandler){
         final UploadFileInfo uploadFileInfo = getUploadFileInfo();
         if (uploadFileInfo == null){
-            if (uploadBlockErrorResponseInfo == null){
-                uploadBlockErrorResponseInfo = ResponseInfo.invalidArgument("file error");
-                uploadBlockErrorResponse = uploadBlockErrorResponseInfo.response;
+            if (uploadDataErrorResponseInfo == null){
+                uploadDataErrorResponseInfo = ResponseInfo.invalidArgument("file error");
+                uploadDataErrorResponse = uploadDataErrorResponseInfo.response;
             }
             completeHandler.complete();
             return;
@@ -115,22 +142,21 @@ class ConcurrentResumeUpload extends PartsUpload {
 
         IUploadRegion currentRegion = getCurrentRegion();
         if (currentRegion == null){
-            if (uploadBlockErrorResponseInfo == null){
-                uploadBlockErrorResponseInfo = ResponseInfo.invalidArgument("server error");
-                uploadBlockErrorResponse = uploadBlockErrorResponseInfo.response;
+            if (uploadDataErrorResponseInfo == null){
+                uploadDataErrorResponseInfo = ResponseInfo.invalidArgument("server error");
+                uploadDataErrorResponse = uploadDataErrorResponseInfo.response;
             }
             completeHandler.complete();
             return;
         }
 
         synchronized (this) {
-            final UploadFileInfo.UploadData chunk = uploadFileInfo.nextUploadData();
-            UploadFileInfo.UploadBlock block = chunk != null ? uploadFileInfo.blockWithIndex(chunk.blockIndex) : null;
+            final UploadFileInfo.UploadData data = uploadFileInfo.nextUploadData();
 
             RequestProgressHandler progressHandler = new RequestProgressHandler() {
                 @Override
                 public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
-                    chunk.progress = (double) totalBytesWritten / (double) totalBytesExpectedToWrite;
+                    data.progress = (double) totalBytesWritten / (double) totalBytesExpectedToWrite;
                     double percent = uploadFileInfo.progress();
                     if (percent > 0.95) {
                         percent = 0.95;
@@ -143,110 +169,31 @@ class ConcurrentResumeUpload extends PartsUpload {
                     option.progressHandler.progress(key, percent);
                 }
             };
-            if (chunk != null) {
-                makeBlock(block, chunk, progressHandler, completeHandler);
-            } else {
+            if (data == null) {
                 completeHandler.complete();
+            } else {
+                uploadDataFromServer(data, progressHandler, new UploadFileCompleteHandler() {
+                    @Override
+                    public void complete(ResponseInfo responseInfo, JSONObject response) {
+                        if (!responseInfo.isOK()){
+                            uploadDataErrorResponseInfo = responseInfo;
+                            uploadDataErrorResponse = response;
+                        } else {
+                            uploadRestData(completeHandler);
+                        }
+                    }
+                });
             }
         }
     }
 
-    private void makeBlock(final UploadFileInfo.UploadBlock block,
-                           final UploadFileInfo.UploadData chunk,
-                           final RequestProgressHandler progressHandler,
-                           final UploadBlockCompleteHandler completeHandler){
-
-        byte[] chunkData = getDataWithChunk(chunk, block);
-        if (chunkData == null){
-            uploadBlockErrorResponseInfo = ResponseInfo.localIOError("get chunk data error");
-            uploadBlockErrorResponse = uploadBlockErrorResponseInfo.response;
-            completeHandler.complete();
-            return;
-        }
-
-        chunk.isUploading = true;
-        chunk.isCompleted = false;
-
-        RequestTransaction transaction = createUploadRequestTransaction();
-        transaction.makeBlock(block.offset, block.size, chunkData, true, progressHandler, new RequestTransaction.RequestCompleteHandler() {
-            @Override
-            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                addRegionRequestMetricsOfOneFlow(requestMetrics);
-
-                String blockContext = null;
-                if (response != null){
-                    try {
-                        blockContext = response.getString("ctx");
-                    } catch (JSONException e) {}
-                }
-                if (responseInfo.isOK() && blockContext != null){
-                    block.context = blockContext;
-                    chunk.isUploading = false;
-                    chunk.isCompleted = true;
-                    recordUploadInfo();
-                    uploadRestBlock(completeHandler);
-                } else {
-                    chunk.isUploading = false;
-                    chunk.isCompleted = false;
-                    uploadBlockErrorResponse = response;
-                    uploadBlockErrorResponseInfo = responseInfo;
-                    completeHandler.complete();
-                }
-            }
-        });
-    }
-
-    private void makeFile(final UploadFileCompleteHandler completeHandler){
-        UploadFileInfo uploadFileInfo = getUploadFileInfo();
-
-        final RequestTransaction transaction = createUploadRequestTransaction();
-        ArrayList<String> contextsList = uploadFileInfo.allBlocksContexts();
-        String[] contexts = contextsList.toArray(new String[contextsList.size()]);
-        transaction.makeFile(uploadFileInfo.size, fileName,  contexts, true, new RequestTransaction.RequestCompleteHandler(){
-
-            @Override
-            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-
-                addRegionRequestMetricsOfOneFlow(requestMetrics);
-                destroyUploadRequestTransaction(transaction);
-                completeHandler.complete(responseInfo, response);
-            }
-        });
-    }
-
-    private RequestTransaction createUploadRequestTransaction(){
+    protected RequestTransaction createUploadRequestTransaction(){
         RequestTransaction transaction = new RequestTransaction(config, option, getTargetRegion(), getCurrentRegion(), key, token);
         uploadTransactions.add(transaction);
         return transaction;
     }
 
-    private void destroyUploadRequestTransaction(RequestTransaction transaction){
-        if (transaction != null){
-            uploadTransactions.remove(transaction);
-        }
-    }
-
-    private byte[] getDataWithChunk(UploadFileInfo.UploadData chunk,
-                                    UploadFileInfo.UploadBlock block){
-        RandomAccessFile randomAccessFile = getRandomAccessFile();
-        if (randomAccessFile == null || chunk == null || block == null){
-            return null;
-        }
-        byte[] data = new byte[(int)chunk.size];
-        try {
-            randomAccessFile.seek((chunk.offset + block.offset));
-            randomAccessFile.read(data, 0, (int)chunk.size);
-        } catch (IOException e) {
-            data = null;
-        }
-        return data;
-    }
-
-    private interface UploadBlockCompleteHandler{
+    private interface ResumeUploadCompleteHandler{
         void complete();
-    }
-
-    private interface UploadFileCompleteHandler{
-        void complete(ResponseInfo responseInfo, JSONObject response);
     }
 }

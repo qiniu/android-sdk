@@ -1,10 +1,9 @@
 package com.qiniu.android;
 
 import android.test.AndroidTestCase;
-
 import com.qiniu.android.utils.Crc32;
-
 import junit.framework.Assert;
+
 
 public class CrcTest extends AndroidTestCase {
     public void testCrc() {

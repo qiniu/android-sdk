@@ -84,7 +84,7 @@ public class CancelTest extends BaseTest {
     private Temp templateFile(final int size, final double pos) throws Throwable {
         final CountDownLatch signal = new CountDownLatch(1);
         final File tempFile = TempFile.createFile(size);
-        final String expectKey = "file_" + UUID.randomUUID().toString();
+        final String expectKey = "file_" + size;
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:a", "test");
         params.put("x:b", "test2");
