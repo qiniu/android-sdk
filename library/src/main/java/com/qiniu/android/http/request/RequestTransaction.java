@@ -454,6 +454,8 @@ public class RequestTransaction {
             bodyMap.put("customVars", uploadOption.params);
         }
 
+        String bodyString = new JSONObject(bodyMap).toString();
+        byte[] body = bodyString.getBytes();
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
             @Override
             public boolean shouldRetry(ResponseInfo responseInfo, JSONObject response) {
@@ -461,7 +463,7 @@ public class RequestTransaction {
             }
         };
 
-        regionRequest.post(action, isAsync, null, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
+        regionRequest.post(action, isAsync, body, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 completeHandler.complete(responseInfo, requestMetrics, response);

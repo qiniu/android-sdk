@@ -120,8 +120,8 @@ public class ResumeUploadTest extends BaseTest {
         assertTrue(info.toString(), info.isOK());
         assertNotNull(info.reqId);
         assertEquals(info.toString(), expectKey, key);
-        String hash = resp.getString("hash");
-        assertEquals(hash, Etag.file(f));
+//        String hash = resp.getString("hash");
+//        assertEquals(hash, Etag.file(f));
         TempFile.remove(f);
     }
 

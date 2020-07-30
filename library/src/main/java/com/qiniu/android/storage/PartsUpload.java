@@ -185,12 +185,13 @@ abstract class PartsUpload extends BaseUpload {
 
                 String uploadId = null;
                 Long expireAt = null;
-                try {
-                    uploadId = response.getString("uploadId");
-                    expireAt = response.getLong("expireAt");
-                } catch (JSONException e){
+                if (response != null) {
+                    try {
+                        uploadId = response.getString("uploadId");
+                        expireAt = response.getLong("expireAt");
+                    } catch (JSONException e) {
+                    }
                 }
-
                 if (responseInfo.isOK() && uploadId != null && expireAt != null) {
                     uploadFileInfo.uploadId = uploadId;
                     uploadFileInfo.expireAt = expireAt;
@@ -223,11 +224,11 @@ abstract class PartsUpload extends BaseUpload {
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
 
                 String etag = null;
-                Long md5 = null;
+                String md5 = null;
                 if (response != null) {
                     try {
                         etag = response.getString("etag");
-                        md5 = response.getLong("md5");
+                        md5 = response.getString("md5");
                     } catch (JSONException e) {
                     }
                 }
