@@ -10,16 +10,16 @@ public final class TestConfig {
     // TODO: 2020-05-09 bad token for testPutBytesWithFixedZoneUseBackupDomains
     //华东上传凭证
     public static final String bucket_z0 = "sdk-z0";
-    public static final String token_z0 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:oRH6mGBrEWhZF14EV2ymQ0Uy34A=:eyJzY29wZSI6InNkay16MCIsImRlYWRsaW5lIjoxNTk1OTA0ODQ4fQ==";
+    public static final String token_z0 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:4Hxf__AelGuSGiOTNpJRGJrRSmE=:eyJzY29wZSI6InNkay16MCIsImRlYWRsaW5lIjoxNTk3MTMxNjI0fQ==";
     //华北上传凭证
     public static final String bucket_z1 = "sdk-z1";
-    public static final String token_z1 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:wp0Dmp9zNzFu1u84P6IVGVlQUKY=:eyJzY29wZSI6InNkay16MSIsImRlYWRsaW5lIjoxNTk1OTA1MDI2fQ==";
+    public static final String token_z1 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:fyERUt6_8640iVbt9wKiKU21fu8=:eyJzY29wZSI6InNkay16MSIsImRlYWRsaW5lIjoxNTk3MTMyMTI3fQ==";
     //华南上传凭证
     public static final String bucket_z2 = "sdk-z2";
-    public static final String token_z2 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:SmanlJ1LJsILhmzI1ZA1daFBJok=:eyJzY29wZSI6InNkay16MiIsImRlYWRsaW5lIjoxNTk1OTA1MDY0fQ==";
+    public static final String token_z2 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:oFfdy01q3vZqxOJb53WMnmwzxQI=:eyJzY29wZSI6InNkay16MiIsImRlYWRsaW5lIjoxNTk3MTMyMTQxfQ==";
     //北美上传凭证
     public static final String bucket_na0 = "sdk-na0";
-    public static final String token_na0 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:snCh1_XFk-jj-oVWtZhi5aaeWhQ=:eyJzY29wZSI6InNkay1uYTAiLCJkZWFkbGluZSI6MTU5NTkwNTA4Mn0=";
+    public static final String token_na0 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:MMPVF5h5T_yuiojjutV2lUEj2nY=:eyJzY29wZSI6InNkay1uYTAiLCJkZWFkbGluZSI6MTU5NzEzMjE1OH0=";
     public static final String ak = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW";
 
 
@@ -27,7 +27,7 @@ public final class TestConfig {
     public static final String commonToken = token_na0;
 
     //dns prefetch token
-    public static final String uptoken_prefetch = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:WYvuul25V_gUskDyy16eTI9KH_Y=:eyJzY29wZSI6Ind4YXBwdGVzdCIsImRlYWRsaW5lIjoxNTk0MjI0NzYyfQ==";
+    public static final String uptoken_prefetch = token_na0;
 
     /**
      * 华东机房
