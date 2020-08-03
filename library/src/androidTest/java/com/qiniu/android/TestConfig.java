@@ -7,7 +7,6 @@ import com.qiniu.android.common.Zone;
  * Created by bailong on 14/10/12.
  */
 public final class TestConfig {
-
     // 华东上传凭证
     public static final String bucket_z0 = "zone0-space";
     public static final String token_z0 = "jH983zIUFIP1OVumiBVGeAfiLYJvwrF45S-t22eu:DtOhccYARFhzC4cpxtPaclI5sPU=:eyJzY29wZSI6InpvbmUwLXNwYWNlIiwiZGVhZGxpbmUiOjE1OTczOTMzOTYsICJyZXR1cm5Cb2R5Ijoie1wiZm9vXCI6JCh4OmZvbyksIFwiYmFyXCI6JCh4OmJhciksIFwibWltZVR5cGVcIjokKG1pbWVUeXBlKSwgXCJoYXNoXCI6JChldGFnKSwgXCJrZXlcIjokKGtleSksIFwiZm5hbWVcIjokKGZuYW1lKX0ifQ==";

@@ -11,6 +11,7 @@ import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.storage.Recorder;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.AndroidNetwork;
+import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.Utils;
 import com.qiniu.android.utils.Wait;
 
@@ -22,10 +23,9 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by yangsen on 2020/5/28
@@ -33,8 +33,8 @@ import java.util.List;
 public class DnsPrefetcher {
 
     private boolean isPrefetching = false;
-    private DnsCacheKey dnsCacheKey = null;
-    private HashMap<String, List<IDnsNetworkAddress>> addressDictionary = new HashMap<>();
+    private DnsCacheInfo dnsCacheInfo = null;
+    private ConcurrentHashMap<String, List<IDnsNetworkAddress>> addressDictionary = new ConcurrentHashMap<>();
     private final HappyDns happyDns = new HappyDns();
 
     private final static DnsPrefetcher dnsPrefetcher = new DnsPrefetcher();
@@ -62,27 +62,22 @@ public class DnsPrefetcher {
             return true;
         }
 
-        String dnsCache = recorder.getFileName();
-        if (dnsCache == null || dnsCache.length() == 0){
+        String localIp = AndroidNetwork.getHostIP();
+        if (localIp == null || localIp.length() == 0){
             return true;
         }
 
-        byte[] data = recorder.get(dnsCache);
+        byte[] data = recorder.get(localIp);
         if (data == null){
             return true;
         }
 
-        DnsCacheKey cacheKey = DnsCacheKey.toCacheKey(dnsCache);
-        if (cacheKey == null){
+        DnsCacheInfo cacheInfo = (DnsCacheInfo)StringUtils.toObject(data);
+        if (cacheInfo == null){
             return true;
         }
 
-        String localIp = AndroidNetwork.getHostIP();
-        if (localIp == null || localIp.length() == 0 || !localIp.equals(cacheKey.getLocalIp())){
-            return true;
-        }
-
-        setDnsCacheKey(cacheKey);
+        setDnsCacheInfo(cacheInfo);
 
         return recoverDnsCache(data);
     }
@@ -157,7 +152,7 @@ public class DnsPrefetcher {
         }
 
         String localIp = AndroidNetwork.getHostIP();
-        if (localIp == null || getDnsCacheKey() == null || !(localIp.equals(getDnsCacheKey().getLocalIp()))){
+        if (localIp == null || getDnsCacheInfo() == null || !(localIp.equals(getDnsCacheInfo().getLocalIp()))){
             clearPreHosts();
         }
 
@@ -273,9 +268,7 @@ public class DnsPrefetcher {
             return false;
         }
 
-        DnsCacheKey dnsCacheKey = new DnsCacheKey(currentTime, localIp);
-
-        String cacheKey = dnsCacheKey.toString();
+        DnsCacheInfo dnsCacheInfo = new DnsCacheInfo(currentTime, localIp, addressDictionary);
 
         DnsCacheFile recorder = null;
         try {
@@ -284,9 +277,9 @@ public class DnsPrefetcher {
             return false;
         }
 
-        setDnsCacheKey(dnsCacheKey);
+        setDnsCacheInfo(dnsCacheInfo);
 
-        return recorderDnsCache(recorder, cacheKey);
+        return recorderDnsCache(recorder, dnsCacheInfo.cacheKey());
     }
 
     private boolean recorderDnsCache(Recorder recorder, String cacheKey){
@@ -403,10 +396,10 @@ public class DnsPrefetcher {
         this.isPrefetching = isPrefetching;
     }
 
-    private synchronized DnsCacheKey getDnsCacheKey() {
-        return dnsCacheKey;
+    private synchronized DnsCacheInfo getDnsCacheInfo() {
+        return dnsCacheInfo;
     }
-    private synchronized void setDnsCacheKey(DnsCacheKey dnsCacheKey) {
-        this.dnsCacheKey = dnsCacheKey;
+    private synchronized void setDnsCacheInfo(DnsCacheInfo dnsCacheInfo) {
+        this.dnsCacheInfo = dnsCacheInfo;
     }
 }

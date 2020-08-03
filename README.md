@@ -25,7 +25,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 |  7.0.7        |  Android 2.2+     | android-async-http 1.4.8 |
 
 ### 注意
-* 推荐使用最新版：7.6.4，7.6.3使用okhttp4.2.2
+* 推荐使用最新版：7.6.4
 * 7.4.6是在7.6.4版本上降低okhttp版本，其他功能不变，AndroidNetwork.getMobileDbm()可以获取手机信号强度，需要如下权限(API>=18时生效)
 ```
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
@@ -41,12 +41,23 @@ https://github.com/qiniudemo/qiniu-lab-android
 [happy-dns下载地址](https://repo1.maven.org/maven2/com/qiniu/happy-dns/)
 
 ### 通过maven
-* 如果在Adroid Studio中使用，添加dependencies `compile 'com.qiniu:qiniu-android-sdk:7.2.+'` 或在项目中添加maven依赖
+* Adroid Studio中添加dependencies 或者 在项目中添加maven依赖
+```
+// 1. 直接导入
+implementation 'com.qiniu:qiniu-android-sdk:7.6.+'
+
+// 2. 如果要修改okhttp依赖的版本，可采用以下方式（强烈建议使用七牛库依赖的okhttp版本）
+implementation ('com.qiniu:qiniu-android-sdk:7.6.+'){
+    exclude (group: 'com.squareup.okhttp3', module: 'okhttp')
+}
+implementation 'com.squareup.okhttp3:okhttp:4.2.2'
+
+```
 * 如果是eclipse, 也可以直接添加依赖来处理。
 
 ## 使用方法
 UploadManager 可以创建一次，一直使用。
-7.6.2调用AndroidNetwork.getMobileDbm可以获取网络信号强度
+7.6.2开始调用AndroidNetwork.getMobileDbm可以获取网络信号强度
 需要Manifest.permission.ACCESS_FINE_LOCATION和Manifest.permission.ACCESS_COARSE_LOCATION权限
 ```java
 import com.qiniu.android.storage.UploadManager;
@@ -80,7 +91,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.qiniu:qiniu-android-sdk:7.2.+'
+    compile 'com.qiniu:qiniu-android-sdk:7.6.+'
 }
 ```
 当然也可以将jar包下载到本地导入到项目中
@@ -606,11 +617,6 @@ import com.qiniu.android.bigdata.pipeline.Pipeline;
     }, null);
 ...
 ```
-
-
-## 运行环境
-
-Android 最低要求 2.3
 
 ## 代码贡献
 

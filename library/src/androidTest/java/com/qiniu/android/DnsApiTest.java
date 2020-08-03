@@ -5,6 +5,14 @@ import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.dns.IDnsNetworkAddress;
 import com.qiniu.android.storage.UpToken;
+
+import android.util.Log;
+import com.qiniu.android.storage.Recorder;
+import com.qiniu.android.utils.StringUtils;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+
 import java.util.List;
 
 /**
@@ -111,7 +119,6 @@ public class DnsApiTest extends BaseTest {
 
         assertTrue((param.successCount <= 1));
     }
-
 
     private static class TestParam{
         int count = 100;
