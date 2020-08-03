@@ -1,26 +1,27 @@
 package com.qiniu.android.http.custom;
 
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by jemy on 2019/9/23.
  */
 
-public class DnsCacheKey {
+public class DnsCacheInfo implements java.io.Serializable {
     public String currentTime;
     public String localIp;
     public String akScope;
+    public ConcurrentHashMap<String, List<InetAddress>> info;
 
-    public DnsCacheKey() {
+    public DnsCacheInfo() {}
 
-    }
-
-    public DnsCacheKey(String currentTime, String localIp, String akScope) {
+    public DnsCacheInfo(String currentTime, String localIp, String akScope, ConcurrentHashMap<String, List<InetAddress>> info) {
         this.currentTime = currentTime;
         this.localIp = localIp;
         this.akScope = akScope;
+        this.info = info;
     }
 
     public String getCurrentTime() {
@@ -35,6 +36,10 @@ public class DnsCacheKey {
         return localIp;
     }
 
+    public ConcurrentHashMap<String, List<InetAddress>> getInfo() {
+        return info;
+    }
+
     public void setAkScope(String akScope) {
         this.akScope = akScope;
     }
@@ -47,19 +52,16 @@ public class DnsCacheKey {
         this.localIp = localIp;
     }
 
-    public static DnsCacheKey toCacheKey(String key) {
-        try {
-            JSONObject object = new JSONObject(key);
-            return new DnsCacheKey(object.getString("currentTime"), object.getString("localIp"), object.getString("akScope"));
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public void setInfo(ConcurrentHashMap<String, List<InetAddress>> info) {
+        this.info = info;
+    }
+
+    public String cacheKey(){
+        return localIp;
     }
 
     @Override
     public String toString() {
         return "{\"currentTime\":\"" + currentTime + "\", \"localIp\":\"" + localIp + "\", \"akScope\":\"" + akScope + "\"}";
-
     }
 }
