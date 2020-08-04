@@ -14,11 +14,15 @@ import java.util.concurrent.Executors;
  */
 public final class AsyncRun {
 
+    private static final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
     private static final ExecutorService executorService = Executors.newFixedThreadPool(3);
 
     public static void runInMain(Runnable r) {
-        Handler h = new Handler(Looper.getMainLooper());
-        h.post(r);
+        if (Looper.getMainLooper() == Looper.myLooper()){
+            r.run();
+        } else {
+            mainThreadHandler.post(r);
+        }
     }
 
     /**
@@ -30,8 +34,7 @@ public final class AsyncRun {
         delayTimerTask(delay, new TimerTask() {
             @Override
             public void run() {
-                Handler h = new Handler(Looper.getMainLooper());
-                h.post(r);
+                mainThreadHandler.post(r);
                 this.cancel();
             }
         });
