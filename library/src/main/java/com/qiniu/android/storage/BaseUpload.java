@@ -106,8 +106,11 @@ abstract class BaseUpload implements Runnable {
     }
 
     protected int prepareToUpload(){
-        setupRegions();
-        return 0;
+        int ret = 0;
+        if (!setupRegions()){
+            ret = -1;
+        }
+        return ret;
     }
 
     protected abstract void startToUpload();
@@ -132,17 +135,15 @@ abstract class BaseUpload implements Runnable {
         if (completionHandler != null){
             completionHandler.complete(responseInfo, key, metrics, response);
         }
-
-
     }
 
-    private void setupRegions(){
+    private boolean setupRegions(){
         if (config == null || config.zone == null){
-            return;
+            return false;
         }
         ZonesInfo zonesInfo = config.zone.getZonesInfo(token);
         if (zonesInfo == null || zonesInfo.zonesInfo == null || zonesInfo.zonesInfo.size() == 0){
-            return;
+            return false;
         }
         ArrayList<ZoneInfo> zoneInfos = zonesInfo.zonesInfo;
 
@@ -150,10 +151,13 @@ abstract class BaseUpload implements Runnable {
         for (ZoneInfo zoneInfo : zoneInfos) {
             UploadDomainRegion region = new UploadDomainRegion();
             region.setupRegionData(zoneInfo);
-            defaultRegions.add(region);
+            if (region.isValid()){
+                defaultRegions.add(region);
+            }
         }
         regions = defaultRegions;
         metrics.regions = defaultRegions;
+        return defaultRegions.size() > 0;
     }
 
     protected void insertRegionAtFirstByZoneInfo(ZoneInfo zoneInfo){

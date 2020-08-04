@@ -25,6 +25,11 @@ public class UploadDomainRegion implements IUploadRegion {
     private ZoneInfo zoneInfo;
 
     @Override
+    public boolean isValid() {
+        return !isAllFrozen && (domainHostList.size() > 0 || oldDomainHostList.size() > 0);
+    }
+
+    @Override
     public ZoneInfo getZoneInfo() {
         return zoneInfo;
     }

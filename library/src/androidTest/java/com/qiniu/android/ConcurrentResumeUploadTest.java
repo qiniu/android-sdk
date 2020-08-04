@@ -117,7 +117,7 @@ public class ConcurrentResumeUploadTest extends BaseTest {
                     return false;
                 }
             }
-        }, 60);
+        }, 600);
 
         assertTrue(info.toString(), info.isOK());
         assertNotNull(info.reqId);
@@ -155,7 +155,7 @@ public class ConcurrentResumeUploadTest extends BaseTest {
                     return false;
                 }
             }
-        }, 60);
+        }, 600);
 
         assertTrue(info.toString(), info.isOK());
         assertNotNull(info.reqId);
