@@ -3,8 +3,11 @@ package com.qiniu.android.http.serverRegion;
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.dns.IDnsNetworkAddress;
+import com.qiniu.android.http.networkCheck.NetworkCheckManager;
+import com.qiniu.android.http.networkCheck.NetworkCheckTransaction;
 import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.request.IUploadServer;
+import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.utils.Utils;
 
 import java.util.ArrayList;
@@ -177,6 +180,7 @@ public class UploadDomainRegion implements IUploadRegion {
            }
 
            HashMap<String, ArrayList<IDnsNetworkAddress>> ipGroupInfo = new HashMap<>();
+           // address List to ipList of group & check ip network
            for (IDnsNetworkAddress networkAddress : networkAddresses){
                String ipValue = networkAddress.getIpValue();
                if (ipValue == null){
@@ -191,13 +195,49 @@ public class UploadDomainRegion implements IUploadRegion {
                    groupNetworkAddresses.add(networkAddress);
                    ipGroupInfo.put(groupType, groupNetworkAddresses);
                }
+
+               // check ip network
+               if (ipValue != null){
+                   NetworkCheckTransaction.addCheckSomeIPNetworkStatusTransaction(new String[]{ipValue}, host);
+               }
            }
 
+           // ipList of group to ipGroup List
            ArrayList<UploadIpGroup> ipGroupList = new ArrayList<>();
            for (String groupType : ipGroupInfo.keySet()){
                ArrayList<IDnsNetworkAddress> addresses = ipGroupInfo.get(groupType);
                UploadIpGroup ipGroup = new UploadIpGroup(groupType, addresses);
                ipGroupList.add(ipGroup);
+           }
+
+           // sort ipGroup List by ipGroup network status PS:bucket sorting
+           if (GlobalConfiguration.getInstance().isCheckOpen && ipGroupList.size() > 1) {
+               HashMap<String, ArrayList<UploadIpGroup>> bucketInfo = new HashMap<>();
+               for (UploadIpGroup ipGroup : ipGroupList) {
+                   if (ipGroup.addressList == null || ipGroup.addressList.size() == 0){
+                       continue;
+                   }
+                   IDnsNetworkAddress address = ipGroup.addressList.get(0);
+                   int status = NetworkCheckManager.getInstance().getIPNetworkStatus(address.getIpValue(), address.getHostValue());
+                   String bucketKey = "" + status;
+                   // create bucket is not exist
+                   ArrayList<UploadIpGroup> bucket = bucketInfo.get(bucketKey);
+                   if (bucket == null) {
+                       bucket = new ArrayList<>();
+                       bucketInfo.put(bucketKey, bucket);
+                   }
+                   bucket.add(ipGroup);
+               }
+
+               ipGroupList = new ArrayList<>();
+
+               for (long status = NetworkCheckManager.NetworkCheckStatusA; status<NetworkCheckManager.NetworkCheckStatusUnknown; status++) {
+                   String bucketKey = "" + status;
+                   ArrayList bucket = bucketInfo.get(bucketKey);
+                   if (bucket != null) {
+                        ipGroupList.addAll(bucket);
+                   }
+               }
            }
            this.ipGroupList = ipGroupList;
         }
