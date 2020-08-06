@@ -9,8 +9,8 @@ jdk:
 android:
   components:
     #- tools
-    #- platform-tools
-    #- tools
+    - platform-tools
+    - tools
 
     # The BuildTools version used by your project
     - build-tools-29.0.2
