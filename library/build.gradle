@@ -57,8 +57,9 @@ dependencies {
     // for javax.annotation.Nullable use in custom MultipartBody and Headers implements.
 //    implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation 'com.google.code.gson:gson:2.8.6'
+//    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    testImplementation 'junit:junit:4.13'
 }
 
 task releaseJar(type: Jar, dependsOn: 'build') {
