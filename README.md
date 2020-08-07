@@ -68,7 +68,7 @@ import com.qiniu.android.storage.UploadManager;
     new UpCompletionHandler() {
         @Override
         public void complete(String key, ResponseInfo info, JSONObject response) {
-            Log.i("qiniu", info);
+            LogUtil.i(info);
         }
     }, null);
 ...
@@ -163,7 +163,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        Log.i("qiniutest", "starting......");
+        LogUtil.i("starting......");
         byte[] data=new byte[]{ 0, 1, 2, 3};
         //设置上传后文件的key
         String upkey = "uploadtest.txt";
@@ -171,7 +171,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             public void complete(String key, ResponseInfo rinfo, JSONObject response) {
                 btnUpload.setVisibility(View.INVISIBLE);
                 String s = key + ", " + rinfo + ", " + response;
-                Log.i("qiniutest", s);
+                LogUtil.i(s);
                 textView.setTextSize(10);
                 String o = textView.getText() + "\r\n\r\n";
                 //显示上传后文件的url
@@ -243,7 +243,7 @@ public class MainActivity extends Activity {
         Recorder recorder = null;
         try{
             File f = File.createTempFile("qiniu_xxxx", ".tmp");
-            Log.d("qiniu", f.getAbsolutePath().toString());
+            LogUtil.d(f.getAbsolutePath().toString());
             dirPath = f.getParent();
             //设置记录断点的文件的路径
             recorder = new FileRecorder(dirPath);
@@ -259,7 +259,7 @@ public class MainActivity extends Activity {
                 // 不必使用url_safe_base64转换，uploadManager内部会处理
                 // 该返回值可替换为基于key、文件内容、上下文的其它信息生成的文件名
                 String path = key + "_._" + new StringBuffer(file.getAbsolutePath()).reverse();
-                Log.d("qiniu", path);
+                LogUtil.d(path);
                 File f = new File(dirPath1, UrlSafeBase64.encodeToString(path));
                 BufferedReader reader = null;
                 try {
@@ -269,7 +269,7 @@ public class MainActivity extends Activity {
                     try {
                         while ((tempString = reader.readLine()) != null) {
 //							System.out.println("line " + line + ": " + tempString);
-                            Log.d("qiniu", "line " + line + ": " + tempString);
+                            LogUtil.d("line " + line + ": " + tempString);
                             line++;
                         }
 
@@ -341,7 +341,7 @@ public class MainActivity extends Activity {
 
             int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
             final String picturePath = cursor.getString(columnIndex);
-            Log.d("PICTUREPATH", picturePath);
+            LogUtil.d(picturePath);
             cursor.close();
 
             imageview.setVisibility(View.VISIBLE);
@@ -358,13 +358,13 @@ public class MainActivity extends Activity {
                     HashMap<String, String> map = new HashMap<String, String>();
                     map.put("x:phone", "12345678");
 
-                    Log.d("qiniu", "click upload");
+                    LogUtil.d("click upload");
                     isCancelled = false;
                     uploadManager.put(picturePath, null, token,
                             new UpCompletionHandler() {
                                 public void complete(String key,
                                                      ResponseInfo info, JSONObject res) {
-                                    Log.i("qiniu", key + ",\r\n " + info
+                                    LogUtil.i(key + ",\r\n " + info
                                             + ",\r\n " + res);
 
                                     if(info.isOK()==true){
@@ -374,7 +374,7 @@ public class MainActivity extends Activity {
                             }, new UploadOptions(map, null, false,
                                     new UpProgressHandler() {
                                         public void progress(String key, double percent){
-                                            Log.i("qiniu", key + ": " + percent);
+                                            LogUtil.i(key + ": " + percent);
                                             progressbar.setVisibility(View.VISIBLE);
                                             int progress = (int)(percent*1000);
 //											Log.d("qiniu", progress+"");
@@ -461,11 +461,11 @@ public class MainActivity extends Activity {
                     }
                     @Override
                     public void onSuccess(int i, Header[] headers, String s) {
-                        Log.i(tag,"请求七牛token："+s);
+                        LogUtil.i("请求七牛token："+s);
                         JsonParser jsonParser = new JsonParser();
                         JsonElement jsonElement =jsonParser.parse(s);
                         String token = jsonElement.getAsJsonObject().get("uptoken").toString();
-                        Log.i(tag,"七牛开始上传"+localPath+"\n"+key+"\n"+token);
+                        LogUtil.i("七牛开始上传"+localPath+"\n"+key+"\n"+token);
                         if(uploadManager==null)
                         {
                             uploadManager = new UploadManager();
@@ -474,7 +474,7 @@ public class MainActivity extends Activity {
                                 new UpProgressHandler() {
                                     @Override
                                     public void progress(String key, double percent) {
-                                        Log.i(tag,"a 七牛上传progress:"+percent+"\n"+key);
+                                        LogUtil.i("a 七牛上传progress:"+percent+"\n"+key);
                                     }
                                 }, null);
 
@@ -482,7 +482,7 @@ public class MainActivity extends Activity {
                         uploadManager.put(localPath, key, token, new UpCompletionHandler() {
                             @Override
                             public void complete(String key, com.qiniu.android.http.ResponseInfo info, JSONObject response) {
-                                Log.i(tag, "a 七牛上传complete:"+key + ",\r\n " + info + ",\r\n " + response);
+                                LogUtil.i("a 七牛上传complete:"+key + ",\r\n " + info + ",\r\n " + response);
                             }
                         },uploadOptions);
                     }
@@ -531,7 +531,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
-        Log.i("qiniutest", "starting......");
+        LogUtil.i("starting......");
         byte[] data=new byte[]{ 0, 1, 2, 3, 3, 4, 5, 6,0, 1, 2, 3, 4, 5, 6,0, 1, 2, 3, 4, 5, 6,0, 1, 2, 3, 4, 5, 6,0, 1, 2, 3, 4, 5, 6,0, 1, 2, 3,};
         
        for(int i=0;i<data.length;i++){
@@ -539,7 +539,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             uploadManager.put(data, expectKey, uptoken, new UpCompletionHandler() {
                 public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                     String s = k + ", "+ rinfo + ", " + response;
-                    Log.i("qiniutest", s);
+                    LogUtil.i(s);
                     String key = getKey(k, response);
                     String o = hint.getText() + "\r\n\r\n";
                     hint.setText(o + s + "http://xm540.com1.z0.glb.clouddn.com/" + key);

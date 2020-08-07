@@ -1,21 +1,28 @@
 package com.qiniu.android;
 
 import android.test.InstrumentationTestCase;
-import android.util.Log;
 
+import com.qiniu.android.common.FixedZone;
+import com.qiniu.android.common.Zone;
+import com.qiniu.android.common.ZoneInfo;
+import com.qiniu.android.common.ZonesInfo;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.storage.persistent.FileRecorder;
+import com.qiniu.android.storage.FileRecorder;
+import com.qiniu.android.utils.LogUtil;
 
 import junit.framework.Assert;
 
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -25,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by Simon on 2015/4/15.
  */
-public class CancelTest extends InstrumentationTestCase {
+public class CancelTest extends BaseTest {
     private volatile UploadManager uploadManager;
     private volatile UploadOptions options;
 
@@ -35,11 +42,15 @@ public class CancelTest extends InstrumentationTestCase {
         String folder = f.getParent();
         FileRecorder fr = new FileRecorder(folder);
         uploadManager = new UploadManager(fr);
-        ACollectUploadInfoTest.testInit();
     }
 
 
     public void testFile() throws Throwable {
+        Temp[] ts = new Temp[]{templateFile(8 * 1024 + 1, 0.6)};
+        checkTemp(ts, "testFile");
+    }
+
+    public void testMultiFile() throws Throwable {
         Temp[] ts = new Temp[]{templateFile(400, 0.2), templateFile(700, 0.2), templateFile(1024, 0.51), templateFile(4 * 1024, 0.5), templateFile(8 * 1024 + 1, 0.6)};
         checkTemp(ts, "testFile");
     }
@@ -62,12 +73,10 @@ public class CancelTest extends InstrumentationTestCase {
             }
         }
 
-        Log.d("qiniu_cancel", type + "   " + failedCount);
+        LogUtil.d(type + "   " + failedCount);
         if (failedCount > ts.length / 2) {
             String info = type + ": 共 " + ts.length + "个测试，至多允许 " + ts.length / 2 + " 失败，实际失败 " + failedCount + " 个： " + tt.info.toString();
             Assert.assertEquals(info, tt.expectKey, tt.key);
-//            Assert.assertTrue(info, tt.info.isCancelled());
-//            Assert.assertNull(info, tt.resp);
         }
     }
 
@@ -96,13 +105,15 @@ public class CancelTest extends InstrumentationTestCase {
         t.setDaemon(true);
         t.start();
 
+        final WaitCondition waitCondition = new WaitCondition();
+
         options = new UploadOptions(params, null, false, new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
                 if (percent >= pos) {
                     temp.cancelled = true;
                 }
-                Log.i("qiniutest", pos + ": progress " + percent);
+                LogUtil.i(pos + ": progress " + percent);
             }
         }, new UpCancellationSignal() {
             @Override
@@ -110,32 +121,53 @@ public class CancelTest extends InstrumentationTestCase {
                 return temp.cancelled;
             }
         });
-        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
-            public void run() {
-                uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
-                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        temp.expectKey = expectKey;
-                        temp.key = k;
-                        temp.info = rinfo;
-                        temp.resp = response;
-                        signal.countDown();
-                        Log.i("qiniutest", k + rinfo);
-                    }
-                }, options);
-            }
-        });
 
-        try {
-            signal.await(570, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", temp.info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                temp.expectKey = expectKey;
+                temp.key = k;
+                temp.info = rinfo;
+                temp.resp = response;
+                signal.countDown();
+                LogUtil.i(k + rinfo);
+
+                waitCondition.shouldWait = false;
+            }
+        }, options);
+
+        wait(waitCondition, 10 * 60);
+        assertTrue(temp.info != null);
+        assertTrue(temp.info.statusCode == ResponseInfo.Cancelled);
+
+
+        waitCondition.shouldWait = true;
+
+        // 断点续传
+        options = new UploadOptions(params, null, false, new UpProgressHandler() {
+            @Override
+            public void progress(String key, double percent) {
+                LogUtil.i(pos + ": progress " + percent);
+            }
+        }, null);
+        uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                temp.expectKey = expectKey;
+                temp.key = k;
+                temp.info = rinfo;
+                temp.resp = response;
+                signal.countDown();
+                LogUtil.i(k + rinfo);
+
+                waitCondition.shouldWait = false;
+            }
+        }, options);
+
+        wait(waitCondition, 10 * 60);
+
+        assertTrue(temp.info != null);
+        assertTrue(temp.info.isOK());
 
         TempFile.remove(tempFile);
-
-        ACollectUploadInfoTest.recordFileTest();
-
         return temp;
     }
 
@@ -169,7 +201,7 @@ public class CancelTest extends InstrumentationTestCase {
                 if (percent >= pos) {
                     temp.cancelled = true;
                 }
-                Log.i("qiniutest", pos + ": progress " + percent);
+                LogUtil.i(pos + ": progress " + percent);
             }
         }, new UpCancellationSignal() {
             @Override
@@ -177,20 +209,18 @@ public class CancelTest extends InstrumentationTestCase {
                 return temp.cancelled;
             }
         });
-        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
-            public void run() {
-                uploadManager.put(tempDate, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
-                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        temp.expectKey = expectKey;
-                        temp.key = k;
-                        temp.info = rinfo;
-                        temp.resp = response;
-                        signal.countDown();
-                        Log.i("qiniutest", k + rinfo);
-                    }
-                }, options);
+
+        uploadManager.put(tempDate, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                temp.expectKey = expectKey;
+                temp.key = k;
+                temp.info = rinfo;
+                temp.resp = response;
+                signal.countDown();
+                LogUtil.i(k + rinfo);
             }
-        });
+        }, options);
+
 
         try {
             signal.await(570, TimeUnit.SECONDS); // wait for callback
@@ -198,10 +228,82 @@ public class CancelTest extends InstrumentationTestCase {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        ACollectUploadInfoTest.recordFileTest();
-
         return temp;
+    }
+
+    public void testSwitchRegion() throws IOException {
+
+        final CountDownLatch signal = new CountDownLatch(1);
+        final File tempFile = TempFile.createFile(5*1024);
+        final String expectKey = "file_" + UUID.randomUUID().toString();
+        Map<String, String> params = new HashMap<String, String>();
+        params.put("x:a", "test");
+        params.put("x:b", "test2");
+
+        final Temp temp = new Temp();
+        temp.cancelled = false;
+
+        Thread t = new Thread() {
+            public void run() {
+                try {
+                    Thread.sleep(8 * 60 * 1000);
+                    temp.cancelled = true;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        t.setDaemon(true);
+        t.start();
+
+        final WaitCondition waitCondition = new WaitCondition();
+
+        options = new UploadOptions(params, null, false, new UpProgressHandler() {
+            @Override
+            public void progress(String key, double percent) {
+                LogUtil.i("progress " + percent);
+            }
+        }, null);
+
+        File f = File.createTempFile("qiniutest", "b");
+        String folder = f.getParent();
+        FileRecorder fr = new FileRecorder(folder);
+
+        ArrayList<String> hostArray0 = new ArrayList<>();
+        hostArray0.add("mock1.up.qiniup.com");
+        ZoneInfo zoneInfo0 = ZoneInfo.buildInfo(hostArray0, null, null);
+        ArrayList<String> hostArray1 = new ArrayList<>();
+        hostArray1.add("up-na0.qiniup.com");
+        ZoneInfo zoneInfo1 = ZoneInfo.buildInfo(hostArray1, null, null);
+
+        ArrayList<ZoneInfo> zoneInfoArray = new ArrayList<>();
+        zoneInfoArray.add(zoneInfo0);
+        zoneInfoArray.add(zoneInfo1);
+        ZonesInfo zonesInfo = new ZonesInfo(zoneInfoArray);
+        FixedZone zone = new FixedZone(zonesInfo);
+
+        Configuration config = new Configuration.Builder().recorder(fr).zone(zone).build();
+
+        UploadManager uploadManager = new UploadManager(config);
+        uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                temp.expectKey = expectKey;
+                temp.key = k;
+                temp.info = rinfo;
+                temp.resp = response;
+                signal.countDown();
+                LogUtil.i(k + rinfo);
+
+                waitCondition.shouldWait = false;
+            }
+        }, options);
+
+        wait(waitCondition, 10 * 60);
+
+        assertTrue(temp.info != null);
+        assertTrue(temp.info.isOK());
+
+        TempFile.remove(tempFile);
     }
 
     private static class Temp {

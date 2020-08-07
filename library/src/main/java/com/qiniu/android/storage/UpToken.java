@@ -1,60 +1,71 @@
 package com.qiniu.android.storage;
 
-import com.qiniu.android.collect.LogHandler;
-import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.utils.UrlSafeBase64;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Arrays;
-
 /**
  * 内部使用的客户端 token 检查.
  */
-public final class UpToken {
-    public static UpToken NULL = new UpToken("", "", "");
+ public final class UpToken {
+
     public final String token;
     public final String accessKey;
+    public final String bucket;
     private String returnUrl = null;
 
-    private UpToken(String returnUrl, String token, String accessKey) {
+    private UpToken(String returnUrl, String token, String accessKey, String bucket) {
         this.returnUrl = returnUrl;
         this.token = token;
         this.accessKey = accessKey;
+        this.bucket = bucket;
     }
 
     public static UpToken parse(String token) {
+        if (token == null){
+            return null;
+        }
         String[] t;
         try {
             t = token.split(":");
         } catch (Exception e) {
-            return NULL;
+            return null;
         }
         if (t.length != 3) {
-            return NULL;
+            return null;
         }
         byte[] dtoken = UrlSafeBase64.decode(t[2]);
         JSONObject obj;
         try {
-            obj = new JSONObject(new String(dtoken));
-        } catch (JSONException e) {
-            return NULL;
+            String dtokenString = new String(dtoken);
+            obj = new JSONObject(dtokenString);
+        } catch (Exception e) {
+            return null;
         }
         String scope = obj.optString("scope");
+        String bucket = null;
         if (scope.equals("")) {
-            return NULL;
+            return null;
+        } else {
+            String[] scopeSlice = new String[2];
+            try {
+                scopeSlice = scope.split(":");
+            } catch (Exception e) {}
+            if (scopeSlice.length > 0) {
+                bucket = scopeSlice[0];
+            }
         }
 
         int deadline = obj.optInt("deadline");
         if (deadline == 0) {
-            return NULL;
+            return null;
         }
-        return new UpToken(obj.optString("returnUrl"), token, t[0]);
+        return new UpToken(obj.optString("returnUrl"), token, t[0], bucket);
     }
 
     public static boolean isInvalid(UpToken token) {
-        return token == null || token == NULL;
+        return token == null || token == null;
     }
 
     public String toString() {
@@ -65,33 +76,14 @@ public final class UpToken {
         return !returnUrl.equals("");
     }
 
-    public static void setCurrent_region_id(LogHandler logHandler, String upHost) {
-        if (upHost == null || upHost == "") {
-            return;
+    public String index(){
+        String index = "";
+        if (accessKey != null){
+            index += accessKey;
         }
-        String[] hosts = upHost.split("//");
-        String host = "";
-        if (hosts.length > 1) {
-            host = hosts[1];
-        } else {
-            host = hosts[0];
+        if (bucket != null){
+            index += bucket;
         }
-        if (Arrays.asList(FixedZone.arrayzone0).contains(host)) {
-            if (logHandler != null)
-                logHandler.send("current_region_id", "z0");
-        } else if (Arrays.asList(FixedZone.arrayzone1).contains(host)) {
-            if (logHandler != null)
-                logHandler.send("current_region_id", "z1");
-        } else if (Arrays.asList(FixedZone.arrayzone2).contains(host)) {
-            if (logHandler != null)
-                logHandler.send("current_region_id", "z2");
-        } else if (Arrays.asList(FixedZone.arrayzoneNa0).contains(host)) {
-            if (logHandler != null)
-                logHandler.send("current_region_id", "na0");
-        } else if (Arrays.asList(FixedZone.arrayZoneAs0).contains(host)) {
-            if (logHandler != null)
-                logHandler.send("current_region_id", "as0");
-        }
+        return index;
     }
-
 }

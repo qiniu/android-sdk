@@ -1,22 +1,18 @@
 package com.qiniu.android;
 
-import android.test.InstrumentationTestCase;
 import android.test.suitebuilder.annotation.LargeTest;
-import android.test.suitebuilder.annotation.MediumTest;
-import android.util.Log;
 
 import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
-import com.qiniu.android.storage.Recorder;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.storage.persistent.FileRecorder;
-
-import junit.framework.Assert;
+import com.qiniu.android.utils.AsyncRun;
+import com.qiniu.android.utils.Etag;
+import com.qiniu.android.utils.LogUtil;
 
 import org.json.JSONObject;
 
@@ -24,12 +20,10 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
-public class ResumeUploadTest extends InstrumentationTestCase {
-    final CountDownLatch signal = new CountDownLatch(1);
-    String TAG = this.getClass().getSimpleName();
+
+public class ResumeUploadTest extends BaseTest {
+
     private UploadManager uploadManager;
     private volatile String key;
     private volatile ResponseInfo info = null;
@@ -77,126 +71,289 @@ public class ResumeUploadTest extends InstrumentationTestCase {
     private UploadOptions getUploadOptions() {
         return new UploadOptions(null, null, false, new UpProgressHandler() {
             public void progress(String key, double percent) {
-                Log.d(TAG, percent + "");
+                LogUtil.d("== percent:" + percent);
                 putProgress(percent);
             }
         }, null);
     }
 
     public void setUp() throws Exception {
-        Configuration config = new Configuration.Builder().build();
-        uploadManager = new UploadManager(config, 3);
-        ACollectUploadInfoTest.testInit();
-    }
-
-    private void template(int size) throws Throwable {
-        final String expectKey = "r=" + size + "k";
-        final File f = TempFile.createFile(size);
-        final UploadOptions options = getUploadOptions();
-        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
-            public void run() {
-                uploadManager.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
-                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        Log.i("qiniutest", k + rinfo);
-                        key = k;
-                        info = rinfo;
-                        resp = response;
-                        signal.countDown();
-                    }
-                }, options);
-            }
-        });
-
-        try {
-            signal.await(1200, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        Assert.assertEquals(info.toString(), expectKey, key);
-
-//        Assert.assertTrue(info.toString(), info.isOK());
-
-        Assert.assertNotNull(info.reqId);
-//        Assert.assertNotNull(resp);
-//        String hash = resp.getString("hash");
-//        Assert.assertEquals(hash, Etag.file(f));
-        //TempFile.remove(f);
-//        Assert.assertTrue("进度有变化，不大可能一直相同。" + getProgress(), !isProgressAllSame());
-        Log.d(TAG, getProgress());
-        ACollectUploadInfoTest.recordFileTest();
-    }
-
-    private void template2(int size) throws Throwable {
-        final String expectKey = "r=" + size + "k";
-        final File f = TempFile.createFile(size);
-        String[] s = new String[]{"up.qbox.me"};
-        Zone z = new FixedZone(s);
-        Configuration c = new Configuration.Builder()
-                .zone(z).useHttps(true)
+        Configuration config = new Configuration.Builder()
+                .useConcurrentResumeUpload(false)
                 .build();
-        UploadManager uploadManager2 = new UploadManager(c);
+        uploadManager = new UploadManager(config);
+    }
+
+    private void template(int size, boolean useHttps) throws Throwable {
+
+        final String expectKey = "android-resume-test2-" + size + "k";
+        final File f = TempFile.createFile(size);
+        String[] s = new String[]{"up-na0.qbox.me"};
+        Zone z = new FixedZone(s);
+
+        Configuration.Builder builder = new Configuration.Builder()
+                .zone(z).useConcurrentResumeUpload(false)
+                .useHttps(useHttps);
+        Configuration configuration = builder.build();
+        UploadManager uploadManager = new UploadManager(configuration);
         final UploadOptions options = getUploadOptions();
-        uploadManager2.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+        uploadManager.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                Log.i("qiniutest", k + rinfo);
+                LogUtil.i(k + rinfo);
                 key = k;
                 info = rinfo;
                 resp = response;
-                signal.countDown();
             }
         }, options);
 
-        try {
-            signal.await(1200, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (resp == null){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 1200);
 
-        Assert.assertEquals(info.toString(), expectKey, key);
+        assertTrue(info.toString(), info.isOK());
+        assertNotNull(info.reqId);
+        assertEquals(info.toString(), expectKey, key);
+        String hash = resp.getString("hash");
+        assertEquals(hash, Etag.file(f));
+        TempFile.remove(f);
+    }
 
-//        Assert.assertTrue(info.toString(), info.isOK());
+    @LargeTest
+    public void test4M1K() throws Throwable {
+        template(1024 * 4 + 1, false);
+    }
 
-        Assert.assertEquals(expectKey, key);
+    @LargeTest
+    public void test8M1L() throws Throwable {
+        template(1024 * 8 + 1, false);
+    }
 
-        //上传策略含空格 \"fname\":\" $(fname) \"
-//        Assert.assertEquals(f.getName(), resp.optString("fname", "res doesn't include the FNAME").trim());
-//        Assert.assertTrue(info.isOK());
-        Assert.assertNotNull(info.reqId);
-//        Assert.assertNotNull(resp);
-//        String hash = resp.getString("hash");
-//        Assert.assertEquals(hash, Etag.file(f));
+    @LargeTest
+    public void test20M1K() throws Throwable {
+        template(1024 * 20 + 1, false);
+    }
+
+    @LargeTest
+    public void test4M1kHttps() throws Throwable {
+        template(1024 * 4 + 1, true);
+    }
+
+    @LargeTest
+    public void test8M1kHttps() throws Throwable {
+        template(1024 * 8 + 1, true);
+    }
+
+    @LargeTest
+    public void test20M1kHttps() throws Throwable {
+        template(1024 * 20 + 1, true);
+    }
+
+
+    @LargeTest
+    public void testError() throws Throwable {
+
+        final String expectKey = "android-resume-error-test2";
+        final File f = TempFile.createFile(1);;
+        String[] s = new String[]{""};
+        Zone z = new FixedZone(s);
+
+        Configuration.Builder builder = new Configuration.Builder()
+                .zone(z).useConcurrentResumeUpload(false)
+                .useHttps(true);
+        Configuration configuration = builder.build();
+        UploadManager uploadManager = new UploadManager(configuration);
+        final UploadOptions options = getUploadOptions();
+        uploadManager.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                LogUtil.i(k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+            }
+        }, options);
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 1200);
+
+        assertTrue(info.toString(), !info.isOK());
+        assertNotNull(info.reqId == null);
+        assertEquals(info.toString(), expectKey, key);
+
+        TempFile.remove(f);
+    }
+
+    @LargeTest
+    public void testNoTokenError() throws Throwable {
+
+        final String expectKey = "android-resume-noToken-test2";
+        final File f = TempFile.createFile(1);
+        String[] s = new String[]{"up-na0.qbox.me"};
+        Zone z = new FixedZone(s);
+
+        Configuration.Builder builder = new Configuration.Builder()
+                .zone(z).useConcurrentResumeUpload(false)
+                .useHttps(true);
+        Configuration configuration = builder.build();
+        UploadManager uploadManager = new UploadManager(configuration);
+        final UploadOptions options = getUploadOptions();
+
+        // file
+        uploadManager.put(f, expectKey, null, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                LogUtil.i(k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+            }
+        }, options);
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 1200);
+
+        assertTrue(info.toString(), !info.isOK());
+        assertEquals(info.toString(), expectKey, key);
         TempFile.remove(f);
 
-//        Assert.assertTrue("进度有变化，不大可能一直相同。" + getProgress(), !isProgressAllSame());
-        Log.d(TAG, getProgress());
-        ACollectUploadInfoTest.recordFileTest();
+        // data
+        byte[] data = new byte[]{0, 1};
+        uploadManager.put(data, expectKey, "1", new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                LogUtil.i(k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+            }
+        }, options);
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 1200);
+
+        assertTrue(info.toString(), !info.isOK());
+        assertEquals(info.toString(), expectKey, key);
+        TempFile.remove(f);
     }
 
-    @MediumTest
-    public void test600k() throws Throwable {
-        template(600);
-    }
-
-    @MediumTest
-    public void test600k2() throws Throwable {
-        template2(600);
-    }
 
     @LargeTest
-    public void test4M1k2() throws Throwable {
-        template2(1024 * 4 + 1);
-    }
+    public void testNoDataError() throws Throwable {
 
-    @LargeTest
-    public void testResumeUploadFast() throws Throwable {
-        template(1024 * 8);
-    }
+        final String expectKey = "android-resume-noToken-test2";
+        String[] s = new String[]{"up-na0.qbox.me"};
+        Zone z = new FixedZone(s);
 
-//    @LargeTest
-//    public void test8M1k() throws Throwable{
-//        template(1024*8+1);
-//    }
+        Configuration.Builder builder = new Configuration.Builder()
+                .zone(z).useConcurrentResumeUpload(false)
+                .useHttps(true);
+        Configuration configuration = builder.build();
+        UploadManager uploadManager = new UploadManager(configuration);
+        final UploadOptions options = getUploadOptions();
+
+        // file
+        File f = null;
+        uploadManager.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                LogUtil.i(k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+            }
+        }, options);
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 1200);
+
+        assertTrue(info.toString(), !info.isOK());
+        assertEquals(info.toString(), expectKey, key);
+        TempFile.remove(f);
+
+        // file path
+        String fPath = null;
+        uploadManager.put(fPath, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                LogUtil.i(k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+            }
+        }, options);
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 1200);
+
+        assertTrue(info.toString(), !info.isOK());
+        assertEquals(info.toString(), expectKey, key);
+        TempFile.remove(f);
+
+        // data
+        byte[] data = null;
+        uploadManager.put(data, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                LogUtil.i(k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
+            }
+        }, options);
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 1200);
+
+        assertTrue(info.toString(), !info.isOK());
+        assertEquals(info.toString(), expectKey, key);
+    }
 }

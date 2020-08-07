@@ -2,7 +2,7 @@ package com.qiniu.android;
 
 import android.test.AndroidTestCase;
 
-import com.qiniu.android.collect.Config;
+import com.qiniu.android.common.Config;
 
 public class CollectConfigTest extends AndroidTestCase {
 

@@ -1,8 +1,5 @@
 package com.qiniu.android;
 
-import android.test.InstrumentationTestCase;
-import android.util.Log;
-
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCancellationSignal;
@@ -10,9 +7,9 @@ import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.storage.persistent.FileRecorder;
-
-import junit.framework.Assert;
+import com.qiniu.android.storage.FileRecorder;
+import com.qiniu.android.utils.Etag;
+import com.qiniu.android.utils.LogUtil;
 
 import org.json.JSONObject;
 
@@ -22,12 +19,8 @@ import java.security.MessageDigest;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
-public class TestFileRecorder extends InstrumentationTestCase {
-    final CountDownLatch signal = new CountDownLatch(1);
-    final CountDownLatch signal2 = new CountDownLatch(1);
+public class TestFileRecorder extends BaseTest {
     private volatile boolean cancelled;
     private volatile boolean failed;
     private UploadManager uploadManager;
@@ -59,13 +52,14 @@ public class TestFileRecorder extends InstrumentationTestCase {
         File f = File.createTempFile("qiniutest", "b");
         String folder = f.getParent();
         FileRecorder fr = new FileRecorder(folder);
-        config = new Configuration.Builder().recorder(fr).build();
+        config = new Configuration.Builder().connectTimeout(15000)/*.recorder(fr)*/.build();
         uploadManager = new UploadManager(config);
-
-        ACollectUploadInfoTest.testInit();
     }
 
     private void template(final int size, final double pos) throws Throwable {
+
+        info = null;
+
         final File tempFile = TempFile.createFile(size);
         final String expectKey = "rc=" + size + "k";
         cancelled = false;
@@ -79,7 +73,7 @@ public class TestFileRecorder extends InstrumentationTestCase {
                 if (percent >= pos) {
                     cancelled = true;
                 }
-                Log.i("qiniutest", "progress " + percent);
+                LogUtil.i("progress " + percent);
             }
         }, new UpCancellationSignal() {
             @Override
@@ -87,31 +81,32 @@ public class TestFileRecorder extends InstrumentationTestCase {
                 return cancelled;
             }
         });
-        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
-            public void run() {
-                uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
-                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        Log.i("qiniutest", k + rinfo);
-                        key = k;
-                        info = rinfo;
-                        resp = response;
-                        signal.countDown();
-                    }
-                }, options);
+
+        uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                LogUtil.i("Cancel:" + k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
             }
-        });
+        }, options);
 
-        try {
-            signal.await(600, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 600);
 
-        Assert.assertEquals(info.toString(), expectKey, key);
-//        Assert.assertTrue(info.toString(), info.isCancelled());
-//        Assert.assertNull(resp);
+        assertEquals(info.toString(), expectKey, key);
+        assertTrue(info.toString(), info.isCancelled());
+        assertNull(resp);
 
+        info = null;
         cancelled = false;
         options = new UploadOptions(null, null, false, new UpProgressHandler() {
             @Override
@@ -119,44 +114,42 @@ public class TestFileRecorder extends InstrumentationTestCase {
                 if (percent < pos - config.chunkSize / (size * 1024.0)) {
                     failed = true;
                 }
-                Log.i("qiniutest", "continue progress " + percent);
+                LogUtil.i("continue progress " + percent);
             }
         }, null);
 
-        runTestOnUiThread(new Runnable() { // THIS IS THE KEY TO SUCCESS
-            public void run() {
-                uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
-                    public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                        Log.i("qiniutest", k + rinfo);
-                        key = k;
-                        info = rinfo;
-                        resp = response;
-                        signal2.countDown();
-                    }
-                }, options);
+
+        uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
+                LogUtil.i("Continue" + k + rinfo);
+                key = k;
+                info = rinfo;
+                resp = response;
             }
-        });
+        }, options);
 
-        try {
-            signal2.await(1200, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (info == null) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 60);
 
-        Assert.assertEquals(info.toString(), expectKey, key);
-//        Assert.assertTrue(info.toString(), info.isOK());
-        Assert.assertTrue(!failed);
-//        Assert.assertNotNull(resp);
+        assertEquals(info.toString(), expectKey, key);
+        assertTrue(info.toString(), info.isOK());
+        assertNotNull(resp);
 
-//        String hash = resp.getString("hash");
-//        Assert.assertEquals(hash, Etag.file(tempFile));
+        String hash = resp.getString("hash");
+        assertEquals(hash, Etag.file(tempFile));
+
         TempFile.remove(tempFile);
-
-        ACollectUploadInfoTest.recordFileTest();
     }
 
-    public void test600k() throws Throwable {
+    public void test_600k() throws Throwable {
         template(600, 0.7);
     }
 
@@ -168,8 +161,9 @@ public class TestFileRecorder extends InstrumentationTestCase {
         template(1024, 0.51);
     }
 
-    public void test4M() throws Throwable {
-        template(4 * 1024, 0.5);
+    public void test_4M1K() throws Throwable {
+        template(4 * 1024 + 1, 0.5);
+
     }
 
 
@@ -187,22 +181,22 @@ public class TestFileRecorder extends InstrumentationTestCase {
         fr.set(key, data);
         byte[] data2 = fr.get(key);
 
-        File recoderFile = new File(folder, hash(key));
+        File recorderFile = new File(folder, hash(key));
 
-        long m1 = recoderFile.lastModified();
+        long m1 = recorderFile.lastModified();
 
         assertEquals(3, data2.length);
         assertEquals('8', data2[1]);
 
-        recoderFile.setLastModified(new Date().getTime() - 1000 * 3600 * 48 + 2300);
+        recorderFile.setLastModified(new Date().getTime() - 1000 * 3600 * 48 + 2300);
         data2 = fr.get(key);
         assertEquals(3, data2.length);
         assertEquals('8', data2[1]);
 
         // 让记录文件过期，两天
-        recoderFile.setLastModified(new Date().getTime() - 1000 * 3600 * 48 - 2300);
+        recorderFile.setLastModified(new Date().getTime() - 1000 * 3600 * 48 - 2300);
 
-        long m2 = recoderFile.lastModified();
+        long m2 = recorderFile.lastModified();
 
         // 过期后，记录数据作废
         byte[] data3 = fr.get(key);
@@ -216,7 +210,7 @@ public class TestFileRecorder extends InstrumentationTestCase {
             e.printStackTrace();
         }
         fr.set(key, data);
-        long m4 = recoderFile.lastModified();
+        long m4 = recorderFile.lastModified();
         assertTrue(m4 > m1);
     }
 }

@@ -1,9 +1,9 @@
 package com.qiniu.android.storage;
 
 import android.os.Looper;
-import android.util.Log;
 
 import com.qiniu.android.utils.AndroidNetwork;
+import com.qiniu.android.utils.LogUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,32 +17,32 @@ public final class UploadOptions {
      * 扩展参数，以<code>x:</code>开头的用户自定义参数
      * 可添加网络检测次数：netCheckTime，int类型，默认600，每增加1，检测时间增加500ms
      */
-    final Map<String, String> params;
+    public final Map<String, String> params;
 
     /**
      * 指定上传文件的MimeType
      */
-    final String mimeType;
+    public final String mimeType;
 
     /**
      * 启用上传内容crc32校验
      */
-    final boolean checkCrc;
+    public final boolean checkCrc;
 
     /**
      * 上传内容进度处理
      */
-    final UpProgressHandler progressHandler;
+    public final UpProgressHandler progressHandler;
 
     /**
      * 取消上传信号
      */
-    final UpCancellationSignal cancellationSignal;
+    public final UpCancellationSignal cancellationSignal;
 
     /**
      * 当网络暂时无法使用时，由用户决定是否继续处理
      */
-    final NetReadyHandler netReadyHandler;
+    public final NetReadyHandler netReadyHandler;
 
     public UploadOptions(Map<String, String> params, String mimeType, boolean checkCrc,
                          UpProgressHandler progressHandler, UpCancellationSignal cancellationSignal) {
@@ -57,17 +57,15 @@ public final class UploadOptions {
             if (netCheckTime != null) {
                 netReadyCheckTime = Integer.parseInt(netCheckTime);
             }
-        } catch (Exception e) {
-            //额外添加参数只能放这，当用户未传netCheckTime这里会走进来
-            e.printStackTrace();
-        }
+        } catch (Exception e) {}
+        LogUtil.w("netCheckTime:"+netReadyCheckTime);
         this.params = filterParam(params);
         this.mimeType = mime(mimeType);
         this.checkCrc = checkCrc;
         this.progressHandler = progressHandler != null ? progressHandler : new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
-                Log.d("Qiniu.UploadProgress", "" + percent);
+                LogUtil.d("" + percent);
             }
         };
         this.cancellationSignal = cancellationSignal != null ? cancellationSignal : new UpCancellationSignal() {
@@ -117,7 +115,7 @@ public final class UploadOptions {
         return ret;
     }
 
-    static UploadOptions defaultOptions() {
+    public static UploadOptions defaultOptions() {
         return new UploadOptions(null, null, false, null, null);
     }
 

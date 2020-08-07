@@ -2,7 +2,7 @@ package com.qiniu.android.storage;
 
 import com.qiniu.android.common.AutoZone;
 import com.qiniu.android.common.Zone;
-import com.qiniu.android.http.Dns;
+import com.qiniu.android.http.dns.Dns;
 import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.UrlConverter;
 
@@ -11,14 +11,14 @@ import java.io.File;
 public final class Configuration {
 
     /**
-     * 断点上传时的分块大小(默认的分块大小, 不建议改变)
+     * 上传区域
+     */
+    public final Zone zone;
+
+    /**
+     * 断点上传时的分块大小(默认的分块大小, 不建议改变) 【已无效】
      */
     public static final int BLOCK_SIZE = 4 * 1024 * 1024;
-
-    public final Recorder recorder;
-    public final KeyGenerator keyGen;
-
-    public final ProxyConfiguration proxy;
 
     /**
      * 断点上传时的分片大小(可根据网络情况适当调整)
@@ -31,6 +31,16 @@ public final class Configuration {
     public final int putThreshold;
 
     /**
+     * 上传失败重试次数 默认1次
+     */
+    public final int retryMax;
+
+    /**
+     * 重试时间间隔 单位：毫秒 默认500
+     */
+    public final int retryInterval;
+
+    /**
      * 连接超时时间，单位 秒
      */
     public final int connectTimeout;
@@ -41,39 +51,47 @@ public final class Configuration {
     public final int responseTimeout;
 
     /**
-     * 上传失败重试次数
+     * 使用https域名
      */
-    public final int retryMax;
+    public final boolean useHttps;
+
+    /**
+     * 是否使用并发上传 默认为false
+     */
+    public final boolean useConcurrentResumeUpload;
+
+    /**
+     * 并发分片上传的并发任务个数，在concurrentResumeUpload为YES时有效，默认为3个
+     */
+    public final int concurrentTaskCount;
+
+    /**
+     * 重试时是否允许使用备用上传域名，默认为true
+     */
+    public final boolean allowBackupHost;
+
+    /**
+     *  持久化记录接口，可以实现将记录持久化到文件，数据库等
+     */
+    public final Recorder recorder;
+
+    /**
+     *  为持久化上传记录，根据上传的key以及文件名 生成持久化的记录key
+     */
+    public final KeyGenerator keyGen;
+
+    /**
+     *  上传请求代理配置信息
+     */
+    public final ProxyConfiguration proxy;
 
     /**
      * 特别定制的url转换
      */
-    public UrlConverter urlConverter;
-
-    /**
-     * dns 解析客户端
-     */
-    public Dns dns;
-
-    /**
-     * 上传区域
-     */
-    public Zone zone;
-
-    /**
-     * 使用https域名
-     */
-    public boolean useHttps;
-
-    /**
-     * dns预取缓存时间
-     */
-    public long dnsCacheTimeMs;
+    public final UrlConverter urlConverter;
 
 
     private Configuration(Builder builder) {
-        useHttps = builder.useHttps;
-
         chunkSize = builder.chunkSize;
         putThreshold = builder.putThreshold;
 
@@ -84,18 +102,20 @@ public final class Configuration {
         keyGen = getKeyGen(builder.keyGen);
 
         retryMax = builder.retryMax;
+        retryInterval = builder.retryInterval;
+
+        allowBackupHost = builder.allowBackupHost;
 
         proxy = builder.proxy;
 
-        dnsCacheTimeMs = builder.dnsCacheTimeMs;
-
         urlConverter = builder.urlConverter;
-        AutoZone autoZone = null;
 
-        autoZone = new AutoZone(builder.useHttps);
+        useHttps = builder.useHttps;
 
-        zone = builder.zone == null ? autoZone : builder.zone;
-        dns = builder.dns;
+        useConcurrentResumeUpload = builder.useConcurrentResumeUpload;
+        concurrentTaskCount = builder.concurrentTaskCount;
+
+        zone = builder.zone != null ? builder.zone : new AutoZone();
     }
 
     private KeyGenerator getKeyGen(KeyGenerator keyGen) {
@@ -119,12 +139,14 @@ public final class Configuration {
         private boolean useHttps = true;
         private int chunkSize = 2 * 1024 * 1024;
         private int putThreshold = 4 * 1024 * 1024;
-        private int connectTimeout = 10;
+        private int connectTimeout = 60;
         private int responseTimeout = 60;
-        private int retryMax = 3;
+        private int retryMax = 1;
+        private int retryInterval = 500;
+        private boolean allowBackupHost = true;
         private UrlConverter urlConverter = null;
-        private Dns dns = null;
-        private long dnsCacheTimeMs = 60 * 60 * 24 * 1000;
+        private boolean useConcurrentResumeUpload = false;
+        private int concurrentTaskCount = 3;
 
         public Builder zone(Zone zone) {
             this.zone = zone;
@@ -152,7 +174,7 @@ public final class Configuration {
             return this;
         }
 
-        public Builder putThreshhold(int size) {
+        public Builder putThreshold(int size) {
             this.putThreshold = size;
             return this;
         }
@@ -172,23 +194,33 @@ public final class Configuration {
             return this;
         }
 
+        public Builder retryInterval(int retryInterval) {
+            this.retryInterval = retryInterval;
+            return this;
+        }
+
+        public Builder allowBackupHost(boolean isAllow) {
+            this.allowBackupHost = isAllow;
+            return this;
+        }
+
         public Builder urlConverter(UrlConverter converter) {
             this.urlConverter = converter;
             return this;
         }
 
-        public Builder dns(Dns dns) {
-            this.dns = dns;
+        public Builder useConcurrentResumeUpload(boolean useConcurrentResumeUpload) {
+            this.useConcurrentResumeUpload = useConcurrentResumeUpload;
+            return this;
+        }
+
+        public Builder concurrentTaskCount(int concurrentTaskCount) {
+            this.concurrentTaskCount = concurrentTaskCount;
             return this;
         }
 
         public Builder useHttps(boolean useHttps) {
             this.useHttps = useHttps;
-            return this;
-        }
-
-        public Builder dnsCacheTimeMs(long dnsCacheTimeMs) {
-            this.dnsCacheTimeMs = dnsCacheTimeMs;
             return this;
         }
 

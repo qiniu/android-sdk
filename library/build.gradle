@@ -22,11 +22,9 @@ int code = versionNameToCode(version)
 android {
     compileSdkVersion 29
     buildToolsVersion '29.0.2'
-    aaptOptions.cruncherEnabled = false
-    aaptOptions.useNewCruncher = false
     defaultConfig {
         //applicationId "com.qiniu.android"
-        minSdkVersion 18
+        minSdkVersion 15
         targetSdkVersion 26
         versionCode code
         versionName version
@@ -42,7 +40,6 @@ android {
 
     }
 
-
     lintOptions {
         warning 'InvalidPackage'
     }
@@ -54,12 +51,13 @@ android {
 
 dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.2.2'
+    implementation 'com.qiniu:happy-dns:0.2.16'
     // for javax.annotation.Nullable use in custom MultipartBody and Headers implements.
 //    implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.google.code.gson:gson:2.8.6'
-//    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
     testImplementation 'junit:junit:4.13'
+//    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
 
 task releaseJar(type: Jar, dependsOn: 'build') {
