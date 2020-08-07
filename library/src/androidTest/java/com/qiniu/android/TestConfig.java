@@ -7,26 +7,22 @@ import com.qiniu.android.common.Zone;
  * Created by bailong on 14/10/12.
  */
 public final class TestConfig {
-    // 华东上传凭证
-    public static final String bucket_z0 = "zone0-space";
-    public static final String token_z0 = "jH983zIUFIP1OVumiBVGeAfiLYJvwrF45S-t22eu:DtOhccYARFhzC4cpxtPaclI5sPU=:eyJzY29wZSI6InpvbmUwLXNwYWNlIiwiZGVhZGxpbmUiOjE1OTczOTMzOTYsICJyZXR1cm5Cb2R5Ijoie1wiZm9vXCI6JCh4OmZvbyksIFwiYmFyXCI6JCh4OmJhciksIFwibWltZVR5cGVcIjokKG1pbWVUeXBlKSwgXCJoYXNoXCI6JChldGFnKSwgXCJrZXlcIjokKGtleSksIFwiZm5hbWVcIjokKGZuYW1lKX0ifQ==";
-    // 华北上传凭证
-    public static final String bucket_z1 = "zone1-space";
-    public static final String token_z1 = "jH983zIUFIP1OVumiBVGeAfiLYJvwrF45S-t22eu:mWEhowqz4sG301DXU6CB3IO7Zss=:eyJzY29wZSI6InpvbmUxLXNwYWNlIiwiZGVhZGxpbmUiOjE1OTczOTMzOTYsICJyZXR1cm5Cb2R5Ijoie1wiZm9vXCI6JCh4OmZvbyksIFwiYmFyXCI6JCh4OmJhciksIFwibWltZVR5cGVcIjokKG1pbWVUeXBlKSwgXCJoYXNoXCI6JChldGFnKSwgXCJrZXlcIjokKGtleSksIFwiZm5hbWVcIjokKGZuYW1lKX0ifQ==";
-    // 华南上传凭证
-    public static final String bucket_z2 = "zone2-space";
-    public static final String token_z2 = "jH983zIUFIP1OVumiBVGeAfiLYJvwrF45S-t22eu:fGU4puSFnDWhRjTTmOyNkhFcxYE=:eyJzY29wZSI6InpvbmUyLXNwYWNlIiwiZGVhZGxpbmUiOjE1OTczOTMzOTYsICJyZXR1cm5Cb2R5Ijoie1wiZm9vXCI6JCh4OmZvbyksIFwiYmFyXCI6JCh4OmJhciksIFwibWltZVR5cGVcIjokKG1pbWVUeXBlKSwgXCJoYXNoXCI6JChldGFnKSwgXCJrZXlcIjokKGtleSksIFwiZm5hbWVcIjokKGZuYW1lKX0ifQ==";
-    // 北美上传凭证
-    public static final String bucket_na0 = "zone-na0-space";
-    public static final String token_na0 = "jH983zIUFIP1OVumiBVGeAfiLYJvwrF45S-t22eu:Bt4b0a7mBSdvlPrERMM02uv66BM=:eyJzY29wZSI6InpvbmUtbmEwLXNwYWNlIiwiZGVhZGxpbmUiOjE1OTczOTMzOTYsICJyZXR1cm5Cb2R5Ijoie1wiZm9vXCI6JCh4OmZvbyksIFwiYmFyXCI6JCh4OmJhciksIFwibWltZVR5cGVcIjokKG1pbWVUeXBlKSwgXCJoYXNoXCI6JChldGFnKSwgXCJrZXlcIjokKGtleSksIFwiZm5hbWVcIjokKGZuYW1lKX0ifQ==";
-    // 东南亚上传凭证
-    public static final String bucket_as0 = "zone-as0-space";
-    public static final String token_as0 = "jH983zIUFIP1OVumiBVGeAfiLYJvwrF45S-t22eu:eJsEzd2oeyRvP89-8nJ1Uvz-R3E=:eyJzY29wZSI6InpvbmUtYXMwLXNwYWNlIiwiZGVhZGxpbmUiOjE1OTczOTMzOTYsICJyZXR1cm5Cb2R5Ijoie1wiZm9vXCI6JCh4OmZvbyksIFwiYmFyXCI6JCh4OmJhciksIFwibWltZVR5cGVcIjokKG1pbWVUeXBlKSwgXCJoYXNoXCI6JChldGFnKSwgXCJrZXlcIjokKGtleSksIFwiZm5hbWVcIjokKGZuYW1lKX0ifQ==";
-    public static final String invalidBucketToken = "jH983zIUFIP1OVumiBVGeAfiLYJvwrF45S-t22eu:0LQHe4TLjIla-aYkTsBeE0zQSQE=:eyJzY29wZSI6InpvbmVfaW52YWxpZCIsImRlYWRsaW5lIjoxNTk3MzkzMzk2LCAicmV0dXJuQm9keSI6IntcImZvb1wiOiQoeDpmb28pLCBcImJhclwiOiQoeDpiYXIpLCBcIm1pbWVUeXBlXCI6JChtaW1lVHlwZSksIFwiaGFzaFwiOiQoZXRhZyksIFwia2V5XCI6JChrZXkpLCBcImZuYW1lXCI6JChmbmFtZSl9In0=";
-
-
+    // TODO: 2020-05-09 bad token for testPutBytesWithFixedZoneUseBackupDomains
+    //华东上传凭证
+    public static final String bucket_z0 = "sdk-z0";
+    public static final String token_z0 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:fO65e-s-sRrcNiWkZ3qcrCLM3pM=:eyJzY29wZSI6InNkay16MCIsImRlYWRsaW5lIjoxNTk3MjAyMDYwfQ==";
+    //华北上传凭证
+    public static final String bucket_z1 = "sdk-z1";
+    public static final String token_z1 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:KHpcWxGAAut9zJjGaHEqEbjlf-c=:eyJzY29wZSI6InNkay16MSIsImRlYWRsaW5lIjoxNTk3MjAyMDgzfQ==";
+    //华南上传凭证
+    public static final String bucket_z2 = "sdk-z2";
+    public static final String token_z2 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:yt7nub2-FOkK2zwodXSgxinpboE=:eyJzY29wZSI6InNkay16MiIsImRlYWRsaW5lIjoxNTk3MjAyMTAwfQ==";
+    //北美上传凭证
+    public static final String bucket_na0 = "sdk-na0";
+    public static final String token_na0 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:J9AbA4jVl4BtsAFg9XooZaa2Iyk=:eyJzY29wZSI6InNkay1uYTAiLCJkZWFkbGluZSI6MTU5NzIwMjExNX0=";
+    
     // -----------
-    public static final String ak = "QWYn5TFQsLLU1pL5MFEmX3s5DmHdUThav9WyOWOm";
+    public static final String ak = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW";
 
 
     //测试通用的token

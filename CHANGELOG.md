@@ -1,4 +1,6 @@
 #Changelog
+# 7.6.5
+* 优化Dns local cache
 
 # 7.6.4
 * 修复io异常
