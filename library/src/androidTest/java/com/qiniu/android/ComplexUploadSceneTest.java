@@ -53,7 +53,7 @@ public class ComplexUploadSceneTest extends AndroidTestCase {
         }
 
         Log.d("ComplexUploadSceneTest", "complex_upload successCount: " + param.successCount);
-        assertTrue("Pass", param.successCount == param.completeCount);
+        assertTrue("success count" + param.successCount, param.successCount == param.completeCount);
     }
 
     private void template(int size, final CompleteHandler completeHandler){
