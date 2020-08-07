@@ -1,6 +1,6 @@
 package com.qiniu.android.storage.persistent;
 
-import com.qiniu.android.http.custom.DnsCacheKey;
+import com.qiniu.android.http.custom.DnsCacheInfo;
 import com.qiniu.android.storage.Recorder;
 
 import java.io.File;
@@ -98,28 +98,7 @@ public class DnsCacheFile implements Recorder {
 
     //f.delete()=false时才会有fs.length>1的情况
     public String getFileName() {
-        File[] fs = f.listFiles();
-        if (fs == null) return null;
-        if (fs.length == 1) {
-            return fs[0].getName();
-        } else if (fs.length > 1) {
-            String fileName = null;
-            long cachetime = 0;
-            for (int i = 1; i < fs.length; i++) {
-                String key = fs[i].getName();
-                DnsCacheKey cacheKey = DnsCacheKey.toCacheKey(key);
-                if (cacheKey == null)
-                    return null;
-                long time = Long.parseLong(cacheKey.getCurrentTime());
-                if (time > cachetime) {
-                    del(fileName);
-                    cachetime = time;
-                    fileName = key;
-                }
-            }
-            return fileName;
-        }
-        return null;
+        return "dnsCache";
     }
 
     @Override

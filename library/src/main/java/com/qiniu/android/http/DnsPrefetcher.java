@@ -7,7 +7,7 @@ import com.qiniu.android.collect.UploadInfoElementCollector;
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.ZoneInfo;
-import com.qiniu.android.http.custom.DnsCacheKey;
+import com.qiniu.android.http.custom.DnsCacheInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.Recorder;
 import com.qiniu.android.storage.persistent.DnsCacheFile;
@@ -27,6 +27,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+
+import okhttp3.internal.Util;
 
 /**
  * <p>
@@ -323,11 +325,11 @@ public class DnsPrefetcher {
 
         if (currentTime == null || localip == null || akScope == null)
             return true;
-        DnsCacheKey dnsCacheKey = (DnsCacheKey) mDnsCacheKey.get();
-        if (dnsCacheKey == null || dnsCacheKey.getCurrentTime() == null)
+        DnsCacheInfo dnsCacheInfo = (DnsCacheInfo) mDnsCacheKey.get();
+        if (dnsCacheInfo == null || dnsCacheInfo.getCurrentTime() == null)
             return true;
-        long cacheTime = (Long.parseLong(currentTime) - Long.parseLong(dnsCacheKey.getCurrentTime())) / 1000;
-        if (!localip.equals(dnsCacheKey.getLocalIp()) || cacheTime > config.dnsCacheTimeMs || !akScope.equals(dnsCacheKey.getAkScope())) {
+        long cacheTime = (Long.parseLong(currentTime) - Long.parseLong(dnsCacheInfo.getCurrentTime())) / 1000;
+        if (!localip.equals(dnsCacheInfo.getLocalIp()) || cacheTime > config.dnsCacheTimeMs || !akScope.equals(dnsCacheInfo.getAkScope())) {
             return true;
         }
 
@@ -348,29 +350,29 @@ public class DnsPrefetcher {
             e.printStackTrace();
             return true;
         }
-        String dnscache = recorder.getFileName();
-        if (dnscache == null)
-            return true;
 
-        byte[] data = recorder.get(dnscache);
+        String localIP = AndroidNetwork.getHostIP();
+
+        byte[] data = recorder.get(localIP);
         if (data == null)
             return true;
 
-        DnsCacheKey cacheKey = DnsCacheKey.toCacheKey(dnscache);
-        if (cacheKey == null)
+        DnsCacheInfo cacheInfo = (DnsCacheInfo) StringUtils.toObject(data);
+        if (cacheInfo == null)
             return true;
 
         String currentTime = String.valueOf(System.currentTimeMillis());
-        String localip = AndroidNetwork.getHostIP();
 
-        if (currentTime == null || localip == null)
-            return true;
-        long cacheTime = (Long.parseLong(currentTime) - Long.parseLong(cacheKey.getCurrentTime())) / 1000;
-        if (!cacheKey.getLocalIp().equals(localip) || cacheTime > config.dnsCacheTimeMs) {
+        if (currentTime == null) {
             return true;
         }
-        mDnsCacheKey.set(cacheKey);
-        return recoverDnsCache(data);
+        long cacheTime = (Long.parseLong(currentTime) - Long.parseLong(cacheInfo.getCurrentTime())) / 1000;
+        if (cacheTime > config.dnsCacheTimeMs) {
+            return true;
+        }
+        mDnsCacheKey.set(cacheInfo);
+        DnsPrefetcher.getDnsPrefetcher().setConcurrentHashMap(cacheInfo.info);
+        return true;
     }
 
     /**
@@ -380,12 +382,18 @@ public class DnsPrefetcher {
      */
     public static void startPrefetchDns(String token, Configuration config) {
         String currentTime = String.valueOf(System.currentTimeMillis());
-        String localip = AndroidNetwork.getHostIP();
+        String localIP = AndroidNetwork.getHostIP();
         String akScope = StringUtils.getAkAndScope(token);
-        if (currentTime == null || localip == null || akScope == null)
+        if (currentTime == null || localIP == null || akScope == null) {
             return;
-        DnsCacheKey dnsCacheKey = new DnsCacheKey(currentTime, localip, akScope);
-        String cacheKey = dnsCacheKey.toString();
+        }
+
+        DnsCacheInfo dnsCacheInfo = (DnsCacheInfo)mDnsCacheKey.get();
+        if (dnsCacheInfo == null || !dnsCacheInfo.localIp.equals(localIP)){
+            dnsCacheInfo = new DnsCacheInfo(currentTime, localIP, akScope, mConcurrentHashMap);
+        }
+
+        String cacheKey = dnsCacheInfo.cacheKey();
 
         Recorder recorder = null;
         DnsPrefetcher dnsPrefetcher = null;
@@ -393,7 +401,7 @@ public class DnsPrefetcher {
             recorder = new DnsCacheFile(Config.dnscacheDir);
             dnsPrefetcher = DnsPrefetcher.getDnsPrefetcher().init(token, config);
             //确认预取结束后，需要更新缓存mDnsCacheKey
-            mDnsCacheKey.set(dnsCacheKey);
+            mDnsCacheKey.set(dnsCacheInfo);
         } catch (IOException e) {
             e.printStackTrace();
             return;
@@ -408,23 +416,5 @@ public class DnsPrefetcher {
                 return;
             recorder.set(cacheKey, dnscache);
         }
-    }
-
-    /**
-     * @param data
-     * @return
-     */
-    public static boolean recoverDnsCache(byte[] data) {
-        ConcurrentHashMap<String, List<InetAddress>> concurrentHashMap = null;
-        try {
-            concurrentHashMap = (ConcurrentHashMap<String, List<InetAddress>>) StringUtils.toObject(data);
-        }catch (Exception e){
-            return true;
-        }
-        if (concurrentHashMap == null) {
-            return true;
-        }
-        DnsPrefetcher.getDnsPrefetcher().setConcurrentHashMap(concurrentHashMap);
-        return false;
     }
 }

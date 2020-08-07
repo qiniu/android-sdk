@@ -2,32 +2,22 @@ package com.qiniu.android;
 
 
 import android.test.AndroidTestCase;
-import android.test.InstrumentationTestCase;
 import android.util.Log;
 
 import com.qiniu.android.collect.Config;
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.DnsPrefetcher;
-import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.custom.DnsCacheKey;
+import com.qiniu.android.http.custom.DnsCacheInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.Recorder;
-import com.qiniu.android.storage.UpCompletionHandler;
-import com.qiniu.android.storage.UpProgressHandler;
-import com.qiniu.android.storage.UploadManager;
-import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.storage.persistent.DnsCacheFile;
 import com.qiniu.android.utils.AndroidNetwork;
 import com.qiniu.android.utils.StringUtils;
 
-import org.json.JSONObject;
-
-import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -133,24 +123,8 @@ public class DnsApiTest extends AndroidTestCase {
     public void testRecoverCache() {
 
         Recorder recorder = null;
-        try {
-            recorder = new DnsCacheFile(Config.dnscacheDir);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-        String fileName = recorder.getFileName();
-        if (fileName == null) {
-            Log.e("qiniutest: ", "recover file is null ");
-            return;
-        }
-        byte[] data = recorder.get(recorder.getFileName());
-        if (data == null) {
-            Log.e("qiniutest: ", "recover data is null ");
-            return;
-        }
-        DnsPrefetcher.recoverDnsCache(data);
 
+        DnsPrefetcher.recoverCache(configuration);
 
         ConcurrentHashMap<String, List<InetAddress>> map1 = DnsPrefetcher.getDnsPrefetcher().getConcurrentHashMap();
         if (map1.size() <= 0)
@@ -165,20 +139,24 @@ public class DnsApiTest extends AndroidTestCase {
         }
     }
 
-    int time = 0;
-    final Object lock = new Object();
+    public void testSerializable() throws UnknownHostException {
+        InetAddress address = InetAddress.getByName("127.0.0.1");
+        List<InetAddress> addressList = new ArrayList<>();
+        addressList.add(address);
+        ConcurrentHashMap<String, List<InetAddress>> info = new ConcurrentHashMap<>();
+        info.put("localhost", addressList);
 
+        DnsCacheInfo cacheInfo = new DnsCacheInfo("12321", "192.168.1.1", "akScope", info);
+        Log.e("qiniutest", cacheInfo.toString());
 
-    public void testSerializable() {
-        DnsCacheKey key = new DnsCacheKey("12321", "127.0.0.1", "akscope");
-        Log.e("qiniutest", key.toString());
-        DnsCacheKey key1 = DnsCacheKey.toCacheKey(key.toString());
-        if (key1 == null) {
-            return;
-        }
-        Log.e("qiniutest", key1.getCurrentTime() + ":" + key1.getLocalIp() + ":" + key1.getAkScope());
+        byte[] data = StringUtils.toByteArray(cacheInfo);
 
+        DnsCacheInfo cacheInfoSer = (DnsCacheInfo)StringUtils.toObject(data);
+
+        assertTrue(cacheInfoSer != null);
+        assertTrue(cacheInfoSer.localIp != null);
+        assertTrue(cacheInfoSer.info != null);
+        assertTrue(cacheInfoSer.info.get("localhost") != null);
+        assertTrue(cacheInfoSer.info.get("localhost").get(0).getHostAddress().equals("127.0.0.1"));
     }
-
-
 }
