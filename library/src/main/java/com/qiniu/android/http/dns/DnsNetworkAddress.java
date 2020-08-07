@@ -3,7 +3,7 @@ package com.qiniu.android.http.dns;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-class DnsNetworkAddress implements  IDnsNetworkAddress{
+class DnsNetworkAddress implements IDnsNetworkAddress, java.io.Serializable {
 
     private final String hostValue;
     private final String ipValue;

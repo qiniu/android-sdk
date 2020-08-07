@@ -25,8 +25,8 @@ https://github.com/qiniudemo/qiniu-lab-android
 |  7.0.7        |  Android 2.2+     | android-async-http 1.4.8 |
 
 ### 注意
-* 推荐使用最新版：7.6.4
-* 7.4.6是在7.6.4版本上降低okhttp版本，其他功能不变，AndroidNetwork.getMobileDbm()可以获取手机信号强度，需要如下权限(API>=18时生效)
+* 推荐使用最新版：7.6.5
+* AndroidNetwork.getMobileDbm()可以获取手机信号强度，需要如下权限(API>=18时生效)
 ```
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>

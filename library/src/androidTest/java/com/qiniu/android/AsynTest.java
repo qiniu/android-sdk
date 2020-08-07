@@ -1,5 +1,7 @@
 package com.qiniu.android;
 
+import android.os.Looper;
+
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.LogUtil;
 
@@ -11,7 +13,7 @@ public class AsynTest extends BaseTest {
         int completeCount;
         int successCount;
     }
-    public void testAsyncMain(){
+    public void testAsyncMainOnMainThread(){
 
         final TestParam testParam = new TestParam();
         testParam.maxCount = 100;
@@ -22,14 +24,64 @@ public class AsynTest extends BaseTest {
             AsyncRun.runInMain(new Runnable() {
                 @Override
                 public void run() {
-                    String threadName = Thread.currentThread().getName();
-                    if (threadName.equals("main")){
+
+                    if (Thread.currentThread() == Looper.getMainLooper().getThread()){
                         testParam.successCount += 1;
                     }
+
+                    String threadName = Thread.currentThread().getName();
+                    LogUtil.d("thread name:" + threadName);
 
                     testParam.completeCount += 1;
                 }
             });
+        }
+
+        WaitConditional waitConditional = new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (testParam.completeCount == testParam.maxCount){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        };
+
+        wait(waitConditional, 5);
+
+        LogUtil.i(String.format("success count: %d", testParam.successCount));
+        assertTrue((testParam.successCount == testParam.maxCount));
+    }
+
+    public void testAsyncMainOnOtherThread(){
+
+        final TestParam testParam = new TestParam();
+        testParam.maxCount = 10;
+        testParam.completeCount = 0;
+        testParam.successCount = 0;
+        for (int i = 0; i < testParam.maxCount; i++) {
+            final int i_p = i;
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    AsyncRun.runInMain(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            if (Thread.currentThread().getName().equals("main")){
+                                testParam.successCount += 1;
+                            }
+
+                            String threadName = Thread.currentThread().getName();
+                            LogUtil.d("thread name:" + threadName);
+
+                            testParam.completeCount += 1;
+                        }
+                    });
+                }
+            }).start();
         }
 
         WaitConditional waitConditional = new WaitConditional() {

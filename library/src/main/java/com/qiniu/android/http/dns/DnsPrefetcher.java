@@ -72,13 +72,6 @@ public class DnsPrefetcher {
             return true;
         }
 
-        DnsCacheInfo cacheInfo = (DnsCacheInfo)StringUtils.toObject(data);
-        if (cacheInfo == null){
-            return true;
-        }
-
-        setDnsCacheInfo(cacheInfo);
-
         return recoverDnsCache(data);
     }
 
@@ -233,29 +226,14 @@ public class DnsPrefetcher {
 
     private boolean recoverDnsCache(byte[] data){
 
-        JSONObject addressInfo = null;
-        try {
-            addressInfo = new JSONObject(new String(data));
-        } catch (JSONException e) {
+        DnsCacheInfo dnsCacheInfo = DnsCacheInfo.createDnsCacheInfoByJsonData(data);
+        if (dnsCacheInfo == null || dnsCacheInfo.info == null || dnsCacheInfo.info.size() == 0){
             return false;
         }
 
-        Iterator<String> hosts = addressInfo.keys();
-        while (hosts.hasNext()){
-            String host = hosts.next();
-            ArrayList<IDnsNetworkAddress> addressList = new ArrayList<>();
-            try {
-                JSONArray addressJsonList = addressInfo.getJSONArray(host);
-                for(int i=0; i<addressJsonList.length(); i++){
-                    JSONObject addressJson = addressJsonList.getJSONObject(i);
-                    DnsNetworkAddress address = DnsNetworkAddress.address(addressJson);
-                    addressList.add(address);
-                }
-            } catch (JSONException ignored) {
-            }
-
-            addressDictionary.put(host, addressList);
-        }
+        addressDictionary.putAll(dnsCacheInfo.info);
+        dnsCacheInfo.info = addressDictionary;
+        setDnsCacheInfo(dnsCacheInfo);
 
         return false;
     }
@@ -279,30 +257,12 @@ public class DnsPrefetcher {
 
         setDnsCacheInfo(dnsCacheInfo);
 
-        return recorderDnsCache(recorder, dnsCacheInfo.cacheKey());
-    }
-
-    private boolean recorderDnsCache(Recorder recorder, String cacheKey){
-
-        JSONObject addressInfo = new JSONObject();
-        for (String key : addressDictionary.keySet()){
-            List<IDnsNetworkAddress> addressModelList = addressDictionary.get(key);
-            JSONArray addressJsonList = new JSONArray();
-
-            for (IDnsNetworkAddress address : addressModelList){
-                if (address.getHostValue() != null && address.getIpValue() != null) {
-                    DnsNetworkAddress addressObject = (DnsNetworkAddress)address;
-                    JSONObject addressJson = addressObject.toJson();
-                    addressJsonList.put(addressJson);
-                }
-            }
-
-            try {
-                addressInfo.put(key, addressJsonList);
-            } catch (JSONException ignored) {}
+        byte[] data = dnsCacheInfo.toJsonData();
+        if (data == null){
+            return false;
         }
+        recorder.set(dnsCacheInfo.cacheKey(), data);
 
-        recorder.set(cacheKey, addressInfo.toString().getBytes());
         return true;
     }
 
