@@ -11,14 +11,14 @@ import java.io.File;
 public final class Configuration {
 
     /**
-     * 断点上传时的分块大小(默认的分块大小, 不建议改变)
+     * 上传区域
+     */
+    public final Zone zone;
+
+    /**
+     * 断点上传时的分块大小(默认的分块大小, 不建议改变) 【已无效】
      */
     public static final int BLOCK_SIZE = 4 * 1024 * 1024;
-
-    public final Recorder recorder;
-    public final KeyGenerator keyGen;
-
-    public final ProxyConfiguration proxy;
 
     /**
      * 断点上传时的分片大小(可根据网络情况适当调整)
@@ -31,16 +31,6 @@ public final class Configuration {
     public final int putThreshold;
 
     /**
-     * 连接超时时间，单位 秒
-     */
-    public final int connectTimeout;
-
-    /**
-     * 服务器响应超时时间 单位 秒
-     */
-    public final int responseTimeout;
-
-    /**
      * 上传失败重试次数 默认1次
      */
     public final int retryMax;
@@ -51,20 +41,14 @@ public final class Configuration {
     public final int retryInterval;
 
     /**
-     * 重试时是否允许使用备用上传域名，默认为true
+     * 连接超时时间，单位 秒
      */
-    public final boolean allowBackupHost;
+    public final int connectTimeout;
 
     /**
-     * 特别定制的url转换
+     * 服务器响应超时时间 单位 秒
      */
-    public final UrlConverter urlConverter;
-
-
-    /**
-     * 上传区域
-     */
-    public final Zone zone;
+    public final int responseTimeout;
 
     /**
      * 使用https域名
@@ -80,6 +64,31 @@ public final class Configuration {
      * 并发分片上传的并发任务个数，在concurrentResumeUpload为YES时有效，默认为3个
      */
     public final int concurrentTaskCount;
+
+    /**
+     * 重试时是否允许使用备用上传域名，默认为true
+     */
+    public final boolean allowBackupHost;
+
+    /**
+     *  持久化记录接口，可以实现将记录持久化到文件，数据库等
+     */
+    public final Recorder recorder;
+
+    /**
+     *  为持久化上传记录，根据上传的key以及文件名 生成持久化的记录key
+     */
+    public final KeyGenerator keyGen;
+
+    /**
+     *  上传请求代理配置信息
+     */
+    public final ProxyConfiguration proxy;
+
+    /**
+     * 特别定制的url转换
+     */
+    public final UrlConverter urlConverter;
 
 
     private Configuration(Builder builder) {

@@ -1,5 +1,11 @@
 package com.qiniu.android.http.dns;
 
+import com.qiniu.android.utils.StringUtils;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.List;
@@ -8,12 +14,22 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by jemy on 2019/9/23.
  */
-public class DnsCacheInfo {
+public class DnsCacheInfo implements java.io.Serializable {
+
     public String currentTime;
     public String localIp;
     public ConcurrentHashMap<String, List<IDnsNetworkAddress>> info;
 
-    public DnsCacheInfo() {}
+    public static DnsCacheInfo createDnsCacheInfoByJsonData(byte[] jsonData) {
+        if (jsonData == null){
+            return null;
+        }
+        DnsCacheInfo dnsCacheInfo = (DnsCacheInfo)StringUtils.toObject(jsonData);
+        return dnsCacheInfo;
+    }
+
+    public DnsCacheInfo() {
+    }
 
     public DnsCacheInfo(String currentTime, String localIp, ConcurrentHashMap<String, List<IDnsNetworkAddress>> info) {
         this.currentTime = currentTime;
@@ -47,6 +63,10 @@ public class DnsCacheInfo {
 
     public String cacheKey(){
         return localIp;
+    }
+
+    public byte[] toJsonData(){
+        return StringUtils.toByteArray(this);
     }
 
     @Override
