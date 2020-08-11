@@ -15,6 +15,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 
 | Qiniu SDK 版本 | 最低 Android版本   |       依赖库版本           | 
 |------------ |-----------------|------------------------|
+|  8.0.x        |  Android 5.0+     |        okhttp 4+         |
 |  7.6.x        |  Android 5.0+     |        okhttp 4+         |
 |  7.5.x        |  Android 5.0+     |        okhttp 4+         |
 |  7.4.6        |  Android 4.0+     |        okhttp 3.12.6     |
@@ -25,13 +26,12 @@ https://github.com/qiniudemo/qiniu-lab-android
 |  7.0.7        |  Android 2.2+     | android-async-http 1.4.8 |
 
 ### 注意
-* 推荐使用最新版：7.6.5
+* 推荐使用最新版：8.0.0
 * AndroidNetwork.getMobileDbm()可以获取手机信号强度，需要如下权限(API>=18时生效)
 ```
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 ```
-* 从 7.3.13 开始，不在强制依赖 `happy-dns-android`，默认不再提供 `httpDns`，可以调用 `Configuration.Builder#dns(com.qiniu.android.http.Dns)`方法设置外部 `Dns`，自定义 `Dns` 要求实现 `com.qiniu.android.http.Dns` 接口。
 * 从7.5.0开始增加了DNS预取和缓存策略，减少dns解析错误
 * 如果可以明确 区域 的话，最好指定固定区域，这样可以少一步网络请求，少一步出错的可能。
 
@@ -44,10 +44,10 @@ https://github.com/qiniudemo/qiniu-lab-android
 * Adroid Studio中添加dependencies 或者 在项目中添加maven依赖
 ```
 // 1. 直接导入
-implementation 'com.qiniu:qiniu-android-sdk:7.6.+'
+implementation 'com.qiniu:qiniu-android-sdk:8.0.+'
 
 // 2. 如果要修改okhttp依赖的版本，可采用以下方式（强烈建议使用七牛库依赖的okhttp版本）
-implementation ('com.qiniu:qiniu-android-sdk:7.6.+'){
+implementation ('com.qiniu:qiniu-android-sdk:8.0.+'){
     exclude (group: 'com.squareup.okhttp3', module: 'okhttp')
 }
 implementation 'com.squareup.okhttp3:okhttp:4.2.2'
@@ -62,15 +62,15 @@ UploadManager 可以创建一次，一直使用。
 ```java
 import com.qiniu.android.storage.UploadManager;
 ...
-    String token = "从服务端SDK获取";
-    UploadManager uploadManager = new UploadManager();
-    uploadManager.put("Hello, World!".getBytes(), "hello", token,
-    new UpCompletionHandler() {
-        @Override
-        public void complete(String key, ResponseInfo info, JSONObject response) {
-            LogUtil.i(info);
-        }
-    }, null);
+String token = "从服务端SDK获取";
+UploadManager uploadManager = new UploadManager();
+uploadManager.put("Hello, World!".getBytes(), "hello", token,
+new UpCompletionHandler() {
+    @Override
+    public void complete(String key, ResponseInfo info, JSONObject response) {
+        LogUtil.i(info);
+    }
+}, null);
 ...
 ```
 
@@ -554,6 +554,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
 具体可以参考源码：
 https://github.com/qiniu/android-sdk/blob/c4cd1437aa1f2a0d68122e46b83580facdf1b74a/library/src/main/java/com/qiniu/android/http/ResponseInfo.java
 ```
+public static final int MaliciousResponseError = -8;
+public static final int LocalIOError = -7;
 public static final int ZeroSizeFile = -6;
 public static final int InvalidToken = -5;
 public static final int InvalidArgument = -4;

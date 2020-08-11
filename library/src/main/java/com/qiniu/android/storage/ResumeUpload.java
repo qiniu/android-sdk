@@ -6,6 +6,7 @@ import com.qiniu.android.http.request.UploadFileInfo;
 import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.utils.AsyncRun;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -64,7 +65,12 @@ class ResumeUpload extends PartsUpload {
                                     completeAction(responseInfo, response);
                                 }
                             } else {
-                                option.progressHandler.progress(key, 1.0);
+                                AsyncRun.runInMain(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        option.progressHandler.progress(key, 1.0);
+                                    }
+                                });
                                 removeUploadInfoRecord();
                                 completeAction(responseInfo, response);
                             }
