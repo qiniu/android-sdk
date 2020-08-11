@@ -561,7 +561,7 @@ public class ResumeUploaderFast implements Runnable {
         long modify = obj.optLong("modify_time", 0);
         long fSize = obj.optLong("size", 0);
         JSONArray array = obj.optJSONArray("contexts");
-        if (offsetsArray.length() == 0 || modify != modifyTime || fSize != totalSize || array == null || array.length() == 0) {
+        if (offsetsArray == null || offsetsArray.length() == 0 || modify != modifyTime || fSize != totalSize || array == null || array.length() == 0) {
             return null;
         }
         for (int i = 0; i < array.length(); i++) {
