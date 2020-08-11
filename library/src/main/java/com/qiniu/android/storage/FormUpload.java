@@ -4,6 +4,7 @@ import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.utils.AsyncRun;
 
 import org.json.JSONObject;
 
@@ -50,7 +51,12 @@ class FormUpload extends BaseUpload {
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
                 if (responseInfo.isOK()){
-                    option.progressHandler.progress(key, 1.0);
+                    AsyncRun.runInMain(new Runnable() {
+                        @Override
+                        public void run() {
+                            option.progressHandler.progress(key, 1.0);
+                        }
+                    });
                     completeAction(responseInfo, response);
                 } else if (responseInfo.couldRetry() && config.allowBackupHost){
                     boolean isSwitched = switchRegionAndUpload();

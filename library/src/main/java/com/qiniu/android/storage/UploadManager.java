@@ -137,8 +137,9 @@ public class UploadManager {
 
         if (!checkAndNotifyError(key, token, data, completionHandler)){
             putData(data, null, key, token, options, completionHandler);
-            wait.startWait();
         }
+
+        wait.startWait();
 
         if (responseInfos.size() > 0){
             return responseInfos.get(0);
@@ -323,16 +324,21 @@ public class UploadManager {
         }
     }
 
-    private void completeAction(String token,
-                                String key,
-                                ResponseInfo responseInfo,
-                                JSONObject response,
-                                UploadTaskMetrics taskMetrics,
-                                UpCompletionHandler completionHandler){
+    private void completeAction(final String token,
+                                final String key,
+                                final ResponseInfo responseInfo,
+                                final JSONObject response,
+                                final UploadTaskMetrics taskMetrics,
+                                final UpCompletionHandler completionHandler){
 
         reportQuality(responseInfo, taskMetrics, token);
         if (completionHandler != null){
-            completionHandler.complete(key, responseInfo, response);
+            AsyncRun.runInMain(new Runnable() {
+                @Override
+                public void run() {
+                    completionHandler.complete(key, responseInfo, response);
+                }
+            });
         }
     }
 
