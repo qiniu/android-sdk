@@ -1,4 +1,7 @@
 #Changelog
+# 7.6.6
+* 修复部分空指针异常
+
 # 7.6.5
 * 优化Dns local cache
 
