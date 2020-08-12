@@ -11,6 +11,7 @@ import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.Crc32;
+import com.qiniu.android.utils.GZipUtil;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.UrlSafeBase64;
@@ -341,6 +342,7 @@ public class RequestTransaction {
         header.put("Authorization", token);
         header.put("Content-Type", "text/plain");
         header.put("User-Agent", userAgent);
+        header.put("Content-Encoding", "gzip");
 
         if (logClientId != null){
             header.put("X-Log-Client-Id", logClientId);
@@ -352,7 +354,7 @@ public class RequestTransaction {
                 return !responseInfo.isOK();
             }
         };
-        regionRequest.post("/log/4", isAsync, logData, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
+        regionRequest.post("/log/4", isAsync, GZipUtil.gZip(logData), header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 completeHandler.complete(responseInfo, requestMetrics, response);
