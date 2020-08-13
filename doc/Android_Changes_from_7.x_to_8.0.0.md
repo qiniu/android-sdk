@@ -2,8 +2,8 @@
 # Differences from 7.6.4 to 8.0.0
 
 注：
-- dns配置类：`GlobalConfiguration`
-- 设置并发上传：`Configuration` -> `useConcurrentResumeUpload` & `concurrentTaskCount`
+- 更改dns解析自定义方式：通过GlobalConfiguration进行配置
+- 更改并发上传配置方式：通过Configuration配置，useConcurrentResumeUpload配置是否开启并发上传 & concurrentTaskCount配置并发上传任务数量
 
 
 ## 1. com.qiniu.android.storage

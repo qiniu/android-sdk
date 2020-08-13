@@ -34,11 +34,11 @@ abstract class PartsUpload extends BaseUpload {
     protected PartsUpload(File file,
                           String key,
                           UpToken token,
-                         UploadOptions option,
-                         Configuration config,
-                        Recorder recorder,
-                        String recorderKey,
-                        UpTaskCompletionHandler completionHandler) {
+                          UploadOptions option,
+                          Configuration config,
+                          Recorder recorder,
+                          String recorderKey,
+                          UpTaskCompletionHandler completionHandler) {
         super(file, key, token, option, config, recorder, recorderKey, completionHandler);
         RandomAccessFile randomAccessFile = null;
         if (file != null){
