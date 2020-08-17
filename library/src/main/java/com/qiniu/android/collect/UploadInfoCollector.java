@@ -2,11 +2,13 @@ package com.qiniu.android.collect;
 
 import com.qiniu.android.http.UserAgent;
 import com.qiniu.android.storage.UpToken;
+import com.qiniu.android.utils.GZipUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
@@ -241,9 +243,17 @@ public final class UploadInfoCollector {
 
     //同步上传
     private boolean upload(final UpToken upToken, File recordFile) {
+
+        byte[] logData = getLogData(recordFile);
+        logData = GZipUtil.gZip(logData);
+        if (logData == null || logData.length == 0){
+            return false;
+        }
+
         try {
+
             OkHttpClient client = getHttpClient();
-            RequestBody reqBody = RequestBody.create(MediaType.parse("text/plain"), recordFile);
+            RequestBody reqBody = RequestBody.create(MediaType.parse("text/plain"), logData);
 
             Request.Builder requestBuilder = new Request.Builder().url(serverURL).
                     addHeader("Authorization", "UpToken " + upToken.token).
@@ -269,6 +279,30 @@ public final class UploadInfoCollector {
             e.printStackTrace();
             return false;
         }
+    }
+
+    private byte[] getLogData(File recordFile){
+        if (recordFile == null || recordFile.length() == 0){
+            return null;
+        }
+
+        long length = recordFile.length();
+        RandomAccessFile randomAccessFile = null;
+        byte[] data = null;
+        try {
+            randomAccessFile = new RandomAccessFile(recordFile, "r");
+            data = new byte[(int)length];
+            randomAccessFile.read(data);
+        } catch (FileNotFoundException ignored) {
+        } catch (IOException e) {
+            data = null;
+        }
+        if (randomAccessFile != null){
+            try {
+                randomAccessFile.close();
+            } catch (IOException e){}
+        }
+        return data;
     }
 
     private boolean isOk(Response res) {

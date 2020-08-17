@@ -13,7 +13,7 @@ public final class Config {
     /**
      * 上传信息收集文件的地址
      */
-    public final static String serverURL = "https://uplog.qbox.me/log/4";
+    public final static String serverURL = "https://uplog.qbox.me/log/4?compressed=gzip";
     /**
      * 是否记录上传状态信息。 true 表示记录，false 表示不记录。
      * <p>
