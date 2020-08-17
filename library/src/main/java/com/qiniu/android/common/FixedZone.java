@@ -4,6 +4,7 @@ import com.qiniu.android.storage.UpToken;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 
 /**
@@ -16,35 +17,35 @@ public final class FixedZone extends Zone {
      */
     public static final Zone zone0 = new FixedZone(new String[]{"upload.qiniup.com", "up.qiniup.com"},
             new String[]{"upload.qbox.me", "up.qbox.me"},
-            new String[]{"iovip.qbox.me"});
+            "z0");
 
     /**
      * 华北机房
      */
     public static final Zone zone1 = new FixedZone(new String[]{"upload-z1.qiniup.com", "up-z1.qiniup.com"},
             new String[]{"upload-z1.qbox.me", "up-z1.qbox.me"},
-            new String[]{"iovip-z1.qbox.me"});
+            "z1");
 
     /**
      * 华南机房
      */
     public static final Zone zone2 = new FixedZone(new String[]{"upload-z2.qiniup.com", "up-z2.qiniup.com"},
             new String[]{"upload-z2.qbox.me", "up-z2.qbox.me"},
-            new String[]{"iovip-z2.qbox.me"});
+            "z2");
 
     /**
      * 北美机房
      */
     public static final Zone zoneNa0 = new FixedZone(new String[]{"upload-na0.qiniup.com", "up-na0.qiniup.com"},
             new String[]{"upload-na0.qbox.me", "up-na0.qbox.me"},
-            new String[]{"iovip-na0.qbox.me"});
+            "na0");
 
     /**
      * 新加坡机房
      */
     public static final Zone zoneAs0 = new FixedZone(new String[]{"upload-as0.qiniup.com", "up-as0.qiniup.com"},
             new String[]{"upload-as0.qbox.me", "up-as0.qbox.me"},
-            new String[]{"iovip-as0.qbox.me"});
+            "as0");
 
     private ZonesInfo zonesInfo;
 
@@ -81,32 +82,28 @@ public final class FixedZone extends Zone {
         this(upDomains, null);
     }
 
-    public FixedZone(String[] upDomains, String[] ioDomains) {
-        this(upDomains, null, ioDomains);
+    public FixedZone(String[] upDomains, String regionId) {
+        this(upDomains, null, regionId);
     }
 
-    private FixedZone(String[] upDomains, String[] oldUpDomains, String[] ioDomains) {
-        this.zonesInfo = createZonesInfo(upDomains, oldUpDomains, ioDomains);
+    private FixedZone(String[] upDomains, String[] oldUpDomains, String regionId) {
+        this.zonesInfo = createZonesInfo(upDomains, oldUpDomains, regionId);
     }
 
     private ZonesInfo createZonesInfo(String[] upDomains,
                                       String[] oldUpDomains,
-                                      String[] ioDomains) {
+                                      String regionId) {
 
         if (upDomains == null || upDomains.length == 0) {
             return null;
         }
 
-        ArrayList<String> upDomainsList = new ArrayList<String>(Arrays.asList(upDomains));
-        ArrayList<String> oldUpDomainsList = null;
+        List<String> upDomainsList = new ArrayList<String>(Arrays.asList(upDomains));
+        List<String> oldUpDomainsList = null;
         if (oldUpDomains != null){
             oldUpDomainsList = new ArrayList<String>(Arrays.asList(oldUpDomains));
         }
-        ArrayList<String> ioDomainsList = null;
-        if (ioDomains != null){
-            ioDomainsList = new ArrayList<String>(Arrays.asList(ioDomains));
-        }
-        ZoneInfo zoneInfo = ZoneInfo.buildInfo(upDomainsList, oldUpDomainsList, ioDomainsList);
+        ZoneInfo zoneInfo = ZoneInfo.buildInfo(upDomainsList, oldUpDomainsList, regionId);
         if (zoneInfo == null) {
             return null;
         }
