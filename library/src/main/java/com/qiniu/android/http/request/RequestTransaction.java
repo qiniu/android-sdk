@@ -342,7 +342,6 @@ public class RequestTransaction {
         header.put("Authorization", token);
         header.put("Content-Type", "text/plain");
         header.put("User-Agent", userAgent);
-        header.put("Content-Encoding", "gzip");
 
         if (logClientId != null){
             header.put("X-Log-Client-Id", logClientId);
@@ -354,7 +353,7 @@ public class RequestTransaction {
                 return !responseInfo.isOK();
             }
         };
-        regionRequest.post("/log/4", isAsync, GZipUtil.gZip(logData), header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
+        regionRequest.post("/log/4?compressed=gzip", isAsync, GZipUtil.gZip(logData), header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 completeHandler.complete(responseInfo, requestMetrics, response);
