@@ -4,6 +4,7 @@ import com.qiniu.android.http.UserAgent;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.GZipUtil;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -286,13 +287,17 @@ public final class UploadInfoCollector {
             return null;
         }
 
-        long length = recordFile.length();
         RandomAccessFile randomAccessFile = null;
         byte[] data = null;
         try {
             randomAccessFile = new RandomAccessFile(recordFile, "r");
-            data = new byte[(int)length];
-            randomAccessFile.read(data);
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            int len = 0;
+            byte[] buff = new byte[3096];
+            while ((len = randomAccessFile.read(buff)) >= 0){
+                out.write(buff, 0, len);
+            }
+            data = out.toByteArray();
         } catch (FileNotFoundException ignored) {
         } catch (IOException e) {
             data = null;
