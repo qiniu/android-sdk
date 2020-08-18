@@ -11,6 +11,7 @@ import com.qiniu.android.utils.LogUtil;
 
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -191,13 +192,18 @@ public class UploadInfoReporter {
             return null;
         }
 
-        long length = recorderTempFile.length();
         RandomAccessFile randomAccessFile = null;
         byte[] data = null;
         try {
+            int defaultSize = 3096;
             randomAccessFile = new RandomAccessFile(recorderTempFile, "r");
-            data = new byte[(int)length];
-            randomAccessFile.read(data);
+            ByteArrayOutputStream out = new ByteArrayOutputStream(defaultSize);
+            int len = 0;
+            byte[] buff = new byte[defaultSize];
+            while ((len = randomAccessFile.read(buff)) >= 0){
+                out.write(buff, 0, len);
+            }
+            data = out.toByteArray();
         } catch (FileNotFoundException ignored) {
         } catch (IOException e) {
             data = null;
