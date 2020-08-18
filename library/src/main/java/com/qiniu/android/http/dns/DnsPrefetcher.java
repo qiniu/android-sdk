@@ -321,9 +321,11 @@ public class DnsPrefetcher {
 
         ZonesInfo autoZonesInfo = currentZone.getZonesInfo(token);
         ArrayList<String> autoHosts = new ArrayList<>();
-        for (ZoneInfo zoneInfo : autoZonesInfo.zonesInfo) {
-            if (zoneInfo != null && zoneInfo.allHosts != null){
-                autoHosts.addAll(zoneInfo.allHosts);
+        if (autoZonesInfo != null && autoZonesInfo.zonesInfo != null && autoZonesInfo.zonesInfo.size() > 0) {
+            for (ZoneInfo zoneInfo : autoZonesInfo.zonesInfo) {
+                if (zoneInfo != null && zoneInfo.allHosts != null) {
+                    autoHosts.addAll(zoneInfo.allHosts);
+                }
             }
         }
         return autoHosts.toArray(new String[0]);

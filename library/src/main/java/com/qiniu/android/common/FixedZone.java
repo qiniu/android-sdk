@@ -109,6 +109,7 @@ public final class FixedZone extends Zone {
         }
         ArrayList<ZoneInfo> zoneInfoList = new ArrayList<ZoneInfo>();
         zoneInfoList.add(zoneInfo);
+
         return new ZonesInfo(zoneInfoList);
     }
 
