@@ -29,6 +29,10 @@ public class DnsCacheFile implements Recorder {
                 throw new IOException("mkdir failed");
             }
         }
+
+        if (!f.isDirectory()) {
+            throw new IOException("does not mkdir");
+        }
     }
 
     /**

@@ -70,7 +70,7 @@ public class AsynTest extends BaseTest {
                         @Override
                         public void run() {
 
-                            if (Thread.currentThread().getName().equals("main")){
+                            if (Thread.currentThread() == Looper.getMainLooper().getThread()){
                                 testParam.successCount += 1;
                             }
 
@@ -112,7 +112,7 @@ public class AsynTest extends BaseTest {
                 @Override
                 public void run() {
                     String threadName = Thread.currentThread().getName();
-                    if (!threadName.equals("main")){
+                    if (Thread.currentThread() != Looper.getMainLooper().getThread()){
                         synchronized (this){
                             testParam.successCount += 1;
                         }
