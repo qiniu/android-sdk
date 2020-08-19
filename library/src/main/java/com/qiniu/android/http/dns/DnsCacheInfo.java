@@ -20,12 +20,16 @@ public class DnsCacheInfo implements java.io.Serializable {
     public String localIp;
     public ConcurrentHashMap<String, List<IDnsNetworkAddress>> info;
 
-    public static DnsCacheInfo createDnsCacheInfoByJsonData(byte[] jsonData) {
+    public static DnsCacheInfo createDnsCacheInfoByData(byte[] jsonData) {
         if (jsonData == null){
             return null;
         }
-        DnsCacheInfo dnsCacheInfo = (DnsCacheInfo)StringUtils.toObject(jsonData);
-        return dnsCacheInfo;
+        Object dnsCacheInfo = StringUtils.toObject(jsonData);
+        if (dnsCacheInfo instanceof DnsCacheInfo){
+            return (DnsCacheInfo)dnsCacheInfo;
+        } else {
+            return null;
+        }
     }
 
     public DnsCacheInfo() {
