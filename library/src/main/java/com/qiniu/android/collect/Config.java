@@ -78,7 +78,7 @@ public final class Config {
     /**
      * dns缓存信息目录
      */
-    public static String dnscacheDir = ContextGetter.applicationContext().getCacheDir().getAbsolutePath() + "/qiniu/dnsCache/";
+    public static String dnscacheDir = ContextGetter.applicationContext().getCacheDir().getAbsolutePath() + "/dnsCache/";
 
     /**
      * preQuery host
