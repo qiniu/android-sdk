@@ -22,9 +22,7 @@ public class DnsCacheFile implements Recorder {
 
         this.directory = directory;
         f = new File(directory);
-        if (!f.isDirectory()) {
-            throw new IOException("does not mkdir");
-        }
+
         if (!f.exists()) {
             boolean r = f.mkdirs();
             if (!r) {
