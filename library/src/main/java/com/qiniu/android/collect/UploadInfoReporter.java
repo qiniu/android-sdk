@@ -192,14 +192,14 @@ public class UploadInfoReporter {
             return null;
         }
 
+        int fileSize = (int)recorderTempFile.length();
         RandomAccessFile randomAccessFile = null;
         byte[] data = null;
         try {
-            int defaultSize = 3096;
             randomAccessFile = new RandomAccessFile(recorderTempFile, "r");
-            ByteArrayOutputStream out = new ByteArrayOutputStream(defaultSize);
+            ByteArrayOutputStream out = new ByteArrayOutputStream(fileSize);
             int len = 0;
-            byte[] buff = new byte[defaultSize];
+            byte[] buff = new byte[fileSize];
             while ((len = randomAccessFile.read(buff)) >= 0){
                 out.write(buff, 0, len);
             }
