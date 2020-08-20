@@ -287,13 +287,14 @@ public final class UploadInfoCollector {
             return null;
         }
 
+        int fileSize = (int)recordFile.length();
         RandomAccessFile randomAccessFile = null;
         byte[] data = null;
         try {
             randomAccessFile = new RandomAccessFile(recordFile, "r");
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ByteArrayOutputStream out = new ByteArrayOutputStream(fileSize);
             int len = 0;
-            byte[] buff = new byte[3096];
+            byte[] buff = new byte[fileSize];
             while ((len = randomAccessFile.read(buff)) >= 0){
                 out.write(buff, 0, len);
             }
