@@ -302,11 +302,13 @@ public final class UploadInfoCollector {
         } catch (FileNotFoundException ignored) {
         } catch (IOException e) {
             data = null;
-        }
-        if (randomAccessFile != null){
-            try {
-                randomAccessFile.close();
-            } catch (IOException e){}
+        } finally {
+            if (randomAccessFile != null) {
+                try {
+                    randomAccessFile.close();
+                } catch (IOException e) {
+                }
+            }
         }
         return data;
     }
