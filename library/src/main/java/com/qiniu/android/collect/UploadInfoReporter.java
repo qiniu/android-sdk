@@ -207,12 +207,14 @@ public class UploadInfoReporter {
         } catch (FileNotFoundException ignored) {
         } catch (IOException e) {
             data = null;
+        } finally {
+            if (randomAccessFile != null){
+                try {
+                    randomAccessFile.close();
+                } catch (IOException e){}
+            }
         }
-        if (randomAccessFile != null){
-            try {
-                randomAccessFile.close();
-            } catch (IOException e){}
-        }
+
         return data;
     }
 
