@@ -85,10 +85,7 @@ public final class AutoZone extends Zone {
     private RequestTransaction createUploadRequestTransaction(UpToken token){
         List<String> hosts = getUcServerList();
 
-        ArrayList<String> ioHosts = new ArrayList<>();
-        ioHosts.add(ZoneInfo.SDKDefaultIOHost);
-
-        RequestTransaction transaction = new RequestTransaction(hosts, ioHosts, token);
+        RequestTransaction transaction = new RequestTransaction(hosts, ZoneInfo.EmptyRegionId, token);
         transactions.add(transaction);
         return transaction;
     }
