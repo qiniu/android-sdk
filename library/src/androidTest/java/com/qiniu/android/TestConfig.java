@@ -22,7 +22,6 @@ public final class TestConfig {
     public static final String token_na0 = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW:b46IRIripBu1p2dV1VVBvqM9au4=:eyJzY29wZSI6InNkay1uYTAiLCJkZWFkbGluZSI6MTYwNjQ2MDAzOH0=";
     public static final String ak = "bjtWBQXrcxgo7HWwlC_bgHg81j352_GhgBGZPeOW";
 
-
     //测试通用的token
     public static final String commonToken = token_na0;
 
