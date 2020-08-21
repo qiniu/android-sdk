@@ -262,7 +262,7 @@ public class DnsPrefetcher {
         if (!config.useHttps) {
             schema = "http://";
         }
-        String address = schema + Config.preQueryHost + "/v2/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
+        String address = schema + Config.preQueryHost + "/v4/query?ak=" + index.accessKey + "&bucket=" + index.bucket;
 
         LogHandler logHandler = UploadInfoElementCollector.getUplogHandler(UploadInfo.getReqInfo());
         logHandler.send("up_type", "uc_query");

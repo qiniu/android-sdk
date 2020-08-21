@@ -35,35 +35,35 @@ public class ZoneInfo {
      * @throws JSONException
      */
     public static ZoneInfo buildFromJson(JSONObject obj) throws JSONException {
-        int ttl = obj.getInt("ttl");
+
         List<String> domainsList = new ArrayList<>();
         ConcurrentHashMap<String, Long> domainsMap = new ConcurrentHashMap<>();
-        JSONObject upObj = obj.getJSONObject("up");
 
-        String[] upDomainTags = new String[]{"acc", "src", "old_acc", "old_src"};
+        JSONArray hostsJson = obj.optJSONArray("hosts");
+
+        if (hostsJson == null || hostsJson.length() == 0){
+            return new ZoneInfo(0, domainsList, domainsMap);
+        }
+
+        JSONObject regionJson = hostsJson.optJSONObject(0);
+
+        int ttl = regionJson.optInt("ttl");
+        JSONObject upObj = regionJson.optJSONObject("up");
+
+        String[] upDomainTags = new String[]{"domains", "old"};
         for (String tag : upDomainTags) {
-            JSONObject tagRootObj = upObj.getJSONObject(tag);
-            JSONArray tagMainObj = tagRootObj.getJSONArray("main");
-            for (int i = 0; i < tagMainObj.length(); i++) {
-                String upDomain = tagMainObj.getString(i);
-                domainsList.add(upDomain);
-                domainsMap.put(upDomain, 0L);
-            }
-
-            try {
-                JSONArray tagBackupObj = tagRootObj.getJSONArray("backup");
-                if (tagBackupObj != null) {
-                    //this backup tag is optional
-                    for (int i = 0; i < tagBackupObj.length(); i++) {
-                        String upHost = tagBackupObj.getString(i);
-                        domainsList.add(upHost);
-                        domainsMap.put(upHost, 0L);
+            JSONArray tagObjects = upObj.optJSONArray(tag);
+            if (tagObjects != null && tagObjects.length() > 0){
+                for (int i = 0; i < tagObjects.length(); i++) {
+                    String upDomain = tagObjects.optString(i);
+                    if (upDomain != null && upDomain.length() > 0){
+                        domainsList.add(upDomain);
+                        domainsMap.put(upDomain, 0L);
                     }
                 }
-            } catch (JSONException ex) {
-                //some zone has not backup domain, just ignore here
             }
         }
+
         return new ZoneInfo(ttl, domainsList, domainsMap);
     }
 
