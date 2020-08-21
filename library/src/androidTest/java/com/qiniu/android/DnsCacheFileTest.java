@@ -10,7 +10,7 @@ public class DnsCacheFileTest extends BaseTest {
 
     public void testCreate(){
         try {
-            DnsCacheFile file = new DnsCacheFile("");
+            DnsCacheFile file = new DnsCacheFile(null);
             if (file != null){
                 assertTrue(false);
             }
