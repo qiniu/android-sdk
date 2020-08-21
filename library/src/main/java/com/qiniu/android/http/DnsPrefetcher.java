@@ -357,7 +357,14 @@ public class DnsPrefetcher {
         if (data == null)
             return true;
 
-        DnsCacheInfo cacheInfo = (DnsCacheInfo) StringUtils.toObject(data);
+        DnsCacheInfo cacheInfo = null;
+        Object cacheInfoObject = StringUtils.toObject(data);
+        if (cacheInfoObject instanceof DnsCacheInfo){
+            cacheInfo = (DnsCacheInfo) StringUtils.toObject(data);
+        } else {
+            recorder.del(localIP);
+        }
+
         if (cacheInfo == null)
             return true;
 
@@ -411,7 +418,8 @@ public class DnsPrefetcher {
         }
         if (dnsPrefetcher != null) {
             ConcurrentHashMap<String, List<InetAddress>> concurrentHashMap = dnsPrefetcher.getConcurrentHashMap();
-            byte[] dnscache = StringUtils.toByteArray(concurrentHashMap);
+            dnsCacheInfo.info = concurrentHashMap;
+            byte[] dnscache = StringUtils.toByteArray(dnsCacheInfo);
             if (dnscache == null)
                 return;
             recorder.set(cacheKey, dnscache);
