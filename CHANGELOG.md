@@ -1,4 +1,5 @@
 #Changelog
+
 ## 8.0.0 (2020-08-06)
 ## 重构
 8.0.0版本相对于7.x版本的改进：
@@ -17,6 +18,15 @@
 
 详细情况请参考：[Android_Changes_from_7.x_to_8.0.0.md](./doc/Android_Changes_from_7.x_to_8.0.0.md)
 
+# 7.7.0
+* 压缩上报的日志内容
+* 获取AutoZone信息接口升级至v4
+
+# 7.6.7
+* 修复创建dns缓存文件失败问题
+
+# 7.6.6
+* 修复部分空指针异常
 
 # 7.6.5
 * 优化Dns local cache
