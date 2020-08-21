@@ -16,6 +16,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 | Qiniu SDK 版本 | 最低 Android版本   |       依赖库版本           | 
 |------------ |-----------------|------------------------|
 |  8.0.x        |  Android 5.0+     |        okhttp 4+         |
+|  7.7.x        |  Android 5.0+     |        okhttp 4+         |
 |  7.6.x        |  Android 5.0+     |        okhttp 4+         |
 |  7.5.x        |  Android 5.0+     |        okhttp 4+         |
 |  7.4.6        |  Android 4.0+     |        okhttp 3.12.6     |
