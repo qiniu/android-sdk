@@ -41,38 +41,18 @@ public class UploadDomainRegion implements IUploadRegion {
 
         isAllFrozen = false;
         ArrayList<String> domainHostList = new ArrayList<>();
-        ArrayList<ZoneInfo.UploadServerGroup> serverGroups = new ArrayList<>();
-        if (zoneInfo.acc != null){
-            serverGroups.add(zoneInfo.acc);
-            if (zoneInfo.acc.allHosts != null){
-                domainHostList.addAll(zoneInfo.acc.allHosts);
-            }
-        }
-        if (zoneInfo.src != null){
-            serverGroups.add(zoneInfo.src);
-            if (zoneInfo.src.allHosts != null){
-                domainHostList.addAll(zoneInfo.src.allHosts);
-            }
+        if (zoneInfo.domains != null){
+            domainHostList.addAll(zoneInfo.domains);
         }
         this.domainHostList = domainHostList;
-        domainHashMap = createDomainDictionary(serverGroups);
+        this.domainHashMap = createDomainDictionary(domainHostList);
 
         ArrayList<String> oldDomainHostList = new ArrayList<>();
-        serverGroups = new ArrayList<>();
-        if (zoneInfo.old_acc != null){
-            serverGroups.add(zoneInfo.old_acc);
-            if (zoneInfo.old_acc.allHosts != null){
-                oldDomainHostList.addAll(zoneInfo.old_acc.allHosts);
-            }
+        if (zoneInfo.old_domains != null){
+            oldDomainHostList.addAll(zoneInfo.old_domains);
         }
-        if (zoneInfo.old_src != null){
-            serverGroups.add(zoneInfo.old_src);
-            if (zoneInfo.old_src.allHosts != null){
-                oldDomainHostList.addAll(zoneInfo.old_src.allHosts);
-            }
-        }
-        this.oldDomainHostList = oldDomainHostList;
-        oldDomainHashMap = createDomainDictionary(serverGroups);
+        this.oldDomainHostList = domainHostList;
+        this.oldDomainHashMap = createDomainDictionary(domainHostList);
     }
 
     @Override
@@ -112,15 +92,12 @@ public class UploadDomainRegion implements IUploadRegion {
         return server;
     }
 
-    private HashMap<String, UploadServerDomain> createDomainDictionary(ArrayList<ZoneInfo.UploadServerGroup> serverGroups){
+    private HashMap<String, UploadServerDomain> createDomainDictionary(List<String> hosts){
         HashMap<String, UploadServerDomain> domainHashMap = new HashMap<>();
-        for (int i = 0; i < serverGroups.size(); i++) {
-            ZoneInfo.UploadServerGroup serverGroup = serverGroups.get(i);
-            for (int j = 0; j < serverGroup.allHosts.size(); j++){
-                String host = serverGroup.allHosts.get(j);
-                UploadServerDomain domain = new UploadServerDomain(host);
-                domainHashMap.put(host, domain);
-            }
+        for (int i = 0; i < hosts.size(); i++) {
+            String host = hosts.get(i);
+            UploadServerDomain domain = new UploadServerDomain(host);
+            domainHashMap.put(host, domain);
         }
         return  domainHashMap;
     }

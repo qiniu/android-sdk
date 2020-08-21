@@ -229,10 +229,7 @@ public class UploadInfoReporter {
         ArrayList<String> hosts = new ArrayList<>();
         hosts.add(config.serverURL);
 
-        ArrayList<String> ioHosts = new ArrayList<>();
-        ioHosts.add(ZoneInfo.SDKDefaultIOHost);
-
-        transaction = new RequestTransaction(hosts, ioHosts, token);
+        transaction = new RequestTransaction(hosts, ZoneInfo.EmptyRegionId, token);
         return transaction;
     }
 

@@ -44,20 +44,20 @@ public class RequestTransaction {
     }
 
     public RequestTransaction(List<String> hosts,
-                              List<String> ioHosts,
+                              String regionId,
                               UpToken token){
-        this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, ioHosts, null, token);
+        this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, regionId, null, token);
     }
 
     public RequestTransaction(Configuration config,
                               UploadOptions uploadOption,
                               List<String> hosts,
-                              List<String> ioHosts,
+                              String regionId,
                               String key,
                               UpToken token){
         this(config, uploadOption, key, token);
         IUploadRegion region = new UploadDomainRegion();
-        region.setupRegionData(ZoneInfo.buildInfo(hosts, ioHosts));
+        region.setupRegionData(ZoneInfo.buildInfo(hosts, regionId));
         this.initData(region, region);
     }
 
@@ -107,7 +107,7 @@ public class RequestTransaction {
 
         HashMap<String, String> header = new HashMap<>();
         header.put("User-Agent", userAgent);
-        String action = "/v3/query?ak=" + (token.accessKey != null ? token.accessKey : "") + "&bucket=" + (token.bucket != null ? token.bucket : "") ;
+        String action = "/v4/query?ak=" + (token.accessKey != null ? token.accessKey : "") + "&bucket=" + (token.bucket != null ? token.bucket : "") ;
         regionRequest.get(action, isAsync, header, shouldRetryHandler, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
