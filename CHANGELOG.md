@@ -18,10 +18,6 @@
 
 详细情况请参考：[Android_Changes_from_7.x_to_8.0.0.md](./doc/Android_Changes_from_7.x_to_8.0.0.md)
 
-# 7.7.0
-* 压缩上报的日志内容
-* 获取AutoZone信息接口升级至v4
-
 # 7.6.7
 * 修复创建dns缓存文件失败问题
 
