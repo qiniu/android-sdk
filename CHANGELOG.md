@@ -10,7 +10,7 @@
 
 8.0.0版本是在7.x版本基础上，在保证上传接口不变的条件下进行的升级，代码修改信息如下：
 - 增加的内部使用类：GlobalConfiguration(dns配置类)、HttpRegionRequest、UploadRequestState等
-- 废弃类：HttpResponseInfo、UploadInfoReporter
+- 废弃类：UploadInfoReporter
 - 修改了一些7.x内部使用类的API
 - UploadManager上传接口进行了少量调整
 
