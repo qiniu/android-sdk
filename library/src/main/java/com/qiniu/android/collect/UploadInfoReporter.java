@@ -113,9 +113,7 @@ public class UploadInfoReporter {
                 return;
             }
         }
-
-        LogUtil.d("=== log: \r\n" + jsonString);
-
+        
         if (recorderFile.length() > config.maxRecordFileSize){
             return;
         }
