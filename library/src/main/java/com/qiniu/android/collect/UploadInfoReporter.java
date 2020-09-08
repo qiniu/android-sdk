@@ -113,7 +113,7 @@ public class UploadInfoReporter {
                 return;
             }
         }
-
+        
         if (recorderFile.length() > config.maxRecordFileSize){
             return;
         }

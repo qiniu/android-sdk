@@ -1,4 +1,6 @@
 #Changelog
+## 8.0.1 (2020-09-08)
+* 修复日志统计问题 
 
 ## 8.0.0 (2020-08-06)
 ## 重构
@@ -10,13 +12,17 @@
 
 8.0.0版本是在7.x版本基础上，在保证上传接口不变的条件下进行的升级，代码修改信息如下：
 - 增加的内部使用类：GlobalConfiguration(dns配置类)、HttpRegionRequest、UploadRequestState等
-- 废弃类：UploadInfoReporter
+- 废弃类：HttpResponseInfo、UploadInfoReporter
 - 修改了一些7.x内部使用类的API
 - UploadManager上传接口进行了少量调整
 
 如果您并未对7.x SDK 进行过深度定制，而是直接对接QNUploadManager进行上传，那么SDK版本升级只需要花费几分钟的时间进行即可。
 
 详细情况请参考：[Android_Changes_from_7.x_to_8.0.0.md](./doc/Android_Changes_from_7.x_to_8.0.0.md)
+
+# 7.7.0
+* 压缩上报的日志内容
+* 获取AutoZone信息接口升级至v4
 
 # 7.6.7
 * 修复创建dns缓存文件失败问题

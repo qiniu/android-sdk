@@ -20,7 +20,6 @@ import com.qiniu.android.utils.Utils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -34,7 +33,7 @@ public class RequestTransaction {
     private final String userAgent;
 
     private UploadRequestInfo requestInfo;
-    private UploadRequestState requstState;
+    private UploadRequestState requestState;
     private HttpRegionRequest regionRequest;
 
 
@@ -85,12 +84,13 @@ public class RequestTransaction {
     private void initData(IUploadRegion targetRegion,
                           IUploadRegion currentRegion){
 
-        this.requstState = new UploadRequestState();
+        this.requestState = new UploadRequestState();
         this.requestInfo = new UploadRequestInfo();
         this.requestInfo.targetRegionId = targetRegion.getZoneInfo().getRegionId();
         this.requestInfo.currentRegionId = currentRegion.getZoneInfo().getRegionId();
         this.requestInfo.bucket = token.bucket;
-        this.regionRequest = new HttpRegionRequest(config, uploadOption, token, currentRegion, this.requestInfo, this.requstState);
+        this.requestInfo.key = this.key;
+        this.regionRequest = new HttpRegionRequest(config, uploadOption, token, currentRegion, this.requestInfo, this.requestState);
     }
 
 
