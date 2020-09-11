@@ -123,6 +123,8 @@ public class ReportItem {
             errorType = "network_error";
         } else if (responseInfo.statusCode == ResponseInfo.TimedOut){
             errorType = "timeout";
+        } else if (responseInfo.statusCode == ResponseInfo.UnknownHost){
+            errorType = "unknown_host";
         } else if (responseInfo.statusCode == ResponseInfo.CannotConnectToHost){
             errorType = "cannot_connect_to_host";
         } else if (responseInfo.statusCode == ResponseInfo.NetworkConnectionLost){

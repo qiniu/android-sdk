@@ -333,12 +333,15 @@ public class UploadManager {
 
         reportQuality(responseInfo, taskMetrics, token);
         if (completionHandler != null){
+            final Wait wait = new Wait();
             AsyncRun.runInMain(new Runnable() {
                 @Override
                 public void run() {
                     completionHandler.complete(key, responseInfo, response);
+                    wait.stopWait();
                 }
             });
+            wait.startWait();
         }
     }
 

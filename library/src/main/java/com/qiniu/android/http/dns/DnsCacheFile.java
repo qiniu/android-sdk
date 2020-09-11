@@ -16,15 +16,20 @@ public class DnsCacheFile implements Recorder {
     public File f;
 
     public DnsCacheFile(String directory) throws IOException {
+        if (directory == null) {
+            throw new IOException("directory invalid");
+        }
+
         this.directory = directory;
         f = new File(directory);
-        if (!f.isDirectory() || !f.exists()) {
+
+        if (!f.exists()) {
             boolean r = f.mkdirs();
             if (!r) {
                 throw new IOException("mkdir failed");
             }
-            return;
         }
+
         if (!f.isDirectory()) {
             throw new IOException("does not mkdir");
         }

@@ -11,6 +11,7 @@ import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.Crc32;
+import com.qiniu.android.utils.GZipUtil;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.UrlSafeBase64;
@@ -19,7 +20,6 @@ import com.qiniu.android.utils.Utils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -33,7 +33,7 @@ public class RequestTransaction {
     private final String userAgent;
 
     private UploadRequestInfo requestInfo;
-    private UploadRequestState requstState;
+    private UploadRequestState requestState;
     private HttpRegionRequest regionRequest;
 
 
@@ -43,20 +43,20 @@ public class RequestTransaction {
     }
 
     public RequestTransaction(List<String> hosts,
-                              List<String> ioHosts,
+                              String regionId,
                               UpToken token){
-        this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, ioHosts, null, token);
+        this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, regionId, null, token);
     }
 
     public RequestTransaction(Configuration config,
                               UploadOptions uploadOption,
                               List<String> hosts,
-                              List<String> ioHosts,
+                              String regionId,
                               String key,
                               UpToken token){
         this(config, uploadOption, key, token);
         IUploadRegion region = new UploadDomainRegion();
-        region.setupRegionData(ZoneInfo.buildInfo(hosts, ioHosts));
+        region.setupRegionData(ZoneInfo.buildInfo(hosts, regionId));
         this.initData(region, region);
     }
 
@@ -84,12 +84,13 @@ public class RequestTransaction {
     private void initData(IUploadRegion targetRegion,
                           IUploadRegion currentRegion){
 
-        this.requstState = new UploadRequestState();
+        this.requestState = new UploadRequestState();
         this.requestInfo = new UploadRequestInfo();
         this.requestInfo.targetRegionId = targetRegion.getZoneInfo().getRegionId();
         this.requestInfo.currentRegionId = currentRegion.getZoneInfo().getRegionId();
         this.requestInfo.bucket = token.bucket;
-        this.regionRequest = new HttpRegionRequest(config, uploadOption, token, currentRegion, this.requestInfo, this.requstState);
+        this.requestInfo.key = this.key;
+        this.regionRequest = new HttpRegionRequest(config, uploadOption, token, currentRegion, this.requestInfo, this.requestState);
     }
 
 
@@ -106,7 +107,7 @@ public class RequestTransaction {
 
         HashMap<String, String> header = new HashMap<>();
         header.put("User-Agent", userAgent);
-        String action = "/v3/query?ak=" + (token.accessKey != null ? token.accessKey : "") + "&bucket=" + (token.bucket != null ? token.bucket : "") ;
+        String action = "/v4/query?ak=" + (token.accessKey != null ? token.accessKey : "") + "&bucket=" + (token.bucket != null ? token.bucket : "") ;
         regionRequest.get(action, isAsync, header, shouldRetryHandler, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
@@ -352,7 +353,7 @@ public class RequestTransaction {
                 return !responseInfo.isOK();
             }
         };
-        regionRequest.post("/log/4", isAsync, logData, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
+        regionRequest.post("/log/4?compressed=gzip", isAsync, GZipUtil.gZip(logData), header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 completeHandler.complete(responseInfo, requestMetrics, response);
