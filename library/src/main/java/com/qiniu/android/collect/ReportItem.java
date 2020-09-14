@@ -106,11 +106,7 @@ public class ReportItem {
 
 
     public static String requestReportStatusCode(ResponseInfo responseInfo){
-        if (responseInfo.statusCode > -10 && responseInfo.statusCode < 0) {
-            return String.format("%d", responseInfo.statusCode);
-        } else {
-            return null;
-        }
+        return String.format("%d", responseInfo.statusCode);
     }
 
     public static String requestReportErrorType(ResponseInfo responseInfo){
