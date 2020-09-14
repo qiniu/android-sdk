@@ -144,7 +144,7 @@ public class UploadInfoReporter {
         if (recorderTempFile.exists()){
             needToReport = true;
         } else if ((recorderFile.length() > config.uploadThreshold)
-             && (lastReportTime == 0 || (currentTime - lastReportTime) > config.interval * 60)){
+             || (lastReportTime == 0 || (currentTime - lastReportTime) > config.interval * 60)){
             boolean isSuccess = recorderFile.renameTo(recorderTempFile);
             if (isSuccess) {
                 needToReport = true;
