@@ -106,10 +106,18 @@ public class ReportItem {
 
 
     public static String requestReportStatusCode(ResponseInfo responseInfo){
-        return String.format("%d", responseInfo.statusCode);
+        if (responseInfo == null){
+            return null;
+        } else {
+            return String.format("%d", responseInfo.statusCode);
+        }
     }
 
     public static String requestReportErrorType(ResponseInfo responseInfo){
+        if (responseInfo == null){
+            return "unknown_error";
+        }
+
         String errorType = null;
         if (responseInfo.statusCode > 199 && responseInfo.statusCode < 300) {
 
@@ -146,6 +154,9 @@ public class ReportItem {
     }
 
     public static String qualityResult(ResponseInfo responseInfo){
+        if (responseInfo == null){
+            return "unknown_error";
+        }
 
         String result = null;
 
