@@ -29,7 +29,7 @@ public class UploadReportItemTest extends BaseTest {
         assertTrue(ReportItem.requestReportStatusCode(responseInfo) != null);
 
         responseInfo = createResponseInfo(200);
-        assertTrue(ReportItem.requestReportStatusCode(responseInfo) == null);
+        assertTrue(ReportItem.requestReportStatusCode(responseInfo).equals("200"));
     }
 
     public void testReportErrorType(){

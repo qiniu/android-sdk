@@ -162,7 +162,7 @@ class HttpSingleRequest {
         item.setReport(ReportItem.LogTypeRequest, ReportItem.RequestKeyLogType);
         item.setReport((currentTimestamp/1000), ReportItem.RequestKeyUpTime);
         item.setReport(ReportItem.requestReportStatusCode(responseInfo), ReportItem.RequestKeyStatusCode);
-        item.setReport(responseInfo.reqId, ReportItem.RequestKeyRequestId);
+        item.setReport(responseInfo != null ? responseInfo.reqId : null, ReportItem.RequestKeyRequestId);
         item.setReport(requestMetricsP.request.host, ReportItem.RequestKeyHost);
         item.setReport(requestMetricsP.remoteAddress, ReportItem.RequestKeyRemoteIp);
         item.setReport(requestMetricsP.remotePort, ReportItem.RequestKeyPort);
@@ -186,7 +186,7 @@ class HttpSingleRequest {
         String errorType = ReportItem.requestReportErrorType(responseInfo);
         item.setReport(errorType, ReportItem.RequestKeyErrorType);
         String errorDesc = null;
-        if (errorType != null){
+        if (responseInfo != null && errorType != null){
             errorDesc = responseInfo.error != null ? responseInfo.error : responseInfo.message;
         }
         item.setReport(errorDesc, ReportItem.RequestKeyErrorDescription);
