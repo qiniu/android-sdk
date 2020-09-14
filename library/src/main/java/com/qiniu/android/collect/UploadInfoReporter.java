@@ -165,7 +165,7 @@ public class UploadInfoReporter {
         }
 
         byte[] logData = getLogData();
-        if (logData == null && logData.length == 9){
+        if (logData == null && logData.length == 0){
             return;
         }
 
