@@ -121,7 +121,7 @@ public class ReportItem {
         String errorType = null;
         if (responseInfo.statusCode > 199 && responseInfo.statusCode < 300) {
 
-        } else if (responseInfo.statusCode > 299 && responseInfo.statusCode < 600){
+        } else if (responseInfo.statusCode > 299){
             errorType = "response_error";
         } else if (responseInfo.statusCode == ResponseInfo.NetworkError){
             errorType = "network_error";
@@ -162,7 +162,10 @@ public class ReportItem {
 
         if (responseInfo.statusCode > 199 && responseInfo.statusCode < 300) {
             result = "ok";
-        } else if (responseInfo.statusCode > 399 && responseInfo.statusCode < 500) {
+        } else if (responseInfo.statusCode > 399 &&
+                    (responseInfo.statusCode < 500 || responseInfo.statusCode == 573 || responseInfo.statusCode == 579 ||
+                     responseInfo.statusCode == 608 || responseInfo.statusCode == 612 || responseInfo.statusCode == 614 || responseInfo.statusCode == 630 || responseInfo.statusCode == 631 ||
+                     responseInfo.statusCode == 701)) {
             result = "bad_request";
         } else if (responseInfo.statusCode == ResponseInfo.ZeroSizeFile){
             result = "zero_size_file";
