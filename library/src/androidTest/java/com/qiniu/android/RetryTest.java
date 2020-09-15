@@ -37,7 +37,7 @@ public class RetryTest extends BaseTest {
                 public void run() {
 
                     try {
-                        template((i_p + 1), new CompleteHandler() {
+                        template((i_p + 1), true, new CompleteHandler() {
                             @Override
                             public void complete(boolean isSuccess) {
 
@@ -77,20 +77,85 @@ public class RetryTest extends BaseTest {
         assertTrue((param.completeCount == param.successCount));
     }
 
-    private void template(int size, final CompleteHandler completeHandler) throws Throwable{
+    public void testUploadError(){
+        final TestParam param = new TestParam();
+        param.count = 10;
+
+        for (int i = 0; i < param.count; i++) {
+
+            final int i_p = i;
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+
+                    try {
+                        template((i_p + 1), false, new CompleteHandler() {
+                            @Override
+                            public void complete(boolean isSuccess) {
+
+                                synchronized (this){
+                                    if (isSuccess){
+                                        param.successCount += 1;
+                                    }
+                                    param.completeCount += 1;
+                                }
+
+                            }
+                        });
+                    } catch (Throwable ignored) {
+                    }
+
+                }
+            }).start();
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (param.completeCount != param.count){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }, 600 * 10);
+
+        assertTrue((param.successCount == 0));
+    }
+
+    private void template(int size, boolean hasValidHost, final CompleteHandler completeHandler) throws Throwable{
 
         final WaitCondition waitCondition = new WaitCondition();
 
         final String expectKey = "android-retry-" + size + "k";
         final File f = TempFile.createFile(size);
-        String[] s = new String[]{"uptemp01.qbox.me", "uptemp02.qbox.me",
-                "uptemp03.qbox.me", "uptemp04.qbox.me",
-                "uptemp05.qbox.me", "uptemp06.qbox.me",
-                "uptemp07.qbox.me", "uptemp08.qbox.me",
-                "uptemp09.qbox.me", "uptemp10.qbox.me",
-                "uptemp11.qbox.me", "uptemp12.qbox.me",
-                "uptemp13.qbox.me", "uptemp14.qbox.me",
-                "upload.qiniup.com"};
+        String[] s = null;
+        if (hasValidHost){
+            s = new String[]{"uptemp01.qbox.me", "uptemp02.qbox.me",
+                        "uptemp03.qbox.me", "uptemp04.qbox.me",
+                        "uptemp05.qbox.me", "uptemp06.qbox.me",
+                        "uptemp07.qbox.me", "uptemp08.qbox.me",
+                        "uptemp09.qbox.me", "uptemp10.qbox.me",
+                        "uptemp11.qbox.me", "uptemp12.qbox.me",
+                        "uptemp13.qbox.me", "uptemp14.qbox.me",
+                        "upload.qiniup.com"};
+        } else {
+            s = new String[]{"uptemp01.qbox.me", "uptemp02.qbox.me",
+                        "uptemp03.qbox.me", "uptemp04.qbox.me",
+                        "uptemp05.qbox.me", "uptemp06.qbox.me",
+                        "uptemp07.qbox.me", "uptemp08.qbox.me",
+                        "uptemp09.qbox.me", "uptemp10.qbox.me",
+                        "uptemp11.qbox.me", "uptemp12.qbox.me",
+                        "uptemp13.qbox.me", "uptemp14.qbox.me"};
+        }
+
         Zone z = new FixedZone(s);
         Configuration c = new Configuration.Builder()
                 .zone(z).useHttps(true).useConcurrentResumeUpload(false)
