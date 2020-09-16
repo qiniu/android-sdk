@@ -81,8 +81,8 @@ public class UploadReportItemTest extends BaseTest {
         responseInfo = createResponseInfo(ResponseInfo.NetworkSlow);
         assertTrue(ReportItem.qualityResult(responseInfo).equals("network_slow"));
 
-        responseInfo = createResponseInfo(10000);
-        assertTrue(ReportItem.qualityResult(responseInfo).equals("unknown_error"));
+        responseInfo = createResponseInfo(614);
+        assertTrue(ReportItem.qualityResult(responseInfo).equals("bad_request"));
     }
 
 
