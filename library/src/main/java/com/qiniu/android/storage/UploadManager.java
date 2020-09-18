@@ -358,7 +358,7 @@ public class UploadManager {
         item.setReport((Utils.currentTimestamp()/1000), ReportItem.QualityKeyUpTime);
         item.setReport(ReportItem.qualityResult(responseInfo), ReportItem.QualityKeyResult);
         item.setReport(key, ReportItem.QualityKeyTargetKey);
-        item.setReport(upToken.bucket, ReportItem.QualityKeyTargetBucket);
+        item.setReport(upToken != null ? upToken.bucket : null, ReportItem.QualityKeyTargetBucket);
         item.setReport(taskMetricsP.totalElapsedTime(), ReportItem.QualityKeyTotalElapsedTime);
         item.setReport(taskMetricsP.requestCount(), ReportItem.QualityKeyRequestsCount);
         item.setReport(taskMetricsP.regionCount(), ReportItem.QualityKeyRegionsCount);
