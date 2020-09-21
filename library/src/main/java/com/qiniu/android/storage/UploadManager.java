@@ -331,7 +331,7 @@ public class UploadManager {
                                 final UploadTaskMetrics taskMetrics,
                                 final UpCompletionHandler completionHandler){
 
-        reportQuality(responseInfo, taskMetrics, token);
+        reportQuality(key, responseInfo, taskMetrics, token);
         if (completionHandler != null){
             final Wait wait = new Wait();
             AsyncRun.runInMain(new Runnable() {
@@ -345,16 +345,20 @@ public class UploadManager {
         }
     }
 
-    private void reportQuality(ResponseInfo responseInfo,
+    private void reportQuality(String key,
+                               ResponseInfo responseInfo,
                                UploadTaskMetrics taskMetrics,
                                String token){
 
+        UpToken upToken = UpToken.parse(token);
         UploadTaskMetrics taskMetricsP = taskMetrics != null ? taskMetrics : new UploadTaskMetrics(null);
 
         ReportItem item = new ReportItem();
         item.setReport(ReportItem.LogTypeQuality, ReportItem.QualityKeyLogType);
         item.setReport((Utils.currentTimestamp()/1000), ReportItem.QualityKeyUpTime);
         item.setReport(ReportItem.qualityResult(responseInfo), ReportItem.QualityKeyResult);
+        item.setReport(key, ReportItem.QualityKeyTargetKey);
+        item.setReport(upToken != null ? upToken.bucket : null, ReportItem.QualityKeyTargetBucket);
         item.setReport(taskMetricsP.totalElapsedTime(), ReportItem.QualityKeyTotalElapsedTime);
         item.setReport(taskMetricsP.requestCount(), ReportItem.QualityKeyRequestsCount);
         item.setReport(taskMetricsP.regionCount(), ReportItem.QualityKeyRegionsCount);
