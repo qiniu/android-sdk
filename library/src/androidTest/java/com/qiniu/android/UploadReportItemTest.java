@@ -63,7 +63,7 @@ public class UploadReportItemTest extends BaseTest {
         responseInfo = createResponseInfo(ResponseInfo.NetworkSSLError);
         assertTrue(ReportItem.qualityResult(responseInfo).equals("ssl_error"));
 
-        responseInfo = createResponseInfo(ResponseInfo.PasrseError);
+        responseInfo = createResponseInfo(ResponseInfo.ParseError);
         assertTrue(ReportItem.qualityResult(responseInfo).equals("parse_error"));
 
         responseInfo = createResponseInfo(ResponseInfo.MaliciousResponseError);

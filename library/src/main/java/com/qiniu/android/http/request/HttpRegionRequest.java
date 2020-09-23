@@ -96,7 +96,7 @@ class HttpRegionRequest {
         } else {
             toSkipDns = true;
         }
-        Request request = new Request(urlString, method, header, data, config.connectTimeout);
+        final Request request = new Request(urlString, method, header, data, config.connectTimeout);
         request.host = serverHost;
         request.ip = serverIP;
         request.uploadServer = server;
@@ -104,6 +104,7 @@ class HttpRegionRequest {
             @Override
             public void complete(ResponseInfo responseInfo, ArrayList<UploadSingleRequestMetrics> requestMetricsList, JSONObject response) {
 
+                request.httpBody = null;
                 requestMetrics.addMetricsList(requestMetricsList);
 
                 if (shouldRetryHandler.shouldRetry(responseInfo, response)

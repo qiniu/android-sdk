@@ -63,7 +63,7 @@ public class SystemHttpClient implements IRequestClient {
                         final RequestClientCompleteHandler complete) {
 
         metrics = new UploadSingleRequestMetrics();
-        metrics.request = request;
+        metrics.setRequest(request);
 
         httpClient = createHttpClient(request, connectionProxy);
         okhttp3.Request.Builder requestBuilder = createRequestBuilder(request, progress);
@@ -362,7 +362,7 @@ public class SystemHttpClient implements IRequestClient {
             try {
                 responseJson = buildJsonResp(responseBody);
             } catch (Exception e) {
-                statusCode = ResponseInfo.PasrseError;
+                statusCode = ResponseInfo.ParseError;
                 errorMessage = e.getMessage();
             }
         }
