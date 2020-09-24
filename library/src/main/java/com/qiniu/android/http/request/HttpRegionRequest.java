@@ -104,7 +104,6 @@ class HttpRegionRequest {
             @Override
             public void complete(ResponseInfo responseInfo, ArrayList<UploadSingleRequestMetrics> requestMetricsList, JSONObject response) {
 
-                request.httpBody = null;
                 requestMetrics.addMetricsList(requestMetricsList);
 
                 if (shouldRetryHandler.shouldRetry(responseInfo, response)
@@ -113,11 +112,14 @@ class HttpRegionRequest {
 
                     IUploadServer newServer = getNextServer(responseInfo);
                     if (newServer != null){
-                        performRequest(newServer, action, isAsync, data, header, method, shouldRetryHandler, progressHandler, completeHandler);
+                        performRequest(newServer, action, isAsync, request.httpBody, header, method, shouldRetryHandler, progressHandler, completeHandler);
+                        request.httpBody = null;
                     } else {
+                        request.httpBody = null;
                         completeAction(responseInfo, response, completeHandler);
                     }
                 } else {
+                    request.httpBody = null;
                     completeAction(responseInfo, response, completeHandler);
                 }
             }
@@ -130,6 +132,7 @@ class HttpRegionRequest {
                                 JSONObject response,
                                 RequestCompleteHandler completeHandler){
 
+        singleRequest = null;
         if (completeHandler != null){
             completeHandler.complete(responseInfo, requestMetrics, response);
         }

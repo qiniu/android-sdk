@@ -111,7 +111,7 @@ public class RequestTransaction {
         regionRequest.get(action, isAsync, header, shouldRetryHandler, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                completeHandler.complete(responseInfo, requestMetrics, response);
+                completeAction(responseInfo, requestMetrics, response, completeHandler);
             }
         });
     }
@@ -175,10 +175,11 @@ public class RequestTransaction {
                 return ! responseInfo.isOK();
             }
         };
+
         regionRequest.post(null, isAsync, body, header, shouldRetryHandler, progressHandler, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                completeHandler.complete(responseInfo, requestMetrics, response);
+                completeAction(responseInfo, requestMetrics, response, completeHandler);
             }
         });
     }
@@ -218,10 +219,11 @@ public class RequestTransaction {
                 return !responseInfo.isOK() || ctx == null || crcServer == null || !chunkCrc.equals(crcServer);
             }
         };
+
         regionRequest.post(action, isAsync, firstChunkData, header, shouldRetryHandler, progressHandler, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                completeHandler.complete(responseInfo, requestMetrics, response);
+                completeAction(responseInfo, requestMetrics, response, completeHandler);
             }
         });
     }
@@ -229,13 +231,13 @@ public class RequestTransaction {
     public void uploadChunk(String blockContext,
                             long blockOffset,
                             byte[] chunkData,
-                            long chunkOffest,
+                            long chunkOffset,
                             boolean isAsync,
                             final RequestProgressHandler progressHandler,
                             final RequestCompleteHandler completeHandler){
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeBput;
-        requestInfo.fileOffset = new Long((blockOffset + chunkOffest));
+        requestInfo.fileOffset = new Long((blockOffset + chunkOffset));
 
         String token = String.format("UpToken %s", (this.token.token != null ? this.token.token : ""));
         HashMap <String, String> header = new HashMap<String, String>();
@@ -243,10 +245,10 @@ public class RequestTransaction {
         header.put("Content-Type", "application/octet-stream");
         header.put("User-Agent", userAgent);
 
-        String action = String.format("/bput/%s/%d", blockContext, chunkOffest);
+        String action = String.format("/bput/%s/%d", blockContext, chunkOffset);
         final String chunkCrc = String.format("%d", Crc32.bytes(chunkData));
 
-        LogUtil.i(String.format("blockOffset:%d chunkOffest:%d chunkSize:%d", blockOffset, chunkOffest, chunkData.length));
+        LogUtil.i(String.format("blockOffset:%d chunkOffset:%d chunkSize:%d", blockOffset, chunkOffset, chunkData.length));
 
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
             @Override
@@ -265,10 +267,11 @@ public class RequestTransaction {
                 return ! responseInfo.isOK() || ctx == null || crcServer == null || !chunkCrc.equals(crcServer);
             }
         };
+
         regionRequest.post(action, isAsync, chunkData, header, shouldRetryHandler, progressHandler, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                completeHandler.complete(responseInfo, requestMetrics, response);
+                completeAction(responseInfo, requestMetrics, response, completeHandler);
             }
         });
     }
@@ -283,7 +286,7 @@ public class RequestTransaction {
 
         if (blockContexts == null){
             ResponseInfo responseInfo = ResponseInfo.invalidArgument("invalid blockContexts");
-            completeHandler.complete(responseInfo, null, responseInfo.response);
+            completeAction(responseInfo, null, responseInfo.response, completeHandler);
             return;
         }
 
@@ -325,7 +328,7 @@ public class RequestTransaction {
         regionRequest.post(action, isAsync, body, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                completeHandler.complete(responseInfo, requestMetrics, response);
+                completeAction(responseInfo, requestMetrics, response, completeHandler);
             }
         });
     }
@@ -353,12 +356,24 @@ public class RequestTransaction {
                 return !responseInfo.isOK();
             }
         };
+
         regionRequest.post("/log/4?compressed=gzip", isAsync, GZipUtil.gZip(logData), header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                completeHandler.complete(responseInfo, requestMetrics, response);
+                completeAction(responseInfo, requestMetrics, response, completeHandler);
             }
         });
+    }
+
+    private void completeAction(ResponseInfo responseInfo,
+                                UploadRegionRequestMetrics requestMetrics,
+                                JSONObject response,
+                                RequestCompleteHandler completeHandler){
+        regionRequest = null;
+
+        if (completeHandler != null){
+            completeHandler.complete(responseInfo, requestMetrics, response);
+        }
     }
 
     public interface RequestCompleteHandler {

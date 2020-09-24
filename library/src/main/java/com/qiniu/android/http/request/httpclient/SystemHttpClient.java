@@ -10,6 +10,7 @@ import com.qiniu.android.http.request.Request;
 import com.qiniu.android.http.request.IRequestClient;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 import com.qiniu.android.utils.AndroidNetwork;
+import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
 
 
@@ -64,7 +65,6 @@ public class SystemHttpClient implements IRequestClient {
 
         metrics = new UploadSingleRequestMetrics();
         metrics.setRequest(request);
-
         httpClient = createHttpClient(request, connectionProxy);
         okhttp3.Request.Builder requestBuilder = createRequestBuilder(request, progress);
         if (requestBuilder == null){
@@ -72,6 +72,11 @@ public class SystemHttpClient implements IRequestClient {
             handleError(request, responseInfo.statusCode, responseInfo.message, complete);
             return;
         }
+
+//        final ResponseInfo info = ResponseInfo.create(request, 200, null, null, null);
+//        metrics.response = info;
+//        complete.complete(info, metrics, info.response);
+//        return;
 
         ResponseTag tag = new ResponseTag();
         call = httpClient.newCall(requestBuilder.tag(tag).build());
@@ -220,6 +225,7 @@ public class SystemHttpClient implements IRequestClient {
 
             requestBuilder = requestBuilder.post(rbody);
         }
+        requestBuilder.addHeader("Connection", "close");
         return requestBuilder;
     }
 

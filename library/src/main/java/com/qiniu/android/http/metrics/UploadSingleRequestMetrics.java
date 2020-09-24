@@ -67,7 +67,9 @@ public class UploadSingleRequestMetrics {
     }
 
     public void setRequest(Request request){
-        this.request = new Request(request.urlString, request.httpMethod, request.allHeaders, null, request.timeout);
+        if (request != null){
+            this.request = new Request(request.urlString, request.httpMethod, request.allHeaders, null, request.timeout);
+        }
     }
 
     public Long totalBytes(){
