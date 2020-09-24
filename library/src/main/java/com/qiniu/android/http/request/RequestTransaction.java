@@ -369,6 +369,8 @@ public class RequestTransaction {
                                 UploadRegionRequestMetrics requestMetrics,
                                 JSONObject response,
                                 RequestCompleteHandler completeHandler){
+        requestInfo = null;
+        regionRequest = null;
         regionRequest = null;
 
         if (completeHandler != null){

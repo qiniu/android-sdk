@@ -173,13 +173,14 @@ class ConcurrentResumeUpload extends PartsUpload {
         chunk.isUploading = true;
         chunk.isCompleted = false;
 
-        RequestTransaction transaction = createUploadRequestTransaction();
+        final RequestTransaction transaction = createUploadRequestTransaction();
         transaction.makeBlock(block.offset, block.size, chunk.data, true, progressHandler, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 
                 chunk.data = null;
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
+                destroyUploadRequestTransaction(transaction);
 
                 String blockContext = null;
                 if (response != null){

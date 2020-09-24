@@ -73,11 +73,6 @@ public class SystemHttpClient implements IRequestClient {
             return;
         }
 
-//        final ResponseInfo info = ResponseInfo.create(request, 200, null, null, null);
-//        metrics.response = info;
-//        complete.complete(info, metrics, info.response);
-//        return;
-
         ResponseTag tag = new ResponseTag();
         call = httpClient.newCall(requestBuilder.tag(tag).build());
 
@@ -225,7 +220,6 @@ public class SystemHttpClient implements IRequestClient {
 
             requestBuilder = requestBuilder.post(rbody);
         }
-        requestBuilder.addHeader("Connection", "close");
         return requestBuilder;
     }
 
