@@ -10,7 +10,6 @@ import com.qiniu.android.http.request.Request;
 import com.qiniu.android.http.request.IRequestClient;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 import com.qiniu.android.utils.AndroidNetwork;
-import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
 
 
@@ -52,21 +51,28 @@ public class SystemHttpClient implements IRequestClient {
     public static final String JsonMime = "application/json";
     public static final String FormMime = "application/x-www-form-urlencoded";
 
+    private Request currentRequest;
     private OkHttpClient httpClient;
     private Call call;
     private UploadSingleRequestMetrics metrics;
+    private RequestClientProgress requestProgress;
+    private RequestClientCompleteHandler completeHandler;
 
     @Override
-    public void request(final Request request,
+    public void request(Request request,
                         boolean isAsync,
                         ProxyConfiguration connectionProxy,
                         RequestClientProgress progress,
-                        final RequestClientCompleteHandler complete) {
+                        RequestClientCompleteHandler complete) {
 
         metrics = new UploadSingleRequestMetrics();
         metrics.setRequest(request);
+        currentRequest = request;
         httpClient = createHttpClient(request, connectionProxy);
-        okhttp3.Request.Builder requestBuilder = createRequestBuilder(request, progress);
+        requestProgress = progress;
+        completeHandler = complete;
+
+        okhttp3.Request.Builder requestBuilder = createRequestBuilder(request, requestProgress);
         if (requestBuilder == null){
             ResponseInfo responseInfo = ResponseInfo.invalidArgument("invalid http request");
             handleError(request, responseInfo.statusCode, responseInfo.message, complete);
@@ -87,12 +93,12 @@ public class SystemHttpClient implements IRequestClient {
                         status = ResponseInfo.Cancelled;
                         msg = "user cancelled";
                     }
-                    handleError(request, status, msg, complete);
+                    handleError(currentRequest, status, msg, completeHandler);
                 }
 
                 @Override
                 public void onResponse(Call call, okhttp3.Response response) throws IOException {
-                    handleResponse(request, response, complete);
+                    handleResponse(currentRequest, response, completeHandler);
                 }
             });
 
@@ -376,6 +382,10 @@ public class SystemHttpClient implements IRequestClient {
     }
 
     private void releaseResource(){
+        this.currentRequest = null;
+        this.requestProgress = null;
+        this.completeHandler = null;
+        this.metrics = null;
         this.httpClient = null;
         this.call = null;
     }
