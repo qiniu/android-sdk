@@ -66,6 +66,12 @@ public class UploadSingleRequestMetrics {
         return time(responseStartDate, responseEndDate);
     }
 
+    public void setRequest(Request request){
+        if (request != null){
+            this.request = new Request(request.urlString, request.httpMethod, request.allHeaders, null, request.timeout);
+        }
+    }
+
     public Long totalBytes(){
         long headerLength = 0;
         long bodyLength = 0 ;

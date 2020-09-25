@@ -182,6 +182,8 @@ public class UploadInfoReporter {
                     cleanTempLogFile();
                 }
                 isReporting = false;
+
+                destroyTransactionResource();
             }
         });
 
@@ -233,4 +235,7 @@ public class UploadInfoReporter {
         return transaction;
     }
 
+    private void destroyTransactionResource(){
+        transaction = null;
+    }
 }

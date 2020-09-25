@@ -107,20 +107,11 @@ class HttpSingleRequest {
                     && responseInfo.couldHostRetry()){
                     currentRetryTime += 1;
 
-                    if (isAsync) {
-                        AsyncRun.runInBack(config.retryInterval, new Runnable() {
-                            @Override
-                            public void run() {
-                                retryRequest(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, completeHandler);
-                            }
-                        });
-                    } else {
-                        try {
-                            Thread.sleep(config.retryInterval);
-                        } catch (InterruptedException ignored) {
-                        }
-                        retryRequest(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, completeHandler);
+                    try {
+                        Thread.sleep(config.retryInterval);
+                    } catch (InterruptedException ignored) {
                     }
+                    retryRequest(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, completeHandler);
                 } else {
                     completeAction(request, responseInfo, response, metrics, completeHandler);
                 }

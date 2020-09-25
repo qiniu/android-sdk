@@ -14,7 +14,9 @@ import java.util.Map;
  * 定义HTTP请求的日志信息和常规方法
  */
 public final class ResponseInfo {
+    @Deprecated
     public static final int ResquestSuccess = 200;
+    public static final int RequestSuccess = 200;
     public static final int ZeroSizeFile = -6;
     public static final int InvalidToken = -5;
     public static final int InvalidArgument = -4;
@@ -36,7 +38,9 @@ public final class ResponseInfo {
     public static final int NetworkSSLError = -1200;
     public static final int NetworkProtocolError = 100;
     public static final int NetworkSlow = -1009;
-    public static final int PasrseError= -1015;
+    public static final int ParseError = -1015;
+    @Deprecated
+    public static final int PasrseError = -1015;
 
     // -->
     /**
@@ -195,7 +199,7 @@ public final class ResponseInfo {
     }
 
     public boolean isOK() {
-        return statusCode == ResquestSuccess && error == null && (hasReqId() || response != null);
+        return statusCode == RequestSuccess && error == null && (hasReqId() || response != null);
     }
 
     public boolean couldRetry(){

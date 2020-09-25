@@ -135,8 +135,8 @@ class ResumeUpload extends PartsUpload {
                            final RequestProgressHandler progressHandler,
                            final UploadChunkCompleteHandler completeHandler){
 
-        byte[] chunkData = getDataWithChunk(chunk, block);
-        if (chunkData == null){
+        chunk.data = getDataWithChunk(chunk, block);
+        if (chunk.data == null){
             uploadChunkErrorResponseInfo = ResponseInfo.localIOError("get chunk data error");
             uploadChunkErrorResponse = uploadChunkErrorResponseInfo.response;
             completeHandler.complete();
@@ -147,9 +147,11 @@ class ResumeUpload extends PartsUpload {
         chunk.isCompleted = false;
 
         RequestTransaction transaction = createUploadRequestTransaction();
-        transaction.makeBlock(block.offset, block.size, chunkData, true, progressHandler, new RequestTransaction.RequestCompleteHandler() {
+        transaction.makeBlock(block.offset, block.size, chunk.data, true, progressHandler, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+
+                chunk.data = null;
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
 
                 String blockContext = null;
@@ -180,8 +182,8 @@ class ResumeUpload extends PartsUpload {
                              final RequestProgressHandler progressHandler,
                              final UploadChunkCompleteHandler completeHandler){
 
-        byte[] chunkData = getDataWithChunk(chunk, block);
-        if (chunkData == null){
+        chunk.data = getDataWithChunk(chunk, block);
+        if (chunk.data == null){
             uploadChunkErrorResponseInfo = ResponseInfo.localIOError("get chunk data error");
             uploadChunkErrorResponse = uploadChunkErrorResponseInfo.response;
             completeHandler.complete();
@@ -192,9 +194,11 @@ class ResumeUpload extends PartsUpload {
         chunk.isCompleted = false;
 
         RequestTransaction transaction = createUploadRequestTransaction();
-        transaction.uploadChunk(block.context, block.offset, chunkData, chunk.offset, true, progressHandler, new RequestTransaction.RequestCompleteHandler() {
+        transaction.uploadChunk(block.context, block.offset, chunk.data, chunk.offset, true, progressHandler, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+
+                chunk.data = null;
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
 
                 String blockContext = null;

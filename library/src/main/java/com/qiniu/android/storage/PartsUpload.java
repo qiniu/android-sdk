@@ -104,7 +104,10 @@ abstract class PartsUpload extends BaseUpload {
         reportBlock();
         closeUploadFileInfo();
         super.completeAction(responseInfo, response);
+
+        uploadFileInfo = null;
     }
+
 
     protected void recordUploadInfo(){
         String key = recorderKey;
