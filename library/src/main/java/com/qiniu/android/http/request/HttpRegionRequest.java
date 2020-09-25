@@ -96,7 +96,7 @@ class HttpRegionRequest {
         } else {
             toSkipDns = true;
         }
-        Request request = new Request(urlString, method, header, data, config.connectTimeout);
+        final Request request = new Request(urlString, method, header, data, config.connectTimeout);
         request.host = serverHost;
         request.ip = serverIP;
         request.uploadServer = server;
@@ -112,11 +112,14 @@ class HttpRegionRequest {
 
                     IUploadServer newServer = getNextServer(responseInfo);
                     if (newServer != null){
-                        performRequest(newServer, action, isAsync, data, header, method, shouldRetryHandler, progressHandler, completeHandler);
+                        performRequest(newServer, action, isAsync, request.httpBody, header, method, shouldRetryHandler, progressHandler, completeHandler);
+                        request.httpBody = null;
                     } else {
+                        request.httpBody = null;
                         completeAction(responseInfo, response, completeHandler);
                     }
                 } else {
+                    request.httpBody = null;
                     completeAction(responseInfo, response, completeHandler);
                 }
             }
@@ -129,6 +132,7 @@ class HttpRegionRequest {
                                 JSONObject response,
                                 RequestCompleteHandler completeHandler){
 
+        singleRequest = null;
         if (completeHandler != null){
             completeHandler.complete(responseInfo, requestMetrics, response);
         }

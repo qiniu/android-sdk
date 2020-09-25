@@ -137,7 +137,7 @@ public class ReportItem {
             errorType = "transmission_error";
         } else if (responseInfo.statusCode == ResponseInfo.NetworkSSLError){
             errorType = "ssl_error";
-        } else if (responseInfo.statusCode == ResponseInfo.PasrseError){
+        } else if (responseInfo.statusCode == ResponseInfo.ParseError){
             errorType = "parse_error";
         } else if (responseInfo.statusCode == ResponseInfo.MaliciousResponseError){
             errorType = "malicious_response";

@@ -320,6 +320,8 @@ public class UploadFileInfo {
         public boolean isUploading;
         public double progress;
 
+        public byte[] data;
+
         public UploadData(long offset,
                           long size,
                           int index,

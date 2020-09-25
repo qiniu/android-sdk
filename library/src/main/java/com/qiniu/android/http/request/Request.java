@@ -13,8 +13,8 @@ public class Request {
     public final String urlString;
     public final String httpMethod;
     public final Map<String, String> allHeaders;
-    public final byte[] httpBody;
     public final int timeout;
+    public byte[] httpBody;
 
     public String host;
     public String ip;
