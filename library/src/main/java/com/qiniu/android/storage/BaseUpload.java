@@ -137,6 +137,7 @@ abstract class BaseUpload implements Runnable {
         }
 
         metrics = null;
+        currentRegionRequestMetrics = null;
     }
 
     private boolean setupRegions(){

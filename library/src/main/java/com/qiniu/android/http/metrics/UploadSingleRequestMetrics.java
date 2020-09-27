@@ -75,10 +75,10 @@ public class UploadSingleRequestMetrics {
     public Long totalBytes(){
         long headerLength = 0;
         long bodyLength = 0 ;
-        if (request.allHeaders != null){
+        if (request != null && request.allHeaders != null){
             headerLength = (new JSONObject(request.allHeaders)).toString().length();
         }
-        if (request.httpBody != null){
+        if (request != null && request.httpBody != null){
             bodyLength = request.httpBody.length;
         }
         return (headerLength + bodyLength);
@@ -97,7 +97,7 @@ public class UploadSingleRequestMetrics {
         if (startDate != null && endDate != null){
             return (endDate.getTime() - startDate.getTime());
         } else {
-            return null;
+            return 0l;
         }
     }
 }

@@ -10,6 +10,7 @@ import com.qiniu.android.http.request.Request;
 import com.qiniu.android.http.request.IRequestClient;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 import com.qiniu.android.utils.AndroidNetwork;
+import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringUtils;
 
 
@@ -31,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Connection;
+import okhttp3.ConnectionPool;
 import okhttp3.Dns;
 import okhttp3.EventListener;
 import okhttp3.Handshake;
@@ -68,11 +70,11 @@ public class SystemHttpClient implements IRequestClient {
         metrics = new UploadSingleRequestMetrics();
         metrics.setRequest(request);
         currentRequest = request;
-        httpClient = createHttpClient(request, connectionProxy);
+        httpClient = createHttpClient(connectionProxy);
         requestProgress = progress;
         completeHandler = complete;
 
-        okhttp3.Request.Builder requestBuilder = createRequestBuilder(request, requestProgress);
+        okhttp3.Request.Builder requestBuilder = createRequestBuilder(requestProgress);
         if (requestBuilder == null){
             ResponseInfo responseInfo = ResponseInfo.invalidArgument("invalid http request");
             handleError(request, responseInfo.statusCode, responseInfo.message, complete);
@@ -97,8 +99,13 @@ public class SystemHttpClient implements IRequestClient {
                 }
 
                 @Override
-                public void onResponse(Call call, okhttp3.Response response) throws IOException {
-                    handleResponse(currentRequest, response, completeHandler);
+                public void onResponse(Call call, final okhttp3.Response response) throws IOException {
+                    AsyncRun.runInBack(new Runnable() {
+                        @Override
+                        public void run() {
+                            handleResponse(currentRequest, response, completeHandler);
+                        }
+                    });
                 }
             });
 
@@ -127,9 +134,8 @@ public class SystemHttpClient implements IRequestClient {
         }
     }
 
-    private OkHttpClient createHttpClient(final Request request,
-                                          ProxyConfiguration connectionProxy){
-        if (request == null){
+    private OkHttpClient createHttpClient(ProxyConfiguration connectionProxy){
+        if (currentRequest == null){
             return null;
         }
 
@@ -147,15 +153,18 @@ public class SystemHttpClient implements IRequestClient {
         clientBuilder.dns(new Dns() {
             @Override
             public List<InetAddress> lookup(String s) throws UnknownHostException {
-                if (request.getInetAddress() != null && s.equals(request.host)){
+                if (currentRequest.getInetAddress() != null && s.equals(currentRequest.host)){
                     List<InetAddress> inetAddressList = new ArrayList<>();
-                    inetAddressList.add(request.getInetAddress());
+                    inetAddressList.add(currentRequest.getInetAddress());
                     return inetAddressList;
                 } else {
                     return new SystemDns().lookupInetAddress(s);
                 }
             }
         });
+
+        ConnectionPool pool = new ConnectionPool(3, 10, TimeUnit.SECONDS);
+        clientBuilder.connectionPool(pool);
 
         clientBuilder.networkInterceptors().add(new Interceptor() {
             @Override
@@ -178,40 +187,39 @@ public class SystemHttpClient implements IRequestClient {
             }
         });
 
-        clientBuilder.connectTimeout(request.timeout, TimeUnit.SECONDS);
-        clientBuilder.readTimeout(request.timeout, TimeUnit.SECONDS);
+        clientBuilder.connectTimeout(currentRequest.timeout, TimeUnit.SECONDS);
+        clientBuilder.readTimeout(currentRequest.timeout, TimeUnit.SECONDS);
         clientBuilder.writeTimeout(0, TimeUnit.SECONDS);
 
         return clientBuilder.build();
     }
 
-    private okhttp3.Request.Builder createRequestBuilder(Request request,
-                                                         final RequestClientProgress progress){
-        if (request == null){
+    private okhttp3.Request.Builder createRequestBuilder(final RequestClientProgress progress){
+        if (currentRequest == null) {
             return null;
         }
 
-        Headers allHeaders = Headers.of(request.allHeaders);
+        Headers allHeaders = Headers.of(currentRequest.allHeaders);
 
         okhttp3.Request.Builder requestBuilder = null;
-        if (request.httpMethod.equals(Request.HttpMethodGet)){
-            requestBuilder = new okhttp3.Request.Builder().get().url(request.urlString);
-            for (String key : request.allHeaders.keySet()){
-                String value = request.allHeaders.get(key);
+        if (currentRequest.httpMethod.equals(Request.HttpMethodGet)){
+            requestBuilder = new okhttp3.Request.Builder().get().url(currentRequest.urlString);
+            for (String key : currentRequest.allHeaders.keySet()){
+                String value = currentRequest.allHeaders.get(key);
                 requestBuilder.header(key, value);
             }
-        } else if (request.httpMethod.equals(Request.HttpMethodPOST)){
-            requestBuilder = new okhttp3.Request.Builder().url(request.urlString);
+        } else if (currentRequest.httpMethod.equals(Request.HttpMethodPOST)){
+            requestBuilder = new okhttp3.Request.Builder().url(currentRequest.urlString);
             requestBuilder = requestBuilder.headers(allHeaders);
 
             RequestBody rbody;
-            if (request.httpBody.length > 0) {
+            if (currentRequest.httpBody.length > 0) {
                 MediaType type = MediaType.parse(DefaultMime);
-                String contentType = request.allHeaders.get(ContentTypeHeader);
+                String contentType = currentRequest.allHeaders.get(ContentTypeHeader);
                 if (contentType != null) {
                     type = MediaType.parse(contentType);
                 }
-                rbody = new ByteBody(type, request.httpBody);
+                rbody = new ByteBody(type, currentRequest.httpBody);
             } else {
                 rbody = new ByteBody(null, new byte[0]);
             }
@@ -222,7 +230,7 @@ public class SystemHttpClient implements IRequestClient {
                     progress.progress(bytesWritten, totalSize);
                 }
                 }
-            }, request.httpBody.length, null);
+            }, currentRequest.httpBody.length, null);
 
             requestBuilder = requestBuilder.post(rbody);
         }
@@ -324,6 +332,8 @@ public class SystemHttpClient implements IRequestClient {
 
         ResponseInfo info = ResponseInfo.create(request, responseCode, null,null, errorMsg);
         metrics.response = info;
+        metrics.response = null;
+        metrics.request = null;
         complete.complete(info, metrics, info.response);
 
         releaseResource();
