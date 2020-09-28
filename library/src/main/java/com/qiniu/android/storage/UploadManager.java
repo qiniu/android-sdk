@@ -110,6 +110,7 @@ public class UploadManager {
 
     /**
      * 同步上传文件。使用 form 表单方式上传，建议只在数据较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     * 注：切勿在主线程调用
      *
      * @param data    上传的数据
      * @param key     上传数据保存的文件名
@@ -150,6 +151,7 @@ public class UploadManager {
 
     /**
      * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     * 注：切勿在主线程调用
      *
      * @param file    上传的文件对象
      * @param key     上传数据保存的文件名
@@ -162,6 +164,8 @@ public class UploadManager {
                                 String token,
                                 UploadOptions options) {
 
+        final Wait wait = new Wait();
+
         final ArrayList<ResponseInfo> responseInfos = new ArrayList<ResponseInfo>();
         UpCompletionHandler completionHandler = new UpCompletionHandler() {
             @Override
@@ -169,36 +173,26 @@ public class UploadManager {
                 if (info != null) {
                     responseInfos.add(info);
                 }
+                wait.stopWait();
             }
         };
-        if (checkAndNotifyError(key, token, file, completionHandler)){
-            return responseInfos.size() > 0 ? responseInfos.get(0) : null;
+
+        if (!checkAndNotifyError(key, token, file, completionHandler)){
+            putFile(file, key, token, options, completionHandler);
         }
 
-        byte[] data = null;
-        RandomAccessFile randomAccessFile = null;
-        try {
-            randomAccessFile = new RandomAccessFile(file, "r");
-            data = new byte[(int)file.length()];
-            randomAccessFile.read(data, 0, (int)file.length());
-        } catch (FileNotFoundException e) {
-            return ResponseInfo.fileError(e);
-        } catch (IOException e) {
-            return ResponseInfo.fileError(e);
-        } finally {
-            if (randomAccessFile != null){
-                try {
-                    randomAccessFile.close();
-                } catch (IOException ignored) {
-                }
-            }
-        }
+        wait.startWait();
 
-        return syncPut(data, key, token, options);
+        if (responseInfos.size() > 0){
+            return responseInfos.get(0);
+        } else {
+            return null;
+        }
     }
 
     /**
      * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     * 注：切勿在主线程调用
      *
      * @param file    上传的文件绝对路径
      * @param key     上传数据保存的文件名
