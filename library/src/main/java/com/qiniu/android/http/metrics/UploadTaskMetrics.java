@@ -17,7 +17,7 @@ public class UploadTaskMetrics {
     }
 
 
-    public Long totalElapsedTime(){
+    public long totalElapsedTime(){
         long time = 0;
         for (String key : metricsInfo.keySet()){
             UploadRegionRequestMetrics metrics = metricsInfo.get(key);
