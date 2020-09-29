@@ -41,7 +41,6 @@ public final class AsyncRun {
     }
 
     public static void runInBack(Runnable r) {
-//        new Thread(r).start();
         executorService.submit(r);
     }
 
