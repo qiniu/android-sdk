@@ -83,7 +83,6 @@ class HttpSingleRequest {
             }
         };
 
-        LogUtil.w(("== request url:" + request.urlString + " ip:" + request.ip));
         client.request(request, isAsync, config.proxy, new IRequestClient.RequestClientProgress() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
@@ -142,11 +141,9 @@ class HttpSingleRequest {
                                Request request,
                                UploadSingleRequestMetrics requestMetrics){
 
-        if (!requestInfo.shouldReportRequestLog()){
+        if (!requestInfo.shouldReportRequestLog() || requestMetrics == null){
             return;
         }
-
-        UploadSingleRequestMetrics requestMetricsP = requestMetrics != null ? requestMetrics : new UploadSingleRequestMetrics();
 
         long currentTimestamp = Utils.currentTimestamp();
         ReportItem item = new ReportItem();
@@ -154,22 +151,22 @@ class HttpSingleRequest {
         item.setReport((currentTimestamp/1000), ReportItem.RequestKeyUpTime);
         item.setReport(ReportItem.requestReportStatusCode(responseInfo), ReportItem.RequestKeyStatusCode);
         item.setReport(responseInfo != null ? responseInfo.reqId : null, ReportItem.RequestKeyRequestId);
-        item.setReport(requestMetricsP.request.host, ReportItem.RequestKeyHost);
-        item.setReport(requestMetricsP.remoteAddress, ReportItem.RequestKeyRemoteIp);
-        item.setReport(requestMetricsP.remotePort, ReportItem.RequestKeyPort);
+        item.setReport(request != null ? request.host : null, ReportItem.RequestKeyHost);
+        item.setReport(requestMetrics.remoteAddress, ReportItem.RequestKeyRemoteIp);
+        item.setReport(requestMetrics.remotePort, ReportItem.RequestKeyPort);
         item.setReport(requestInfo.bucket, ReportItem.RequestKeyTargetBucket);
         item.setReport(requestInfo.key, ReportItem.RequestKeyTargetKey);
-        item.setReport(requestMetricsP.totalElapsedTime(), ReportItem.RequestKeyTotalElapsedTime);
-        item.setReport(requestMetricsP.totalDnsTime(), ReportItem.RequestKeyDnsElapsedTime);
-        item.setReport(requestMetricsP.totalConnectTime(), ReportItem.RequestKeyConnectElapsedTime);
-        item.setReport(requestMetricsP.totalSecureConnectTime(), ReportItem.RequestKeyTLSConnectElapsedTime);
-        item.setReport(requestMetricsP.totalRequestTime(), ReportItem.RequestKeyRequestElapsedTime);
-        item.setReport(requestMetricsP.totalWaitTime(), ReportItem.RequestKeyWaitElapsedTime);
-        item.setReport(requestMetricsP.totalWaitTime(), ReportItem.RequestKeyResponseElapsedTime);
-        item.setReport(requestMetricsP.totalResponseTime(), ReportItem.RequestKeyResponseElapsedTime);
+        item.setReport(requestMetrics.totalElapsedTime(), ReportItem.RequestKeyTotalElapsedTime);
+        item.setReport(requestMetrics.totalDnsTime(), ReportItem.RequestKeyDnsElapsedTime);
+        item.setReport(requestMetrics.totalConnectTime(), ReportItem.RequestKeyConnectElapsedTime);
+        item.setReport(requestMetrics.totalSecureConnectTime(), ReportItem.RequestKeyTLSConnectElapsedTime);
+        item.setReport(requestMetrics.totalRequestTime(), ReportItem.RequestKeyRequestElapsedTime);
+        item.setReport(requestMetrics.totalWaitTime(), ReportItem.RequestKeyWaitElapsedTime);
+        item.setReport(requestMetrics.totalWaitTime(), ReportItem.RequestKeyResponseElapsedTime);
+        item.setReport(requestMetrics.totalResponseTime(), ReportItem.RequestKeyResponseElapsedTime);
         item.setReport(requestInfo.fileOffset, ReportItem.RequestKeyFileOffset);
-        item.setReport(requestMetricsP.bytesSend(), ReportItem.RequestKeyBytesSent);
-        item.setReport(requestMetricsP.totalBytes(), ReportItem.RequestKeyBytesTotal);
+        item.setReport(requestMetrics.bytesSend(), ReportItem.RequestKeyBytesSent);
+        item.setReport(requestMetrics.totalBytes(), ReportItem.RequestKeyBytesTotal);
         item.setReport(Utils.getCurrentProcessID(), ReportItem.RequestKeyPid);
         item.setReport(Utils.getCurrentThreadID(), ReportItem.RequestKeyTid);
         item.setReport(requestInfo.targetRegionId, ReportItem.RequestKeyTargetRegionId);
