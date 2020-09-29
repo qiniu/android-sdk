@@ -87,7 +87,7 @@ public class UploadSingleRequestMetrics {
         return (headerLength + bodyLength);
     }
     public Long bytesSend(){
-        long totalBytes = totalBytes().longValue();
+        long totalBytes = totalBytes();
         long bytesSend = countOfRequestHeaderBytesSent + countOfRequestBodyBytesSent;
         if (bytesSend > totalBytes){
             bytesSend = totalBytes;
