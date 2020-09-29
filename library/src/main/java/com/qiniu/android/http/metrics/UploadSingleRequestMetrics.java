@@ -72,13 +72,16 @@ public class UploadSingleRequestMetrics {
         }
     }
 
-    public Long totalBytes(){
+    public long totalBytes(){
+        if (request == null){
+            return 0;
+        }
         long headerLength = 0;
         long bodyLength = 0 ;
-        if (request != null && request.allHeaders != null){
+        if (request.allHeaders != null){
             headerLength = (new JSONObject(request.allHeaders)).toString().length();
         }
-        if (request != null && request.httpBody != null){
+        if (request.httpBody != null){
             bodyLength = request.httpBody.length;
         }
         return (headerLength + bodyLength);
