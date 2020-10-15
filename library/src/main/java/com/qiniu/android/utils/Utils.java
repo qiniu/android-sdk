@@ -62,7 +62,7 @@ public class Utils {
     }
 
     public static String getIpType(String ip, String host){
-        String type = null;
+        String type = host;
         if (ip == null || ip.length() == 0) {
             return type;
         }

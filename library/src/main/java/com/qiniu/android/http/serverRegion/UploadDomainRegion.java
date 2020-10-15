@@ -10,11 +10,16 @@ import com.qiniu.android.utils.Utils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class UploadDomainRegion implements IUploadRegion {
 
+    // 是否获取过，PS：当第一次获取Domain，而区域所有Domain又全部冻结时，返回一个domain尝试一次
+    private boolean hasGot;
     private boolean isAllFrozen;
+    // server黑名单，保证使用过的server不再使用，防止无限重试
+    private HashMap<String, IUploadServer> blackServerInfo;
     private ArrayList<String> domainHostList;
     private HashMap<String, UploadServerDomain> domainHashMap;
     private ArrayList<String> oldDomainHostList;
@@ -40,6 +45,8 @@ public class UploadDomainRegion implements IUploadRegion {
         this.zoneInfo = zoneInfo;
 
         isAllFrozen = false;
+        blackServerInfo = new HashMap<>();
+
         ArrayList<String> domainHostList = new ArrayList<>();
         if (zoneInfo.domains != null){
             domainHostList.addAll(zoneInfo.domains);
@@ -56,19 +63,29 @@ public class UploadDomainRegion implements IUploadRegion {
     }
 
     @Override
-    public IUploadServer getNextServer(boolean isOldServer, IUploadServer freezeServer) {
+    public IUploadServer getNextServer(boolean isOldServer, int frozenLevel, IUploadServer freezeServer) {
         if (isAllFrozen){
             return null;
         }
         if (freezeServer != null && freezeServer.getServerId() != null){
-            UploadServerDomain domain = null;
-            domain = domainHashMap.get(freezeServer.getServerId());
-            if (domain != null){
-                domain.freeze(freezeServer.getIp());
+
+            if ((frozenLevel & IUploadRegion.FrozenLevelRegionFrozen) == IUploadRegion.FrozenLevelRegionFrozen){
+                String ipType = Utils.getIpType(freezeServer.getIp(), freezeServer.getHost());
+                if (ipType != null && ipType.length() > 0 && blackServerInfo != null){
+                    blackServerInfo.put(ipType, freezeServer);
+                }
             }
-            domain = oldDomainHashMap.get(freezeServer.getServerId());
-            if (domain != null){
-                domain.freeze(freezeServer.getIp());
+
+            if ((frozenLevel & IUploadRegion.FrozenLevelGlobalFrozen) == IUploadRegion.FrozenLevelGlobalFrozen){
+                UploadServerDomain domain = null;
+                domain = domainHashMap.get(freezeServer.getServerId());
+                if (domain != null){
+                    domain.freeze(freezeServer.getIp());
+                }
+                domain = oldDomainHashMap.get(freezeServer.getServerId());
+                if (domain != null){
+                    domain.freeze(freezeServer.getIp());
+                }
             }
         }
 
@@ -78,12 +95,22 @@ public class UploadDomainRegion implements IUploadRegion {
         for (String host : hostList) {
             UploadServerDomain domain = domainInfo.get(host);
             if (domain != null){
-                server =  domain.getServer();
+                server = domain.getServer(blackServerInfo);
             }
             if (server != null){
                 break;
             }
         }
+
+        if (server == null && !hasGot && hostList.size() > 0){
+            int index = (int)(Math.random() * hostList.size());
+            String host = hostList.get(index);
+            UploadServerDomain domain = domainInfo.get(host);
+            if (domain != null){
+                server = domain.getOneServer();
+            }
+        }
+        hasGot = true;
 
         if (server == null){
             isAllFrozen = true;
@@ -113,7 +140,7 @@ public class UploadDomainRegion implements IUploadRegion {
             this.host = host;
         }
 
-        protected IUploadServer getServer(){
+        protected IUploadServer getServer(Map<String, IUploadServer> blackServerInfo){
             if (isAllFrozen || host == null || host.length() == 0){
                 return null;
             }
@@ -122,10 +149,13 @@ public class UploadDomainRegion implements IUploadRegion {
                 createIpGroupList();
             }
 
+            // 解析到IP:
             if (ipGroupList != null && ipGroupList.size() > 0){
                 UploadServer server = null;
                 for (UploadIpGroup ipGroup : ipGroupList){
-                    if (!UploadServerFreezeManager.getInstance().isFreezeHost(host, ipGroup.groupType)){
+                    // 黑名单中不存在 & 未被冻结
+                    if ((blackServerInfo != null && ipGroup.groupType != null && blackServerInfo.get(ipGroup.groupType) != null)
+                            && !UploadServerFreezeManager.getInstance().isFreezeHost(host, ipGroup.groupType)){
                         IDnsNetworkAddress networkAddress = ipGroup.getNetworkAddress();
                         server = new UploadServer(host, host, networkAddress.getIpValue(), networkAddress.getSourceValue(), networkAddress.getTimestampValue());
                         break;
@@ -135,11 +165,31 @@ public class UploadDomainRegion implements IUploadRegion {
                     isAllFrozen = true;
                 }
                 return server;
-            } else if (!UploadServerFreezeManager.getInstance().isFreezeHost(host, null)){
+            }
+
+            // 未解析到IP:
+            // 黑名单中不存在 & 未被冻结
+            String groupType = Utils.getIpType(null, host);
+            if ((groupType != null && blackServerInfo != null && blackServerInfo.get(groupType) != null) && !UploadServerFreezeManager.getInstance().isFreezeHost(host, null)){
                 return new UploadServer(host, host, null, null, null);
             } else {
                 isAllFrozen = true;
                 return null;
+            }
+        }
+
+        protected UploadServer getOneServer(){
+            if (host == null || host.length() == 0) {
+                return null;
+            }
+            if (ipGroupList != null && ipGroupList.size() > 0) {
+                int index = (int)(Math.random() * ipGroupList.size());
+                UploadIpGroup ipGroup = ipGroupList.get(index);
+                IDnsNetworkAddress inetAddress = ipGroup.getNetworkAddress();
+                UploadServer server = new UploadServer(host, host, inetAddress.getIpValue(), inetAddress.getSourceValue(), inetAddress.getTimestampValue());
+                return server;
+            } else {
+                return new UploadServer(host, host, null, null, null);
             }
         }
 

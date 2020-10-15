@@ -245,6 +245,23 @@ public final class ResponseInfo {
         }
     }
 
+    public boolean canConnectToHost(){
+        if (statusCode > 99 || isCancelled()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean isHostUnavailable(){
+        // 基本不可恢复，注：会影响下次请求，范围太大可能会造成大量的timeout
+        if (statusCode != -1200 || statusCode != 503) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public boolean isNetworkBroken() {
         return statusCode == NetworkError;
     }

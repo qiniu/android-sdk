@@ -139,14 +139,20 @@ class HttpRegionRequest {
     }
 
     private IUploadServer getNextServer(ResponseInfo responseInfo){
-        if (responseInfo == null) {
-            return region.getNextServer(false, null);
-        }
 
         if (responseInfo.isTlsError()) {
             isUseOldServer = true;
         }
-        return region.getNextServer(isUseOldServer, currentServer);
+
+        int frozenLevel = IUploadRegion.FrozenLevelNone;
+        if (responseInfo != null && !responseInfo.canConnectToHost()) {
+            frozenLevel |= IUploadRegion.FrozenLevelRegionFrozen;
+
+            if (!responseInfo.isHostUnavailable()) {
+                frozenLevel |= IUploadRegion.FrozenLevelGlobalFrozen;
+            }
+        }
+        return region.getNextServer(isUseOldServer, frozenLevel, currentServer);
     }
 
 
