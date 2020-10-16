@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLException;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Connection;
@@ -425,6 +427,8 @@ public class SystemHttpClient implements IRequestClient {
             statusCode = ResponseInfo.CannotConnectToHost;
         } else if (e instanceof ProtocolException) {
             statusCode = ResponseInfo.NetworkProtocolError;
+        } else if (e instanceof SSLException) {
+            statusCode = ResponseInfo.NetworkSSLError;
         }
         return statusCode;
     }

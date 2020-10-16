@@ -140,7 +140,7 @@ class HttpRegionRequest {
 
     private IUploadServer getNextServer(ResponseInfo responseInfo){
 
-        if (responseInfo.isTlsError()) {
+        if (responseInfo != null && responseInfo.isTlsError()) {
             isUseOldServer = true;
         }
 

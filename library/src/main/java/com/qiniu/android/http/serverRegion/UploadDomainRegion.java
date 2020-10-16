@@ -154,7 +154,8 @@ public class UploadDomainRegion implements IUploadRegion {
                 UploadServer server = null;
                 for (UploadIpGroup ipGroup : ipGroupList){
                     // 黑名单中不存在 & 未被冻结
-                    if ((blackServerInfo != null && ipGroup.groupType != null && blackServerInfo.get(ipGroup.groupType) != null)
+                    if (ipGroup.groupType != null
+                            && (blackServerInfo == null || blackServerInfo.get(ipGroup.groupType) == null)
                             && !UploadServerFreezeManager.getInstance().isFreezeHost(host, ipGroup.groupType)){
                         IDnsNetworkAddress networkAddress = ipGroup.getNetworkAddress();
                         server = new UploadServer(host, host, networkAddress.getIpValue(), networkAddress.getSourceValue(), networkAddress.getTimestampValue());
