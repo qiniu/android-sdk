@@ -146,7 +146,7 @@ class HttpRegionRequest {
 
         int frozenLevel = IUploadRegion.FrozenLevelNone;
         if (responseInfo != null && !responseInfo.canConnectToHost()) {
-            frozenLevel |= IUploadRegion.FrozenLevelRegionFrozen;
+            frozenLevel |= IUploadRegion.FrozenLevelPartFrozen;
 
             if (!responseInfo.isHostUnavailable()) {
                 frozenLevel |= IUploadRegion.FrozenLevelGlobalFrozen;

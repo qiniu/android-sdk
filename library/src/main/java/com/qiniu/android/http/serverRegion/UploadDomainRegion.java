@@ -69,7 +69,7 @@ public class UploadDomainRegion implements IUploadRegion {
         }
         if (freezeServer != null && freezeServer.getServerId() != null){
 
-            if ((frozenLevel & IUploadRegion.FrozenLevelRegionFrozen) == IUploadRegion.FrozenLevelRegionFrozen){
+            if ((frozenLevel & IUploadRegion.FrozenLevelPartFrozen) == IUploadRegion.FrozenLevelPartFrozen){
                 String ipType = Utils.getIpType(freezeServer.getIp(), freezeServer.getHost());
                 if (ipType != null && ipType.length() > 0 && blackServerInfo != null){
                     blackServerInfo.put(ipType, freezeServer);
