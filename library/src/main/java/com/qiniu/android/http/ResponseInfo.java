@@ -210,7 +210,7 @@ public final class ResponseInfo {
             || statusCode == 608 || statusCode == 612 || statusCode == 614 || statusCode == 616
             || statusCode == 619 || statusCode == 630 || statusCode == 631 || statusCode == 640
             || statusCode == 701
-            ||(statusCode < 0 && statusCode > -1000)) {
+            || (statusCode < -1 && statusCode > -1000)) {
             return false;
         } else {
             return true;
