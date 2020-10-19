@@ -55,6 +55,7 @@ public class SystemHttpClient implements IRequestClient {
     public static final String JsonMime = "application/json";
     public static final String FormMime = "application/x-www-form-urlencoded";
 
+    private static ConnectionPool pool;
     private Request currentRequest;
     private OkHttpClient httpClient;
     private Call call;
@@ -165,8 +166,7 @@ public class SystemHttpClient implements IRequestClient {
             }
         });
 
-        ConnectionPool pool = new ConnectionPool(3, 10, TimeUnit.SECONDS);
-        clientBuilder.connectionPool(pool);
+        clientBuilder.connectionPool(SystemHttpClient.getConnectPool());
 
         clientBuilder.networkInterceptors().add(new Interceptor() {
             @Override
@@ -194,6 +194,13 @@ public class SystemHttpClient implements IRequestClient {
         clientBuilder.writeTimeout(0, TimeUnit.SECONDS);
 
         return clientBuilder.build();
+    }
+
+    private synchronized static ConnectionPool getConnectPool(){
+        if (pool == null){
+            pool = new ConnectionPool(5, 10, TimeUnit.MINUTES);
+        }
+        return pool;
     }
 
     private okhttp3.Request.Builder createRequestBuilder(final RequestClientProgress progress){
