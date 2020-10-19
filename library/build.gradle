@@ -54,6 +54,7 @@ dependencies {
     implementation 'com.qiniu:happy-dns:0.2.16'
     // for javax.annotation.Nullable use in custom MultipartBody and Headers implements.
 //    implementation 'com.google.code.findbugs:jsr305:3.0.2'
+    implementation 'org.conscrypt:conscrypt-android:2.2.1'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     testImplementation 'junit:junit:4.13'

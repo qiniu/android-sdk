@@ -1,5 +1,6 @@
 package com.qiniu.android.http.dns;
 
+import com.qiniu.android.utils.Json;
 import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONArray;
@@ -7,8 +8,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -16,20 +20,64 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DnsCacheInfo implements java.io.Serializable {
 
-    public String currentTime;
-    public String localIp;
-    public ConcurrentHashMap<String, List<IDnsNetworkAddress>> info;
+    private String currentTime;
+    private String localIp;
+    private ConcurrentHashMap<String, List<IDnsNetworkAddress>> info;
 
     public static DnsCacheInfo createDnsCacheInfoByData(byte[] jsonData) {
-        if (jsonData == null){
+        if (jsonData == null) {
             return null;
         }
-        Object dnsCacheInfo = StringUtils.toObject(jsonData);
-        if (dnsCacheInfo instanceof DnsCacheInfo){
-            return (DnsCacheInfo)dnsCacheInfo;
-        } else {
+
+        JSONObject cacheInfoJSONObject = null;
+        try {
+            cacheInfoJSONObject = new JSONObject(new String(jsonData));
+        } catch (JSONException ignored) {
+        }
+        if (cacheInfoJSONObject == null) {
             return null;
         }
+
+        String currentTime = null;
+        String localIp = null;
+        ConcurrentHashMap<String, List<IDnsNetworkAddress>> info = new ConcurrentHashMap<>();
+
+        try {
+            currentTime = cacheInfoJSONObject.getString("currentTime");
+        } catch (JSONException ignored) {
+        }
+        try {
+            localIp = cacheInfoJSONObject.getString("localIp");
+        } catch (JSONException ignored) {
+        }
+
+        JSONObject infoMapJSONObject = null;
+        try {
+            infoMapJSONObject = cacheInfoJSONObject.getJSONObject("info");
+        } catch (JSONException ignored) {
+        }
+
+        if (currentTime == null || localIp == null || infoMapJSONObject == null){
+            return null;
+        }
+
+        for (Iterator<String> it = infoMapJSONObject.keys(); it.hasNext(); ) {
+            String key = it.next();
+            try {
+                List<IDnsNetworkAddress> addressList = new ArrayList<>();
+                JSONArray addressJSONArray = infoMapJSONObject.getJSONArray(key);
+                for (int i = 0; i < addressJSONArray.length(); i++) {
+                    DnsNetworkAddress address = DnsNetworkAddress.address(addressJSONArray.getJSONObject(i));
+                    addressList.add(address);
+                }
+                if (addressList.size() > 0){
+                    info.put(key, addressList);
+                }
+            } catch (JSONException ignored) {
+            }
+        }
+
+        return new DnsCacheInfo(currentTime, localIp, info);
     }
 
     public DnsCacheInfo() {
@@ -65,12 +113,49 @@ public class DnsCacheInfo implements java.io.Serializable {
         this.info = info;
     }
 
-    public String cacheKey(){
+    public String cacheKey() {
         return localIp;
     }
 
-    public byte[] toJsonData(){
-        return StringUtils.toByteArray(this);
+    public byte[] toJsonData() {
+        JSONObject cacheInfoJSONObject = new JSONObject();
+        try {
+            cacheInfoJSONObject.putOpt("currentTime", currentTime);
+        } catch (JSONException ignored) {
+        }
+        try {
+            cacheInfoJSONObject.putOpt("localIp", currentTime);
+        } catch (JSONException ignored) {
+        }
+
+        JSONObject infoMapJSONObject = new JSONObject();
+        for (String key : info.keySet()) {
+            List<IDnsNetworkAddress> addressList = info.get(key);
+
+            JSONArray addressJSONArray = new JSONArray();
+            if (addressList != null) {
+                for (IDnsNetworkAddress address : addressList) {
+                    if (address instanceof DnsNetworkAddress) {
+                        try {
+                            infoMapJSONObject.put(key, ((DnsNetworkAddress) address).toJson());
+                        } catch (JSONException ignored) {
+                        }
+                    }
+                }
+            }
+
+            if (addressJSONArray.length() > 0) {
+                try {
+                    infoMapJSONObject.put(key, addressJSONArray);
+                } catch (JSONException ignored) {
+                }
+            }
+        }
+        try {
+            cacheInfoJSONObject.putOpt("info", infoMapJSONObject);
+        } catch (JSONException ignored) {
+        }
+        return cacheInfoJSONObject.toString().getBytes();
     }
 
     @Override

@@ -171,7 +171,9 @@ public class UploadDomainRegion implements IUploadRegion {
             // 未解析到IP:
             // 黑名单中不存在 & 未被冻结
             String groupType = Utils.getIpType(null, host);
-            if ((groupType != null && blackServerInfo != null && blackServerInfo.get(groupType) != null) && !UploadServerFreezeManager.getInstance().isFreezeHost(host, null)){
+            if (groupType != null
+                    && (blackServerInfo == null || blackServerInfo.get(groupType) == null)
+                    && !UploadServerFreezeManager.getInstance().isFreezeHost(host, null)){
                 return new UploadServer(host, host, null, null, null);
             } else {
                 isAllFrozen = true;
