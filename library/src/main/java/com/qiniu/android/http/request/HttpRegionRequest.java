@@ -144,15 +144,7 @@ class HttpRegionRequest {
             isUseOldServer = true;
         }
 
-        int frozenLevel = IUploadRegion.FrozenLevelNone;
-        if (responseInfo != null && !responseInfo.canConnectToHost()) {
-            frozenLevel |= IUploadRegion.FrozenLevelPartFrozen;
-
-            if (!responseInfo.isHostUnavailable()) {
-                frozenLevel |= IUploadRegion.FrozenLevelGlobalFrozen;
-            }
-        }
-        return region.getNextServer(isUseOldServer, frozenLevel, currentServer);
+        return region.getNextServer(isUseOldServer, responseInfo, currentServer);
     }
 
 
