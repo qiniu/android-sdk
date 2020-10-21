@@ -32,9 +32,7 @@ public class DnsCacheInfo implements java.io.Serializable {
         JSONObject cacheInfoJSONObject = null;
         try {
             cacheInfoJSONObject = new JSONObject(new String(jsonData));
-        } catch (JSONException ignored) {
-        }
-        if (cacheInfoJSONObject == null) {
+        } catch (Exception ignored) {
             return null;
         }
 
@@ -44,20 +42,22 @@ public class DnsCacheInfo implements java.io.Serializable {
 
         try {
             currentTime = cacheInfoJSONObject.getString("currentTime");
-        } catch (JSONException ignored) {
+        } catch (Exception ignored) {
         }
         try {
             localIp = cacheInfoJSONObject.getString("localIp");
-        } catch (JSONException ignored) {
+        } catch (Exception ignored) {
         }
 
         JSONObject infoMapJSONObject = null;
         try {
             infoMapJSONObject = cacheInfoJSONObject.getJSONObject("info");
-        } catch (JSONException ignored) {
+        } catch (Exception ignored) {
         }
 
-        if (currentTime == null || localIp == null || infoMapJSONObject == null){
+        if (currentTime == null || currentTime.equals("null")
+                || localIp == null || localIp.equals("null")
+                || infoMapJSONObject == null){
             return null;
         }
 
@@ -73,7 +73,7 @@ public class DnsCacheInfo implements java.io.Serializable {
                 if (addressList.size() > 0){
                     info.put(key, addressList);
                 }
-            } catch (JSONException ignored) {
+            } catch (Exception ignored) {
             }
         }
 
