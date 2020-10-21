@@ -162,7 +162,7 @@ public class UploadDomainRegion implements IUploadRegion {
                 UploadServer server = null;
                 for (UploadIpGroup ipGroup : ipGroupList){
                     // 黑名单中不存在 & 未被冻结
-                    if (ipGroup.groupType != null && isGroupFrozenByFreezeManagers(ipGroup.groupType, freezeManagerList)){
+                    if (ipGroup.groupType != null && !isGroupFrozenByFreezeManagers(ipGroup.groupType, freezeManagerList)){
                         IDnsNetworkAddress networkAddress = ipGroup.getNetworkAddress();
                         server = new UploadServer(host, host, networkAddress.getIpValue(), networkAddress.getSourceValue(), networkAddress.getTimestampValue());
                         break;
@@ -177,7 +177,7 @@ public class UploadDomainRegion implements IUploadRegion {
             // 未解析到IP:
             // 黑名单中不存在 & 未被冻结
             String groupType = Utils.getIpType(null, host);
-            if (groupType != null && isGroupFrozenByFreezeManagers(groupType, freezeManagerList)){
+            if (groupType != null && !isGroupFrozenByFreezeManagers(groupType, freezeManagerList)){
                 return new UploadServer(host, host, null, null, null);
             } else {
                 isAllFrozen = true;
@@ -186,7 +186,10 @@ public class UploadDomainRegion implements IUploadRegion {
         }
 
         protected boolean isGroupFrozenByFreezeManagers(String groupType, UploadServerFreezeManager[] freezeManagerList){
-            if (groupType == null || freezeManagerList == null || freezeManagerList.length == 0) {
+            if (groupType == null) {
+                return true;
+            }
+            if (freezeManagerList == null || freezeManagerList.length == 0) {
                 return false;
             }
 
@@ -197,7 +200,7 @@ public class UploadDomainRegion implements IUploadRegion {
                     break;
                 }
             }
-            return !isFrozen;
+            return isFrozen;
         }
 
         protected UploadServer getOneServer(){

@@ -110,7 +110,7 @@ public class ConcurrentResumeUploadTest extends BaseTest {
         wait(new WaitConditional() {
             @Override
             public boolean shouldWait() {
-                if (resp == null){
+                if (info == null){
                     return true;
                 } else {
                     return false;
@@ -130,7 +130,7 @@ public class ConcurrentResumeUploadTest extends BaseTest {
 
         final String expectKey = "android-resume-test2-" + size + "k";
         final File f = TempFile.createFile(size);
-        String[] s = new String[]{"up.qbox.me"};
+        String[] s = new String[]{"up.qbox.me", "upload.qiniup.com"};
         Zone z = new FixedZone(s);
         Configuration c = new Configuration.Builder()
                 .zone(z).useConcurrentResumeUpload(true).useHttps(true)
@@ -149,7 +149,7 @@ public class ConcurrentResumeUploadTest extends BaseTest {
         wait(new WaitConditional() {
             @Override
             public boolean shouldWait() {
-                if (resp == null){
+                if (info == null){
                     return true;
                 } else {
                     return false;
