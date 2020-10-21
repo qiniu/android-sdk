@@ -218,10 +218,7 @@ public final class ResponseInfo {
     }
 
     public boolean couldRegionRetry(){
-        if (!couldRetry()
-            || statusCode == 400
-            || statusCode == 502 || statusCode == 503 || statusCode == 504 || statusCode == 579 || statusCode == 599
-            || isCancelled()) {
+        if (!couldRetry()  || statusCode == 400) {
             return false;
         } else {
             return true;
@@ -230,7 +227,7 @@ public final class ResponseInfo {
 
     public boolean couldHostRetry(){
         if (!couldRegionRetry()
-            || (statusCode == 502 || statusCode == 503 || statusCode == 571)) {
+            || statusCode == 502 || statusCode == 503 || statusCode == 504 || statusCode == 571 || statusCode == 579 || statusCode == 599) {
             return false;
         } else {
             return true;
