@@ -55,9 +55,7 @@ public class DnsCacheInfo implements java.io.Serializable {
         } catch (Exception ignored) {
         }
 
-        if (currentTime == null || currentTime.equals("null")
-                || localIp == null || localIp.equals("null")
-                || infoMapJSONObject == null){
+        if (currentTime == null || localIp == null || infoMapJSONObject == null){
             return null;
         }
 
