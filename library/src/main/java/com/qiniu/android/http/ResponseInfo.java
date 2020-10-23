@@ -227,7 +227,7 @@ public final class ResponseInfo {
 
     public boolean couldHostRetry(){
         if (!couldRegionRetry()
-            || statusCode == 502 || statusCode == 503 || statusCode == 504 || statusCode == 571 || statusCode == 599) {
+            || statusCode == 502 || statusCode == 503 || statusCode == 571 || statusCode == 599) {
             return false;
         } else {
             return true;
