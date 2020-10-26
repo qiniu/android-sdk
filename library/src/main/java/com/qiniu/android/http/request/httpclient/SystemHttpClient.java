@@ -191,7 +191,7 @@ public class SystemHttpClient implements IRequestClient {
 
         clientBuilder.connectTimeout(currentRequest.timeout, TimeUnit.SECONDS);
         clientBuilder.readTimeout(currentRequest.timeout, TimeUnit.SECONDS);
-        clientBuilder.writeTimeout(0, TimeUnit.SECONDS);
+        clientBuilder.writeTimeout(60, TimeUnit.SECONDS);
 
         return clientBuilder.build();
     }
