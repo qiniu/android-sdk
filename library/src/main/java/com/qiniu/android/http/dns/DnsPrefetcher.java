@@ -220,12 +220,12 @@ public class DnsPrefetcher {
     private boolean recoverDnsCache(byte[] data){
 
         DnsCacheInfo dnsCacheInfo = DnsCacheInfo.createDnsCacheInfoByData(data);
-        if (dnsCacheInfo == null || dnsCacheInfo.info == null || dnsCacheInfo.info.size() == 0){
+        if (dnsCacheInfo == null || dnsCacheInfo.getInfo() == null || dnsCacheInfo.getInfo().size() == 0){
             return false;
         }
 
-        addressDictionary.putAll(dnsCacheInfo.info);
-        dnsCacheInfo.info = addressDictionary;
+        addressDictionary.putAll(dnsCacheInfo.getInfo());
+        dnsCacheInfo.setInfo(addressDictionary);
         setDnsCacheInfo(dnsCacheInfo);
 
         return false;

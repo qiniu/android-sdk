@@ -210,7 +210,7 @@ public final class ResponseInfo {
             || statusCode == 608 || statusCode == 612 || statusCode == 614 || statusCode == 616
             || statusCode == 619 || statusCode == 630 || statusCode == 631 || statusCode == 640
             || statusCode == 701
-            ||(statusCode < 0 && statusCode > -1000)) {
+            || (statusCode < -1 && statusCode > -1000)) {
             return false;
         } else {
             return true;
@@ -218,10 +218,7 @@ public final class ResponseInfo {
     }
 
     public boolean couldRegionRetry(){
-        if (!couldRetry()
-            || statusCode == 400
-            || statusCode == 502 || statusCode == 503 || statusCode == 504 || statusCode == 579 || statusCode == 599
-            || isCancelled()) {
+        if (!couldRetry()  || statusCode == 400 || statusCode == 579 ) {
             return false;
         } else {
             return true;
@@ -230,7 +227,7 @@ public final class ResponseInfo {
 
     public boolean couldHostRetry(){
         if (!couldRegionRetry()
-            || (statusCode == 502 || statusCode == 503 || statusCode == 571)) {
+            || statusCode == 502 || statusCode == 503 || statusCode == 571 || statusCode == 599) {
             return false;
         } else {
             return true;
@@ -239,6 +236,23 @@ public final class ResponseInfo {
 
     public boolean isTlsError() {
         if (statusCode == NetworkSSLError){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean canConnectToHost(){
+        if (statusCode > 99 || isCancelled()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean isHostUnavailable(){
+        // 基本不可恢复，注：会影响下次请求，范围太大可能会造成大量的timeout
+        if (isTlsError() || statusCode == 502 || statusCode == 503 || statusCode == 504 || statusCode == 599) {
             return true;
         } else {
             return false;

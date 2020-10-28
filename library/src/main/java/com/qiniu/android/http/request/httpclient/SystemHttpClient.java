@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.SSLException;
+
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Connection;
@@ -53,6 +55,7 @@ public class SystemHttpClient implements IRequestClient {
     public static final String JsonMime = "application/json";
     public static final String FormMime = "application/x-www-form-urlencoded";
 
+    private static ConnectionPool pool;
     private Request currentRequest;
     private OkHttpClient httpClient;
     private Call call;
@@ -163,8 +166,7 @@ public class SystemHttpClient implements IRequestClient {
             }
         });
 
-        ConnectionPool pool = new ConnectionPool(3, 10, TimeUnit.SECONDS);
-        clientBuilder.connectionPool(pool);
+        clientBuilder.connectionPool(SystemHttpClient.getConnectPool());
 
         clientBuilder.networkInterceptors().add(new Interceptor() {
             @Override
@@ -189,9 +191,16 @@ public class SystemHttpClient implements IRequestClient {
 
         clientBuilder.connectTimeout(currentRequest.timeout, TimeUnit.SECONDS);
         clientBuilder.readTimeout(currentRequest.timeout, TimeUnit.SECONDS);
-        clientBuilder.writeTimeout(0, TimeUnit.SECONDS);
+        clientBuilder.writeTimeout(60, TimeUnit.SECONDS);
 
         return clientBuilder.build();
+    }
+
+    private synchronized static ConnectionPool getConnectPool(){
+        if (pool == null){
+            pool = new ConnectionPool(5, 10, TimeUnit.MINUTES);
+        }
+        return pool;
     }
 
     private okhttp3.Request.Builder createRequestBuilder(final RequestClientProgress progress){
@@ -425,6 +434,8 @@ public class SystemHttpClient implements IRequestClient {
             statusCode = ResponseInfo.CannotConnectToHost;
         } else if (e instanceof ProtocolException) {
             statusCode = ResponseInfo.NetworkProtocolError;
+        } else if (e instanceof SSLException) {
+            statusCode = ResponseInfo.NetworkSSLError;
         }
         return statusCode;
     }
