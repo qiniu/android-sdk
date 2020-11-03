@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="JavadocGenerationManager">
-    <option name="OUTPUT_DIRECTORY" value="$PROJECT_DIR$/../../../AndroidUploadDocumnet" />
+    <option name="OUTPUT_DIRECTORY" value="$USER_HOME$/AndroidUploadDocumnet" />
     <option name="OTHER_OPTIONS" value="-doctitle Qiniu Upload Andorid Library" />
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_7" project-jdk-name="1.8" project-jdk-type="JavaSDK" />
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_13_PREVIEW" default="false" project-jdk-name="1.8" project-jdk-type="JavaSDK" />
 </project>
