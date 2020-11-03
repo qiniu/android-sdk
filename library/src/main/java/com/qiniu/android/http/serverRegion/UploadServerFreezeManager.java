@@ -13,7 +13,7 @@ public class UploadServerFreezeManager {
     private HashMap<String, UploadServerFreezeItem> frozenInfo = new HashMap<>();
     private final static UploadServerFreezeManager manager = new UploadServerFreezeManager();
 
-    private UploadServerFreezeManager(){
+    public UploadServerFreezeManager(){
     }
 
     public static UploadServerFreezeManager getInstance(){
@@ -34,6 +34,19 @@ public class UploadServerFreezeManager {
     }
 
     public void freezeHost(String host, String type){
+        if (host == null || host.length() == 0){
+            return;
+        }
+        String infoKey = getItemInfoKey(host, type);
+        UploadServerFreezeItem item = frozenInfo.get(infoKey);
+        if (item == null){
+            item = new UploadServerFreezeItem(host, type);
+            frozenInfo.put(infoKey, item);
+        }
+        item.freeze();
+    }
+
+    public void freezeHost(String host, String type, int frozenTime){
         if (host == null || host.length() == 0){
             return;
         }
@@ -70,7 +83,7 @@ public class UploadServerFreezeManager {
         }
 
         protected synchronized void freeze(){
-            freezeDate = new Date(Utils.currentTimestamp() + 10*60*1000);
+            freezeDate = new Date(Utils.currentTimestamp() + 30*1000);
         }
     }
 

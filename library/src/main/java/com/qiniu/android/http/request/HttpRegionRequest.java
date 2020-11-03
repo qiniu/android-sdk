@@ -139,14 +139,12 @@ class HttpRegionRequest {
     }
 
     private IUploadServer getNextServer(ResponseInfo responseInfo){
-        if (responseInfo == null) {
-            return region.getNextServer(false, null);
-        }
 
-        if (responseInfo.isTlsError()) {
+        if (responseInfo != null && responseInfo.isTlsError()) {
             isUseOldServer = true;
         }
-        return region.getNextServer(isUseOldServer, currentServer);
+
+        return region.getNextServer(isUseOldServer, responseInfo, currentServer);
     }
 
 

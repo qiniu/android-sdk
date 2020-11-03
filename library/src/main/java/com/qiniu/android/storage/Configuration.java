@@ -41,12 +41,14 @@ public final class Configuration {
     public final int retryInterval;
 
     /**
-     * 连接超时时间，单位 秒
+     *    连接超时时间 单位 秒
+     *    注：每个文件上传肯能存在多个操作，当每个操作失败时，可能存在多个请求重试。
      */
     public final int connectTimeout;
 
     /**
-     * 服务器响应超时时间 单位 秒
+     *    服务器响应超时时间 单位 秒
+     *    注：每个文件上传肯能存在多个操作，当每个操作失败时，可能存在多个请求重试。
      */
     public final int responseTimeout;
 
@@ -56,12 +58,14 @@ public final class Configuration {
     public final boolean useHttps;
 
     /**
-     * 是否使用并发上传 默认为false
+     *   单个文件是否开启并发分片上传，默认为false
+     *   单个文件大小大于4M时，会采用分片上传，每个分片会已单独的请求进行上传操作，多个上传操作可以使用并发，
+     *   也可以采用串行，采用并发时，可以设置并发的个数(对concurrentTaskCount进行设置)。
      */
     public final boolean useConcurrentResumeUpload;
 
     /**
-     * 并发分片上传的并发任务个数，在concurrentResumeUpload为YES时有效，默认为3个
+     *   并发分片上传的并发任务个数，在concurrentResumeUpload为true时有效，默认为3个
      */
     public final int concurrentTaskCount;
 
@@ -139,7 +143,7 @@ public final class Configuration {
         private boolean useHttps = true;
         private int chunkSize = 2 * 1024 * 1024;
         private int putThreshold = 4 * 1024 * 1024;
-        private int connectTimeout = 60;
+        private int connectTimeout = 90;
         private int responseTimeout = 60;
         private int retryMax = 1;
         private int retryInterval = 500;
