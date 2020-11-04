@@ -78,9 +78,9 @@ public final class AndroidNetwork {
     public static String networkType(Context context) {
         ConnectivityManager connectivity = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivity.getActiveNetworkInfo();
-        if (connectivity == null || !networkInfo.isConnected()) {
+        if (connectivity == null || !networkInfo.isConnected())
             return Constants.NETWORK_CLASS_UNKNOWN;
-        }
+
         int netWorkType = connectivity.getActiveNetworkInfo().getType();
         if (netWorkType == ConnectivityManager.TYPE_WIFI) {
             return Constants.NETWORK_WIFI;
@@ -91,14 +91,7 @@ public final class AndroidNetwork {
     }
 
     private static String getNetWorkClass(Context context) {
-        if (context.checkPermission(Manifest.permission.READ_PHONE_STATE, Process.myPid(), Process.myUid()) != PackageManager.PERMISSION_GRANTED) {
-            return Constants.NETWORK_CLASS_UNKNOWN;
-        }
-
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        if (telephonyManager == null){
-            return Constants.NETWORK_CLASS_UNKNOWN;
-        }
 
         switch (telephonyManager.getNetworkType()) {
             case TelephonyManager.NETWORK_TYPE_GPRS:
@@ -125,6 +118,7 @@ public final class AndroidNetwork {
             default:
                 return Constants.NETWORK_CLASS_UNKNOWN;
         }
+
     }
 
     /**
