@@ -197,8 +197,13 @@ class ConcurrentResumeUpload extends PartsUpload {
                 } else {
                     chunk.isUploading = false;
                     chunk.isCompleted = false;
-                    uploadBlockErrorResponse = response;
-                    uploadBlockErrorResponseInfo = responseInfo;
+                    // 以第一次错误为准
+                    if (uploadBlockErrorResponse == null){
+                        uploadBlockErrorResponse = response;
+                    }
+                    if (uploadBlockErrorResponseInfo == null){
+                        uploadBlockErrorResponseInfo = responseInfo;
+                    }
                     completeHandler.complete();
                 }
             }
