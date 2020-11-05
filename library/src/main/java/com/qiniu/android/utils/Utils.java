@@ -35,11 +35,11 @@ public class Utils {
     }
 
     public static Integer getCurrentSignalStrength(){
-        return null;
+        return AndroidNetwork.getMobileDbm();
     }
 
-    public static Integer getCurrentNetworkType(){
-        return null;
+    public static String getCurrentNetworkType(){
+        return AndroidNetwork.networkType(ContextGetter.applicationContext());
     }
 
     public static long currentTimestamp(){

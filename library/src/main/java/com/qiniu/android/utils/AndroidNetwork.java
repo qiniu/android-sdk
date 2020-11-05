@@ -76,6 +76,10 @@ public final class AndroidNetwork {
     }
 
     public static String networkType(Context context) {
+        if (context == null){
+            return Constants.NETWORK_CLASS_UNKNOWN;
+        }
+
         ConnectivityManager connectivity = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo networkInfo = connectivity.getActiveNetworkInfo();
         if (connectivity == null || !networkInfo.isConnected()) {
