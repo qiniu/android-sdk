@@ -17,14 +17,17 @@ public final class ResponseInfo {
     @Deprecated
     public static final int ResquestSuccess = 200;
     public static final int RequestSuccess = 200;
+
+    public static final int UnexpectedSysCallError = -10;
+    public static final int NoUsableHostError = -9;
+    public static final int MaliciousResponseError = -8;
+    public static final int LocalIOError = -7;
     public static final int ZeroSizeFile = -6;
     public static final int InvalidToken = -5;
     public static final int InvalidArgument = -4;
     public static final int InvalidFile = -3;
     public static final int Cancelled = -2;
     public static final int NetworkError = -1;
-    public static final int LocalIOError = -7;
-    public static final int MaliciousResponseError = -8;
 
     public static final int Crc32NotMatch = -406;
 
@@ -149,6 +152,18 @@ public final class ResponseInfo {
 
     public static ResponseInfo localIOError(String desc) {
         return errorInfo(LocalIOError, desc);
+    }
+
+    public static ResponseInfo maliciousResponseError(String desc) {
+        return errorInfo(MaliciousResponseError, desc);
+    }
+
+    public static ResponseInfo noUsableHostError(String desc) {
+        return errorInfo(NoUsableHostError, desc);
+    }
+
+    public static ResponseInfo unexpectedSysCallError(String desc) {
+        return errorInfo(UnexpectedSysCallError, desc);
     }
 
     public static ResponseInfo errorInfo(int statusCode, String error) {

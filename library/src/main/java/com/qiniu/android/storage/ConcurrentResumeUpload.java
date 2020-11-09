@@ -197,12 +197,9 @@ class ConcurrentResumeUpload extends PartsUpload {
                 } else {
                     chunk.isUploading = false;
                     chunk.isCompleted = false;
-                    // 以第一次错误为准
-                    if (uploadBlockErrorResponse == null){
-                        uploadBlockErrorResponse = response;
-                    }
-                    if (uploadBlockErrorResponseInfo == null){
+                    if (uploadBlockErrorResponseInfo == null || (responseInfo != null && responseInfo.statusCode != ResponseInfo.NoUsableHostError)){
                         uploadBlockErrorResponseInfo = responseInfo;
+                        uploadBlockErrorResponse = response;
                     }
                     completeHandler.complete();
                 }
