@@ -95,7 +95,7 @@ class ResumeUpload extends PartsUpload {
         IUploadRegion currentRegion = getCurrentRegion();
         if (currentRegion == null){
             if (uploadChunkErrorResponseInfo == null){
-                uploadChunkErrorResponseInfo = ResponseInfo.invalidArgument("server error");
+                uploadChunkErrorResponseInfo = ResponseInfo.noUsableHostError("region server error");
                 uploadChunkErrorResponse = uploadChunkErrorResponseInfo.response;
             }
             completeHandler.complete();
