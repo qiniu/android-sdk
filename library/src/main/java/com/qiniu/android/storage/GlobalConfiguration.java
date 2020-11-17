@@ -31,7 +31,7 @@ public class GlobalConfiguration {
     public String dnsCacheDir = Utils.sdkDirectory() + "/dnsCache/";
 
     /**
-     *   Host全局冻结时间  单位：秒   默认：15  推荐范围：[5 ~ 30]
+     *   Host全局冻结时间  单位：秒   默认：10  推荐范围：[5 ~ 30]
      *   当某个Host的上传失败后并且可能短时间无法恢复，会冻结该Host
      */
     public int globalHostFrozenTime = 10;

@@ -84,20 +84,14 @@ class ResumeUpload extends PartsUpload {
     private void uploadRestChunk(UploadChunkCompleteHandler completeHandler){
         final UploadFileInfo uploadFileInfo = getUploadFileInfo();
         if (uploadFileInfo == null){
-            if (uploadChunkErrorResponseInfo == null){
-                uploadChunkErrorResponseInfo = ResponseInfo.invalidArgument("file error");
-                uploadChunkErrorResponse = uploadChunkErrorResponseInfo.response;
-            }
+            setErrorResponse(ResponseInfo.invalidArgument("file error"), null);
             completeHandler.complete();
             return;
         }
 
         IUploadRegion currentRegion = getCurrentRegion();
         if (currentRegion == null){
-            if (uploadChunkErrorResponseInfo == null){
-                uploadChunkErrorResponseInfo = ResponseInfo.noUsableHostError("region server error");
-                uploadChunkErrorResponse = uploadChunkErrorResponseInfo.response;
-            }
+            setErrorResponse(ResponseInfo.noUsableHostError("region server error"), null);
             completeHandler.complete();
             return;
         }
@@ -137,8 +131,7 @@ class ResumeUpload extends PartsUpload {
 
         chunk.data = getDataWithChunk(chunk, block);
         if (chunk.data == null){
-            uploadChunkErrorResponseInfo = ResponseInfo.localIOError("get chunk data error");
-            uploadChunkErrorResponse = uploadChunkErrorResponseInfo.response;
+            setErrorResponse(ResponseInfo.localIOError("get chunk data error"), null);
             completeHandler.complete();
             return;
         }
@@ -169,8 +162,7 @@ class ResumeUpload extends PartsUpload {
                 } else {
                     chunk.isUploading = false;
                     chunk.isCompleted = false;
-                    uploadChunkErrorResponse = response;
-                    uploadChunkErrorResponseInfo = responseInfo;
+                    setErrorResponse(responseInfo, response);
                     completeHandler.complete();
                 }
             }
@@ -184,8 +176,7 @@ class ResumeUpload extends PartsUpload {
 
         chunk.data = getDataWithChunk(chunk, block);
         if (chunk.data == null){
-            uploadChunkErrorResponseInfo = ResponseInfo.localIOError("get chunk data error");
-            uploadChunkErrorResponse = uploadChunkErrorResponseInfo.response;
+            setErrorResponse(ResponseInfo.localIOError("get chunk data error"), null);
             completeHandler.complete();
             return;
         }
@@ -216,8 +207,7 @@ class ResumeUpload extends PartsUpload {
                 } else {
                     chunk.isUploading = false;
                     chunk.isCompleted = false;
-                    uploadChunkErrorResponse = response;
-                    uploadChunkErrorResponseInfo = responseInfo;
+                    setErrorResponse(responseInfo, response);
                     completeHandler.complete();
                 }
             }
@@ -247,6 +237,17 @@ class ResumeUpload extends PartsUpload {
                 completeHandler.complete(responseInfo, response);
             }
         });
+    }
+
+    private void setErrorResponse(ResponseInfo responseInfo, JSONObject response) {
+        if (uploadChunkErrorResponseInfo == null || (responseInfo != null && responseInfo.statusCode != ResponseInfo.NoUsableHostError)) {
+            uploadChunkErrorResponseInfo = responseInfo;
+            if (response == null && responseInfo != null) {
+                uploadChunkErrorResponse = responseInfo.response;
+            } else {
+                uploadChunkErrorResponse = response;
+            }
+        }
     }
 
     private RequestTransaction createUploadRequestTransaction(){
