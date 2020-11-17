@@ -31,14 +31,14 @@ public class GlobalConfiguration {
     public String dnsCacheDir = Utils.sdkDirectory() + "/dnsCache/";
 
     /**
-     *   Host全局冻结时间  单位：秒   默认：30  推荐范围：[10 ~ 60]
-     *   当某个Host的上传失败后并且可能短时间无法恢复，会冻结该Host，globalHostFrozenTime为全局冻结时间
+     *   Host全局冻结时间  单位：秒   默认：15  推荐范围：[5 ~ 30]
+     *   当某个Host的上传失败后并且可能短时间无法恢复，会冻结该Host
      */
-    public int globalHostFrozenTime = 30;
+    public int globalHostFrozenTime = 10;
 
     /**
-     *   Host局部冻结时间，只会影响当前长传操作  单位：秒   默认：5*60  推荐范围：[60 ~ 10*60]
-     *   当某个Host的上传失败后并且可能短时间可能会恢复，会冻结该Host，partialHostFrozenTime为全局冻结时间
+     *   Host局部冻结时间，只会影响当前上传操作  单位：秒   默认：5*60  推荐范围：[60 ~ 10*60]
+     *   当某个Host的上传失败后并且短时间可能会恢复，会局部冻结该Host
      */
     public int partialHostFrozenTime = 5*60;
 
