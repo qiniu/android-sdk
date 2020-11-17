@@ -30,14 +30,22 @@ public class ByteBody extends RequestBody {
     }
 
     @Override
+    public long contentLength() throws IOException {
+        return body.length;
+    }
+
+    @Override
     public void writeTo(BufferedSink bufferedSink) throws IOException {
 
         int byteIndex = 0;
         int byteSize = SEGMENT_SIZE;
         while (byteIndex < body.length){
             byteSize = Math.min(byteSize, body.length - byteIndex);
+
             RequestBody requestBody = getRequestBodyWithRange(byteIndex, byteSize);
             requestBody.writeTo(bufferedSink);
+            bufferedSink.flush();
+
             byteIndex += byteSize;
         }
 

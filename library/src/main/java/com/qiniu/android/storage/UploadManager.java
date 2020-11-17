@@ -110,6 +110,7 @@ public class UploadManager {
 
     /**
      * 同步上传文件。使用 form 表单方式上传，建议只在数据较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     * 注：切勿在主线程调用
      *
      * @param data    上传的数据
      * @param key     上传数据保存的文件名
@@ -150,6 +151,7 @@ public class UploadManager {
 
     /**
      * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     * 注：切勿在主线程调用
      *
      * @param file    上传的文件对象
      * @param key     上传数据保存的文件名
@@ -162,6 +164,8 @@ public class UploadManager {
                                 String token,
                                 UploadOptions options) {
 
+        final Wait wait = new Wait();
+
         final ArrayList<ResponseInfo> responseInfos = new ArrayList<ResponseInfo>();
         UpCompletionHandler completionHandler = new UpCompletionHandler() {
             @Override
@@ -169,36 +173,26 @@ public class UploadManager {
                 if (info != null) {
                     responseInfos.add(info);
                 }
+                wait.stopWait();
             }
         };
-        if (checkAndNotifyError(key, token, file, completionHandler)){
-            return responseInfos.size() > 0 ? responseInfos.get(0) : null;
+
+        if (!checkAndNotifyError(key, token, file, completionHandler)){
+            putFile(file, key, token, options, completionHandler);
         }
 
-        byte[] data = null;
-        RandomAccessFile randomAccessFile = null;
-        try {
-            randomAccessFile = new RandomAccessFile(file, "r");
-            data = new byte[(int)file.length()];
-            randomAccessFile.read(data, 0, (int)file.length());
-        } catch (FileNotFoundException e) {
-            return ResponseInfo.fileError(e);
-        } catch (IOException e) {
-            return ResponseInfo.fileError(e);
-        } finally {
-            if (randomAccessFile != null){
-                try {
-                    randomAccessFile.close();
-                } catch (IOException ignored) {
-                }
-            }
-        }
+        wait.startWait();
 
-        return syncPut(data, key, token, options);
+        if (responseInfos.size() > 0){
+            return responseInfos.get(0);
+        } else {
+            return null;
+        }
     }
 
     /**
      * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     * 注：切勿在主线程调用
      *
      * @param file    上传的文件绝对路径
      * @param key     上传数据保存的文件名
@@ -331,27 +325,34 @@ public class UploadManager {
                                 final UploadTaskMetrics taskMetrics,
                                 final UpCompletionHandler completionHandler){
 
-        reportQuality(responseInfo, taskMetrics, token);
+        reportQuality(key, responseInfo, taskMetrics, token);
         if (completionHandler != null){
+            final Wait wait = new Wait();
             AsyncRun.runInMain(new Runnable() {
                 @Override
                 public void run() {
                     completionHandler.complete(key, responseInfo, response);
+                    wait.stopWait();
                 }
             });
+            wait.startWait();
         }
     }
 
-    private void reportQuality(ResponseInfo responseInfo,
+    private void reportQuality(String key,
+                               ResponseInfo responseInfo,
                                UploadTaskMetrics taskMetrics,
                                String token){
 
+        UpToken upToken = UpToken.parse(token);
         UploadTaskMetrics taskMetricsP = taskMetrics != null ? taskMetrics : new UploadTaskMetrics(null);
 
         ReportItem item = new ReportItem();
         item.setReport(ReportItem.LogTypeQuality, ReportItem.QualityKeyLogType);
         item.setReport((Utils.currentTimestamp()/1000), ReportItem.QualityKeyUpTime);
         item.setReport(ReportItem.qualityResult(responseInfo), ReportItem.QualityKeyResult);
+        item.setReport(key, ReportItem.QualityKeyTargetKey);
+        item.setReport(upToken != null ? upToken.bucket : null, ReportItem.QualityKeyTargetBucket);
         item.setReport(taskMetricsP.totalElapsedTime(), ReportItem.QualityKeyTotalElapsedTime);
         item.setReport(taskMetricsP.requestCount(), ReportItem.QualityKeyRequestsCount);
         item.setReport(taskMetricsP.regionCount(), ReportItem.QualityKeyRegionsCount);

@@ -45,6 +45,18 @@ public class GlobalConfiguration {
      */
     public int maxCheckTime = 9;
 
+    /**
+     *   Host全局冻结时间  单位：秒   默认：30  推荐范围：[10 ~ 60]
+     *   当某个Host的上传失败后并且可能短时间无法恢复，会冻结该Host，globalHostFrozenTime为全局冻结时间
+     */
+    public int globalHostFrozenTime = 30;
+
+    /**
+     *   Host局部冻结时间，只会影响当前长传操作  单位：秒   默认：5*60  推荐范围：[60 ~ 10*60]
+     *   当某个Host的上传失败后并且可能短时间可能会恢复，会冻结该Host，partialHostFrozenTime为全局冻结时间
+     */
+    public int partialHostFrozenTime = 5*60;
+
 
     private static GlobalConfiguration configuration = new GlobalConfiguration();
     private GlobalConfiguration(){

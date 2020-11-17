@@ -1,5 +1,7 @@
 package com.qiniu.android.http.request;
 
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -14,8 +16,8 @@ public class Request {
     public final String urlString;
     public final String httpMethod;
     public final Map<String, String> allHeaders;
-    public final byte[] httpBody;
     public final int timeout;
+    public byte[] httpBody;
 
     public String host;
     public String ip;
@@ -36,13 +38,14 @@ public class Request {
     }
 
     public InetAddress getInetAddress(){
-        if (uploadServer == null || uploadServer.getIp() == null) {
+        if (host == null || uploadServer == null || uploadServer.getIp() == null) {
             return null;
         }
 
         try {
-            return InetAddress.getByName(uploadServer.getIp());
-        } catch (UnknownHostException e) {
+            InetAddress ipAddress = InetAddress.getByName(uploadServer.getIp());
+            return InetAddress.getByAddress(host, ipAddress.getAddress());
+        } catch (Exception e) {
             return null;
         }
     }

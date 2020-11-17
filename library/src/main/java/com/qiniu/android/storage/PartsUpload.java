@@ -109,7 +109,10 @@ abstract class PartsUpload extends BaseUpload {
         reportBlock();
         closeUploadFileInfo();
         super.completeAction(responseInfo, response);
+
+        uploadFileInfo = null;
     }
+
 
     protected void recordUploadInfo(){
         String key = recorderKey;
@@ -176,11 +179,12 @@ abstract class PartsUpload extends BaseUpload {
 
     protected void initPartFromServer(final UploadFileCompleteHandler completeHandler){
 
-        RequestTransaction transaction = createUploadRequestTransaction();
+        final RequestTransaction transaction = createUploadRequestTransaction();
         transaction.initPart(true, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 
+                destroyUploadRequestTransaction(transaction);
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
 
                 String uploadId = null;
@@ -216,11 +220,12 @@ abstract class PartsUpload extends BaseUpload {
         data.isUploading = true;
         data.isCompleted = false;
 
-        RequestTransaction transaction = createUploadRequestTransaction();
+        final RequestTransaction transaction = createUploadRequestTransaction();
         transaction.uploadPart(true, uploadFileInfo.uploadId, data.index, uploadData, progressHandler, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 
+                destroyUploadRequestTransaction(transaction);
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
 
                 String etag = null;
@@ -250,12 +255,13 @@ abstract class PartsUpload extends BaseUpload {
     protected void completePartsFromServer(final UploadFileCompleteHandler completeHandler){
 
         List<Map<String, Object>> partInfoArray = uploadFileInfo.getPartInfoArray();
-        RequestTransaction transaction = createUploadRequestTransaction();
+        final RequestTransaction transaction = createUploadRequestTransaction();
 
         transaction.completeParts(true, fileName, uploadFileInfo.uploadId, partInfoArray, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 
+                destroyUploadRequestTransaction(transaction);
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
                 completeHandler.complete(responseInfo, response);
             }
@@ -263,6 +269,7 @@ abstract class PartsUpload extends BaseUpload {
     }
 
     protected abstract RequestTransaction createUploadRequestTransaction();
+    protected abstract void destroyUploadRequestTransaction(RequestTransaction transaction);
 
     private byte[] getUploadData(UploadFileInfo.UploadData data){
         RandomAccessFile randomAccessFile = getRandomAccessFile();

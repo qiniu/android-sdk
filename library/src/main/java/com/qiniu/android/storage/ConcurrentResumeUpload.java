@@ -28,13 +28,13 @@ class ConcurrentResumeUpload extends PartsUpload {
     private JSONObject uploadDataErrorResponse;
 
     protected ConcurrentResumeUpload(File file,
-                                    String key,
-                                    UpToken token,
-                                    UploadOptions option,
-                                    Configuration config,
-                                    Recorder recorder,
-                                    String recorderKey,
-                                    UpTaskCompletionHandler completionHandler) {
+                                     String key,
+                                     UpToken token,
+                                     UploadOptions option,
+                                     Configuration config,
+                                     Recorder recorder,
+                                     String recorderKey,
+                                     UpTaskCompletionHandler completionHandler) {
         super(file, key, token, option, config, recorder, recorderKey, completionHandler);
     }
 
@@ -59,14 +59,14 @@ class ConcurrentResumeUpload extends PartsUpload {
 
                 if (responseInfo == null || !responseInfo.isOK()) {
                     boolean isSwitched = switchRegionAndUpload();
-                    if (!isSwitched){
+                    if (!isSwitched) {
                         completeAction(uploadDataErrorResponseInfo, uploadDataErrorResponse);
                     }
                     return;
                 }
 
                 UploadFileInfo fileInfo = getUploadFileInfo();
-                if (!responseInfo.isOK() || fileInfo.uploadId == null || fileInfo.uploadId.length() == 0){
+                if (!responseInfo.isOK() || fileInfo.uploadId == null || fileInfo.uploadId.length() == 0) {
                     completeAction(responseInfo, response);
                     return;
                 }
@@ -77,10 +77,10 @@ class ConcurrentResumeUpload extends PartsUpload {
                     public void complete() {
 
                         UploadFileInfo uploadFileInfo = getUploadFileInfo();
-                        if (!uploadFileInfo.isAllUploaded() || uploadDataErrorResponseInfo != null){
+                        if (!uploadFileInfo.isAllUploaded() || uploadDataErrorResponseInfo != null) {
                             if (uploadDataErrorResponseInfo.couldRetry() && config.allowBackupHost) {
                                 boolean isSwitched = switchRegionAndUpload();
-                                if (!isSwitched){
+                                if (!isSwitched) {
                                     completeAction(uploadDataErrorResponseInfo, uploadDataErrorResponse);
                                 }
                             } else {
@@ -93,9 +93,9 @@ class ConcurrentResumeUpload extends PartsUpload {
                         completePartsFromServer(new UploadFileCompleteHandler() {
                             @Override
                             public void complete(ResponseInfo responseInfo, JSONObject response) {
-                                if (responseInfo == null || !responseInfo.isOK()){
+                                if (responseInfo == null || !responseInfo.isOK()) {
                                     boolean isSwitched = switchRegionAndUpload();
-                                    if (!isSwitched){
+                                    if (!isSwitched) {
                                         completeAction(responseInfo, response);
                                     }
                                 } else {
@@ -116,7 +116,7 @@ class ConcurrentResumeUpload extends PartsUpload {
         });
     }
 
-    private void concurrentUploadRestData(final ResumeUploadCompleteHandler completeHandler){
+    private void concurrentUploadRestData(final ResumeUploadCompleteHandler completeHandler) {
 
         GroupTaskThread.GroupTaskCompleteHandler taskCompleteHandler = new GroupTaskThread.GroupTaskCompleteHandler() {
             @Override
@@ -143,23 +143,17 @@ class ConcurrentResumeUpload extends PartsUpload {
         groupTaskThread.start();
     }
 
-    private void uploadRestData(final ResumeUploadCompleteHandler completeHandler){
+    private void uploadRestData(final ResumeUploadCompleteHandler completeHandler) {
         final UploadFileInfo uploadFileInfo = getUploadFileInfo();
-        if (uploadFileInfo == null){
-            if (uploadDataErrorResponseInfo == null){
-                uploadDataErrorResponseInfo = ResponseInfo.invalidArgument("file error");
-                uploadDataErrorResponse = uploadDataErrorResponseInfo.response;
-            }
+        if (uploadFileInfo == null) {
+            setErrorResponse(ResponseInfo.invalidArgument("file error"), null);
             completeHandler.complete();
             return;
         }
 
         IUploadRegion currentRegion = getCurrentRegion();
-        if (currentRegion == null){
-            if (uploadDataErrorResponseInfo == null){
-                uploadDataErrorResponseInfo = ResponseInfo.invalidArgument("server error");
-                uploadDataErrorResponse = uploadDataErrorResponseInfo.response;
-            }
+        if (currentRegion == null) {
+            setErrorResponse(ResponseInfo.invalidArgument("server error"), null);
             completeHandler.complete();
             return;
         }
@@ -189,9 +183,8 @@ class ConcurrentResumeUpload extends PartsUpload {
                 uploadDataFromServer(data, progressHandler, new UploadFileCompleteHandler() {
                     @Override
                     public void complete(ResponseInfo responseInfo, JSONObject response) {
-                        if (!responseInfo.isOK()){
-                            uploadDataErrorResponseInfo = responseInfo;
-                            uploadDataErrorResponse = response;
+                        if (!responseInfo.isOK()) {
+                            setErrorResponse(responseInfo, response);
                         } else {
                             uploadRestData(completeHandler);
                         }
@@ -201,13 +194,34 @@ class ConcurrentResumeUpload extends PartsUpload {
         }
     }
 
-    protected RequestTransaction createUploadRequestTransaction(){
+
+    private void setErrorResponse(ResponseInfo responseInfo, JSONObject response) {
+        if (uploadDataErrorResponseInfo == null || (responseInfo != null && responseInfo.statusCode != ResponseInfo.NoUsableHostError)) {
+            uploadDataErrorResponseInfo = responseInfo;
+            if (response == null && responseInfo != null) {
+                uploadDataErrorResponse = responseInfo.response;
+            } else {
+                uploadDataErrorResponse = response;
+            }
+        }
+    }
+
+    @Override
+    protected RequestTransaction createUploadRequestTransaction() {
         RequestTransaction transaction = new RequestTransaction(config, option, getTargetRegion(), getCurrentRegion(), key, token);
         uploadTransactions.add(transaction);
         return transaction;
     }
 
-    private interface ResumeUploadCompleteHandler{
+    @Override
+    protected void destroyUploadRequestTransaction(RequestTransaction transaction) {
+        if (transaction != null) {
+            uploadTransactions.remove(transaction);
+        }
+    }
+
+    private interface ResumeUploadCompleteHandler {
         void complete();
     }
+
 }

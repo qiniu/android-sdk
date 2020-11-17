@@ -108,20 +108,14 @@ class ResumeUpload extends PartsUpload {
     private void uploadRestData(final ResumeUploadCompleteHandler completeHandler){
         final UploadFileInfo uploadFileInfo = getUploadFileInfo();
         if (uploadFileInfo == null){
-            if (uploadDataErrorResponseInfo == null){
-                uploadDataErrorResponseInfo = ResponseInfo.invalidArgument("file error");
-                uploadDataErrorResponse = uploadDataErrorResponseInfo.response;
-            }
+            setErrorResponse(ResponseInfo.invalidArgument("file error"), null);
             completeHandler.complete();
             return;
         }
 
         IUploadRegion currentRegion = getCurrentRegion();
         if (currentRegion == null){
-            if (uploadDataErrorResponseInfo == null){
-                uploadDataErrorResponseInfo = ResponseInfo.invalidArgument("server error");
-                uploadDataErrorResponse = uploadDataErrorResponseInfo.response;
-            }
+            setErrorResponse(ResponseInfo.noUsableHostError("region server error"), null);
             completeHandler.complete();
             return;
         }
@@ -162,10 +156,25 @@ class ResumeUpload extends PartsUpload {
         }
     }
 
+    private void setErrorResponse(ResponseInfo responseInfo, JSONObject response) {
+        if (uploadDataErrorResponseInfo == null || (responseInfo != null && responseInfo.statusCode != ResponseInfo.NoUsableHostError)) {
+            uploadDataErrorResponseInfo = responseInfo;
+            if (response == null && responseInfo != null) {
+                uploadDataErrorResponse = responseInfo.response;
+            } else {
+                uploadDataErrorResponse = response;
+            }
+        }
+    }
+
     @Override
     protected RequestTransaction createUploadRequestTransaction() {
         uploadTransaction = new RequestTransaction(config, option, getTargetRegion(), getCurrentRegion(), key, token);
         return uploadTransaction;
+    }
+
+    @Override
+    protected void destroyUploadRequestTransaction(RequestTransaction transaction) {
     }
 
     private interface ResumeUploadCompleteHandler{

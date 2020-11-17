@@ -128,13 +128,16 @@ abstract class BaseUpload implements Runnable {
     }
 
     protected void completeAction(ResponseInfo responseInfo,
-                               JSONObject response){
+                                  JSONObject response){
         if (currentRegionRequestMetrics != null && metrics != null){
             metrics.addMetrics(currentRegionRequestMetrics);
         }
         if (completionHandler != null){
             completionHandler.complete(responseInfo, key, metrics, response);
         }
+
+        metrics = null;
+        currentRegionRequestMetrics = null;
     }
 
     private boolean setupRegions(){

@@ -42,31 +42,40 @@ public class UploadSingleRequestMetrics {
     public Integer remotePort;
 
 
-    public Long totalElapsedTime(){
+    public long totalElapsedTime(){
         return time(startDate, endDate);
     }
-    public Long totalDnsTime(){
+    public long totalDnsTime(){
         return time(domainLookupStartDate, domainLookupEndDate);
     }
 
-    public Long totalConnectTime(){
+    public long totalConnectTime(){
         return time(connectStartDate, connectEndDate);
     }
-    public Long totalSecureConnectTime(){
+    public long totalSecureConnectTime(){
         return time(secureConnectionStartDate, secureConnectionEndDate);
     }
 
-    public Long totalRequestTime(){
+    public long totalRequestTime(){
         return time(requestStartDate, requestEndDate);
     }
-    public Long totalWaitTime(){
+    public long totalWaitTime(){
         return time(requestEndDate, responseStartDate);
     }
-    public Long totalResponseTime(){
+    public long totalResponseTime(){
         return time(responseStartDate, responseEndDate);
     }
 
-    public Long totalBytes(){
+    public void setRequest(Request request){
+        if (request != null){
+            this.request = new Request(request.urlString, request.httpMethod, request.allHeaders, null, request.timeout);
+        }
+    }
+
+    public long totalBytes(){
+        if (request == null){
+            return 0;
+        }
         long headerLength = 0;
         long bodyLength = 0 ;
         if (request.allHeaders != null){
@@ -78,7 +87,7 @@ public class UploadSingleRequestMetrics {
         return (headerLength + bodyLength);
     }
     public Long bytesSend(){
-        long totalBytes = totalBytes().longValue();
+        long totalBytes = totalBytes();
         long bytesSend = countOfRequestHeaderBytesSent + countOfRequestBodyBytesSent;
         if (bytesSend > totalBytes){
             bytesSend = totalBytes;
@@ -87,7 +96,7 @@ public class UploadSingleRequestMetrics {
     }
 
 
-    private Long time(Date startDate, Date endDate){
+    private long time(Date startDate, Date endDate){
         if (startDate != null && endDate != null){
             return (endDate.getTime() - startDate.getTime());
         } else {

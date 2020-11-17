@@ -22,49 +22,39 @@ public class ZoneInfo {
 
     private static int DOMAIN_FROZEN_SECONDS = 10 * 60;
 
-    private int ttl;
-    public UploadServerGroup acc;
-    public UploadServerGroup src;
-    public UploadServerGroup old_acc;
-    public UploadServerGroup old_src;
+    public final int ttl;
+    public final List<String> domains;
+    public final List<String> old_domains;
 
-    public String regionId;
-    public ArrayList<String> allHosts;
+    public final String regionId;
+    public List<String> allHosts;
     public JSONObject detailInfo;
 
     public static ZoneInfo buildInfo(List<String> mainHosts,
-                                     List<String> ioHosts){
-        return buildInfo(mainHosts, null, ioHosts);
+                                     String regionId){
+        return buildInfo(mainHosts, null, regionId);
     }
 
     public static ZoneInfo buildInfo(List<String> mainHosts,
                                      List<String> oldHosts,
-                                     List<String> ioHosts){
+                                     String regionId){
         if (mainHosts == null){
             return null;
         }
 
         HashMap<String, Object> up = new HashMap<>();
-
-        HashMap<String, Object> up_acc = new HashMap<>();
-        up_acc.put("main", mainHosts);
-        up.put("acc", up_acc);
-
+        up.put("domains", mainHosts);
         if (oldHosts != null){
-            HashMap<String, Object> up_old_acc = new HashMap<>();
-            up_old_acc.put("main", oldHosts);
-            up.put("old_acc", up_old_acc);
+            up.put("old", oldHosts);
         }
 
-        HashMap<String, Object> io_src = new HashMap<>();
-        HashMap<String, Object> io = new HashMap<>();
-        io_src.put("main", (ioHosts != null ? ioHosts : new ArrayList<String>()));
-        io.put("src", io_src);
-
+        if (regionId == null){
+            regionId = EmptyRegionId;
+        }
         HashMap<String, Object> info = new HashMap<>();
         info.put("ttl", 86400*1000);
+        info.put("region", regionId);
         info.put("up", up);
-        info.put("io", io);
 
         JSONObject object = new JSONObject(info);
 
@@ -76,16 +66,13 @@ public class ZoneInfo {
     }
 
     private ZoneInfo(int ttl,
-                     UploadServerGroup acc,
-                     UploadServerGroup src,
-                     UploadServerGroup old_acc,
-                     UploadServerGroup old_src) {
-
+                     String regionId,
+                     List<String> domains,
+                     List<String> old_domains) {
         this.ttl = ttl;
-        this.acc = acc;
-        this.src = src;
-        this.old_acc = old_acc;
-        this.old_src = old_src;
+        this.regionId = regionId;
+        this.domains = domains;
+        this.old_domains = old_domains;
     }
 
     /**
@@ -99,73 +86,49 @@ public class ZoneInfo {
             return null;
         }
 
-        int ttl = obj.getInt("ttl");
-        List<String> domainsList = new ArrayList<>();
-        ConcurrentHashMap<String, Long> domainsMap = new ConcurrentHashMap<>();
-
-        String io_host = "null";
-        try {
-            JSONObject io = obj.getJSONObject("io");
-            JSONObject io_src = io.getJSONObject("src");
-            JSONArray io_main = io_src.getJSONArray("main");
-            io_host = io_main.length() > 0 ? io_main.getString(0) : "null";
-        } catch (JSONException e){}
-
-        String zoneRegion = "unknown";
-        if (io_host.equals("iovip.qbox.me")){
-            zoneRegion = "z0";
-        } else if (io_host.equals("iovip-z1.qbox.me")){
-            zoneRegion = "z1";
-        } else if (io_host.equals("iovip-z2.qbox.me")){
-            zoneRegion = "z2";
-        } else if (io_host.equals("iovip-na0.qbox.me")){
-            zoneRegion = "na0";
-        } else if (io_host.equals("iovip-as0.qbox.me")){
-            zoneRegion = "as0";
-        } else if (io_host.equals(SDKDefaultIOHost)){
-            zoneRegion = EmptyRegionId;
+        int ttl = obj.optInt("ttl");
+        String regionId = obj.optString("region");
+        if (regionId == null){
+            regionId = EmptyRegionId;
         }
 
-        JSONObject up = obj.getJSONObject("up");
+        JSONObject up = obj.optJSONObject("up");
+        if (up == null){
+            return null;
+        }
 
-        JSONObject acc = null;
-        JSONObject src = null;
-        JSONObject old_acc = null;
-        JSONObject old_src = null;
-        try {
-            acc = up.getJSONObject("acc");;
-        } catch (JSONException e) {}
-        try {
-            src = up.getJSONObject("src");;
-        } catch (JSONException e) {}
-        try {
-            old_acc = up.getJSONObject("old_acc");;
-        } catch (JSONException e) {}
-        try {
-            old_src = up.getJSONObject("old_src");;
-        } catch (JSONException e) {}
+        List<String> allHosts = new ArrayList<>();
+        List<String> domains = new ArrayList<>();
+        JSONArray domainsJson = up.optJSONArray("domains");
+        if (domainsJson != null && domainsJson.length() > 0){
+            for (int i=0; i< domainsJson.length(); i++) {
+                String domain = domainsJson.optString(i);
+                if (domain != null && domain.length() > 0){
+                    domains.add(domain);
+                    allHosts.add(domain);
+                }
+            }
+        }
 
-        ZoneInfo zoneInfo = new ZoneInfo(ttl,
-                UploadServerGroup.buildInfoFromJson(acc),
-                UploadServerGroup.buildInfoFromJson(src),
-                UploadServerGroup.buildInfoFromJson(old_acc),
-                UploadServerGroup.buildInfoFromJson(old_src));
-        zoneInfo.regionId = zoneRegion;
+        List<String> old_domains = new ArrayList<>();
+        JSONArray old_domainsJson = up.optJSONArray("old");
+        if (old_domainsJson != null && old_domainsJson.length() > 0){
+            for (int i=0; i< old_domainsJson.length(); i++) {
+                String domain = old_domainsJson.optString(i);
+                if (domain != null && domain.length() > 0){
+                    old_domains.add(domain);
+                    allHosts.add(domain);
+                }
+            }
+        }
+
+        if (domains.size() == 0 && old_domains.size() == 0){
+            return null;
+        }
+
+        ZoneInfo zoneInfo = new ZoneInfo(ttl, regionId, domains, old_domains);
         zoneInfo.detailInfo = obj;
 
-        ArrayList<String> allHosts = new ArrayList<>();
-        if (zoneInfo.acc != null && zoneInfo.acc.allHosts != null){
-            allHosts.addAll(zoneInfo.acc.allHosts);
-        }
-        if (zoneInfo.src != null && zoneInfo.src.allHosts != null){
-            allHosts.addAll(zoneInfo.src.allHosts);
-        }
-        if (zoneInfo.old_acc != null && zoneInfo.old_acc.allHosts != null){
-            allHosts.addAll(zoneInfo.old_acc.allHosts);
-        }
-        if (zoneInfo.old_src != null && zoneInfo.old_src.allHosts != null){
-            allHosts.addAll(zoneInfo.old_src.allHosts);
-        }
         zoneInfo.allHosts = allHosts;
 
         return zoneInfo;

@@ -11,6 +11,7 @@ import com.qiniu.android.utils.LogUtil;
 
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -112,7 +113,7 @@ public class UploadInfoReporter {
                 return;
             }
         }
-
+        
         if (recorderFile.length() > config.maxRecordFileSize){
             return;
         }
@@ -143,7 +144,7 @@ public class UploadInfoReporter {
         if (recorderTempFile.exists()){
             needToReport = true;
         } else if ((recorderFile.length() > config.uploadThreshold)
-             && (lastReportTime == 0 || (currentTime - lastReportTime) > config.interval * 60)){
+             || (lastReportTime == 0 || (currentTime - lastReportTime) > config.interval * 60)){
             boolean isSuccess = recorderFile.renameTo(recorderTempFile);
             if (isSuccess) {
                 needToReport = true;
@@ -164,7 +165,7 @@ public class UploadInfoReporter {
         }
 
         byte[] logData = getLogData();
-        if (logData == null && logData.length == 9){
+        if (logData == null || logData.length == 0){
             return;
         }
 
@@ -181,6 +182,8 @@ public class UploadInfoReporter {
                     cleanTempLogFile();
                 }
                 isReporting = false;
+
+                destroyTransactionResource();
             }
         });
 
@@ -191,22 +194,29 @@ public class UploadInfoReporter {
             return null;
         }
 
-        long length = recorderTempFile.length();
+        int fileSize = (int)recorderTempFile.length();
         RandomAccessFile randomAccessFile = null;
         byte[] data = null;
         try {
             randomAccessFile = new RandomAccessFile(recorderTempFile, "r");
-            data = new byte[(int)length];
-            randomAccessFile.read(data);
+            ByteArrayOutputStream out = new ByteArrayOutputStream(fileSize);
+            int len = 0;
+            byte[] buff = new byte[fileSize];
+            while ((len = randomAccessFile.read(buff)) >= 0){
+                out.write(buff, 0, len);
+            }
+            data = out.toByteArray();
         } catch (FileNotFoundException ignored) {
         } catch (IOException e) {
             data = null;
+        } finally {
+            if (randomAccessFile != null){
+                try {
+                    randomAccessFile.close();
+                } catch (IOException e){}
+            }
         }
-        if (randomAccessFile != null){
-            try {
-                randomAccessFile.close();
-            } catch (IOException e){}
-        }
+
         return data;
     }
 
@@ -221,11 +231,11 @@ public class UploadInfoReporter {
         ArrayList<String> hosts = new ArrayList<>();
         hosts.add(config.serverURL);
 
-        ArrayList<String> ioHosts = new ArrayList<>();
-        ioHosts.add(ZoneInfo.SDKDefaultIOHost);
-
-        transaction = new RequestTransaction(hosts, ioHosts, token);
+        transaction = new RequestTransaction(hosts, ZoneInfo.EmptyRegionId, token);
         return transaction;
     }
 
+    private void destroyTransactionResource(){
+        transaction = null;
+    }
 }

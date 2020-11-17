@@ -98,6 +98,8 @@ public class ReportItem {
     public static final String QualityKeyLogType = "log_type";
     public static final String QualityKeyUpTime = "up_time";
     public static final String QualityKeyResult = "result";
+    public static final String QualityKeyTargetBucket = "target_bucket";
+    public static final String QualityKeyTargetKey = "target_key";
     public static final String QualityKeyTotalElapsedTime = "total_elapsed_time";
     public static final String QualityKeyRequestsCount = "requests_count";
     public static final String QualityKeyRegionsCount = "regions_count";
@@ -106,30 +108,36 @@ public class ReportItem {
 
 
     public static String requestReportStatusCode(ResponseInfo responseInfo){
-        if (responseInfo.statusCode > -10 && responseInfo.statusCode < 0) {
-            return String.format("%d", responseInfo.statusCode);
-        } else {
+        if (responseInfo == null){
             return null;
+        } else {
+            return String.format("%d", responseInfo.statusCode);
         }
     }
 
     public static String requestReportErrorType(ResponseInfo responseInfo){
+        if (responseInfo == null){
+            return "unknown_error";
+        }
+
         String errorType = null;
         if (responseInfo.statusCode > 199 && responseInfo.statusCode < 300) {
 
-        } else if (responseInfo.statusCode > 299 && responseInfo.statusCode < 600){
+        } else if (responseInfo.statusCode > 299){
             errorType = "response_error";
         } else if (responseInfo.statusCode == ResponseInfo.NetworkError){
             errorType = "network_error";
         } else if (responseInfo.statusCode == ResponseInfo.TimedOut){
             errorType = "timeout";
+        } else if (responseInfo.statusCode == ResponseInfo.UnknownHost){
+            errorType = "unknown_host";
         } else if (responseInfo.statusCode == ResponseInfo.CannotConnectToHost){
             errorType = "cannot_connect_to_host";
         } else if (responseInfo.statusCode == ResponseInfo.NetworkConnectionLost){
             errorType = "transmission_error";
         } else if (responseInfo.statusCode == ResponseInfo.NetworkSSLError){
             errorType = "ssl_error";
-        } else if (responseInfo.statusCode == ResponseInfo.PasrseError){
+        } else if (responseInfo.statusCode == ResponseInfo.ParseError){
             errorType = "parse_error";
         } else if (responseInfo.statusCode == ResponseInfo.MaliciousResponseError){
             errorType = "malicious_response";
@@ -148,12 +156,18 @@ public class ReportItem {
     }
 
     public static String qualityResult(ResponseInfo responseInfo){
+        if (responseInfo == null){
+            return "unknown_error";
+        }
 
         String result = null;
 
         if (responseInfo.statusCode > 199 && responseInfo.statusCode < 300) {
             result = "ok";
-        } else if (responseInfo.statusCode > 399 && responseInfo.statusCode < 500) {
+        } else if (responseInfo.statusCode > 399 &&
+                    (responseInfo.statusCode < 500 || responseInfo.statusCode == 573 || responseInfo.statusCode == 579 ||
+                     responseInfo.statusCode == 608 || responseInfo.statusCode == 612 || responseInfo.statusCode == 614 || responseInfo.statusCode == 630 || responseInfo.statusCode == 631 ||
+                     responseInfo.statusCode == 701)) {
             result = "bad_request";
         } else if (responseInfo.statusCode == ResponseInfo.ZeroSizeFile){
             result = "zero_size_file";

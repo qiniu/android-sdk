@@ -8,22 +8,15 @@ import com.qiniu.android.common.ZonesInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.storage.GlobalConfiguration;
-import com.qiniu.android.storage.Recorder;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.AndroidNetwork;
-import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.Utils;
 import com.qiniu.android.utils.Wait;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -226,13 +219,13 @@ public class DnsPrefetcher {
 
     private boolean recoverDnsCache(byte[] data){
 
-        DnsCacheInfo dnsCacheInfo = DnsCacheInfo.createDnsCacheInfoByJsonData(data);
-        if (dnsCacheInfo == null || dnsCacheInfo.info == null || dnsCacheInfo.info.size() == 0){
+        DnsCacheInfo dnsCacheInfo = DnsCacheInfo.createDnsCacheInfoByData(data);
+        if (dnsCacheInfo == null || dnsCacheInfo.getInfo() == null || dnsCacheInfo.getInfo().size() == 0){
             return false;
         }
 
-        addressDictionary.putAll(dnsCacheInfo.info);
-        dnsCacheInfo.info = addressDictionary;
+        addressDictionary.putAll(dnsCacheInfo.getInfo());
+        dnsCacheInfo.setInfo(addressDictionary);
         setDnsCacheInfo(dnsCacheInfo);
 
         return false;
@@ -321,9 +314,11 @@ public class DnsPrefetcher {
 
         ZonesInfo autoZonesInfo = currentZone.getZonesInfo(token);
         ArrayList<String> autoHosts = new ArrayList<>();
-        for (ZoneInfo zoneInfo : autoZonesInfo.zonesInfo) {
-            if (zoneInfo != null && zoneInfo.allHosts != null){
-                autoHosts.addAll(zoneInfo.allHosts);
+        if (autoZonesInfo != null && autoZonesInfo.zonesInfo != null && autoZonesInfo.zonesInfo.size() > 0) {
+            for (ZoneInfo zoneInfo : autoZonesInfo.zonesInfo) {
+                if (zoneInfo != null && zoneInfo.allHosts != null) {
+                    autoHosts.addAll(zoneInfo.allHosts);
+                }
             }
         }
         return autoHosts.toArray(new String[0]);

@@ -68,7 +68,6 @@ public final class UploadOptions {
                 netReadyCheckTime = Integer.parseInt(netCheckTime);
             }
         } catch (Exception e) {}
-        LogUtil.w("netCheckTime:"+netReadyCheckTime);
         this.params = filterParam(params);
         this.metadata = metadata;
         this.mimeType = mime(mimeType);

@@ -29,7 +29,7 @@ public class UploadReportItemTest extends BaseTest {
         assertTrue(ReportItem.requestReportStatusCode(responseInfo) != null);
 
         responseInfo = createResponseInfo(200);
-        assertTrue(ReportItem.requestReportStatusCode(responseInfo) == null);
+        assertTrue(ReportItem.requestReportStatusCode(responseInfo).equals("200"));
     }
 
     public void testReportErrorType(){
@@ -63,7 +63,7 @@ public class UploadReportItemTest extends BaseTest {
         responseInfo = createResponseInfo(ResponseInfo.NetworkSSLError);
         assertTrue(ReportItem.qualityResult(responseInfo).equals("ssl_error"));
 
-        responseInfo = createResponseInfo(ResponseInfo.PasrseError);
+        responseInfo = createResponseInfo(ResponseInfo.ParseError);
         assertTrue(ReportItem.qualityResult(responseInfo).equals("parse_error"));
 
         responseInfo = createResponseInfo(ResponseInfo.MaliciousResponseError);
@@ -81,8 +81,8 @@ public class UploadReportItemTest extends BaseTest {
         responseInfo = createResponseInfo(ResponseInfo.NetworkSlow);
         assertTrue(ReportItem.qualityResult(responseInfo).equals("network_slow"));
 
-        responseInfo = createResponseInfo(10000);
-        assertTrue(ReportItem.qualityResult(responseInfo).equals("unknown_error"));
+        responseInfo = createResponseInfo(614);
+        assertTrue(ReportItem.qualityResult(responseInfo).equals("bad_request"));
     }
 
 

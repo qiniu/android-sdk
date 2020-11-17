@@ -14,15 +14,20 @@ import java.util.Map;
  * 定义HTTP请求的日志信息和常规方法
  */
 public final class ResponseInfo {
+    @Deprecated
     public static final int ResquestSuccess = 200;
+    public static final int RequestSuccess = 200;
+
+    public static final int UnexpectedSysCallError = -10;
+    public static final int NoUsableHostError = -9;
+    public static final int MaliciousResponseError = -8;
+    public static final int LocalIOError = -7;
     public static final int ZeroSizeFile = -6;
     public static final int InvalidToken = -5;
     public static final int InvalidArgument = -4;
     public static final int InvalidFile = -3;
     public static final int Cancelled = -2;
     public static final int NetworkError = -1;
-    public static final int LocalIOError = -7;
-    public static final int MaliciousResponseError = -8;
 
     public static final int Crc32NotMatch = -406;
 
@@ -36,7 +41,9 @@ public final class ResponseInfo {
     public static final int NetworkSSLError = -1200;
     public static final int NetworkProtocolError = 100;
     public static final int NetworkSlow = -1009;
-    public static final int PasrseError= -1015;
+    public static final int ParseError = -1015;
+    @Deprecated
+    public static final int PasrseError = -1015;
 
     // -->
     /**
@@ -147,6 +154,18 @@ public final class ResponseInfo {
         return errorInfo(LocalIOError, desc);
     }
 
+    public static ResponseInfo maliciousResponseError(String desc) {
+        return errorInfo(MaliciousResponseError, desc);
+    }
+
+    public static ResponseInfo noUsableHostError(String desc) {
+        return errorInfo(NoUsableHostError, desc);
+    }
+
+    public static ResponseInfo unexpectedSysCallError(String desc) {
+        return errorInfo(UnexpectedSysCallError, desc);
+    }
+
     public static ResponseInfo errorInfo(int statusCode, String error) {
         ResponseInfo responseInfo = new ResponseInfo(null, null, statusCode, null, null, null, null, error);
         return responseInfo;
@@ -195,7 +214,7 @@ public final class ResponseInfo {
     }
 
     public boolean isOK() {
-        return statusCode == ResquestSuccess && error == null && (hasReqId() || response != null);
+        return statusCode == RequestSuccess && error == null && (hasReqId() || response != null);
     }
 
     public boolean couldRetry(){
@@ -206,7 +225,7 @@ public final class ResponseInfo {
             || statusCode == 608 || statusCode == 612 || statusCode == 614 || statusCode == 616
             || statusCode == 619 || statusCode == 630 || statusCode == 631 || statusCode == 640
             || statusCode == 701
-            ||(statusCode < 0 && statusCode > -1000)) {
+            || (statusCode < -1 && statusCode > -1000)) {
             return false;
         } else {
             return true;
@@ -214,10 +233,7 @@ public final class ResponseInfo {
     }
 
     public boolean couldRegionRetry(){
-        if (!couldRetry()
-            || statusCode == 400
-            || statusCode == 502 || statusCode == 503 || statusCode == 504 || statusCode == 579 || statusCode == 599
-            || isCancelled()) {
+        if (!couldRetry()  || statusCode == 400 || statusCode == 579 ) {
             return false;
         } else {
             return true;
@@ -226,7 +242,7 @@ public final class ResponseInfo {
 
     public boolean couldHostRetry(){
         if (!couldRegionRetry()
-            || (statusCode == 502 || statusCode == 503 || statusCode == 571)) {
+            || statusCode == 502 || statusCode == 503 || statusCode == 571 || statusCode == 599) {
             return false;
         } else {
             return true;
@@ -235,6 +251,23 @@ public final class ResponseInfo {
 
     public boolean isTlsError() {
         if (statusCode == NetworkSSLError){
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean canConnectToHost(){
+        if (statusCode > 99 || isCancelled()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean isHostUnavailable(){
+        // 基本不可恢复，注：会影响下次请求，范围太大可能会造成大量的timeout
+        if (isTlsError() || statusCode == 502 || statusCode == 503 || statusCode == 504 || statusCode == 599) {
             return true;
         } else {
             return false;

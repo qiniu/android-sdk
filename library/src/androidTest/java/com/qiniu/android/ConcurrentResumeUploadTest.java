@@ -111,7 +111,7 @@ public class ConcurrentResumeUploadTest extends BaseTest {
         wait(new WaitConditional() {
             @Override
             public boolean shouldWait() {
-                if (resp == null){
+                if (info == null){
                     return true;
                 } else {
                     return false;
@@ -149,7 +149,7 @@ public class ConcurrentResumeUploadTest extends BaseTest {
         wait(new WaitConditional() {
             @Override
             public boolean shouldWait() {
-                if (resp == null){
+                if (info == null){
                     return true;
                 } else {
                     return false;

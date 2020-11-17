@@ -20,6 +20,6 @@ class UploadRequestInfo {
     String currentRegionId;
 
     boolean shouldReportRequestLog(){
-        return requestType.equals(RequestTypeUpLog);
+        return !requestType.equals(RequestTypeUpLog);
     }
 }
