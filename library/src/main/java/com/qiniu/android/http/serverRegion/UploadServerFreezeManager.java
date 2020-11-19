@@ -33,19 +33,6 @@ public class UploadServerFreezeManager {
         return isFrozen;
     }
 
-    public void freezeHost(String host, String type){
-        if (host == null || host.length() == 0){
-            return;
-        }
-        String infoKey = getItemInfoKey(host, type);
-        UploadServerFreezeItem item = frozenInfo.get(infoKey);
-        if (item == null){
-            item = new UploadServerFreezeItem(host, type);
-            frozenInfo.put(infoKey, item);
-        }
-        item.freeze();
-    }
-
     public void freezeHost(String host, String type, int frozenTime){
         if (host == null || host.length() == 0){
             return;
@@ -56,7 +43,17 @@ public class UploadServerFreezeManager {
             item = new UploadServerFreezeItem(host, type);
             frozenInfo.put(infoKey, item);
         }
-        item.freeze();
+        item.freeze(frozenTime);
+    }
+
+    public void unfreezeHost(String host, String type){
+        if (host == null || host.length() == 0){
+            return;
+        }
+        String infoKey = getItemInfoKey(host, type);
+        if (infoKey != null){
+            frozenInfo.remove(infoKey);
+        }
     }
 
     private String getItemInfoKey(String host, String type){
@@ -82,9 +79,10 @@ public class UploadServerFreezeManager {
             return isFrozen;
         }
 
-        protected synchronized void freeze(){
-            freezeDate = new Date(Utils.currentTimestamp() + 30*1000);
+        protected synchronized void freeze(int frozenTime){
+            freezeDate = new Date(Utils.currentTimestamp() + frozenTime*1000);
         }
+
     }
 
 }
