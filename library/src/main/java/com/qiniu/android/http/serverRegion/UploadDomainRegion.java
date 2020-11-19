@@ -290,7 +290,7 @@ public class UploadDomainRegion implements IUploadRegion {
                 return;
             }
             for (UploadServerFreezeManager freezeManager : freezeManagerList) {
-                freezeManager.unfreezeHost(host, ip);
+                freezeManager.unfreezeHost(host, Utils.getIpType(ip, this.host));
             }
         }
     }
