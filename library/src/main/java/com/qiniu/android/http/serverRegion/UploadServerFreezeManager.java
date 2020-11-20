@@ -3,14 +3,14 @@ package com.qiniu.android.http.serverRegion;
 import com.qiniu.android.utils.Utils;
 
 import java.util.Date;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by yangsen on 2020/6/3
  */
 public class UploadServerFreezeManager {
 
-    private HashMap<String, UploadServerFreezeItem> frozenInfo = new HashMap<>();
+    private ConcurrentHashMap<String, UploadServerFreezeItem> frozenInfo = new ConcurrentHashMap<>();
     private final static UploadServerFreezeManager manager = new UploadServerFreezeManager();
 
     public UploadServerFreezeManager(){
