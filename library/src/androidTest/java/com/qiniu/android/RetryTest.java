@@ -145,7 +145,7 @@ public class RetryTest extends BaseTest {
                         "uptemp09.qbox.me", "uptemp10.qbox.me",
                         "uptemp11.qbox.me", "uptemp12.qbox.me",
                         "uptemp13.qbox.me", "uptemp14.qbox.me",
-                        "upload.qiniup.com"};
+                        "upload-na0.qbox.me", "up-na0.qbox.me"};
         } else {
             s = new String[]{"uptemp01.qbox.me", "uptemp02.qbox.me",
                         "uptemp03.qbox.me", "uptemp04.qbox.me",
