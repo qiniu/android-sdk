@@ -76,12 +76,21 @@ public final class AndroidNetwork {
     }
 
     public static String networkType(Context context) {
-        ConnectivityManager connectivity = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo networkInfo = connectivity.getActiveNetworkInfo();
-        if (connectivity == null || !networkInfo.isConnected()) {
+        if (context == null){
             return Constants.NETWORK_CLASS_UNKNOWN;
         }
-        int netWorkType = connectivity.getActiveNetworkInfo().getType();
+
+        ConnectivityManager connectivity = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivity == null) {
+            return Constants.NETWORK_CLASS_UNKNOWN;
+        }
+
+        NetworkInfo networkInfo = connectivity.getActiveNetworkInfo();
+        if (networkInfo == null || !networkInfo.isConnected()) {
+            return Constants.NETWORK_CLASS_UNKNOWN;
+        }
+
+        int netWorkType = networkInfo.getType();
         if (netWorkType == ConnectivityManager.TYPE_WIFI) {
             return Constants.NETWORK_WIFI;
         } else if (netWorkType == ConnectivityManager.TYPE_MOBILE) {

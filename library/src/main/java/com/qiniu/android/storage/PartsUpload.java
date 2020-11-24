@@ -159,8 +159,9 @@ abstract class PartsUpload extends BaseUpload {
             JSONObject info = new JSONObject(new String(data));
             ZoneInfo zoneInfo = ZoneInfo.buildFromJson(info.getJSONObject(kRecordZoneInfoKey));
             UploadFileInfo fileInfo = UploadFileInfo.fileFromJson(info.getJSONObject(kRecordFileInfoKey));
-            if (zoneInfo != null && fileInfo != null && fileInfo.uploadBlocks != null &&
-                    fileInfo.uploadBlocks.size() > 0 && fileInfo.uploadBlocks.get(0).uploadDataList != null &&
+            if (zoneInfo != null && fileInfo != null &&
+                    fileInfo.size == file.length() && fileInfo.modifyTime == file.lastModified() &&
+                    fileInfo.uploadBlocks != null && fileInfo.uploadBlocks.size() > 0 && fileInfo.uploadBlocks.get(0).uploadDataList != null &&
                     fileInfo.uploadBlocks.get(0).uploadDataList.size() > 0 && fileInfo.uploadBlocks.get(0).uploadDataList.get(0).size == getUploadChunkSize()){
                 insertRegionAtFirstByZoneInfo(zoneInfo);
                 uploadFileInfo = fileInfo;
@@ -168,7 +169,7 @@ abstract class PartsUpload extends BaseUpload {
             } else {
                 recorder.del(key);
             }
-        } catch (JSONException e) {
+        } catch (Exception e) {
             recorder.del(key);
         }
     }

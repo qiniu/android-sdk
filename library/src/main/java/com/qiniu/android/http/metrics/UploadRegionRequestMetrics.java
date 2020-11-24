@@ -19,7 +19,9 @@ public class UploadRegionRequestMetrics {
         }
         long time = 0;
         for (UploadSingleRequestMetrics metrics : metricsList){
-            time += metrics.totalElapsedTime();
+            if (metrics != null){
+                time += metrics.totalElapsedTime();
+            }
         }
         return time;
     }
@@ -34,13 +36,22 @@ public class UploadRegionRequestMetrics {
         }
         long bytes = 0;
         for (UploadSingleRequestMetrics metrics : metricsList){
-            bytes += metrics.bytesSend();
+            if (metrics != null) {
+                bytes += metrics.bytesSend();
+            }
         }
         return bytes;
     }
 
     public void addMetricsList(ArrayList<UploadSingleRequestMetrics> metricsList){
-        this.metricsList.addAll(0, metricsList);
+        if (metricsList == null || metricsList.size() == 0){
+            return;
+        }
+        for (UploadSingleRequestMetrics metrics : metricsList) {
+            if (metrics != null){
+                this.metricsList.add(metrics);
+            }
+        }
     }
 
     public void addMetrics(UploadRegionRequestMetrics metrics){
@@ -54,7 +65,7 @@ public class UploadRegionRequestMetrics {
         String thisRegionId = metrics.region.getZoneInfo().getRegionId();
         String metricsRegionId = metrics.region.getZoneInfo().getRegionId();
         if (thisRegionId.equals(metricsRegionId)){
-            metricsList.addAll(0, metrics.metricsList);
+            addMetricsList(metrics.metricsList);
         }
     }
 }
