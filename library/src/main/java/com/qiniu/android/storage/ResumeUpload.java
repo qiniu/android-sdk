@@ -46,8 +46,8 @@ class ResumeUpload extends PartsUpload {
             public void complete() {
 
                 UploadFileInfo uploadFileInfo = getUploadFileInfo();
-                if (!uploadFileInfo.isAllUploaded() || uploadChunkErrorResponseInfo != null){
-                    if (uploadChunkErrorResponseInfo.couldRetry() && config.allowBackupHost) {
+                if (!uploadFileInfo.isAllUploaded()){
+                    if (uploadChunkErrorResponseInfo != null && uploadChunkErrorResponseInfo.couldRetry() && config.allowBackupHost) {
                         boolean isSwitched = switchRegionAndUpload();
                         if (!isSwitched){
                             completeAction(uploadChunkErrorResponseInfo, uploadChunkErrorResponse);

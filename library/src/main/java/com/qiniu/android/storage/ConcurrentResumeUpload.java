@@ -56,8 +56,8 @@ class ConcurrentResumeUpload extends PartsUpload {
             @Override
             public void complete() {
                 UploadFileInfo uploadFileInfo = getUploadFileInfo();
-                if (!uploadFileInfo.isAllUploaded() || uploadBlockErrorResponseInfo != null) {
-                    if (uploadBlockErrorResponseInfo.couldRetry() && config.allowBackupHost) {
+                if (!uploadFileInfo.isAllUploaded()) {
+                    if (uploadBlockErrorResponseInfo != null && uploadBlockErrorResponseInfo.couldRetry() && config.allowBackupHost) {
                         boolean isSwitched = switchRegionAndUpload();
                         if (!isSwitched) {
                             completeAction(uploadBlockErrorResponseInfo, uploadBlockErrorResponse);
