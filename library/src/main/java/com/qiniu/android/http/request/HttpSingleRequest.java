@@ -141,7 +141,7 @@ class HttpSingleRequest {
                                Request request,
                                UploadSingleRequestMetrics requestMetrics){
 
-        if (!requestInfo.shouldReportRequestLog() || requestMetrics == null){
+        if (requestInfo == null || !requestInfo.shouldReportRequestLog() || requestMetrics == null){
             return;
         }
 

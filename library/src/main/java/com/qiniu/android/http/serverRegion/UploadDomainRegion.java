@@ -49,126 +49,150 @@ public class UploadDomainRegion implements IUploadRegion {
         isAllFrozen = false;
 
         ArrayList<String> domainHostList = new ArrayList<>();
-        if (zoneInfo.domains != null){
+        if (zoneInfo.domains != null) {
             domainHostList.addAll(zoneInfo.domains);
         }
         this.domainHostList = domainHostList;
         this.domainHashMap = createDomainDictionary(domainHostList);
 
         ArrayList<String> oldDomainHostList = new ArrayList<>();
-        if (zoneInfo.old_domains != null){
+        if (zoneInfo.old_domains != null) {
             oldDomainHostList.addAll(zoneInfo.old_domains);
         }
-        this.oldDomainHostList = domainHostList;
-        this.oldDomainHashMap = createDomainDictionary(domainHostList);
+        this.oldDomainHostList = oldDomainHostList;
+        this.oldDomainHashMap = createDomainDictionary(oldDomainHostList);
     }
 
     @Override
     public IUploadServer getNextServer(boolean isOldServer, ResponseInfo responseInfo, IUploadServer freezeServer) {
-        if (isAllFrozen){
+        if (isAllFrozen) {
             return null;
         }
-        if (responseInfo != null && freezeServer != null && freezeServer.getServerId() != null){
 
-            // 无法连接到Host || Host不可用， 局部冻结
-            if (!responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()){
-                UploadServerDomain domain = null;
-                domain = domainHashMap.get(freezeServer.getServerId());
-                if (domain != null){
-                    domain.freeze(freezeServer.getIp(), partialFreezeManager, GlobalConfiguration.getInstance().partialHostFrozenTime);
-                }
-                domain = oldDomainHashMap.get(freezeServer.getServerId());
-                if (domain != null){
-                    domain.freeze(freezeServer.getIp(), partialFreezeManager, GlobalConfiguration.getInstance().partialHostFrozenTime);
-                }
-            }
-
-            // Host不可用，全局冻结
-            if (responseInfo.isHostUnavailable()){
-                UploadServerDomain domain = null;
-                domain = domainHashMap.get(freezeServer.getServerId());
-                if (domain != null){
-                    domain.freeze(freezeServer.getIp(), UploadServerFreezeManager.getInstance(), GlobalConfiguration.getInstance().globalHostFrozenTime);
-                }
-                domain = oldDomainHashMap.get(freezeServer.getServerId());
-                if (domain != null){
-                    domain.freeze(freezeServer.getIp(), UploadServerFreezeManager.getInstance(), GlobalConfiguration.getInstance().globalHostFrozenTime);
-                }
-            }
-        }
+        freezeServerIfNeed(responseInfo, freezeServer);
 
         ArrayList<String> hostList = isOldServer ? oldDomainHostList : domainHostList;
         HashMap<String, UploadServerDomain> domainInfo = isOldServer ? oldDomainHashMap : domainHashMap;
         IUploadServer server = null;
         for (String host : hostList) {
             UploadServerDomain domain = domainInfo.get(host);
-            if (domain != null){
-                server = domain.getServer(new UploadServerFreezeManager[] {partialFreezeManager, UploadServerFreezeManager.getInstance()});
+            if (domain != null) {
+                server = domain.getServer(new UploadServerFreezeManager[]{partialFreezeManager, UploadServerFreezeManager.getInstance()});
             }
-            if (server != null){
+            if (server != null) {
                 break;
             }
         }
 
-        if (server == null && !hasGot && hostList.size() > 0){
-            int index = (int)(Math.random() * hostList.size());
+        if (server == null && !hasGot && hostList.size() > 0) {
+            int index = (int) (Math.random() * hostList.size());
             String host = hostList.get(index);
             UploadServerDomain domain = domainInfo.get(host);
-            if (domain != null){
+            if (domain != null) {
                 server = domain.getOneServer();
             }
+            unfreezeServer(server);
         }
         hasGot = true;
 
-        if (server == null){
+        if (server == null) {
             isAllFrozen = true;
         }
 
         return server;
     }
 
-    private HashMap<String, UploadServerDomain> createDomainDictionary(List<String> hosts){
+
+    private void freezeServerIfNeed(ResponseInfo responseInfo, IUploadServer freezeServer) {
+        if (responseInfo == null || freezeServer == null || freezeServer.getServerId() == null) {
+            return;
+        }
+
+        // 无法连接到Host || Host不可用， 局部冻结
+        if (!responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
+            UploadServerDomain domain = null;
+            domain = domainHashMap.get(freezeServer.getServerId());
+            if (domain != null) {
+                domain.freeze(freezeServer.getIp(), partialFreezeManager, GlobalConfiguration.getInstance().partialHostFrozenTime);
+            }
+            domain = oldDomainHashMap.get(freezeServer.getServerId());
+            if (domain != null) {
+                domain.freeze(freezeServer.getIp(), partialFreezeManager, GlobalConfiguration.getInstance().partialHostFrozenTime);
+            }
+        }
+
+        // Host不可用，全局冻结
+        if (responseInfo.isHostUnavailable()) {
+            UploadServerDomain domain = null;
+            domain = domainHashMap.get(freezeServer.getServerId());
+            if (domain != null) {
+                domain.freeze(freezeServer.getIp(), UploadServerFreezeManager.getInstance(), GlobalConfiguration.getInstance().globalHostFrozenTime);
+            }
+            domain = oldDomainHashMap.get(freezeServer.getServerId());
+            if (domain != null) {
+                domain.freeze(freezeServer.getIp(), UploadServerFreezeManager.getInstance(), GlobalConfiguration.getInstance().globalHostFrozenTime);
+            }
+        }
+    }
+
+    private void unfreezeServer(IUploadServer freezeServer) {
+        if (freezeServer == null || freezeServer.getServerId() == null) {
+            return;
+        }
+
+        UploadServerDomain domain = null;
+        domain = domainHashMap.get(freezeServer.getServerId());
+        if (domain != null) {
+            domain.unfreeze(freezeServer.getIp(), new UploadServerFreezeManager[]{partialFreezeManager, UploadServerFreezeManager.getInstance()});
+        }
+        domain = oldDomainHashMap.get(freezeServer.getServerId());
+        if (domain != null) {
+            domain.unfreeze(freezeServer.getIp(), new UploadServerFreezeManager[]{partialFreezeManager, UploadServerFreezeManager.getInstance()});
+        }
+    }
+
+    private HashMap<String, UploadServerDomain> createDomainDictionary(List<String> hosts) {
         HashMap<String, UploadServerDomain> domainHashMap = new HashMap<>();
         for (int i = 0; i < hosts.size(); i++) {
             String host = hosts.get(i);
             UploadServerDomain domain = new UploadServerDomain(host);
             domainHashMap.put(host, domain);
         }
-        return  domainHashMap;
+        return domainHashMap;
     }
 
 
-    private static class UploadServerDomain{
+    private static class UploadServerDomain {
 
         private boolean isAllFrozen = false;
         protected final String host;
         protected ArrayList<UploadIpGroup> ipGroupList = new ArrayList<>();
 
-        protected UploadServerDomain(String host){
+        protected UploadServerDomain(String host) {
             this.host = host;
         }
 
-        protected IUploadServer getServer(UploadServerFreezeManager[] freezeManagerList){
-            if (isAllFrozen || host == null || host.length() == 0){
+        protected IUploadServer getServer(UploadServerFreezeManager[] freezeManagerList) {
+            if (isAllFrozen || host == null || host.length() == 0) {
                 return null;
             }
 
-            if (ipGroupList == null || ipGroupList.size() == 0){
+            if (ipGroupList == null || ipGroupList.size() == 0) {
                 createIpGroupList();
             }
 
             // 解析到IP:
-            if (ipGroupList != null && ipGroupList.size() > 0){
+            if (ipGroupList != null && ipGroupList.size() > 0) {
                 UploadServer server = null;
-                for (UploadIpGroup ipGroup : ipGroupList){
+                for (UploadIpGroup ipGroup : ipGroupList) {
                     // 黑名单中不存在 & 未被冻结
-                    if (ipGroup.groupType != null && !isGroupFrozenByFreezeManagers(ipGroup.groupType, freezeManagerList)){
+                    if (ipGroup.groupType != null && !isGroupFrozenByFreezeManagers(ipGroup.groupType, freezeManagerList)) {
                         IDnsNetworkAddress networkAddress = ipGroup.getNetworkAddress();
                         server = new UploadServer(host, host, networkAddress.getIpValue(), networkAddress.getSourceValue(), networkAddress.getTimestampValue());
                         break;
                     }
                 }
-                if (server == null){
+                if (server == null) {
                     isAllFrozen = true;
                 }
                 return server;
@@ -177,7 +201,7 @@ public class UploadDomainRegion implements IUploadRegion {
             // 未解析到IP:
             // 黑名单中不存在 & 未被冻结
             String groupType = Utils.getIpType(null, host);
-            if (groupType != null && !isGroupFrozenByFreezeManagers(groupType, freezeManagerList)){
+            if (groupType != null && !isGroupFrozenByFreezeManagers(groupType, freezeManagerList)) {
                 return new UploadServer(host, host, null, null, null);
             } else {
                 isAllFrozen = true;
@@ -185,7 +209,7 @@ public class UploadDomainRegion implements IUploadRegion {
             }
         }
 
-        protected boolean isGroupFrozenByFreezeManagers(String groupType, UploadServerFreezeManager[] freezeManagerList){
+        protected boolean isGroupFrozenByFreezeManagers(String groupType, UploadServerFreezeManager[] freezeManagerList) {
             if (groupType == null) {
                 return true;
             }
@@ -203,12 +227,12 @@ public class UploadDomainRegion implements IUploadRegion {
             return isFrozen;
         }
 
-        protected UploadServer getOneServer(){
+        protected UploadServer getOneServer() {
             if (host == null || host.length() == 0) {
                 return null;
             }
             if (ipGroupList != null && ipGroupList.size() > 0) {
-                int index = (int)(Math.random() * ipGroupList.size());
+                int index = (int) (Math.random() * ipGroupList.size());
                 UploadIpGroup ipGroup = ipGroupList.get(index);
                 IDnsNetworkAddress inetAddress = ipGroup.getNetworkAddress();
                 UploadServer server = new UploadServer(host, host, inetAddress.getIpValue(), inetAddress.getSourceValue(), inetAddress.getTimestampValue());
@@ -218,51 +242,60 @@ public class UploadDomainRegion implements IUploadRegion {
             }
         }
 
-        private synchronized void createIpGroupList(){
-           if (ipGroupList != null && ipGroupList.size() > 0){
-               return;
-           }
+        private synchronized void createIpGroupList() {
+            if (ipGroupList != null && ipGroupList.size() > 0) {
+                return;
+            }
 
-           List<IDnsNetworkAddress> networkAddresses = DnsPrefetcher.getInstance().getInetAddressByHost(host);
-           if (networkAddresses == null || networkAddresses.size() == 0){
-               return;
-           }
+            List<IDnsNetworkAddress> networkAddresses = DnsPrefetcher.getInstance().getInetAddressByHost(host);
+            if (networkAddresses == null || networkAddresses.size() == 0) {
+                return;
+            }
 
-           HashMap<String, ArrayList<IDnsNetworkAddress>> ipGroupInfo = new HashMap<>();
-           for (IDnsNetworkAddress networkAddress : networkAddresses){
-               String ipValue = networkAddress.getIpValue();
-               if (ipValue == null){
-                   continue;
-               }
-               String groupType = Utils.getIpType(ipValue, host);
-               if (groupType != null){
-                   ArrayList<IDnsNetworkAddress> groupNetworkAddresses = ipGroupInfo.get(groupType);
-                   if (groupNetworkAddresses == null) {
-                       groupNetworkAddresses = new ArrayList<>();
-                   }
-                   groupNetworkAddresses.add(networkAddress);
-                   ipGroupInfo.put(groupType, groupNetworkAddresses);
-               }
-           }
+            HashMap<String, ArrayList<IDnsNetworkAddress>> ipGroupInfo = new HashMap<>();
+            for (IDnsNetworkAddress networkAddress : networkAddresses) {
+                String ipValue = networkAddress.getIpValue();
+                if (ipValue == null) {
+                    continue;
+                }
+                String groupType = Utils.getIpType(ipValue, host);
+                if (groupType != null) {
+                    ArrayList<IDnsNetworkAddress> groupNetworkAddresses = ipGroupInfo.get(groupType);
+                    if (groupNetworkAddresses == null) {
+                        groupNetworkAddresses = new ArrayList<>();
+                    }
+                    groupNetworkAddresses.add(networkAddress);
+                    ipGroupInfo.put(groupType, groupNetworkAddresses);
+                }
+            }
 
-           ArrayList<UploadIpGroup> ipGroupList = new ArrayList<>();
-           for (String groupType : ipGroupInfo.keySet()){
-               ArrayList<IDnsNetworkAddress> addresses = ipGroupInfo.get(groupType);
-               UploadIpGroup ipGroup = new UploadIpGroup(groupType, addresses);
-               ipGroupList.add(ipGroup);
-           }
-           this.ipGroupList = ipGroupList;
+            ArrayList<UploadIpGroup> ipGroupList = new ArrayList<>();
+            for (String groupType : ipGroupInfo.keySet()) {
+                ArrayList<IDnsNetworkAddress> addresses = ipGroupInfo.get(groupType);
+                UploadIpGroup ipGroup = new UploadIpGroup(groupType, addresses);
+                ipGroupList.add(ipGroup);
+            }
+            this.ipGroupList = ipGroupList;
         }
 
-        protected void freeze(String ip, UploadServerFreezeManager freezeManager, int frozenTime){
-            if (freezeManager == null){
+        protected void freeze(String ip, UploadServerFreezeManager freezeManager, int frozenTime) {
+            if (freezeManager == null) {
                 return;
             }
             freezeManager.freezeHost(host, Utils.getIpType(ip, this.host), frozenTime);
         }
+
+        protected void unfreeze(String ip, UploadServerFreezeManager[] freezeManagerList) {
+            if (freezeManagerList == null || freezeManagerList.length == 0) {
+                return;
+            }
+            for (UploadServerFreezeManager freezeManager : freezeManagerList) {
+                freezeManager.unfreezeHost(host, Utils.getIpType(ip, this.host));
+            }
+        }
     }
 
-    private static class UploadIpGroup{
+    private static class UploadIpGroup {
         private final String groupType;
         private final ArrayList<IDnsNetworkAddress> addressList;
 
@@ -272,11 +305,11 @@ public class UploadDomainRegion implements IUploadRegion {
             this.addressList = addressList;
         }
 
-        protected IDnsNetworkAddress getNetworkAddress(){
-            if (addressList == null || addressList.size() == 0){
+        protected IDnsNetworkAddress getNetworkAddress() {
+            if (addressList == null || addressList.size() == 0) {
                 return null;
             } else {
-                int index = (int)(Math.random()*addressList.size());
+                int index = (int) (Math.random() * addressList.size());
                 return addressList.get(index);
             }
         }
