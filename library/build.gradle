@@ -49,6 +49,7 @@ android {
     useLibrary 'android.test.mock'
 }
 
+
 dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.2.2'
     implementation 'com.qiniu:happy-dns:0.2.16'
@@ -83,7 +84,7 @@ android.libraryVariants.all { variant ->
     artifacts.add('archives', task)
 }
 
-//setProperty('VERSION_NAME', version)
-//setProperty('VERSION_CODE', code)
-//
-//apply from: '../mvn_push.gradle'
+setProperty('VERSION_NAME', version)
+setProperty('VERSION_CODE', code)
+
+apply from: '../mvn_push.gradle'
