@@ -4,8 +4,10 @@ import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.dns.IDnsNetworkAddress;
+import com.qiniu.android.http.networkStatus.UploadServerNetworkStatus;
 import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.request.IUploadServer;
+import com.qiniu.android.http.request.UploadRequestState;
 import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.utils.Utils;
 
@@ -64,24 +66,31 @@ public class UploadDomainRegion implements IUploadRegion {
     }
 
     @Override
-    public IUploadServer getNextServer(boolean isOldServer, ResponseInfo responseInfo, IUploadServer freezeServer) {
-        if (isAllFrozen) {
+    public IUploadServer getNextServer(UploadRequestState requestState, ResponseInfo responseInfo, IUploadServer freezeServer) {
+        if (isAllFrozen || requestState == null) {
             return null;
         }
 
         freezeServerIfNeed(responseInfo, freezeServer);
 
-        ArrayList<String> hostList = isOldServer ? oldDomainHostList : domainHostList;
-        HashMap<String, UploadServerDomain> domainInfo = isOldServer ? oldDomainHashMap : domainHashMap;
+        ArrayList<String> hostList = requestState.isUseOldServer() ? oldDomainHostList : domainHostList;
+        HashMap<String, UploadServerDomain> domainInfo = requestState.isUseOldServer() ? oldDomainHashMap : domainHashMap;
+        // 同时查找最优 http 和 最优HTTP3，当使用http返回server, 当使用HTTP3，返回http3Server，如果http3Server不存在，返回server
         IUploadServer server = null;
+        IUploadServer http3Server = null;
         for (String host : hostList) {
             UploadServerDomain domain = domainInfo.get(host);
             if (domain != null) {
-                server = domain.getServer(new UploadServerFreezeManager[]{partialFreezeManager, UploadServerFreezeManager.getInstance()});
+                IUploadServer newServer = domain.getServer(new UploadServerFreezeManager[]{partialFreezeManager, UploadServerFreezeManager.getInstance()}, requestState);
+                server = UploadServerNetworkStatus.getBetterNetworkServer(server, newServer);
+                if (UploadServerNetworkStatus.isServerSupportHTTP3(server)){
+                    http3Server = UploadServerNetworkStatus.getBetterNetworkServer(http3Server, newServer);
+                }
             }
-            if (server != null) {
-                break;
-            }
+        }
+
+        if (requestState.isHTTP3() && http3Server != null){
+            server = http3Server;
         }
 
         if (server == null && !hasGot && hostList.size() > 0) {
@@ -172,25 +181,35 @@ public class UploadDomainRegion implements IUploadRegion {
             this.host = host;
         }
 
-        protected IUploadServer getServer(UploadServerFreezeManager[] freezeManagerList) {
+        protected IUploadServer getServer(UploadServerFreezeManager[] freezeManagerList, UploadRequestState requestState) {
             if (isAllFrozen || host == null || host.length() == 0) {
                 return null;
             }
 
-            if (ipGroupList == null || ipGroupList.size() == 0) {
-                createIpGroupList();
+            synchronized (this) {
+                if (ipGroupList == null || ipGroupList.size() == 0) {
+                    createIpGroupList();
+                }
             }
 
             // 解析到IP:
             if (ipGroupList != null && ipGroupList.size() > 0) {
-                UploadServer server = null;
+                // 同时查找最优 http 和 最优HTTP3，当使用http返回server, 当使用HTTP3，返回http3Server，如果http3Server不存在，返回server
+                IUploadServer server = null;
+                IUploadServer http3Server = null;
                 for (UploadIpGroup ipGroup : ipGroupList) {
                     // 黑名单中不存在 & 未被冻结
                     if (ipGroup.groupType != null && !isGroupFrozenByFreezeManagers(ipGroup.groupType, freezeManagerList)) {
                         IDnsNetworkAddress networkAddress = ipGroup.getNetworkAddress();
-                        server = new UploadServer(host, host, networkAddress.getIpValue(), networkAddress.getSourceValue(), networkAddress.getTimestampValue());
-                        break;
+                        IUploadServer newServer = new UploadServer(host, host, networkAddress.getIpValue(), networkAddress.getSourceValue(), networkAddress.getTimestampValue());
+                        server = UploadServerNetworkStatus.getBetterNetworkServer(server, newServer);
+                        if (UploadServerNetworkStatus.isServerSupportHTTP3(newServer)){
+                            http3Server = UploadServerNetworkStatus.getBetterNetworkServer(http3Server, newServer);
+                        }
                     }
+                }
+                if (requestState.isHTTP3() && http3Server != null) {
+                    server = http3Server;
                 }
                 if (server == null) {
                     isAllFrozen = true;
@@ -202,6 +221,7 @@ public class UploadDomainRegion implements IUploadRegion {
             // 黑名单中不存在 & 未被冻结
             String groupType = Utils.getIpType(null, host);
             if (groupType != null && !isGroupFrozenByFreezeManagers(groupType, freezeManagerList)) {
+                // 未解析时，没有可比性，直接返回自身，自身即为最优
                 return new UploadServer(host, host, null, null, null);
             } else {
                 isAllFrozen = true;
@@ -242,7 +262,7 @@ public class UploadDomainRegion implements IUploadRegion {
             }
         }
 
-        private synchronized void createIpGroupList() {
+        private void createIpGroupList() {
             if (ipGroupList != null && ipGroupList.size() > 0) {
                 return;
             }

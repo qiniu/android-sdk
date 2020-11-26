@@ -11,5 +11,5 @@ public interface IUploadRegion {
 
     void setupRegionData(ZoneInfo zoneInfo);
 
-    IUploadServer getNextServer(boolean isOldServer, ResponseInfo responseInfo, IUploadServer freezeServer);
+    IUploadServer getNextServer(UploadRequestState requestState, ResponseInfo responseInfo, IUploadServer freezeServer);
 }

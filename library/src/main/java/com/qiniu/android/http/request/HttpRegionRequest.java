@@ -22,7 +22,7 @@ class HttpRegionRequest {
     private final IUploadRegion region;
     private final UploadRequestInfo requestInfo;
 
-    private boolean isUseOldServer;
+    private UploadRequestState requestState;
     private HttpSingleRequest singleRequest;
     private IUploadServer currentServer;
     private UploadRegionRequestMetrics requestMetrics;
@@ -38,6 +38,7 @@ class HttpRegionRequest {
         this.token = token;
         this.region = region;
         this.requestInfo = requestInfo;
+        this.requestState = requestState;
 
         singleRequest = new HttpSingleRequest(config, uploadOption, token, requestInfo, requestState);
     }
@@ -140,11 +141,11 @@ class HttpRegionRequest {
 
     private IUploadServer getNextServer(ResponseInfo responseInfo){
 
-        if (responseInfo != null && responseInfo.isTlsError()) {
-            isUseOldServer = true;
+        if (requestState != null && responseInfo != null && responseInfo.isTlsError()) {
+            requestState.setUseOldServer(true);
         }
 
-        return region.getNextServer(isUseOldServer, responseInfo, currentServer);
+        return region.getNextServer(requestState, responseInfo, currentServer);
     }
 
 

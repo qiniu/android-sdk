@@ -1,6 +1,6 @@
 package com.qiniu.android.http.request;
 
-class UploadRequestState {
+public class UploadRequestState {
 
     private boolean isUseOldServer;
     private boolean isHTTP3;
