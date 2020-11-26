@@ -16,14 +16,23 @@ public class NetworkStatusManager {
 
     private static String kNetworkStatusDiskKey = "NetworkStatus:v1.0.0";
 
+    private boolean hasInit = false;
     private boolean isHandlingNetworkInfoOfDisk = false;
     private Recorder recorder;
     private ConcurrentHashMap<String, NetworkStatus> networkStatusInfo;
     private static NetworkStatusManager networkStatusManager = new NetworkStatusManager();
 
     public static NetworkStatusManager getInstance() {
-        networkStatusManager.asyncRecoverNetworkStatusFromDisk();
+        networkStatusManager.initData();
         return networkStatusManager;
+    }
+
+    public synchronized void initData() {
+        if (hasInit){
+            return;
+        }
+        networkStatusManager.networkStatusInfo = new ConcurrentHashMap<>();
+        networkStatusManager.asyncRecoverNetworkStatusFromDisk();
     }
 
     public NetworkStatus getNetworkStatus(String type) {
