@@ -357,6 +357,14 @@ public class UploadManager {
         item.setReport(taskMetricsP.requestCount(), ReportItem.QualityKeyRequestsCount);
         item.setReport(taskMetricsP.regionCount(), ReportItem.QualityKeyRegionsCount);
         item.setReport(taskMetricsP.bytesSend(), ReportItem.QualityKeyBytesSent);
+
+        String errorType = ReportItem.requestReportErrorType(responseInfo);
+        item.setReport(errorType, ReportItem.QualityKeyErrorType);
+        if (responseInfo != null && errorType != null){
+            String errorDesc = responseInfo.error != null ? responseInfo.error : responseInfo.message;
+            item.setReport(errorDesc, ReportItem.QualityKeyErrorDescription);
+        }
+
         UploadInfoReporter.getInstance().report(item, token);
     }
 }

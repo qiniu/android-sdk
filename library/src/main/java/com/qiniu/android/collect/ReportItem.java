@@ -1,5 +1,7 @@
 package com.qiniu.android.collect;
 
+import android.annotation.SuppressLint;
+
 import com.qiniu.android.http.ResponseInfo;
 
 import org.json.JSONObject;
@@ -105,13 +107,14 @@ public class ReportItem {
     public static final String QualityKeyRegionsCount = "regions_count";
     public static final String QualityKeyBytesSent = "bytes_sent";
     public static final String QualityKeyCloudType = "cloud_type";
-
+    public static final String QualityKeyErrorType = "error_type";
+    public static final String QualityKeyErrorDescription = "error_description";
 
     public static String requestReportStatusCode(ResponseInfo responseInfo){
         if (responseInfo == null){
             return null;
         } else {
-            return String.format("%d", responseInfo.statusCode);
+            return responseInfo.statusCode + "";
         }
     }
 
