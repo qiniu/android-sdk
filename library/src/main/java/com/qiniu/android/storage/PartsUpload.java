@@ -164,14 +164,15 @@ abstract class PartsUpload extends BaseUpload {
             JSONObject info = new JSONObject(new String(data));
             ZoneInfo zoneInfo = ZoneInfo.buildFromJson(info.getJSONObject(kRecordZoneInfoKey));
             UploadFileInfo fileInfo = UploadFileInfo.fileFromJson(info.getJSONObject(kRecordFileInfoKey));
-            if (zoneInfo != null && fileInfo != null){
+            if (zoneInfo != null && fileInfo != null &&
+                    fileInfo.size == file.length() && fileInfo.modifyTime == file.lastModified()){
                 insertRegionAtFirstByZoneInfo(zoneInfo);
                 uploadFileInfo = fileInfo;
                 recoveredFrom = (long)((fileInfo.progress() * fileInfo.size));
             } else {
                 recorder.del(key);
             }
-        } catch (JSONException e) {
+        } catch (Exception e) {
             recorder.del(key);
         }
     }

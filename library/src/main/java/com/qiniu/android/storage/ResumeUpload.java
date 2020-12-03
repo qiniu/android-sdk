@@ -45,10 +45,14 @@ class ResumeUpload extends PartsUpload {
         initPartFromServer(new UploadFileCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, JSONObject response) {
-
-                if (responseInfo == null || !responseInfo.isOK()) {
-                    boolean isSwitched = switchRegionAndUpload();
-                    if (!isSwitched){
+                UploadFileInfo uploadFileInfo = getUploadFileInfo();
+                if (!uploadFileInfo.isAllUploaded()){
+                    if (uploadDataErrorResponseInfo != null && uploadDataErrorResponseInfo.couldRetry() && config.allowBackupHost) {
+                        boolean isSwitched = switchRegionAndUpload();
+                        if (!isSwitched){
+                            completeAction(uploadDataErrorResponseInfo, uploadDataErrorResponse);
+                        }
+                    } else {
                         completeAction(uploadDataErrorResponseInfo, uploadDataErrorResponse);
                     }
                     return;
@@ -167,10 +171,10 @@ class ResumeUpload extends PartsUpload {
         }
     }
 
-    @Override
-    protected RequestTransaction createUploadRequestTransaction() {
-        uploadTransaction = new RequestTransaction(config, option, getTargetRegion(), getCurrentRegion(), key, token);
-        return uploadTransaction;
+    protected RequestTransaction createUploadRequestTransaction(){
+        RequestTransaction transaction = new RequestTransaction(config, option, getTargetRegion(), getCurrentRegion(), key, token);
+        uploadTransaction = transaction;
+        return transaction;
     }
 
     @Override

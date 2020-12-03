@@ -88,7 +88,7 @@ public class ResumeUploadTest extends BaseTest {
 
         final String expectKey = "android-resume-test2-" + size + "k";
         final File f = TempFile.createFile(size);
-        String[] s = new String[]{"up-na0.qbox.me"};
+        String[] s = new String[]{"up-na0.qbox.me", "upload-na0.qbox.me"};
         Zone z = new FixedZone(s);
 
         Configuration.Builder builder = new Configuration.Builder()

@@ -57,16 +57,8 @@ class ConcurrentResumeUpload extends PartsUpload {
             @Override
             public void complete(ResponseInfo responseInfo, JSONObject response) {
 
-                if (responseInfo == null || !responseInfo.isOK()) {
-                    boolean isSwitched = switchRegionAndUpload();
-                    if (!isSwitched) {
-                        completeAction(uploadDataErrorResponseInfo, uploadDataErrorResponse);
-                    }
-                    return;
-                }
-
                 UploadFileInfo fileInfo = getUploadFileInfo();
-                if (!responseInfo.isOK() || fileInfo.uploadId == null || fileInfo.uploadId.length() == 0) {
+                if (fileInfo.isAllUploaded()) {
                     completeAction(responseInfo, response);
                     return;
                 }

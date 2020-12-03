@@ -131,6 +131,7 @@ public class ConcurrentResumeUploadTest extends BaseTest {
 
         final String expectKey = "android-resume-test2-" + size + "k";
         final File f = TempFile.createFile(size);
+
         Zone z = new AutoZone();
         Configuration c = new Configuration.Builder()
                 .zone(z).useConcurrentResumeUpload(true).useHttps(true)
