@@ -11,6 +11,15 @@ import java.io.File;
 public final class Configuration {
 
     /**
+     * 分片上传版本 V1
+     */
+    public static int RESUME_UPLOAD_VERSION_V1 = 0;
+    /**
+     * 分片上传版本 V2
+     */
+    public static int RESUME_UPLOAD_VERSION_V2 = 1;
+
+    /**
      * 上传区域
      */
     public final Zone zone;
@@ -41,14 +50,14 @@ public final class Configuration {
     public final int retryInterval;
 
     /**
-     *    连接超时时间 单位 秒
-     *    注：每个文件上传肯能存在多个操作，当每个操作失败时，可能存在多个请求重试。
+     * 连接超时时间 单位 秒
+     * 注：每个文件上传肯能存在多个操作，当每个操作失败时，可能存在多个请求重试。
      */
     public final int connectTimeout;
 
     /**
-     *    服务器响应超时时间 单位 秒
-     *    注：每个文件上传肯能存在多个操作，当每个操作失败时，可能存在多个请求重试。
+     * 服务器响应超时时间 单位 秒
+     * 注：每个文件上传肯能存在多个操作，当每个操作失败时，可能存在多个请求重试。
      */
     public final int responseTimeout;
 
@@ -58,14 +67,19 @@ public final class Configuration {
     public final boolean useHttps;
 
     /**
-     *   单个文件是否开启并发分片上传，默认为false
-     *   单个文件大小大于4M时，会采用分片上传，每个分片会已单独的请求进行上传操作，多个上传操作可以使用并发，
-     *   也可以采用串行，采用并发时，可以设置并发的个数(对concurrentTaskCount进行设置)。
+     * 单个文件是否开启并发分片上传，默认为false
+     * 单个文件大小大于4M时，会采用分片上传，每个分片会已单独的请求进行上传操作，多个上传操作可以使用并发，
+     * 也可以采用串行，采用并发时，可以设置并发的个数(对concurrentTaskCount进行设置)。
      */
     public final boolean useConcurrentResumeUpload;
 
     /**
-     *   并发分片上传的并发任务个数，在concurrentResumeUpload为true时有效，默认为3个
+     * 分片上传版本
+     */
+    public final int resumeUploadVersion;
+
+    /**
+     * 并发分片上传的并发任务个数，在concurrentResumeUpload为true时有效，默认为3个
      */
     public final int concurrentTaskCount;
 
@@ -75,17 +89,17 @@ public final class Configuration {
     public final boolean allowBackupHost;
 
     /**
-     *  持久化记录接口，可以实现将记录持久化到文件，数据库等
+     * 持久化记录接口，可以实现将记录持久化到文件，数据库等
      */
     public final Recorder recorder;
 
     /**
-     *  为持久化上传记录，根据上传的key以及文件名 生成持久化的记录key
+     * 为持久化上传记录，根据上传的key以及文件名 生成持久化的记录key
      */
     public final KeyGenerator keyGen;
 
     /**
-     *  上传请求代理配置信息
+     * 上传请求代理配置信息
      */
     public final ProxyConfiguration proxy;
 
@@ -117,6 +131,7 @@ public final class Configuration {
         useHttps = builder.useHttps;
 
         useConcurrentResumeUpload = builder.useConcurrentResumeUpload;
+        resumeUploadVersion = builder.resumeUploadVersion;
         concurrentTaskCount = builder.concurrentTaskCount;
 
         zone = builder.zone != null ? builder.zone : new AutoZone();
@@ -150,6 +165,7 @@ public final class Configuration {
         private boolean allowBackupHost = true;
         private UrlConverter urlConverter = null;
         private boolean useConcurrentResumeUpload = false;
+        private int resumeUploadVersion = RESUME_UPLOAD_VERSION_V1;
         private int concurrentTaskCount = 3;
 
         public Builder zone(Zone zone) {
@@ -215,6 +231,11 @@ public final class Configuration {
 
         public Builder useConcurrentResumeUpload(boolean useConcurrentResumeUpload) {
             this.useConcurrentResumeUpload = useConcurrentResumeUpload;
+            return this;
+        }
+
+        public Builder resumeUploadVersion(int resumeUploadVersion) {
+            this.resumeUploadVersion = resumeUploadVersion;
             return this;
         }
 

@@ -126,6 +126,11 @@ public final class ResponseInfo {
         }
     }
 
+    public static ResponseInfo successResponse() {
+        ResponseInfo responseInfo = new ResponseInfo(null, null, RequestSuccess, "inter:reqid", "inter:xlog", "inter:xvia", null, null);
+        return responseInfo;
+    }
+
     public static ResponseInfo zeroSize(String desc) {
         return errorInfo(ZeroSizeFile, (desc != null ? desc : "data size is 0"));
     }

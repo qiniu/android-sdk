@@ -58,13 +58,13 @@ abstract class BaseUpload implements Runnable {
     }
 
     protected BaseUpload(File file,
-                        String key,
-                        UpToken token,
-                        UploadOptions option,
-                        Configuration config,
-                        Recorder recorder,
-                        String recorderKey,
-                        UpTaskCompletionHandler completionHandler) {
+                         String key,
+                         UpToken token,
+                         UploadOptions option,
+                         Configuration config,
+                         Recorder recorder,
+                         String recorderKey,
+                         UpTaskCompletionHandler completionHandler) {
         this(file, null, file.getName(), key, token, option, config, recorder, recorderKey, completionHandler);
     }
 
@@ -78,21 +78,21 @@ abstract class BaseUpload implements Runnable {
         this(null, data, fileName, key, token, option, config, null, null, completionHandler);
     }
 
-    private void initData(){
+    protected void initData() {
         currentRegionIndex = 0;
     }
 
 
     @Override
-    public void run(){
+    public void run() {
         config.zone.preQuery(token, new Zone.QueryHandler() {
             @Override
             public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics) {
                 metrics.addMetrics(requestMetrics);
 
-                if (code == 0){
+                if (code == 0) {
                     int prepareCode = prepareToUpload();
-                    if (prepareCode == 0){
+                    if (prepareCode == 0) {
                         startToUpload();
                     } else {
                         ResponseInfo responseInfoP = ResponseInfo.errorInfo(prepareCode, null);
@@ -105,9 +105,9 @@ abstract class BaseUpload implements Runnable {
         });
     }
 
-    protected int prepareToUpload(){
+    protected int prepareToUpload() {
         int ret = 0;
-        if (!setupRegions()){
+        if (!setupRegions()) {
             ret = -1;
         }
         return ret;
@@ -115,24 +115,24 @@ abstract class BaseUpload implements Runnable {
 
     protected abstract void startToUpload();
 
-    protected boolean switchRegionAndUpload(){
-        if (currentRegionRequestMetrics != null){
+    protected boolean switchRegionAndUpload() {
+        if (currentRegionRequestMetrics != null) {
             metrics.addMetrics(currentRegionRequestMetrics);
             currentRegionRequestMetrics = null;
         }
         boolean isSwitched = switchRegion();
-        if (isSwitched){
+        if (isSwitched) {
             startToUpload();
         }
         return isSwitched;
     }
 
     protected void completeAction(ResponseInfo responseInfo,
-                                  JSONObject response){
-        if (currentRegionRequestMetrics != null && metrics != null){
+                                  JSONObject response) {
+        if (currentRegionRequestMetrics != null && metrics != null) {
             metrics.addMetrics(currentRegionRequestMetrics);
         }
-        if (completionHandler != null){
+        if (completionHandler != null) {
             completionHandler.complete(responseInfo, key, metrics, response);
         }
 
@@ -140,12 +140,12 @@ abstract class BaseUpload implements Runnable {
         currentRegionRequestMetrics = null;
     }
 
-    private boolean setupRegions(){
-        if (config == null || config.zone == null){
+    private boolean setupRegions() {
+        if (config == null || config.zone == null) {
             return false;
         }
         ZonesInfo zonesInfo = config.zone.getZonesInfo(token);
-        if (zonesInfo == null || zonesInfo.zonesInfo == null || zonesInfo.zonesInfo.size() == 0){
+        if (zonesInfo == null || zonesInfo.zonesInfo == null || zonesInfo.zonesInfo.size() == 0) {
             return false;
         }
         ArrayList<ZoneInfo> zoneInfos = zonesInfo.zonesInfo;
@@ -154,7 +154,7 @@ abstract class BaseUpload implements Runnable {
         for (ZoneInfo zoneInfo : zoneInfos) {
             UploadDomainRegion region = new UploadDomainRegion();
             region.setupRegionData(zoneInfo);
-            if (region.isValid()){
+            if (region.isValid()) {
                 defaultRegions.add(region);
             }
         }
@@ -163,8 +163,8 @@ abstract class BaseUpload implements Runnable {
         return defaultRegions.size() > 0;
     }
 
-    protected void insertRegionAtFirstByZoneInfo(ZoneInfo zoneInfo){
-        if (zoneInfo == null){
+    protected void insertRegionAtFirstByZoneInfo(ZoneInfo zoneInfo) {
+        if (zoneInfo == null) {
             return;
         }
         UploadDomainRegion region = new UploadDomainRegion();
@@ -172,18 +172,30 @@ abstract class BaseUpload implements Runnable {
         insertRegionAtFirst(region);
     }
 
-    private void insertRegionAtFirst(IUploadRegion region){
-        regions.add(0, region);
+    protected void insertRegionAtFirst(IUploadRegion region) {
+        if (region == null) {
+            return;
+        }
+
+        boolean hasRegion = false;
+        for (IUploadRegion regionP : regions) {
+            if (region.isEqual(regionP)) {
+                hasRegion = true;
+            }
+        }
+        if (!hasRegion) {
+            regions.add(0, region);
+        }
     }
 
-    protected boolean switchRegion(){
+    protected boolean switchRegion() {
         if (regions == null) {
             return false;
         }
         boolean ret = false;
-        synchronized (this){
+        synchronized (this) {
             int regionIndex = currentRegionIndex + 1;
-            if (regionIndex < regions.size()){
+            if (regionIndex < regions.size()) {
                 currentRegionIndex = regionIndex;
                 ret = true;
             }
@@ -191,21 +203,21 @@ abstract class BaseUpload implements Runnable {
         return ret;
     }
 
-    protected IUploadRegion getTargetRegion(){
-        if (regions == null || regions.size() == 0){
+    protected IUploadRegion getTargetRegion() {
+        if (regions == null || regions.size() == 0) {
             return null;
         } else {
             return regions.get(0);
         }
     }
 
-    protected IUploadRegion getCurrentRegion(){
-        if (regions == null){
+    protected IUploadRegion getCurrentRegion() {
+        if (regions == null) {
             return null;
         }
         IUploadRegion region = null;
-        synchronized (this){
-            if (currentRegionIndex < regions.size()){
+        synchronized (this) {
+            if (currentRegionIndex < regions.size()) {
                 region = regions.get(currentRegionIndex);
             }
         }
@@ -218,11 +230,11 @@ abstract class BaseUpload implements Runnable {
     }
 
     // 一个上传流程可能会发起多个上传操作（如：上传多个分片），每个上传操作均是以一个Region的host做重试操作
-    protected void addRegionRequestMetricsOfOneFlow(UploadRegionRequestMetrics metrics){
-        if (metrics == null){
+    protected void addRegionRequestMetricsOfOneFlow(UploadRegionRequestMetrics metrics) {
+        if (metrics == null) {
             return;
         }
-        if (this.currentRegionRequestMetrics == null){
+        if (this.currentRegionRequestMetrics == null) {
             this.currentRegionRequestMetrics = metrics;
         } else {
             this.currentRegionRequestMetrics.addMetrics(metrics);

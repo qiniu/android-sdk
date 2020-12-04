@@ -287,7 +287,7 @@ public class UploadManager {
             final ConcurrentResumeUpload up = new ConcurrentResumeUpload(file, recorderKey, t, option, config, config.recorder, key, completionHandlerP);
             AsyncRun.runInBack(up);
         } else {
-            final ResumeUpload up = new ResumeUpload(file, key, t, option, config, config.recorder, recorderKey, completionHandlerP);
+            final PartsUpload up = new PartsUpload(file, key, t, option, config, config.recorder, recorderKey, completionHandlerP);
             AsyncRun.runInBack(up);
         }
     }

@@ -4,8 +4,6 @@ import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.dns.IDnsNetworkAddress;
-import com.qiniu.android.http.networkCheck.NetworkCheckManager;
-import com.qiniu.android.http.networkCheck.NetworkCheckTransaction;
 import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.request.IUploadServer;
 import com.qiniu.android.storage.GlobalConfiguration;
@@ -29,6 +27,35 @@ public class UploadDomainRegion implements IUploadRegion {
     private ArrayList<String> oldDomainHostList;
     private HashMap<String, UploadServerDomain> oldDomainHashMap;
     private ZoneInfo zoneInfo;
+
+    @Override
+    public boolean isEqual(IUploadRegion region) {
+        if (region == null) {
+            return false;
+        }
+
+        if (region.getZoneInfo() == null && getZoneInfo() == null) {
+            return true;
+        }
+
+        if (region.getZoneInfo() == null || getZoneInfo() == null) {
+            return false;
+        }
+
+        if (region.getZoneInfo().getRegionId() == null && getZoneInfo().getRegionId() == null) {
+            return true;
+        }
+
+        if (region.getZoneInfo().getRegionId() == null || getZoneInfo().getRegionId() == null) {
+            return false;
+        }
+
+        if (region.getZoneInfo().getRegionId().equals(getZoneInfo().getRegionId())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     @Override
     public boolean isValid() {
