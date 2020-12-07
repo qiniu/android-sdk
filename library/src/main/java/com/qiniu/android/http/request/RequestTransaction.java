@@ -450,10 +450,6 @@ public class RequestTransaction {
         if (uploadOption.mimeType != null) {
             bodyMap.put("mimeType", uploadOption.mimeType);
         }
-        //todo: 待测试
-        if (uploadOption.metadata != null) {
-            bodyMap.put("metadata", uploadOption.metadata);
-        }
         if (uploadOption.params != null) {
             bodyMap.put("customVars", uploadOption.params);
         }

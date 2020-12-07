@@ -20,11 +20,6 @@ public final class UploadOptions {
     public final Map<String, String> params;
 
     /**
-     *    用户自定义文件metadata信息的key和value， 可以设置多个，参数的key必须以x-qn-meta-开头 eg:x-qn-meta-key
-     */
-    public final Map<String, String> metadata;
-
-    /**
      * 指定上传文件的MimeType
      */
     public final String mimeType;
@@ -54,12 +49,7 @@ public final class UploadOptions {
         this(params, mimeType, checkCrc, progressHandler, cancellationSignal, null);
     }
 
-    public UploadOptions(Map<String, String> params, String mimeType, boolean checkCrc,
-                         UpProgressHandler progressHandler, UpCancellationSignal cancellationSignal, NetReadyHandler netReadyHandler) {
-        this(params, null, mimeType, checkCrc, progressHandler, cancellationSignal, netReadyHandler);
-    }
-
-    public UploadOptions(final Map<String, String> params, Map<String, String> metadata, String mimeType, boolean checkCrc,
+    public UploadOptions(final Map<String, String> params, String mimeType, boolean checkCrc,
                          UpProgressHandler progressHandler, UpCancellationSignal cancellationSignal, NetReadyHandler netReadyHandler) {
         int netReadyCheckTime = 6;
         try {
@@ -69,7 +59,6 @@ public final class UploadOptions {
             }
         } catch (Exception e) {}
         this.params = filterParam(params);
-        this.metadata = metadata;
         this.mimeType = mime(mimeType);
         this.checkCrc = checkCrc;
         this.progressHandler = progressHandler != null ? progressHandler : new UpProgressHandler() {
