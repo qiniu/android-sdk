@@ -80,9 +80,6 @@ class PartsUpload extends BaseUpload {
             return code;
         }
 
-        uploadDataErrorResponse = null;
-        uploadDataErrorResponseInfo = null;
-
         if (uploadPerformer.currentRegion != null && uploadPerformer.currentRegion.isValid()) {
             insertRegionAtFirst(uploadPerformer.currentRegion);
         } else {
@@ -97,18 +94,22 @@ class PartsUpload extends BaseUpload {
     }
 
     @Override
+    protected boolean switchRegion() {
+        boolean isSuccess = super.switchRegion();
+        uploadPerformer.switchRegion(getCurrentRegion());
+        return isSuccess;
+    }
+
+    @Override
     protected boolean switchRegionAndUpload() {
         reportBlock();
-
-        boolean isSwitched = super.switchRegionAndUpload();
-        if (isSwitched) {
-            uploadPerformer.switchRegion(getCurrentRegion());
-        }
-        return isSwitched;
+        return super.switchRegionAndUpload();
     }
 
     @Override
     protected void startToUpload() {
+        uploadDataErrorResponse = null;
+        uploadDataErrorResponseInfo = null;
 
         // 1. 启动upload
         serverInit(new UploadFileCompleteHandler() {

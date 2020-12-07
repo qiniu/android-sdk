@@ -94,7 +94,7 @@ class UploadBlock {
 
     private ArrayList<UploadData> createDataList(long dataSize) {
         long offset = 0;
-        int dataIndex = 0;
+        int dataIndex = 1;
         ArrayList<UploadData> datas = new ArrayList<UploadData>();
         while (offset < size) {
             long lastSize = size - offset;
