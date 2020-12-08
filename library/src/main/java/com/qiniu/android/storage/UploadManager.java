@@ -42,7 +42,7 @@ public class UploadManager {
      * @param config Configuration, default 1 Thread
      */
     public UploadManager(Configuration config) {
-        this.config = config;
+        this.config = config != null ? config : new Configuration.Builder().build();
         DnsPrefetchTransaction.addDnsLocalLoadTransaction();
         DnsPrefetchTransaction.setDnsCheckWhetherCachedValidTransactionAction();
     }

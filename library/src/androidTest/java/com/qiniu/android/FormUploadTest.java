@@ -1,247 +1,170 @@
 package com.qiniu.android;
 
-import android.test.suitebuilder.annotation.SmallTest;
-
 import com.qiniu.android.common.FixedZone;
-import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.UrlConverter;
 import com.qiniu.android.storage.Configuration;
-import com.qiniu.android.storage.UpCompletionHandler;
-import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.utils.LogUtil;
-
-import junit.framework.Assert;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
-public class FormUploadTest extends BaseTest {
+public class FormUploadTest extends UploadFlowTest {
 
-    private UploadManager uploadManager;
-    private Map<String, String> bucketTokenMap;
-    private Map<String, Zone> bucketZoneMap;
-    private Map<String, Zone> mockBucketZoneMap;
-    private volatile JSONObject responseBody;
-
-    public void setUp() throws Exception {
-        this.uploadManager = new UploadManager();
-        this.bucketTokenMap = new HashMap<>();
-//        this.bucketTokenMap.put(TestConfig.bucket_z0, TestConfig.token_z0);
-//        this.bucketTokenMap.put(TestConfig.bucket_z1, TestConfig.token_z1);
-//        this.bucketTokenMap.put(TestConfig.bucket_z2, TestConfig.token_z2);
-        this.bucketTokenMap.put(TestConfig.bucket_na0, TestConfig.token_na0);
-
-        this.bucketZoneMap = new HashMap<>();
-
-//        this.bucketZoneMap.put(TestConfig.bucket_z0, FixedZone.zone0);
-//        this.bucketZoneMap.put(TestConfig.bucket_z1, FixedZone.zone1);
-//        this.bucketZoneMap.put(TestConfig.bucket_z2, FixedZone.zone2);
-        this.bucketZoneMap.put(TestConfig.bucket_na0, FixedZone.zoneNa0);
-
-
-        //mock
-        this.mockBucketZoneMap = new HashMap<>();
-//        this.mockBucketZoneMap.put(TestConfig.bucket_z0, TestConfig.mock_bucket_zone0);
-//        this.mockBucketZoneMap.put(TestConfig.bucket_z1, TestConfig.mock_bucket_zone1);
-//        this.mockBucketZoneMap.put(TestConfig.bucket_z2, TestConfig.mock_bucket_zone2);
-        this.mockBucketZoneMap.put(TestConfig.bucket_na0, TestConfig.mock_bucket_zoneNa0);
-
-    }
-
-    /**
-     * 1. 测试可选参数设置
-     * 2. 测试mimeType设置
-     * 3. 测试自动根据空间获取上传入口
-     * 4. 测试不同机房的上传
-     */
-    @SmallTest
-    public void testPutBytesWithAutoZone() throws Throwable {
-        //params
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "foo");
-        params.put("x:bar", "bar");
-        //mime type
-        final String mimeType = "text/plain";
-        final UploadOptions options = new UploadOptions(params, mimeType, true, null, null);
-        byte[] putData = "hello qiniu cloud storage".getBytes();
-
-        for (Map.Entry<String, String> bucketToken : this.bucketTokenMap.entrySet()) {
-            final CountDownLatch signal = new CountDownLatch(1);
-            final String bucket = bucketToken.getKey();
-            final String upToken = bucketToken.getValue();
-            final String expectKey = String.format("androidsdk/%s/qiniu_put_bytes_测试.txt", bucket);
-
-            uploadManager.put(putData, expectKey, upToken, new UpCompletionHandler() {
-                public void complete(String key, ResponseInfo info, JSONObject response) {
-                    LogUtil.i("upload result of bucket " + bucket);
-                    LogUtil.d(info.toString());
-
-                    signal.countDown();
-                }
-            }, options);
-
-            signal.await(120, TimeUnit.SECONDS);
+    public void testSwitchRegion() {
+        Configuration configuration = new Configuration.Builder()
+                .useConcurrentResumeUpload(false)
+                .useHttps(true)
+                .build();
+        int[] sizeArray = {5, 50, 200, 500, 800, 1000, 2000, 3000, 4000};
+        for (int size : sizeArray) {
+            String key = "android_form_switch_region_" + size + "k";
+            byte[] data = TempFile.getByte(size);
+            switchRegionTestWithData(data, key, configuration, null);
         }
     }
 
-
-    ///////////////固定Zone测试/////////////////
-    @SmallTest
-    public void testPutBytesWithFixedZone() {
-        //params
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "foo");
-        params.put("x:bar", "bar");
-        //mime type
-        final String mimeType = "text/plain";
-        final UploadOptions options = new UploadOptions(params, mimeType, true, null, null);
-        byte[] putData = "hello qiniu cloud storage".getBytes();
-
-        for (Map.Entry<String, Zone> bucketZone : this.bucketZoneMap.entrySet()) {
-            final CountDownLatch signal = new CountDownLatch(1);
-            final String bucket = bucketZone.getKey();
-            final Zone zone = bucketZone.getValue();
-            final String upToken = this.bucketTokenMap.get(bucket);
-
-            final String expectKey = String.format("androidsdk/%s/qiniu_put_bytes_test.txt", bucket);
-
-            Configuration cfg = new Configuration.Builder()
-                    .zone(zone)
-                    .useHttps(false)
-                    .build();
-            UploadManager uploadManagerWithCfg = new UploadManager(cfg);
-            uploadManagerWithCfg.put(putData, expectKey, upToken, new UpCompletionHandler() {
-                public void complete(String key, ResponseInfo info, JSONObject response) {
-                    LogUtil.i("upload result of bucket " + bucket);
-                    LogUtil.d( info.toString());
-
-                    responseBody = response;
-                    signal.countDown();
-
-                }
-            }, options);
-
-            try {
-                signal.await(120, TimeUnit.SECONDS);
-            } catch (Exception ex) {
-                Assert.fail("Qiniu.TestPutBytes timeout");
-            }
-
-            try {
-                assertEquals("Qiniu.TestPutBytes upload failed", expectKey,
-                        responseBody.getString("key"));
-                assertEquals("Qiniu.TestPutBytes optional params foo failed", "foo",
-                        responseBody.getString("foo"));
-                assertEquals("Qiniu.TestPutBytes optional params bar failed", "bar",
-                        responseBody.getString("bar"));
-            } catch (Exception ex) {
-                fail("Qiniu.TestPutBytes " + ex.getMessage());
-            }
+    public void testCancel() {
+        float cancelPercent = (float) 0.2;
+        Configuration configuration = new Configuration.Builder()
+                .useConcurrentResumeUpload(false)
+                .useHttps(true)
+                .build();
+        int[] sizeArray = {2000, 3000, 4000};
+        for (int size : sizeArray) {
+            String key = "android_form_cancel_" + size + "k";
+            byte[] data = TempFile.getByte(size*1024);
+            cancelTest(cancelPercent, data, key, configuration, null);
         }
     }
 
-
-    /////模拟域名失败后，再重试的场景，需要手动修改zone域名无效来模拟/////
-    @SmallTest
-    public void testPutBytesWithFixedZoneUseBackupDomains() {
-        //params
-        Map<String, String> params = new HashMap<String, String>();
-        params.put("x:foo", "foo");
-        params.put("x:bar", "bar");
-        //mime type
-        final String mimeType = "text/plain";
-        final UploadOptions options = new UploadOptions(params, mimeType, true, null, null);
-        byte[] putData = "hello qiniu cloud storage".getBytes();
-
-        //retry will success
-        for (Map.Entry<String, Zone> bucketZone : this.mockBucketZoneMap.entrySet()) {
-            final CountDownLatch signal = new CountDownLatch(1);
-            final String bucket = bucketZone.getKey();
-            final Zone zone = bucketZone.getValue();
-            final String upToken = this.bucketTokenMap.get(bucket);
-
-            final String expectKey = String.format("androidsdk/%s/qiniu_put_bytes_test.txt", bucket);
-
-            Configuration cfg = new Configuration.Builder()
-                    .zone(zone)
-                    .useHttps(false)
-                    .build();
-            UploadManager uploadManagerWithCfg = new UploadManager(cfg);
-            uploadManagerWithCfg.put(putData, expectKey, upToken, new UpCompletionHandler() {
-                public void complete(String key, ResponseInfo info, JSONObject response) {
-                    LogUtil.i("upload result of bucket " + bucket);
-                    LogUtil.d(info.toString());
-
-                    responseBody = response;
-                    signal.countDown();
-
-                }
-            }, options);
-
-            try {
-                signal.await(120, TimeUnit.SECONDS);
-            } catch (Exception ex) {
-                fail("Qiniu.TestPutBytes timeout");
-            }
-
-            try {
-                assertEquals("Qiniu.TestPutBytes upload failed", expectKey, responseBody.getString("key"));
-                assertEquals("Qiniu.TestPutBytes mimetype failed", mimeType, responseBody.getString("mimeType"));
-                assertEquals("Qiniu.TestPutBytes optional params x:foo failed", "foo", responseBody.getString("foo"));
-                assertEquals("Qiniu.TestPutBytes optional params x:bar failed", "bar", responseBody.getString("bar"));
-            } catch (Exception ex) {
-                fail("Qiniu.TestPutBytes " + ex.getMessage());
-            }
+    public void testHttpV1() {
+        Configuration configuration = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
+                .useConcurrentResumeUpload(true)
+                .useHttps(false)
+                .build();
+        int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
+        for (int size : sizeArray) {
+            String key = "android_form_http_v1_" + size + "k";
+            byte[] data = TempFile.getByte(size);
+            uploadDataAndAssertSuccessResult(data, key, configuration, null);
         }
     }
 
+    public void testHttpsV1() {
+        Configuration configuration = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
+                .useConcurrentResumeUpload(true)
+                .useHttps(true)
+                .build();
+        int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
+        for (int size : sizeArray) {
+            String key = "android_form_https_v1_" + size + "k";
+            byte[] data = TempFile.getByte(size);
+            uploadDataAndAssertSuccessResult(data, key, configuration, null);
+        }
+    }
 
-    public void testPutFileWithAutoZone() throws Throwable {
-        //params
+    public void testSmall() {
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "foo");
         params.put("x:bar", "bar");
         //mime type
         final String mimeType = "text/plain";
         final UploadOptions options = new UploadOptions(params, mimeType, true, null, null);
-        byte[] putData = "hello qiniu cloud storage".getBytes();
+        byte[] data = "Hello, World!".getBytes();
+        uploadDataAndAssertSuccessResult(data, "android_你好", null, options);
+    }
 
-        for (Map.Entry<String, String> bucketToken : this.bucketTokenMap.entrySet()) {
-            final CountDownLatch signal = new CountDownLatch(1);
-            final String bucket = bucketToken.getKey();
-            final String upToken = bucketToken.getValue();
-            final String expectKey = String.format("androidsdk/file/%s/qiniu_put_bytes_测试.txt", bucket);
 
-            final String fileName = "\"-file-\"";
-            final File file = TempFile.createFile(1, fileName);
-            uploadManager.put(file, expectKey, upToken, new UpCompletionHandler() {
-                public void complete(String key, ResponseInfo info, JSONObject response) {
-                    LogUtil.i("upload result of bucket " + bucket);
-                    LogUtil.d(info.toString());
+    public void test100up() {
+        int count = 100;
+        for (int i = 1; i < count; i++) {
+            String key = "android_form_100_up_" + i + "k";
+            byte[] data = TempFile.getByte(i * 1024);
+            uploadDataAndAssertSuccessResult(data, key, null, null);
+        }
+    }
 
-                    assertTrue(info.isOK());
-                    assertTrue(info.reqId != null);
-                    assertTrue(key == expectKey);
-                    try {
-                        String responseFname = response.getString("fname");
-                        String localFname = file.getName();
-                        assertTrue(responseFname.equals(localFname));
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+    public void testUpUnAuth() {
+        byte[] data = "Hello, World!".getBytes();
+        uploadDataAndAssertResult(ResponseInfo.InvalidToken, data, "noAuth", "android_form_no_auth", null, null);
+    }
+
+    public void testNoData() {
+        uploadDataAndAssertResult(ResponseInfo.ZeroSizeFile, null, "android_form_no_data", null, null);
+    }
+
+    public void testNoFile() {
+        uploadFileAndAssertResult(ResponseInfo.ZeroSizeFile, null, "android_form_no_file", null, null);
+    }
+
+    public void testNoToken() {
+        String key = "android_form_no_token";
+        File file = null;
+        byte[] data = null;
+        try {
+            file = TempFile.createFile(5 * 1024, key);
+            data = TempFile.getByte(5 * 1024);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        uploadDataAndAssertResult(ResponseInfo.InvalidToken, data, null, key, null, null);
+        uploadFileAndAssertResult(ResponseInfo.InvalidToken, file, null, key, null, null);
+
+        uploadDataAndAssertResult(ResponseInfo.InvalidToken, data, "", key, null, null);
+        uploadFileAndAssertResult(ResponseInfo.InvalidToken, file, "", key, null, null);
+
+        uploadDataAndAssertResult(ResponseInfo.InvalidToken, data, "ABC", key, null, null);
+        uploadFileAndAssertResult(ResponseInfo.InvalidToken, file, "ABC", key, null, null);
+
+        TempFile.remove(file);
+    }
+
+    public void testNoKey() {
+        String key = "android_form_no_key";
+        File file = null;
+        byte[] data = null;
+        try {
+            file = TempFile.createFile(5 * 1024, key);
+            data = TempFile.getByte(5 * 1024);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        uploadDataAndAssertSuccessResult(data, null, null, null);
+        uploadFileAndAssertSuccessResult(file, null, null, null);
+
+        TempFile.remove(file);
+    }
+
+    public void testUrlConvert() {
+        String dataKey = "android_form_url_convert_data";
+        String fileKey = "android_form_url_convert_file";
+        File file = null;
+        byte[] data = null;
+        try {
+            file = TempFile.createFile(5 * 1024, fileKey);
+            data = TempFile.getByte(5 * 1024);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Configuration configuration = new Configuration.Builder()
+                .useHttps(false)
+                .zone(new FixedZone(new String[]{"upnono-na0.qiniu.com", "upnono-na0.qiniu.com"}))
+                .urlConverter(new UrlConverter() {
+                    @Override
+                    public String convert(String url) {
+                        return  url.replace("upnono", "up");
                     }
-
-                    signal.countDown();
-                }
-            }, options);
-
-            signal.await(120, TimeUnit.SECONDS);
-        }
+                })
+                .build();
+        uploadDataAndAssertSuccessResult(data, dataKey, configuration, null);
+        uploadFileAndAssertSuccessResult(file, fileKey, configuration, null);
     }
 }
