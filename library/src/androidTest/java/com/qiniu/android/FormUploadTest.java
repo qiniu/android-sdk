@@ -148,7 +148,7 @@ public class FormUploadTest extends UploadFlowTest {
         File file = null;
         byte[] data = null;
         try {
-            file = TempFile.createFile(5 * 1024, fileKey);
+            file = TempFile.createFile(5, fileKey);
             data = TempFile.getByte(5 * 1024);
         } catch (IOException e) {
             e.printStackTrace();
