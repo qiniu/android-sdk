@@ -143,8 +143,8 @@ public class FormUploadTest extends UploadFlowTest {
     }
 
     public void testUrlConvert() {
-        String dataKey = "android_form_url_convert_data";
-        String fileKey = "android_form_url_convert_file";
+        String dataKey = "android_form_url_convert_data_new";
+        String fileKey = "android_form_url_convert_file_new";
         File file = null;
         byte[] data = null;
         try {
