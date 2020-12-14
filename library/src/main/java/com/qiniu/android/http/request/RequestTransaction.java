@@ -508,8 +508,10 @@ public class RequestTransaction {
 
     private String resumeV2EncodeKey(String key) {
         String encodeKey = null;
-        if (key == null || key.equals("")) {
+        if (key == null) {
             encodeKey = "~";
+        } else if (key.equals("")) {
+            encodeKey = "";
         } else {
             encodeKey = UrlSafeBase64.encodeToString(key);
         }
