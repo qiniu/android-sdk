@@ -347,7 +347,12 @@ public class RequestTransaction {
         header.put("User-Agent", userAgent);
 
         String buckets = "/buckets/" + this.token.bucket;
-        String objects = "/objects/" + UrlSafeBase64.encodeToString(key);
+        String objects = "/objects/";
+        if (key == null || key.equals("")) {
+            objects += "~";
+        } else {
+            objects += UrlSafeBase64.encodeToString(key);
+        }
         String action = buckets + objects + "/uploads";
 
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
