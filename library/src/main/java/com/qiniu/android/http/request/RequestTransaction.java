@@ -39,13 +39,13 @@ public class RequestTransaction {
 
 
     public RequestTransaction(List<String> hosts,
-                              UpToken token){
+                              UpToken token) {
         this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, null, null, token);
     }
 
     public RequestTransaction(List<String> hosts,
                               String regionId,
-                              UpToken token){
+                              UpToken token) {
         this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, regionId, null, token);
     }
 
@@ -54,7 +54,7 @@ public class RequestTransaction {
                               List<String> hosts,
                               String regionId,
                               String key,
-                              UpToken token){
+                              UpToken token) {
         this(config, uploadOption, key, token);
         IUploadRegion region = new UploadDomainRegion();
         region.setupRegionData(ZoneInfo.buildInfo(hosts, regionId));
@@ -83,7 +83,7 @@ public class RequestTransaction {
     }
 
     private void initData(IUploadRegion targetRegion,
-                          IUploadRegion currentRegion){
+                          IUploadRegion currentRegion) {
 
         this.requestState = new UploadRequestState();
         this.requestInfo = new UploadRequestInfo();
@@ -96,7 +96,7 @@ public class RequestTransaction {
 
 
     public void queryUploadHosts(boolean isAsync,
-                                 final RequestCompleteHandler completeHandler){
+                                 final RequestCompleteHandler completeHandler) {
         requestInfo.requestType = UploadRequestInfo.RequestTypeUCQuery;
 
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
@@ -108,7 +108,7 @@ public class RequestTransaction {
 
         HashMap<String, String> header = new HashMap<>();
         header.put("User-Agent", userAgent);
-        String action = "/v4/query?ak=" + (token.accessKey != null ? token.accessKey : "") + "&bucket=" + (token.bucket != null ? token.bucket : "") ;
+        String action = "/v4/query?ak=" + (token.accessKey != null ? token.accessKey : "") + "&bucket=" + (token.bucket != null ? token.bucket : "");
         regionRequest.get(action, isAsync, header, shouldRetryHandler, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
@@ -121,22 +121,22 @@ public class RequestTransaction {
                                String fileName,
                                boolean isAsync,
                                final RequestProgressHandler progressHandler,
-                               final RequestCompleteHandler completeHandler){
+                               final RequestCompleteHandler completeHandler) {
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeForm;
 
         HashMap<String, String> param = new HashMap<String, String>();
-        if (uploadOption.params != null){
+        if (uploadOption.params != null) {
             param.putAll(uploadOption.params);
         }
 
-        if (key != null && key.length() > 0){
+        if (key != null && key.length() > 0) {
             param.put("key", key);
         }
 
         param.put("token", token.token != null ? token.token : "");
 
-        if (uploadOption.checkCrc){
+        if (uploadOption.checkCrc) {
             param.put("crc32", String.valueOf(Crc32.bytes(data)));
         }
 
@@ -165,7 +165,7 @@ public class RequestTransaction {
         System.arraycopy(data, 0, body, (paramPair.length + filePairFront.length), data.length);
         System.arraycopy(filePairBehind, 0, body, (paramPair.length + filePairFront.length + data.length), filePairBehind.length);
 
-        HashMap <String, String> header = new HashMap<String, String>();
+        HashMap<String, String> header = new HashMap<String, String>();
         header.put("Content-Type", ("multipart/form-data; boundary=" + boundary));
         header.put("Content-Length", String.valueOf(body.length));
         header.put("User-Agent", userAgent);
@@ -173,7 +173,7 @@ public class RequestTransaction {
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
             @Override
             public boolean shouldRetry(ResponseInfo responseInfo, JSONObject response) {
-                return ! responseInfo.isOK();
+                return !responseInfo.isOK();
             }
         };
 
@@ -190,13 +190,13 @@ public class RequestTransaction {
                           byte[] firstChunkData,
                           boolean isAsync,
                           final RequestProgressHandler progressHandler,
-                          final RequestCompleteHandler completeHandler){
+                          final RequestCompleteHandler completeHandler) {
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeMkblk;
         requestInfo.fileOffset = new Long(blockOffset);
 
         String token = String.format("UpToken %s", (this.token.token != null ? this.token.token : ""));
-        HashMap <String, String> header = new HashMap<String, String>();
+        HashMap<String, String> header = new HashMap<String, String>();
         header.put("Authorization", token);
         header.put("Content-Type", "application/octet-stream");
         header.put("User-Agent", userAgent);
@@ -215,7 +215,8 @@ public class RequestTransaction {
                 try {
                     ctx = response.getString("ctx");
                     crcServer = String.valueOf(response.getLong("crc32"));
-                } catch (JSONException e) {}
+                } catch (JSONException e) {
+                }
 
                 return !responseInfo.isOK() || ctx == null || crcServer == null || !chunkCrc.equals(crcServer);
             }
@@ -235,13 +236,13 @@ public class RequestTransaction {
                             long chunkOffset,
                             boolean isAsync,
                             final RequestProgressHandler progressHandler,
-                            final RequestCompleteHandler completeHandler){
+                            final RequestCompleteHandler completeHandler) {
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeBput;
         requestInfo.fileOffset = new Long((blockOffset + chunkOffset));
 
         String token = String.format("UpToken %s", (this.token.token != null ? this.token.token : ""));
-        HashMap <String, String> header = new HashMap<String, String>();
+        HashMap<String, String> header = new HashMap<String, String>();
         header.put("Authorization", token);
         header.put("Content-Type", "application/octet-stream");
         header.put("User-Agent", userAgent);
@@ -263,9 +264,10 @@ public class RequestTransaction {
                 try {
                     ctx = response.getString("ctx");
                     crcServer = String.valueOf(response.getLong("crc32"));
-                } catch (JSONException e) {}
+                } catch (JSONException e) {
+                }
 
-                return ! responseInfo.isOK() || ctx == null || crcServer == null || !chunkCrc.equals(crcServer);
+                return !responseInfo.isOK() || ctx == null || crcServer == null || !chunkCrc.equals(crcServer);
             }
         };
 
@@ -281,35 +283,35 @@ public class RequestTransaction {
                          String fileName,
                          String[] blockContexts,
                          boolean isAsync,
-                         final RequestCompleteHandler completeHandler){
+                         final RequestCompleteHandler completeHandler) {
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeMkfile;
 
-        if (blockContexts == null){
+        if (blockContexts == null) {
             ResponseInfo responseInfo = ResponseInfo.invalidArgument("invalid blockContexts");
             completeAction(responseInfo, null, responseInfo.response, completeHandler);
             return;
         }
 
         String token = String.format("UpToken %s", (this.token.token != null ? this.token.token : ""));
-        HashMap <String, String> header = new HashMap<String, String>();
+        HashMap<String, String> header = new HashMap<String, String>();
         header.put("Authorization", token);
         header.put("Content-Type", "application/octet-stream");
         header.put("User-Agent", userAgent);
 
         String mimeType = String.format("/mimeType/%s", UrlSafeBase64.encodeToString(uploadOption.mimeType));
-        String action =  String.format("/mkfile/%d%s", fileSize, mimeType);
+        String action = String.format("/mkfile/%d%s", fileSize, mimeType);
 
-        if (key != null){
+        if (key != null) {
             String keyStr = String.format("/key/%s", UrlSafeBase64.encodeToString(key));
             action = action + keyStr;
         }
 
-        if (uploadOption.params != null){
-            Set <String> paramKeySet = uploadOption.params.keySet();
+        if (uploadOption.params != null) {
+            Set<String> paramKeySet = uploadOption.params.keySet();
             for (String paramKey : paramKeySet) {
                 String value = uploadOption.params.get(paramKey);
-                if (value != null){
+                if (value != null) {
                     String param = "/" + paramKey + "/" + UrlSafeBase64.encodeToString(value);
                     action = action + param;
                 }
@@ -336,23 +338,18 @@ public class RequestTransaction {
 
 
     public void initPart(boolean isAsync,
-                         final RequestCompleteHandler completeHandler){
+                         final RequestCompleteHandler completeHandler) {
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeInitParts;
 
         String token = String.format("UpToken %s", (this.token.token != null ? this.token.token : ""));
-        HashMap <String, String> header = new HashMap<String, String>();
+        HashMap<String, String> header = new HashMap<String, String>();
         header.put("Authorization", token);
         header.put("Content-Type", "application/octet-stream");
         header.put("User-Agent", userAgent);
 
         String buckets = "/buckets/" + this.token.bucket;
-        String objects = "/objects/";
-        if (key == null || key.equals("")) {
-            objects += "~";
-        } else {
-            objects += UrlSafeBase64.encodeToString(key);
-        }
+        String objects = "/objects/" + resumeV2EncodeKey(key);
         String action = buckets + objects + "/uploads";
 
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
@@ -376,18 +373,18 @@ public class RequestTransaction {
                            int partIndex,
                            byte[] partData,
                            final RequestProgressHandler progressHandler,
-                           final RequestCompleteHandler completeHandler){
+                           final RequestCompleteHandler completeHandler) {
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeUploadPart;
 
         String token = String.format("UpToken %s", (this.token.token != null ? this.token.token : ""));
-        HashMap <String, String> header = new HashMap<String, String>();
+        HashMap<String, String> header = new HashMap<String, String>();
         header.put("Authorization", token);
         header.put("Content-Type", "application/octet-stream");
         header.put("User-Agent", userAgent);
 
         String buckets = "/buckets/" + this.token.bucket;
-        String objects = "/objects/" + UrlSafeBase64.encodeToString(key);
+        String objects = "/objects/" + resumeV2EncodeKey(key);
         String uploads = "/uploads/" + uploadId;
         String partNumber = "/" + partIndex;
         String action = buckets + objects + uploads + partNumber;
@@ -405,7 +402,8 @@ public class RequestTransaction {
                 try {
                     etag = response.getString("etag");
                     serverMd5 = response.getString("md5");
-                } catch (JSONException e) {}
+                } catch (JSONException e) {
+                }
 
                 return !responseInfo.isOK() || etag == null || (responseInfo.isOK() && uploadOption.checkCrc && (serverMd5 == null || !serverMd5.equals(md5)));
             }
@@ -422,7 +420,7 @@ public class RequestTransaction {
                               String fileName,
                               String uploadId,
                               List<Map<String, Object>> partInfoArray,
-                              final RequestCompleteHandler completeHandler){
+                              final RequestCompleteHandler completeHandler) {
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeCompletePart;
 
@@ -435,18 +433,18 @@ public class RequestTransaction {
         }
 
         String token = String.format("UpToken %s", (this.token.token != null ? this.token.token : ""));
-        HashMap <String, String> header = new HashMap<String, String>();
+        HashMap<String, String> header = new HashMap<String, String>();
         header.put("Authorization", token);
         header.put("Content-Type", "application/octet-stream");
         header.put("User-Agent", userAgent);
 
         String buckets = "/buckets/" + this.token.bucket;
-        String objects = "/objects/" + UrlSafeBase64.encodeToString(key);
+        String objects = "/objects/" + resumeV2EncodeKey(key);
         String uploads = "/uploads/" + uploadId;
         String action = buckets + objects + uploads;
 
         HashMap<String, Object> bodyMap = new HashMap<>();
-        if (partInfoArray != null){
+        if (partInfoArray != null) {
             bodyMap.put("parts", partInfoArray);
         }
         if (fileName != null) {
@@ -479,17 +477,17 @@ public class RequestTransaction {
     public void reportLog(byte[] logData,
                           String logClientId,
                           boolean isAsync,
-                          final RequestCompleteHandler completeHandler){
+                          final RequestCompleteHandler completeHandler) {
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeUpLog;
 
         String token = String.format("UpToken %s", (this.token.token != null ? this.token.token : ""));
-        HashMap <String, String> header = new HashMap<String, String>();
+        HashMap<String, String> header = new HashMap<String, String>();
         header.put("Authorization", token);
         header.put("Content-Type", "text/plain");
         header.put("User-Agent", userAgent);
 
-        if (logClientId != null){
+        if (logClientId != null) {
             header.put("X-Log-Client-Id", logClientId);
         }
 
@@ -508,23 +506,33 @@ public class RequestTransaction {
         });
     }
 
+    private String resumeV2EncodeKey(String key) {
+        String encodeKey = null;
+        if (key == null || key.equals("")) {
+            encodeKey = "~";
+        } else {
+            encodeKey = UrlSafeBase64.encodeToString(key);
+        }
+        return encodeKey;
+    }
+
     private void completeAction(ResponseInfo responseInfo,
                                 UploadRegionRequestMetrics requestMetrics,
                                 JSONObject response,
-                                RequestCompleteHandler completeHandler){
+                                RequestCompleteHandler completeHandler) {
         requestInfo = null;
         regionRequest = null;
         regionRequest = null;
 
-        if (completeHandler != null){
+        if (completeHandler != null) {
             completeHandler.complete(responseInfo, requestMetrics, response);
         }
     }
 
     public interface RequestCompleteHandler {
-         void complete(ResponseInfo responseInfo,
-                       UploadRegionRequestMetrics requestMetrics,
-                       JSONObject response);
+        void complete(ResponseInfo responseInfo,
+                      UploadRegionRequestMetrics requestMetrics,
+                      JSONObject response);
     }
 
 }
