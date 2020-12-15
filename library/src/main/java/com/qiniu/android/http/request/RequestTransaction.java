@@ -13,6 +13,7 @@ import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.Crc32;
 import com.qiniu.android.utils.GZipUtil;
 import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.MD5;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.UrlSafeBase64;
 import com.qiniu.android.utils.Utils;
@@ -20,6 +21,7 @@ import com.qiniu.android.utils.Utils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -382,6 +384,12 @@ public class RequestTransaction {
         header.put("Authorization", token);
         header.put("Content-Type", "application/octet-stream");
         header.put("User-Agent", userAgent);
+        if (uploadOption.checkCrc) {
+            String md5 = MD5.encrypt(partData);
+            if (md5 != null) {
+                header.put("Content-MD5", md5);
+            }
+        }
 
         String buckets = "/buckets/" + this.token.bucket;
         String objects = "/objects/" + resumeV2EncodeKey(key);
@@ -389,7 +397,6 @@ public class RequestTransaction {
         String partNumber = "/" + partIndex;
         String action = buckets + objects + uploads + partNumber;
 
-        final String md5 = null;
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
             @Override
             public boolean shouldRetry(ResponseInfo responseInfo, JSONObject response) {
@@ -402,10 +409,9 @@ public class RequestTransaction {
                 try {
                     etag = response.getString("etag");
                     serverMd5 = response.getString("md5");
-                } catch (JSONException e) {
+                } catch (JSONException ignored) {
                 }
-
-                return !responseInfo.isOK() || etag == null || (responseInfo.isOK() && uploadOption.checkCrc && (serverMd5 == null || !serverMd5.equals(md5)));
+                return !responseInfo.isOK() || etag == null || serverMd5 == null;
             }
         };
         regionRequest.put(action, isAsync, partData, header, shouldRetryHandler, progressHandler, new HttpRegionRequest.RequestCompleteHandler() {

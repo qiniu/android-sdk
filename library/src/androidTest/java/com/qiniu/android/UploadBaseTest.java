@@ -12,6 +12,8 @@ import java.io.File;
 
 public class UploadBaseTest extends BaseTest {
 
+    protected UploadOptions defaultOptions = new UploadOptions(null, null, true, null, null);
+
     protected boolean verifyUploadKey(String upKey, String responseKey){
         if (upKey == null) {
             return responseKey == null;
@@ -98,7 +100,9 @@ public class UploadBaseTest extends BaseTest {
                               Configuration configuration,
                               UploadOptions options,
                               UpCompletionHandler completionHandler) {
-
+        if (options == null) {
+            options = defaultOptions;
+        }
         UploadManager manager = new UploadManager(configuration);
         manager.put(file, key, token, completionHandler, options);
     }
@@ -182,7 +186,9 @@ public class UploadBaseTest extends BaseTest {
                               Configuration configuration,
                               UploadOptions options,
                               UpCompletionHandler completionHandler) {
-
+        if (options == null) {
+            options = defaultOptions;
+        }
         UploadManager manager = new UploadManager(configuration);
         manager.put(data, key, token, completionHandler, options);
     }
