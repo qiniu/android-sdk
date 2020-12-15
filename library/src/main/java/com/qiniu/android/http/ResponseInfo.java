@@ -225,7 +225,7 @@ public final class ResponseInfo {
     public boolean couldRetry(){
         if (isCancelled()
             || (statusCode > 300 && statusCode < 400)
-            || (statusCode > 400 && statusCode < 500)
+            || (statusCode > 400 && statusCode < 500 && statusCode != 406)
             || statusCode == 501 || statusCode == 573
             || statusCode == 608 || statusCode == 612 || statusCode == 614 || statusCode == 616
             || statusCode == 619 || statusCode == 630 || statusCode == 631 || statusCode == 640
