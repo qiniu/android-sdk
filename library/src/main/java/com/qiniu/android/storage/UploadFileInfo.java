@@ -26,6 +26,9 @@ abstract class UploadFileInfo {
         return 0;
     }
 
+    abstract boolean isEmpty();
+
+    abstract boolean isValid();
 
     abstract void clearUploadState();
 

@@ -180,7 +180,7 @@ abstract class PartsUploadPerformer {
             JSONObject info = new JSONObject(new String(data));
             ZoneInfo zoneInfo = ZoneInfo.buildFromJson(info.getJSONObject(kRecordZoneInfoKey));
             UploadFileInfo recoverFileInfo = getFileFromJson(info.getJSONObject(kRecordFileInfoKey));
-            if (zoneInfo != null && recoverFileInfo != null && file != null &&
+            if (zoneInfo != null && recoverFileInfo != null && !recoverFileInfo.isEmpty() && file != null &&
                     recoverFileInfo.size == file.length() &&
                     recoverFileInfo.modifyTime == file.lastModified()) {
                 fileInfo = recoverFileInfo;

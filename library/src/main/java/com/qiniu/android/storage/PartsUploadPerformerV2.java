@@ -40,9 +40,7 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
     @Override
     void serverInit(final PartsUploadPerformerCompleteHandler completeHandler) {
         final UploadFileInfoPartV2 uploadFileInfo = (UploadFileInfoPartV2) fileInfo;
-        if (uploadFileInfo != null &&
-                uploadFileInfo.uploadId != null &&
-                (uploadFileInfo.expireAt - new Date().getTime() * 0.0001) > 600) {
+        if (uploadFileInfo != null && uploadFileInfo.isValid()) {
             ResponseInfo responseInfo = ResponseInfo.successResponse();
             completeHandler.complete(responseInfo, null, null);
             return;

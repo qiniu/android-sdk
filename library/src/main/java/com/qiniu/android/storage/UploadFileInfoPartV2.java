@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +89,16 @@ public class UploadFileInfoPartV2 extends UploadFileInfo {
             progress += data.progress * ((double) data.size / size);
         }
         return progress;
+    }
+
+    @Override
+    boolean isEmpty() {
+        return uploadDataList == null || uploadDataList.size() == 0;
+    }
+
+    @Override
+    boolean isValid() {
+        return !isEmpty() && uploadId != null && (expireAt - new Date().getTime() * 0.0001) > 6000;
     }
 
     UploadData nextUploadData() {

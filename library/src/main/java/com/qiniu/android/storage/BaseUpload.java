@@ -163,15 +163,6 @@ abstract class BaseUpload implements Runnable {
         return defaultRegions.size() > 0;
     }
 
-    protected void insertRegionAtFirstByZoneInfo(ZoneInfo zoneInfo) {
-        if (zoneInfo == null) {
-            return;
-        }
-        UploadDomainRegion region = new UploadDomainRegion();
-        region.setupRegionData(zoneInfo);
-        insertRegionAtFirst(region);
-    }
-
     protected void insertRegionAtFirst(IUploadRegion region) {
         if (region == null) {
             return;

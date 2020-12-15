@@ -80,6 +80,16 @@ class UploadFileInfoPartV1 extends UploadFileInfo {
         return progress;
     }
 
+    @Override
+    boolean isEmpty() {
+        return uploadBlocks == null || uploadBlocks.size() == 0;
+    }
+
+    @Override
+    boolean isValid() {
+        return !isEmpty();
+    }
+
     UploadBlock nextUploadBlock() {
         if (uploadBlocks == null || uploadBlocks.size() == 0) {
             return null;
