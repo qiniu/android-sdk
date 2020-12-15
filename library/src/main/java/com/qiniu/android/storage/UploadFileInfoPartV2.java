@@ -15,7 +15,7 @@ public class UploadFileInfoPartV2 extends UploadFileInfo {
     final ArrayList<UploadData> uploadDataList;
 
     String uploadId;
-    // 单位：
+    // 单位：秒
     Long expireAt;
 
     private UploadFileInfoPartV2(long size,
@@ -168,7 +168,7 @@ public class UploadFileInfoPartV2 extends UploadFileInfo {
                 }
                 jsonObject.put("uploadDataList", dataJsonArray);
             }
-        } catch (JSONException e) {
+        } catch (JSONException ignored) {
         }
         return jsonObject;
     }

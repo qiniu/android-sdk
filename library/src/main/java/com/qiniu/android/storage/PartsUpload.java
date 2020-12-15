@@ -175,7 +175,7 @@ class PartsUpload extends BaseUpload {
     }
 
     protected void performUploadRestData(final UploadFileRestDataCompleteHandler completeHandler) {
-        if (isAllUploaded()){
+        if (isAllUploaded()) {
             completeHandler.complete();
             return;
         }

@@ -72,18 +72,18 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
 
     @Override
     void uploadNextDataCompleteHandler(final PartsUploadPerformerDataCompleteHandler completeHandler) {
-        UploadFileInfoPartV2 uploadFileInfo = (UploadFileInfoPartV2)fileInfo;
+        UploadFileInfoPartV2 uploadFileInfo = (UploadFileInfoPartV2) fileInfo;
 
         UploadData data = null;
-        synchronized (this){
+        synchronized (this) {
             data = uploadFileInfo.nextUploadData();
-            if (data != null){
+            if (data != null) {
                 data.isUploading = true;
                 data.isCompleted = false;
             }
         }
 
-        if (data == null){
+        if (data == null) {
             completeHandler.complete(true, null, null, null);
             return;
         }
@@ -101,7 +101,7 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         RequestProgressHandler progressHandler = new RequestProgressHandler() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
-                uploadData.progress = (double)totalBytesWritten / (double)totalBytesExpectedToWrite;
+                uploadData.progress = (double) totalBytesWritten / (double) totalBytesExpectedToWrite;
                 notifyProgress();
             }
         };
@@ -155,11 +155,11 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         });
     }
 
-    private byte[] getUploadData(UploadData data){
-        if (randomAccessFile == null || data == null){
+    private byte[] getUploadData(UploadData data) {
+        if (randomAccessFile == null || data == null) {
             return null;
         }
-        byte[] uploadData = new byte[(int)data.size];
+        byte[] uploadData = new byte[(int) data.size];
         try {
             synchronized (randomAccessFile) {
                 randomAccessFile.seek(data.offset);

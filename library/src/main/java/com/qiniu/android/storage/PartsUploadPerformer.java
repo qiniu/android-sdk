@@ -76,7 +76,7 @@ abstract class PartsUploadPerformer {
         }
     }
 
-    boolean canReadFile(){
+    boolean canReadFile() {
         return randomAccessFile != null;
     }
 
