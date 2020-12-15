@@ -98,7 +98,7 @@ public class UploadFileInfoPartV2 extends UploadFileInfo {
 
     @Override
     boolean isValid() {
-        return !isEmpty() && uploadId != null && (expireAt - new Date().getTime() * 0.0001) > 6000;
+        return !isEmpty() && uploadId != null && (expireAt - new Date().getTime() * 0.001) > 6000;
     }
 
     UploadData nextUploadData() {
