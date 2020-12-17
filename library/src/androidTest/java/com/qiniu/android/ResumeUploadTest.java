@@ -2,9 +2,12 @@ package com.qiniu.android;
 
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
+import com.qiniu.android.storage.UploadOptions;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class ResumeUploadTest extends UploadFlowTest {
@@ -161,6 +164,35 @@ public class ResumeUploadTest extends UploadFlowTest {
         TempFile.remove(file);
     }
 
+    public void testCustomParamV1() {
+
+        Map<String, String> userParam = new HashMap<>();
+        userParam.put("foo", "foo_value");
+        userParam.put("bar", "bar_value");
+
+        Map<String, String> metaParam = new HashMap<>();
+        metaParam.put("0000", "meta_value_0");
+        metaParam.put("x-qn-meta-aaa", "meta_value_1");
+        metaParam.put("x-qn-meta-key-2", "meta_value_2");
+
+        UploadOptions options = new UploadOptions(userParam, metaParam, null,true, null, null, null);
+
+        Configuration configuration = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
+                .useConcurrentResumeUpload(false)
+                .useHttps(false)
+                .build();
+
+        String key = "android_resume_custom_param_v1";
+        File file = null;
+        try {
+            file = TempFile.createFile(5 * 1024, key);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        uploadFileAndAssertSuccessResult(file, key, configuration, options);
+    }
 
     public void testSwitchRegionV2() {
         Configuration configuration = new Configuration.Builder()
@@ -311,5 +343,35 @@ public class ResumeUploadTest extends UploadFlowTest {
         uploadFileAndAssertResult(ResponseInfo.ZeroSizeFile, file, key, configurationHttps, null);
 
         TempFile.remove(file);
+    }
+
+    public void testCustomParamV2() {
+
+        Map<String, String> userParam = new HashMap<>();
+        userParam.put("foo", "foo_value");
+        userParam.put("bar", "bar_value");
+
+        Map<String, String> metaParam = new HashMap<>();
+        metaParam.put("0000", "meta_value_0");
+        metaParam.put("x-qn-meta-aaa", "meta_value_1");
+        metaParam.put("x-qn-meta-key-2", "meta_value_2");
+
+        UploadOptions options = new UploadOptions(userParam, metaParam, null,true, null, null, null);
+
+        Configuration configuration = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
+                .useConcurrentResumeUpload(false)
+                .useHttps(false)
+                .build();
+
+        String key = "android_resume_custom_param_v2";
+        File file = null;
+        try {
+            file = TempFile.createFile(5 * 1024, key);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        uploadFileAndAssertSuccessResult(file, key, configuration, options);
     }
 }

@@ -167,4 +167,33 @@ public class FormUploadTest extends UploadFlowTest {
         uploadDataAndAssertSuccessResult(data, dataKey, configuration, null);
         uploadFileAndAssertSuccessResult(file, fileKey, configuration, null);
     }
+
+    public void testCustomParam() {
+
+        Map<String, String> userParam = new HashMap<>();
+        userParam.put("foo", "foo_value");
+        userParam.put("bar", "bar_value");
+
+        Map<String, String> metaParam = new HashMap<>();
+        metaParam.put("0000", "meta_value_0");
+        metaParam.put("x-qn-meta-aaa", "meta_value_1");
+        metaParam.put("x-qn-meta-key-2", "meta_value_2");
+
+        UploadOptions options = new UploadOptions(userParam, metaParam, null,true, null, null, null);
+
+        String dataKey = "android_form_custom_param_data";
+        String fileKey = "android_form_custom_param_file";
+        File file = null;
+        byte[] data = null;
+        try {
+            file = TempFile.createFile(5, fileKey);
+            data = TempFile.getByte(5 * 1024);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        uploadDataAndAssertSuccessResult(data, dataKey, null, options);
+        uploadFileAndAssertSuccessResult(file, fileKey, null, options);
+    }
+
 }

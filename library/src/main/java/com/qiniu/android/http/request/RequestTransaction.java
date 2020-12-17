@@ -131,6 +131,9 @@ public class RequestTransaction {
         if (uploadOption.params != null) {
             param.putAll(uploadOption.params);
         }
+        if (uploadOption.metaDataParam != null) {
+            param.putAll(uploadOption.metaDataParam);
+        }
 
         if (key != null && key.length() > 0) {
             param.put("key", key);
@@ -320,6 +323,17 @@ public class RequestTransaction {
             }
         }
 
+        if (uploadOption.metaDataParam != null) {
+            Set<String> paramKeySet = uploadOption.metaDataParam.keySet();
+            for (String paramKey : paramKeySet) {
+                String value = uploadOption.metaDataParam.get(paramKey);
+                if (value != null) {
+                    String param = "/" + paramKey + "/" + UrlSafeBase64.encodeToString(value);
+                    action = action + param;
+                }
+            }
+        }
+
         String fname = String.format("/fname/%s", UrlSafeBase64.encodeToString(fileName));
         action = action + fname;
 
@@ -461,6 +475,9 @@ public class RequestTransaction {
         }
         if (uploadOption.params != null) {
             bodyMap.put("customVars", uploadOption.params);
+        }
+        if (uploadOption.metaDataParam != null) {
+            bodyMap.put("metaData", uploadOption.metaDataParam);
         }
 
         String bodyString = new JSONObject(bodyMap).toString();

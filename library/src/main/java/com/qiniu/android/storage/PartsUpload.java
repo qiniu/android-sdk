@@ -63,7 +63,7 @@ class PartsUpload extends BaseUpload {
             return;
         }
 
-        if (uploadDataErrorResponseInfo == null || (responseInfo.statusCode != ResponseInfo.NoUsableHostError)) {
+        if (uploadDataErrorResponseInfo == null || responseInfo.statusCode != ResponseInfo.NoUsableHostError) {
             uploadDataErrorResponseInfo = responseInfo;
             if (response == null) {
                 uploadDataErrorResponse = responseInfo.response;
@@ -96,7 +96,9 @@ class PartsUpload extends BaseUpload {
     @Override
     protected boolean switchRegion() {
         boolean isSuccess = super.switchRegion();
-        uploadPerformer.switchRegion(getCurrentRegion());
+        if (isSuccess) {
+            uploadPerformer.switchRegion(getCurrentRegion());
+        }
         return isSuccess;
     }
 
@@ -104,6 +106,16 @@ class PartsUpload extends BaseUpload {
     protected boolean switchRegionAndUpload() {
         reportBlock();
         return super.switchRegionAndUpload();
+    }
+
+    protected boolean switchRegionAndUploadIfNeededWithErrorResponse(ResponseInfo errorResponseInfo) {
+        if (errorResponseInfo == null || errorResponseInfo.isOK() || // 不存在 || 不是error 不切
+                !errorResponseInfo.couldRetry() || !config.allowBackupHost || // 不能重试不切
+                !switchRegionAndUpload()) { // 切换失败
+            return false;
+        } else {
+            return true;
+        }
     }
 
     @Override
@@ -117,7 +129,9 @@ class PartsUpload extends BaseUpload {
             public void complete(ResponseInfo responseInfo, JSONObject response) {
 
                 if (!responseInfo.isOK()) {
-                    completeAction(responseInfo, response);
+                    if (!switchRegionAndUploadIfNeededWithErrorResponse(responseInfo)) {
+                        completeAction(responseInfo, response);
+                    }
                     return;
                 }
 
@@ -126,15 +140,10 @@ class PartsUpload extends BaseUpload {
                     @Override
                     public void complete() {
                         if (!isAllUploaded()) {
-                            if ((uploadDataErrorResponseInfo == null || uploadDataErrorResponseInfo.couldRetry()) && config.allowBackupHost) {
-                                boolean isSwitched = switchRegionAndUpload();
-                                if (!isSwitched) {
-                                    completeAction(uploadDataErrorResponseInfo, uploadDataErrorResponse);
-                                }
-                            } else {
+                            if (!switchRegionAndUploadIfNeededWithErrorResponse(uploadDataErrorResponseInfo)) {
                                 completeAction(uploadDataErrorResponseInfo, uploadDataErrorResponse);
+                                return;
                             }
-                            return;
                         }
 
                         // 3. 组装文件
@@ -142,25 +151,24 @@ class PartsUpload extends BaseUpload {
                             @Override
                             public void complete(ResponseInfo responseInfo, JSONObject response) {
 
-                                if (responseInfo == null || !responseInfo.isOK()) {
-                                    if ((responseInfo == null || responseInfo.couldRetry()) && config.allowBackupHost) {
-                                        boolean isSwitched = switchRegionAndUpload();
-                                        if (!isSwitched) {
-                                            completeAction(responseInfo, response);
-                                        }
-                                    } else {
+                                if (shouldRemoveUploadInfoRecord(responseInfo)) {
+                                    uploadPerformer.removeUploadInfoRecord();
+                                }
+
+                                if (!responseInfo.isOK()) {
+                                    if (!switchRegionAndUploadIfNeededWithErrorResponse(responseInfo)) {
                                         completeAction(responseInfo, response);
                                     }
-                                } else {
-                                    AsyncRun.runInMain(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            option.progressHandler.progress(key, 1.0);
-                                        }
-                                    });
-                                    uploadPerformer.removeUploadInfoRecord();
-                                    completeAction(responseInfo, response);
+                                    return;
                                 }
+
+                                AsyncRun.runInMain(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        option.progressHandler.progress(key, 1.0);
+                                    }
+                                });
+                                completeAction(responseInfo, response);
                             }
                         });
                     }
@@ -235,6 +243,9 @@ class PartsUpload extends BaseUpload {
         super.completeAction(responseInfo, response);
     }
 
+    private boolean shouldRemoveUploadInfoRecord(ResponseInfo responseInfo) {
+        return responseInfo != null && (responseInfo.isOK() || responseInfo.statusCode == 612 || responseInfo.statusCode == 614);
+    }
 
     private void reportBlock() {
 
