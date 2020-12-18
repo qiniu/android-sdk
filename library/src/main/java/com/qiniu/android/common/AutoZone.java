@@ -53,7 +53,7 @@ public final class AutoZone extends Zone {
     @Override
     public void preQuery(final UpToken token, final QueryHandler completeHandler) {
         if (token == null || !token.isValid()) {
-            completeHandler.complete(-1, ResponseInfo.invalidToken("无效token"), null);
+            completeHandler.complete(-1, ResponseInfo.invalidToken("invalid token"), null);
             return;
         }
 
