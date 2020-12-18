@@ -268,6 +268,7 @@ public class UploadFlowTest extends UploadBaseTest {
                 .useConcurrentResumeUpload(configurationReal.useConcurrentResumeUpload)
                 .resumeUploadVersion(configurationReal.resumeUploadVersion)
                 .concurrentTaskCount(configurationReal.concurrentTaskCount)
+                .zone(zone)
                 .build();
         uploadFileAndAssertSuccessResult(file, key, switchConfiguration, options);
     }

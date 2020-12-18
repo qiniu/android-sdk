@@ -108,16 +108,6 @@ class PartsUpload extends BaseUpload {
         return super.switchRegionAndUpload();
     }
 
-    protected boolean switchRegionAndUploadIfNeededWithErrorResponse(ResponseInfo errorResponseInfo) {
-        if (errorResponseInfo == null || errorResponseInfo.isOK() || // 不存在 || 不是error 不切
-                !errorResponseInfo.couldRetry() || !config.allowBackupHost || // 不能重试不切
-                !switchRegionAndUpload()) { // 切换失败
-            return false;
-        } else {
-            return true;
-        }
-    }
-
     @Override
     protected void startToUpload() {
         uploadDataErrorResponse = null;

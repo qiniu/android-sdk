@@ -172,6 +172,7 @@ abstract class BaseUpload implements Runnable {
         for (IUploadRegion regionP : regions) {
             if (region.isEqual(regionP)) {
                 hasRegion = true;
+                break;
             }
         }
         if (!hasRegion) {
@@ -192,6 +193,16 @@ abstract class BaseUpload implements Runnable {
             }
         }
         return ret;
+    }
+
+    protected boolean switchRegionAndUploadIfNeededWithErrorResponse(ResponseInfo errorResponseInfo) {
+        if (errorResponseInfo == null || errorResponseInfo.isOK() || // 不存在 || 不是error 不切
+                !errorResponseInfo.couldRetry() || !config.allowBackupHost || // 不能重试不切
+                !switchRegionAndUpload()) { // 切换失败
+            return false;
+        } else {
+            return true;
+        }
     }
 
     protected IUploadRegion getTargetRegion() {
