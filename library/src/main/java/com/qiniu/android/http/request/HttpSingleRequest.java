@@ -45,7 +45,7 @@ class HttpSingleRequest {
         this.token = token;
         this.requestInfo = requestInfo;
         this.requestState = requestState;
-        this.currentRetryTime = 1;
+        this.currentRetryTime = 0;
     }
 
     void request(Request request,
@@ -54,7 +54,7 @@ class HttpSingleRequest {
                  RequestShouldRetryHandler shouldRetryHandler,
                  RequestProgressHandler progressHandler,
                  RequestCompleteHandler completeHandler){
-        currentRetryTime = 1;
+        currentRetryTime = 0;
         requestMetricsList = new ArrayList<>();
         retryRequest(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, completeHandler);
     }
