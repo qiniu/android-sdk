@@ -198,7 +198,7 @@ public class RequestTransaction {
                           final RequestCompleteHandler completeHandler) {
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeMkblk;
-        requestInfo.fileOffset = new Long(blockOffset);
+        requestInfo.fileOffset = blockOffset;
 
         String token = String.format("UpToken %s", (this.token.token != null ? this.token.token : ""));
         HashMap<String, String> header = new HashMap<String, String>();
@@ -206,8 +206,8 @@ public class RequestTransaction {
         header.put("Content-Type", "application/octet-stream");
         header.put("User-Agent", userAgent);
 
-        String action = String.format("/mkblk/%d", blockSize);
-        final String chunkCrc = String.format("%d", Crc32.bytes(firstChunkData));
+        String action = "/mkblk/" + blockSize;
+        final String chunkCrc = "" + Crc32.bytes(firstChunkData);
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
             @Override
             public boolean shouldRetry(ResponseInfo responseInfo, JSONObject response) {
@@ -244,7 +244,7 @@ public class RequestTransaction {
                             final RequestCompleteHandler completeHandler) {
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeBput;
-        requestInfo.fileOffset = new Long((blockOffset + chunkOffset));
+        requestInfo.fileOffset = blockOffset + chunkOffset;
 
         String token = String.format("UpToken %s", (this.token.token != null ? this.token.token : ""));
         HashMap<String, String> header = new HashMap<String, String>();
@@ -252,8 +252,8 @@ public class RequestTransaction {
         header.put("Content-Type", "application/octet-stream");
         header.put("User-Agent", userAgent);
 
-        String action = String.format("/bput/%s/%d", blockContext, chunkOffset);
-        final String chunkCrc = String.format("%d", Crc32.bytes(chunkData));
+        String action = String.format("/bput/%s/%s", blockContext, chunkOffset+"");
+        final String chunkCrc = "" + Crc32.bytes(chunkData);
 
         LogUtil.i(String.format("blockOffset:%d chunkOffset:%d chunkSize:%d", blockOffset, chunkOffset, chunkData.length));
 
@@ -305,7 +305,7 @@ public class RequestTransaction {
         header.put("User-Agent", userAgent);
 
         String mimeType = String.format("/mimeType/%s", UrlSafeBase64.encodeToString(uploadOption.mimeType));
-        String action = String.format("/mkfile/%d%s", fileSize, mimeType);
+        String action = "/mkfile/" + fileSize + mimeType;
 
         if (key != null) {
             String keyStr = String.format("/key/%s", UrlSafeBase64.encodeToString(key));

@@ -45,12 +45,12 @@ public class CancelTest extends BaseTest {
     }
 
 
-    public void AtestFile() throws Throwable {
+    public void testFile() throws Throwable {
         Temp[] ts = new Temp[]{templateFile(8 * 1024 + 1, 0.6)};
         checkTemp(ts, "testFile");
     }
 
-    public void AtestMultiFileA() throws Throwable {
+    public void testMultiFileA() throws Throwable {
         Temp[] ts = new Temp[]{templateFile(400, 0.2), templateFile(700, 0.2), templateFile(1024, 0.51), templateFile(4 * 1024, 0.5), templateFile(8 * 1024 + 1, 0.6)};
         checkTemp(ts, "testFile");
     }
