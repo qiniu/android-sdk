@@ -84,7 +84,7 @@ class HttpRegionRequest {
                                 final RequestCompleteHandler completeHandler){
 
         if (server == null || server.getHost() == null || server.getHost().length() == 0) {
-            ResponseInfo responseInfo = ResponseInfo.noUsableHostError("server error");
+            ResponseInfo responseInfo = ResponseInfo.sdkInteriorError("server error");
             completeAction(responseInfo, null, completeHandler);
             return;
         }

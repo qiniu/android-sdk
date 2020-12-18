@@ -19,7 +19,9 @@ public final class ResponseInfo {
     public static final int RequestSuccess = 200;
 
     public static final int UnexpectedSysCallError = -10;
+    @Deprecated
     public static final int NoUsableHostError = -9;
+    public static final int SDKInteriorError = -9;
     public static final int MaliciousResponseError = -8;
     public static final int LocalIOError = -7;
     public static final int ZeroSizeFile = -6;
@@ -163,8 +165,13 @@ public final class ResponseInfo {
         return errorInfo(MaliciousResponseError, desc);
     }
 
+    @Deprecated
     public static ResponseInfo noUsableHostError(String desc) {
         return errorInfo(NoUsableHostError, desc);
+    }
+
+    public static ResponseInfo sdkInteriorError(String desc) {
+        return errorInfo(SDKInteriorError, desc);
     }
 
     public static ResponseInfo unexpectedSysCallError(String desc) {

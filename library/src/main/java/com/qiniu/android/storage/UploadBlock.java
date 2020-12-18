@@ -146,6 +146,7 @@ class UploadBlock {
     }
 
     protected void clearUploadState() {
+        context = null;
         if (uploadDataList == null || uploadDataList.size() == 0) {
             return;
         }

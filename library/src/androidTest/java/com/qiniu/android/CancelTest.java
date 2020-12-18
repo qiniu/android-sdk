@@ -45,12 +45,12 @@ public class CancelTest extends BaseTest {
     }
 
 
-    public void testFile() throws Throwable {
+    public void AtestFile() throws Throwable {
         Temp[] ts = new Temp[]{templateFile(8 * 1024 + 1, 0.6)};
         checkTemp(ts, "testFile");
     }
 
-    public void testMultiFile() throws Throwable {
+    public void AtestMultiFileA() throws Throwable {
         Temp[] ts = new Temp[]{templateFile(400, 0.2), templateFile(700, 0.2), templateFile(1024, 0.51), templateFile(4 * 1024, 0.5), templateFile(8 * 1024 + 1, 0.6)};
         checkTemp(ts, "testFile");
     }
@@ -301,7 +301,7 @@ public class CancelTest extends BaseTest {
         wait(waitCondition, 10 * 60);
 
         assertTrue(temp.info != null);
-        assertTrue(temp.info.isOK());
+        assertTrue(temp.info.toString(), temp.info.isOK());
 
         TempFile.remove(tempFile);
     }

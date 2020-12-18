@@ -144,7 +144,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
         ArrayList<String> contextsList = uploadFileInfo.allBlocksContexts();
 
         if (contextsList == null || contextsList.size() == 0) {
-            ResponseInfo responseInfo = ResponseInfo.invalidArgument("block ctx invalid");
+            ResponseInfo responseInfo = ResponseInfo.sdkInteriorError("block ctx invalid");
             completeHandler.complete(responseInfo, null, responseInfo.response);
             return;
         }

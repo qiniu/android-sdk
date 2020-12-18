@@ -63,7 +63,7 @@ class PartsUpload extends BaseUpload {
             return;
         }
 
-        if (uploadDataErrorResponseInfo == null || responseInfo.statusCode != ResponseInfo.NoUsableHostError) {
+        if (uploadDataErrorResponseInfo == null || responseInfo.statusCode != ResponseInfo.SDKInteriorError) {
             uploadDataErrorResponseInfo = responseInfo;
             if (response == null) {
                 uploadDataErrorResponse = responseInfo.response;
@@ -142,8 +142,8 @@ class PartsUpload extends BaseUpload {
                         if (!isAllUploaded()) {
                             if (!switchRegionAndUploadIfNeededWithErrorResponse(uploadDataErrorResponseInfo)) {
                                 completeAction(uploadDataErrorResponseInfo, uploadDataErrorResponse);
-                                return;
                             }
+                            return;
                         }
 
                         // 3. 组装文件
@@ -192,7 +192,6 @@ class PartsUpload extends BaseUpload {
             @Override
             public void complete(boolean stop, ResponseInfo responseInfo, JSONObject response) {
                 if (stop || (responseInfo != null && !responseInfo.isOK())) {
-                    setErrorResponse(responseInfo, response);
                     completeHandler.complete();
                 } else {
                     performUploadRestData(completeHandler);
@@ -207,7 +206,9 @@ class PartsUpload extends BaseUpload {
         uploadPerformer.serverInit(new PartsUploadPerformer.PartsUploadPerformerCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-
+                if (responseInfo != null && !responseInfo.isOK()) {
+                    setErrorResponse(responseInfo, response);
+                }
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
                 completeHandler.complete(responseInfo, response);
             }
@@ -219,6 +220,9 @@ class PartsUpload extends BaseUpload {
         uploadPerformer.uploadNextDataCompleteHandler(new PartsUploadPerformer.PartsUploadPerformerDataCompleteHandler() {
             @Override
             public void complete(boolean stop, ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                if (responseInfo != null && !responseInfo.isOK()) {
+                    setErrorResponse(responseInfo, response);
+                }
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
                 completeHandler.complete(stop, responseInfo, response);
             }
@@ -230,6 +234,9 @@ class PartsUpload extends BaseUpload {
         uploadPerformer.completeUpload(new PartsUploadPerformer.PartsUploadPerformerCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                if (responseInfo != null && !responseInfo.isOK()) {
+                    setErrorResponse(responseInfo, response);
+                }
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
                 completeHandler.complete(responseInfo, response);
             }

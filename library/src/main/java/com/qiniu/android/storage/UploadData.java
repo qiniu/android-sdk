@@ -57,6 +57,7 @@ class UploadData {
     }
 
     void clearUploadState() {
+        etag = null;
         isCompleted = false;
         isUploading = false;
     }
