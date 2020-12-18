@@ -89,15 +89,16 @@ class HttpRegionRequest {
             return;
         }
 
+        currentServer = server;
+
         String serverHost = server.getHost();
         String serverIP = server.getIp();
 
         if (config.urlConverter != null){
             serverHost = config.urlConverter.convert(serverHost);
             serverIP = null;
+            server = null;
         }
-
-        currentServer = server;
 
         boolean toSkipDns;
         String scheme = config.useHttps ? "https://" : "http://";
