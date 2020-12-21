@@ -12,7 +12,6 @@ import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.Crc32;
 import com.qiniu.android.utils.GZipUtil;
-import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.MD5;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.UrlSafeBase64;
@@ -254,8 +253,6 @@ public class RequestTransaction {
 
         String action = String.format("/bput/%s/%s", blockContext, chunkOffset+"");
         final String chunkCrc = "" + Crc32.bytes(chunkData);
-
-        LogUtil.i(String.format("blockOffset:%d chunkOffset:%d chunkSize:%d", blockOffset, chunkOffset, chunkData.length));
 
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
             @Override
