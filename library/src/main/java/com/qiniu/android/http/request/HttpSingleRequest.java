@@ -83,6 +83,8 @@ class HttpSingleRequest {
             }
         };
 
+        LogUtil.d("=== single:" + request.urlString + "  ip:" + (request.ip != null ? request.ip : ""));
+
         client.request(request, isAsync, config.proxy, new IRequestClient.RequestClientProgress() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
