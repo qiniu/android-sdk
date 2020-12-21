@@ -241,7 +241,7 @@ class PartsUpload extends BaseUpload {
     }
 
     private boolean shouldRemoveUploadInfoRecord(ResponseInfo responseInfo) {
-        return responseInfo != null && (responseInfo.isOK() || responseInfo.statusCode == 612 || responseInfo.statusCode == 614);
+        return responseInfo != null && (responseInfo.isOK() || responseInfo.statusCode == 612 || responseInfo.statusCode == 614 || responseInfo.statusCode == 701);
     }
 
     private void reportBlock() {
