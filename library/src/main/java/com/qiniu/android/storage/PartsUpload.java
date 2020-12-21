@@ -141,10 +141,6 @@ class PartsUpload extends BaseUpload {
                             @Override
                             public void complete(ResponseInfo responseInfo, JSONObject response) {
 
-                                if (shouldRemoveUploadInfoRecord(responseInfo)) {
-                                    uploadPerformer.removeUploadInfoRecord();
-                                }
-
                                 if (!responseInfo.isOK()) {
                                     if (!switchRegionAndUploadIfNeededWithErrorResponse(responseInfo)) {
                                         completeAction(responseInfo, response);
@@ -237,6 +233,9 @@ class PartsUpload extends BaseUpload {
     protected void completeAction(ResponseInfo responseInfo, JSONObject response) {
         reportBlock();
         uploadPerformer.closeFile();
+        if (shouldRemoveUploadInfoRecord(responseInfo)) {
+            uploadPerformer.removeUploadInfoRecord();
+        }
         super.completeAction(responseInfo, response);
     }
 
