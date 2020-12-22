@@ -32,25 +32,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
         if (jsonObject == null) {
             return null;
         }
-        long size = 0;
-        long modifyTime = 0;
-        ArrayList<UploadBlock> uploadBlocks = new ArrayList<UploadBlock>();
-        try {
-            size = jsonObject.getLong("size");
-            modifyTime = jsonObject.getLong("modifyTime");
-            JSONArray blockJsonArray = jsonObject.getJSONArray("uploadBlocks");
-            for (int i = 0; i < blockJsonArray.length(); i++) {
-                JSONObject blockJson = blockJsonArray.getJSONObject(i);
-                UploadBlock block = UploadBlock.blockFromJson(blockJson);
-                if (block != null) {
-                    uploadBlocks.add(block);
-                }
-            }
-        } catch (JSONException e) {
-        }
-
-        UploadFileInfoPartV1 fileInfo = new UploadFileInfoPartV1(size, modifyTime, uploadBlocks);
-        return fileInfo;
+        return UploadFileInfoPartV1.fileFromJson(jsonObject);
     }
 
     @Override

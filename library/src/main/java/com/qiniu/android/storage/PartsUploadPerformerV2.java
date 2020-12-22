@@ -27,7 +27,10 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
 
     @Override
     UploadFileInfo getFileFromJson(JSONObject jsonObject) {
-        return null;
+        if (jsonObject == null) {
+            return null;
+        }
+        return UploadFileInfoPartV2.fileFromJson(jsonObject);
     }
 
     @Override

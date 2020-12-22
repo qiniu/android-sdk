@@ -25,7 +25,7 @@ class UploadFileInfoPartV1 extends UploadFileInfo {
         this.uploadBlocks = createBlocks(blockSize, dataSize);
     }
 
-    UploadFileInfoPartV1 fileFromJson(JSONObject jsonObject) {
+    static UploadFileInfoPartV1 fileFromJson(JSONObject jsonObject) {
         if (jsonObject == null) {
             return null;
         }
@@ -45,7 +45,6 @@ class UploadFileInfoPartV1 extends UploadFileInfo {
             }
         } catch (JSONException e) {
         }
-        ;
 
         UploadFileInfoPartV1 fileInfo = new UploadFileInfoPartV1(size, modifyTime, uploadBlocks);
         return fileInfo;

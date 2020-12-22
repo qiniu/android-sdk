@@ -9,6 +9,7 @@ import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadOptions;
+import com.qiniu.android.utils.LogUtil;
 
 import org.json.JSONObject;
 
@@ -22,8 +23,14 @@ public class UploadFlowTest extends UploadBaseTest {
                               String key,
                               Configuration configuration,
                               UploadOptions options) {
+
         if (options == null) {
-            options = UploadOptions.defaultOptions();
+            options = new UploadOptions(null, null, false, new UpProgressHandler() {
+                @Override
+                public void progress(String key, double percent) {
+                    LogUtil.d("== upload key:" + (key == null ? "" : key) + " progress:" + percent);
+                }
+            }, null);
         }
 
         final UploadOptions optionsReal = options;
@@ -31,8 +38,11 @@ public class UploadFlowTest extends UploadBaseTest {
         UploadOptions cancelOptions = new UploadOptions(optionsReal.params, optionsReal.mimeType, optionsReal.checkCrc, new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
-                if (cancelPercent >= percent) {
+                if (cancelPercent <= percent) {
                     flags.shouldCancel = true;
+                }
+                if (optionsReal.progressHandler != null) {
+                    optionsReal.progressHandler.progress(key, percent);
                 }
             }
         }, new UpCancellationSignal() {
@@ -78,7 +88,7 @@ public class UploadFlowTest extends UploadBaseTest {
         UploadOptions cancelOptions = new UploadOptions(optionsReal.params, optionsReal.mimeType, optionsReal.checkCrc, new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
-                if (cancelPercent >= percent) {
+                if (cancelPercent <= percent) {
                     flags.shouldCancel = true;
                 }
                 if (optionsReal.progressHandler != null) {
@@ -128,18 +138,22 @@ public class UploadFlowTest extends UploadBaseTest {
 
 
         final Flags flags = new Flags();
-        UploadOptions cancelOptions = new UploadOptions(optionsReal.params, optionsReal.mimeType, optionsReal.checkCrc, new UpProgressHandler() {
+        UploadOptions resumeOptions = new UploadOptions(optionsReal.params, optionsReal.mimeType, optionsReal.checkCrc, new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
-                double minPercent = 0;
-                if (configuration.useConcurrentResumeUpload) {
-                    minPercent = percent - (configuration.chunkSize) * configuration.concurrentTaskCount / file.length();
-                } else {
-                    minPercent = percent - configuration.chunkSize / file.length();
+                if (!flags.flags) {
+                    flags.flags = true;
+                    double minPercent = 0;
+                    if (configuration.useConcurrentResumeUpload) {
+                        minPercent = percent + (configuration.chunkSize) * configuration.concurrentTaskCount / file.length();
+                    } else {
+                        minPercent = percent + configuration.chunkSize / file.length();
+                    }
+                    if (resumePercent <= minPercent) {
+                        flags.isSuccess = true;
+                    }
                 }
-                if (resumePercent >= minPercent) {
-                    flags.isSuccess = true;
-                }
+
                 if (optionsReal.progressHandler != null) {
                     optionsReal.progressHandler.progress(key, percent);
                 }
@@ -153,7 +167,7 @@ public class UploadFlowTest extends UploadBaseTest {
         }, options.netReadyHandler);
 
         final UploadCompleteInfo completeInfo = new UploadCompleteInfo();
-        uploadFile(file, key, configuration, cancelOptions, new UpCompletionHandler() {
+        uploadFile(file, key, configuration, resumeOptions, new UpCompletionHandler() {
             @Override
             public void complete(String key, ResponseInfo info, JSONObject response) {
                 completeInfo.key = key;
@@ -185,7 +199,7 @@ public class UploadFlowTest extends UploadBaseTest {
         cancelTest(resumePercent, data, key, configuration, optionsReal);
 
         final Flags flags = new Flags();
-        UploadOptions cancelOptions = new UploadOptions(optionsReal.params, optionsReal.mimeType, optionsReal.checkCrc, new UpProgressHandler() {
+        UploadOptions resumeOptions = new UploadOptions(optionsReal.params, optionsReal.mimeType, optionsReal.checkCrc, new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
                 double minPercent = 0;
@@ -210,7 +224,7 @@ public class UploadFlowTest extends UploadBaseTest {
         }, options.netReadyHandler);
 
         final UploadCompleteInfo completeInfo = new UploadCompleteInfo();
-        uploadData(data, key, configuration, cancelOptions, new UpCompletionHandler() {
+        uploadData(data, key, configuration, resumeOptions, new UpCompletionHandler() {
             @Override
             public void complete(String key, ResponseInfo info, JSONObject response) {
                 completeInfo.key = key;
@@ -318,6 +332,7 @@ public class UploadFlowTest extends UploadBaseTest {
 
 
     protected static class Flags {
+        boolean flags;
         boolean shouldCancel;
         boolean isSuccess;
     }

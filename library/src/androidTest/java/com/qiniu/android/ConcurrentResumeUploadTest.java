@@ -54,7 +54,7 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
                 .useConcurrentResumeUpload(true)
                 .useHttps(true)
                 .build();
-        int[] sizeArray = {5000, 8000, 10000, 20000};
+        int[] sizeArray = {10000, 20000};
         for (int size : sizeArray) {
             String key = "android_concurrent_resume_cancel_v1_" + size + "k";
             try {
@@ -112,7 +112,7 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
                 .useHttps(true)
                 .chunkSize(1024*1024)
                 .build();
-        int[] sizeArray = {1000, 3000, 4000, 5000, 8000, 10000, 20000};
+        int[] sizeArray = {10000, 20000};
         for (int size : sizeArray) {
             String key = "android_concurrent_resume_reupload_v1_" + size + "k";
             try {
@@ -206,7 +206,7 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
                 .useConcurrentResumeUpload(true)
                 .useHttps(true)
                 .build();
-        int[] sizeArray = {5000, 8000, 10000, 20000};
+        int[] sizeArray = {10000, 20000};
         for (int size : sizeArray) {
             String key = "android_concurrent_resume_cancel_v2_" + size + "k";
             try {
@@ -264,7 +264,7 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
                 .useHttps(true)
                 .chunkSize(1024*1024)
                 .build();
-        int[] sizeArray = {1000, 3000, 4000, 5000, 8000, 10000, 20000};
+        int[] sizeArray = {10000, 20000};
         for (int size : sizeArray) {
             String key = "android_concurrent_resume_reupload_v2_" + size + "k";
             try {

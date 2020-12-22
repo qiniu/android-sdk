@@ -20,7 +20,9 @@ abstract class UploadFileInfo {
         this.modifyTime = modifyTime;
     }
 
-    abstract UploadFileInfo fileFromJson(JSONObject jsonObject);
+    static UploadFileInfo fileFromJson(JSONObject jsonObject){
+        return null;
+    }
 
     double progress() {
         return 0;

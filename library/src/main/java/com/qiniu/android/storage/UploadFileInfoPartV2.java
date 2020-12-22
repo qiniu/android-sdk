@@ -32,7 +32,7 @@ public class UploadFileInfoPartV2 extends UploadFileInfo {
         this.uploadDataList = createDataList(dataSize);
     }
 
-    UploadFileInfoPartV2 fileFromJson(JSONObject jsonObject) {
+    static UploadFileInfoPartV2 fileFromJson(JSONObject jsonObject) {
         if (jsonObject == null) {
             return null;
         }

@@ -5,6 +5,7 @@ import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
+import com.qiniu.android.utils.LogUtil;
 
 import org.json.JSONObject;
 
@@ -14,12 +15,15 @@ public class UploadBaseTest extends BaseTest {
 
     protected UploadOptions defaultOptions = new UploadOptions(null, null, true, null, null);
 
-    protected boolean verifyUploadKey(String upKey, String responseKey){
+    protected boolean verifyUploadKey(String upKey, String responseKey) {
+        LogUtil.d("== upKey:" + (upKey != null ? upKey : "") + " responseKey:" + (responseKey != null ? responseKey : ""));
         if (upKey == null) {
             return responseKey == null;
-        } else {
-            return upKey.equals(responseKey);
         }
+        if (responseKey == null) {
+            return false;
+        }
+        return upKey.equals(responseKey);
     }
 
     protected void uploadFileAndAssertSuccessResult(File file,
@@ -41,8 +45,9 @@ public class UploadBaseTest extends BaseTest {
             public boolean shouldWait() {
                 return completeInfo.responseInfo == null;
             }
-        }, 5*60);
+        }, 5 * 60);
 
+        LogUtil.d("=== upload response key:" + (key != null ? key : "") + " response:" + completeInfo.responseInfo);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.isOK());
         assertTrue(completeInfo.responseInfo.toString(), verifyUploadKey(key, completeInfo.key));
@@ -78,8 +83,9 @@ public class UploadBaseTest extends BaseTest {
             public boolean shouldWait() {
                 return completeInfo.responseInfo == null;
             }
-        }, 5*60);
+        }, 5 * 60);
 
+        LogUtil.d("=== upload response key:" + (key != null ? key : "") + " response:" + completeInfo.responseInfo);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.statusCode == statusCode);
         assertTrue(completeInfo.responseInfo.toString(), verifyUploadKey(key, completeInfo.key));
@@ -108,7 +114,6 @@ public class UploadBaseTest extends BaseTest {
     }
 
 
-
     protected void uploadDataAndAssertSuccessResult(byte[] data,
                                                     String key,
                                                     Configuration configuration,
@@ -128,8 +133,9 @@ public class UploadBaseTest extends BaseTest {
             public boolean shouldWait() {
                 return completeInfo.responseInfo == null;
             }
-        }, 5*60);
+        }, 5 * 60);
 
+        LogUtil.d("=== upload response key:" + (key != null ? key : "") + " response:" + completeInfo.responseInfo);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.isOK());
         assertTrue(completeInfo.responseInfo.toString(), verifyUploadKey(key, completeInfo.key));
@@ -164,8 +170,9 @@ public class UploadBaseTest extends BaseTest {
             public boolean shouldWait() {
                 return completeInfo.responseInfo == null;
             }
-        }, 5*60);
+        }, 5 * 60);
 
+        LogUtil.d("=== upload response key:" + (key != null ? key : "") + " response:" + completeInfo.responseInfo);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.statusCode == statusCode);
         assertTrue(completeInfo.responseInfo.toString(), verifyUploadKey(key, completeInfo.key));
