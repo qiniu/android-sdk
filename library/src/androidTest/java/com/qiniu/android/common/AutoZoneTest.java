@@ -82,7 +82,7 @@ public class AutoZoneTest extends BaseTest {
         autoZone.preQuery(token, new Zone.QueryHandler() {
             @Override
             public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics) {
-                assertTrue(!responseInfo.isOK());
+                assertTrue(responseInfo.toString(), !responseInfo.isOK() || responseInfo.reqId.equals("reqid"));
                 isTestUCServerComplete = true;
             }
         });
