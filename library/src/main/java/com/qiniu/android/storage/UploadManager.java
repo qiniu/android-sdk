@@ -284,7 +284,7 @@ public class UploadManager {
             }
         };
         if (config.useConcurrentResumeUpload) {
-            final ConcurrentResumeUpload up = new ConcurrentResumeUpload(file, recorderKey, t, option, config, config.recorder, key, completionHandlerP);
+            final ConcurrentResumeUpload up = new ConcurrentResumeUpload(file, key, t, option, config, config.recorder, recorderKey, completionHandlerP);
             AsyncRun.runInBack(up);
         } else {
             final PartsUpload up = new PartsUpload(file, key, t, option, config, config.recorder, recorderKey, completionHandlerP);

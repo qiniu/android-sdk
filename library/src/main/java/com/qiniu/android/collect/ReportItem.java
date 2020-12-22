@@ -1,7 +1,5 @@
 package com.qiniu.android.collect;
 
-import android.annotation.SuppressLint;
-
 import com.qiniu.android.http.ResponseInfo;
 
 import org.json.JSONObject;

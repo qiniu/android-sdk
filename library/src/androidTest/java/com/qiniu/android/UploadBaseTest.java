@@ -3,6 +3,7 @@ package com.qiniu.android;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
+import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.LogUtil;
@@ -13,10 +14,16 @@ import java.io.File;
 
 public class UploadBaseTest extends BaseTest {
 
-    protected UploadOptions defaultOptions = new UploadOptions(null, null, true, null, null);
+    protected UploadOptions defaultOptions = new UploadOptions(null, null, false, new UpProgressHandler() {
+        @Override
+        public void progress(String key, double percent) {
+            LogUtil.d("== upload key:" + (key == null ? "" : key) + " progress:" + percent);
+        }
+    }, null);
 
     protected boolean verifyUploadKey(String upKey, String responseKey) {
-        LogUtil.d("== upKey:" + (upKey != null ? upKey : "") + " responseKey:" + (responseKey != null ? responseKey : ""));
+        LogUtil.d("== upKey:" + (upKey != null ? upKey : "")
+                + " responseKey:" + (responseKey != null ? responseKey : ""));
         if (upKey == null) {
             return responseKey == null;
         }

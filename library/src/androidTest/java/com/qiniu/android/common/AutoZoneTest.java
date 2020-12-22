@@ -72,10 +72,10 @@ public class AutoZoneTest extends BaseTest {
 
     private boolean isTestUCServerComplete = false;
     public void testUCServer(){
-        String ucServer = "ucserver.test";
+        String ucServer = "uc.server.test";
         AutoZone autoZone = new AutoZone();
         autoZone.setUcServer(ucServer);
-        assertTrue(autoZone.getUcServerList().get(0) == ucServer);
+        assertTrue(autoZone.getUcServerList().get(0).equals(ucServer));
 
         UpToken token = UpToken.parse(TestConfig.commonToken);
 
@@ -92,7 +92,7 @@ public class AutoZoneTest extends BaseTest {
             public boolean shouldWait() {
                 return !isTestUCServerComplete;
             }
-        }, 60);
+        }, 600);
 
         assertTrue(autoZone.getZonesInfo(null) == null);
     }

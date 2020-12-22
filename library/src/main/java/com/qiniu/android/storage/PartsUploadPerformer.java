@@ -97,7 +97,6 @@ abstract class PartsUploadPerformer {
         if (fileInfo != null) {
             fileInfo.clearUploadState();
         }
-        removeUploadInfoRecord();
         currentRegion = region;
         recoveredFrom = null;
         if (targetRegion == null) {

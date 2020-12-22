@@ -5,15 +5,18 @@ import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.common.ZonesInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
+import com.qiniu.android.storage.FileRecorder;
 import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.Utils;
 
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class UploadFlowTest extends UploadBaseTest {
@@ -25,12 +28,7 @@ public class UploadFlowTest extends UploadBaseTest {
                               UploadOptions options) {
 
         if (options == null) {
-            options = new UploadOptions(null, null, false, new UpProgressHandler() {
-                @Override
-                public void progress(String key, double percent) {
-                    LogUtil.d("== upload key:" + (key == null ? "" : key) + " progress:" + percent);
-                }
-            }, null);
+            options = defaultOptions;
         }
 
         final UploadOptions optionsReal = options;
@@ -80,7 +78,7 @@ public class UploadFlowTest extends UploadBaseTest {
                               UploadOptions options) {
 
         if (options == null) {
-            options = UploadOptions.defaultOptions();
+            options = defaultOptions;
         }
 
         final UploadOptions optionsReal = options;
@@ -129,45 +127,75 @@ public class UploadFlowTest extends UploadBaseTest {
                                       String key,
                                       final Configuration configuration,
                                       UploadOptions options) {
+
+        FileRecorder fileRecorder = null;
+        try {
+            fileRecorder = new FileRecorder(Utils.sdkDirectory() + "/Test");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        final Configuration reuploadConfiguration = new Configuration.Builder()
+                .chunkSize(configuration.chunkSize)
+                .putThreshold(configuration.putThreshold)
+                .retryMax(configuration.retryMax)
+                .connectTimeout(configuration.connectTimeout)
+                .responseTimeout(configuration.responseTimeout)
+                .retryInterval(configuration.retryInterval)
+                .recorder(fileRecorder, null)
+                .proxy(configuration.proxy)
+                .urlConverter(configuration.urlConverter)
+                .useHttps(configuration.useHttps)
+                .allowBackupHost(configuration.allowBackupHost)
+                .useConcurrentResumeUpload(configuration.useConcurrentResumeUpload)
+                .resumeUploadVersion(configuration.resumeUploadVersion)
+                .concurrentTaskCount(configuration.concurrentTaskCount)
+                .zone(configuration.zone)
+                .build();
+
+
         if (options == null) {
-            options = UploadOptions.defaultOptions();
+            options = defaultOptions;
         }
         final UploadOptions optionsReal = options;
 
-        cancelTest(resumePercent, file, key, configuration, optionsReal);
+        cancelTest(resumePercent, file, key, reuploadConfiguration, optionsReal);
 
 
         final Flags flags = new Flags();
-        UploadOptions resumeOptions = new UploadOptions(optionsReal.params, optionsReal.mimeType, optionsReal.checkCrc, new UpProgressHandler() {
+        UploadOptions reuploadOptions = new UploadOptions(optionsReal.params, optionsReal.mimeType, optionsReal.checkCrc, new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
                 if (!flags.flags) {
                     flags.flags = true;
                     double minPercent = 0;
-                    if (configuration.useConcurrentResumeUpload) {
-                        minPercent = percent + (configuration.chunkSize) * configuration.concurrentTaskCount / file.length();
+                    double currentChunkCount = 0;
+                    double chunkSize = 0;
+                    if (!reuploadConfiguration.useConcurrentResumeUpload) {
+                        currentChunkCount = 1;
+                        chunkSize = reuploadConfiguration.chunkSize;
+                    } else if (reuploadConfiguration.resumeUploadVersion == Configuration.RESUME_UPLOAD_VERSION_V1) {
+                        currentChunkCount = reuploadConfiguration.concurrentTaskCount;
+                        chunkSize = Configuration.BLOCK_SIZE;
                     } else {
-                        minPercent = percent + configuration.chunkSize / file.length();
+                        currentChunkCount = reuploadConfiguration.concurrentTaskCount;
+                        chunkSize = reuploadConfiguration.chunkSize;
                     }
+                    minPercent = percent + currentChunkCount * chunkSize / (double) file.length();
                     if (resumePercent <= minPercent) {
                         flags.isSuccess = true;
                     }
+                    LogUtil.d("== reupload percent:" + percent + " minPercent:" + minPercent);
                 }
 
                 if (optionsReal.progressHandler != null) {
                     optionsReal.progressHandler.progress(key, percent);
                 }
             }
-        }, new UpCancellationSignal() {
-            @Override
-            public boolean isCancelled() {
-
-                return flags.shouldCancel;
-            }
-        }, options.netReadyHandler);
+        }, null, options.netReadyHandler);
 
         final UploadCompleteInfo completeInfo = new UploadCompleteInfo();
-        uploadFile(file, key, configuration, resumeOptions, new UpCompletionHandler() {
+        uploadFile(file, key, reuploadConfiguration, reuploadOptions, new UpCompletionHandler() {
             @Override
             public void complete(String key, ResponseInfo info, JSONObject response) {
                 completeInfo.key = key;
@@ -181,50 +209,80 @@ public class UploadFlowTest extends UploadBaseTest {
                 return completeInfo.responseInfo == null;
             }
         }, 5 * 60);
+        assertTrue(completeInfo.responseInfo.toString(), flags.isSuccess);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.isOK());
         assertTrue(completeInfo.responseInfo.toString(), verifyUploadKey(key, completeInfo.key));
     }
 
-    protected void reuploadUploadTest(final float resumePercent,
+    protected void reuploadUploadTest(final float reuploadPercent,
                                       final byte[] data,
                                       String key,
                                       final Configuration configuration,
                                       UploadOptions options) {
+        FileRecorder fileRecorder = null;
+        try {
+            fileRecorder = new FileRecorder(Utils.sdkDirectory() + "/Test");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        final Configuration reuploadConfiguration = new Configuration.Builder()
+                .chunkSize(configuration.chunkSize)
+                .putThreshold(configuration.putThreshold)
+                .retryMax(configuration.retryMax)
+                .connectTimeout(configuration.connectTimeout)
+                .responseTimeout(configuration.responseTimeout)
+                .retryInterval(configuration.retryInterval)
+                .recorder(fileRecorder, null)
+                .proxy(configuration.proxy)
+                .urlConverter(configuration.urlConverter)
+                .useHttps(configuration.useHttps)
+                .allowBackupHost(configuration.allowBackupHost)
+                .useConcurrentResumeUpload(configuration.useConcurrentResumeUpload)
+                .resumeUploadVersion(configuration.resumeUploadVersion)
+                .concurrentTaskCount(configuration.concurrentTaskCount)
+                .zone(configuration.zone)
+                .build();
         if (options == null) {
-            options = UploadOptions.defaultOptions();
+            options = defaultOptions;
         }
         final UploadOptions optionsReal = options;
 
-        cancelTest(resumePercent, data, key, configuration, optionsReal);
+        cancelTest(reuploadPercent, data, key, reuploadConfiguration, optionsReal);
 
         final Flags flags = new Flags();
-        UploadOptions resumeOptions = new UploadOptions(optionsReal.params, optionsReal.mimeType, optionsReal.checkCrc, new UpProgressHandler() {
+        UploadOptions reuploadOptions = new UploadOptions(optionsReal.params, optionsReal.mimeType, optionsReal.checkCrc, new UpProgressHandler() {
             @Override
             public void progress(String key, double percent) {
-                double minPercent = 0;
-                if (configuration.useConcurrentResumeUpload) {
-                    minPercent = percent - (configuration.chunkSize) * configuration.concurrentTaskCount / data.length;
-                } else {
-                    minPercent = percent - configuration.chunkSize / data.length;
-                }
-                if (resumePercent >= minPercent) {
-                    flags.isSuccess = true;
+                if (!flags.flags) {
+                    double minPercent = 0;
+                    double currentChunkCount = 0;
+                    double chunkSize = 0;
+                    if (!reuploadConfiguration.useConcurrentResumeUpload) {
+                        currentChunkCount = 1;
+                        chunkSize = reuploadConfiguration.chunkSize;
+                    } else if (reuploadConfiguration.resumeUploadVersion == Configuration.RESUME_UPLOAD_VERSION_V1) {
+                        currentChunkCount = reuploadConfiguration.concurrentTaskCount;
+                        chunkSize = Configuration.BLOCK_SIZE;
+                    } else {
+                        currentChunkCount = reuploadConfiguration.concurrentTaskCount;
+                        chunkSize = reuploadConfiguration.chunkSize;
+                    }
+                    minPercent = percent + currentChunkCount * chunkSize / (double) data.length;
+                    if (reuploadPercent >= minPercent) {
+                        flags.isSuccess = true;
+                    }
+                    LogUtil.d("== reupload percent:" + percent + " minPercent:" + minPercent);
                 }
                 if (optionsReal.progressHandler != null) {
                     optionsReal.progressHandler.progress(key, percent);
                 }
             }
-        }, new UpCancellationSignal() {
-            @Override
-            public boolean isCancelled() {
-
-                return flags.shouldCancel;
-            }
-        }, options.netReadyHandler);
+        }, null, options.netReadyHandler);
 
         final UploadCompleteInfo completeInfo = new UploadCompleteInfo();
-        uploadData(data, key, configuration, resumeOptions, new UpCompletionHandler() {
+        uploadData(data, key, reuploadConfiguration, reuploadOptions, new UpCompletionHandler() {
             @Override
             public void complete(String key, ResponseInfo info, JSONObject response) {
                 completeInfo.key = key;
@@ -238,6 +296,8 @@ public class UploadFlowTest extends UploadBaseTest {
                 return completeInfo.responseInfo == null;
             }
         }, 5 * 60);
+
+        assertTrue(completeInfo.responseInfo.toString(), flags.isSuccess);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.isOK());
         assertTrue(completeInfo.responseInfo.toString(), verifyUploadKey(key, completeInfo.key));

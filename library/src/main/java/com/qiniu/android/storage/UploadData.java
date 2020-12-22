@@ -41,14 +41,15 @@ class UploadData {
             offset = jsonObject.getLong("offset");
             size = jsonObject.getLong("size");
             index = jsonObject.getInt("index");
-            etag = jsonObject.getString("etag");
             isCompleted = jsonObject.getBoolean("isCompleted");
             progress = jsonObject.getDouble("progress");
+            etag = jsonObject.getString("etag");
         } catch (JSONException ignored) {
         }
         UploadData uploadData = new UploadData(offset, size, index);
         uploadData.isCompleted = isCompleted;
         uploadData.progress = progress;
+        uploadData.etag = etag;
         return uploadData;
     }
 
@@ -68,9 +69,9 @@ class UploadData {
             jsonObject.put("offset", offset);
             jsonObject.put("size", size);
             jsonObject.put("index", index);
-            jsonObject.put("etag", etag);
             jsonObject.put("isCompleted", isCompleted);
             jsonObject.put("progress", progress);
+            jsonObject.put("etag", etag);
         } catch (JSONException e) {
             e.printStackTrace();
         }
