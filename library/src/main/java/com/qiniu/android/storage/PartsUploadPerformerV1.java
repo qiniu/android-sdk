@@ -63,7 +63,8 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
             }
         }
         if (block == null || chunk == null) {
-            completeHandler.complete(true, null, null, null);
+            ResponseInfo responseInfo = ResponseInfo.sdkInteriorError("no chunk left");
+            completeHandler.complete(true, responseInfo, null, null);
             return;
         }
 

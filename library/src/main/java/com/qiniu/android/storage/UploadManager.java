@@ -213,7 +213,7 @@ public class UploadManager {
                          final UpCompletionHandler completionHandler){
 
         final UpToken t = UpToken.parse(token);
-        if (t == null) {
+        if (t == null || !t.isValid()) {
             ResponseInfo info = ResponseInfo.invalidToken("invalid token");
             completeAction(token, key, info, null, null, completionHandler);
             return;
@@ -238,7 +238,7 @@ public class UploadManager {
                          final UpCompletionHandler completionHandler){
 
         final UpToken t = UpToken.parse(token);
-        if (t == null) {
+        if (t == null || !t.isValid()) {
             ResponseInfo info = ResponseInfo.invalidToken("invalid token");
             completeAction(token, key, info, null, null, completionHandler);
             return;

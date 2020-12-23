@@ -87,7 +87,8 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         }
 
         if (data == null) {
-            completeHandler.complete(true, null, null, null);
+            ResponseInfo responseInfo = ResponseInfo.sdkInteriorError("no data left");
+            completeHandler.complete(true, responseInfo, null, null);
             return;
         }
 
