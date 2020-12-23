@@ -57,6 +57,5 @@ class ConcurrentResumeUpload extends PartsUpload {
         }
 
         groupTaskThread.start();
-
     }
 }

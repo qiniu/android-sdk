@@ -2,24 +2,14 @@ package com.qiniu.android.storage;
 
 import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
-import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
-import com.qiniu.android.http.request.RequestTransaction;
-import com.qiniu.android.http.request.IUploadRegion;
-import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.Utils;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.util.List;
-import java.util.Map;
 
 class PartsUpload extends BaseUpload {
 
@@ -174,7 +164,7 @@ class PartsUpload extends BaseUpload {
             return;
         }
 
-        uploadNextDataCompleteHandler(new UploadFileDataCompleteHandler() {
+        uploadNextData(new UploadFileDataCompleteHandler() {
             @Override
             public void complete(boolean stop, ResponseInfo responseInfo, JSONObject response) {
                 if (stop || (responseInfo != null && !responseInfo.isOK())) {
@@ -201,9 +191,9 @@ class PartsUpload extends BaseUpload {
         });
     }
 
-    protected void uploadNextDataCompleteHandler(final UploadFileDataCompleteHandler completeHandler) {
+    protected void uploadNextData(final UploadFileDataCompleteHandler completeHandler) {
 
-        uploadPerformer.uploadNextDataCompleteHandler(new PartsUploadPerformer.PartsUploadPerformerDataCompleteHandler() {
+        uploadPerformer.uploadNextData(new PartsUploadPerformer.PartsUploadPerformerDataCompleteHandler() {
             @Override
             public void complete(boolean stop, ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 if (responseInfo != null && !responseInfo.isOK()) {

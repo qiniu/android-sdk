@@ -74,7 +74,7 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
     }
 
     @Override
-    void uploadNextDataCompleteHandler(final PartsUploadPerformerDataCompleteHandler completeHandler) {
+    void uploadNextData(final PartsUploadPerformerDataCompleteHandler completeHandler) {
         UploadFileInfoPartV2 uploadFileInfo = (UploadFileInfoPartV2) fileInfo;
 
         UploadData data = null;

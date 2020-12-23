@@ -47,7 +47,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
     }
 
     @Override
-    void uploadNextDataCompleteHandler(final PartsUploadPerformerDataCompleteHandler completeHandler) {
+    void uploadNextData(final PartsUploadPerformerDataCompleteHandler completeHandler) {
         UploadFileInfoPartV1 uploadFileInfo = (UploadFileInfoPartV1) fileInfo;
         UploadBlock block = null;
         UploadData chunk = null;
@@ -146,7 +146,6 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
                            final UploadData chunk,
                            final RequestProgressHandler progressHandler,
                            final PartsUploadPerformerCompleteHandler completeHandler) {
-
 
         final RequestTransaction transaction = createUploadRequestTransaction();
         transaction.makeBlock(block.offset, block.size, chunk.data, true, progressHandler, new RequestTransaction.RequestCompleteHandler() {

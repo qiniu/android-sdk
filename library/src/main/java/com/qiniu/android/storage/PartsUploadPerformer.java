@@ -228,7 +228,7 @@ abstract class PartsUploadPerformer {
 
     abstract void serverInit(PartsUploadPerformerCompleteHandler completeHandler);
 
-    abstract void uploadNextDataCompleteHandler(PartsUploadPerformerDataCompleteHandler completeHandler);
+    abstract void uploadNextData(PartsUploadPerformerDataCompleteHandler completeHandler);
 
     abstract void completeUpload(PartsUploadPerformerCompleteHandler completeHandler);
 
