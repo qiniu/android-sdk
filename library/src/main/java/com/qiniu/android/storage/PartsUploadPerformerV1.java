@@ -124,15 +124,12 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
     void completeUpload(final PartsUploadPerformerCompleteHandler completeHandler) {
         UploadFileInfoPartV1 uploadFileInfo = (UploadFileInfoPartV1) fileInfo;
 
+        String[] contexts = null;
         ArrayList<String> contextsList = uploadFileInfo.allBlocksContexts();
 
-        if (contextsList == null || contextsList.size() == 0) {
-            ResponseInfo responseInfo = ResponseInfo.sdkInteriorError("block ctx invalid");
-            completeHandler.complete(responseInfo, null, responseInfo.response);
-            return;
+        if (contextsList != null && contextsList.size() > 0) {
+            contexts = contextsList.toArray(new String[contextsList.size()]);
         }
-
-        String[] contexts = contextsList.toArray(new String[contextsList.size()]);
 
         final RequestTransaction transaction = createUploadRequestTransaction();
         transaction.makeFile(uploadFileInfo.size, fileName, contexts, true, new RequestTransaction.RequestCompleteHandler() {
