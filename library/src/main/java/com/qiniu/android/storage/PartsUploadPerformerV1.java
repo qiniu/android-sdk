@@ -101,9 +101,11 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
                 }
                 if (responseInfo.isOK() && blockContext != null) {
                     uploadBlock.context = blockContext;
+                    uploadChunk.progress = 1;
                     uploadChunk.isUploading = false;
                     uploadChunk.isCompleted = true;
                     recordUploadInfo();
+                    notifyProgress();
                 } else {
                     uploadChunk.isUploading = false;
                     uploadChunk.isCompleted = false;

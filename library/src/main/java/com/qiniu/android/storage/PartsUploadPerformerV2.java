@@ -129,10 +129,12 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
                 }
 
                 if (responseInfo.isOK() && etag != null && md5 != null) {
+                    uploadData.progress = 1;
                     uploadData.etag = etag;
                     uploadData.isUploading = false;
                     uploadData.isCompleted = true;
                     recordUploadInfo();
+                    notifyProgress();
                 } else {
                     uploadData.isUploading = false;
                     uploadData.isCompleted = false;
