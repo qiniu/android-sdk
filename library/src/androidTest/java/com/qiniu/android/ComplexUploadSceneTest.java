@@ -24,13 +24,13 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
 
     public void testMutiUploadV1(){
 
-        final int maxCount = 10;
+        final int maxCount = 40;
 
         final TestParam param = new TestParam();
         param.completeCount = 0;
         param.successCount = 0;
 
-        for (int i = 0; i < maxCount; i++) {
+        for (int i = 20; i < maxCount; i++) {
             Configuration config = new Configuration.Builder()
                     .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                     .useConcurrentResumeUpload(true)
@@ -74,13 +74,13 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
 
     public void testMutiUploadV2(){
 
-        final int maxCount = 10;
+        final int maxCount = 40;
 
         final TestParam param = new TestParam();
         param.completeCount = 0;
         param.successCount = 0;
 
-        for (int i = 0; i < maxCount; i++) {
+        for (int i = 20; i < maxCount; i++) {
             Configuration config = new Configuration.Builder()
                     .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                     .useConcurrentResumeUpload(true)
