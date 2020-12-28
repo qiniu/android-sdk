@@ -17,3 +17,6 @@ jobs:
             ./gradlew build
             ./gradlew :library:createDebugAndroidTestCoverageReport --info --stacktrace
             ./gradlew connectedAndroidTest  --info --stacktrace
+      - name: Upload coverage.txt
+        run: |
+          bash <(curl -s https://codecov.io/bash)
