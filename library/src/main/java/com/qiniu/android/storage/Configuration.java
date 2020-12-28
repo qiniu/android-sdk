@@ -110,7 +110,21 @@ public final class Configuration {
 
 
     private Configuration(Builder builder) {
+        useConcurrentResumeUpload = builder.useConcurrentResumeUpload;
+        resumeUploadVersion = builder.resumeUploadVersion;
+        concurrentTaskCount = builder.concurrentTaskCount;
+
+        if (builder.resumeUploadVersion == RESUME_UPLOAD_VERSION_V1) {
+            if (builder.chunkSize < 1024) {
+                builder.chunkSize = 1024;
+            }
+        } else if (builder.resumeUploadVersion == RESUME_UPLOAD_VERSION_V2) {
+            if (builder.chunkSize < 1024 * 1024) {
+                builder.chunkSize = 1024 * 1024;
+            }
+        }
         chunkSize = builder.chunkSize;
+
         putThreshold = builder.putThreshold;
 
         connectTimeout = builder.connectTimeout;
@@ -129,10 +143,6 @@ public final class Configuration {
         urlConverter = builder.urlConverter;
 
         useHttps = builder.useHttps;
-
-        useConcurrentResumeUpload = builder.useConcurrentResumeUpload;
-        resumeUploadVersion = builder.resumeUploadVersion;
-        concurrentTaskCount = builder.concurrentTaskCount;
 
         zone = builder.zone != null ? builder.zone : new AutoZone();
     }

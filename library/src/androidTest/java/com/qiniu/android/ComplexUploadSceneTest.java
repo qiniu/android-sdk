@@ -30,17 +30,17 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
         param.completeCount = 0;
         param.successCount = 0;
 
-        final int start = 30;
+        final int start = 35;
         for (int i = start; i < maxCount; i++) {
             Configuration config = new Configuration.Builder()
                     .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                     .useConcurrentResumeUpload(true)
                     .concurrentTaskCount(3)
-                    .chunkSize(i%4 * 1024 * 1024 + i)
+                    .chunkSize((i%4 + 1) * 1024 * 1024 + i)
                     .build();
 
             int size = (i + 1) * 1024;
-            String keyUp = "complex_upload_v1_" + size + "k";
+            final String keyUp = "android_complex_upload_v1_" + size + "k";
             File file = null;
             try {
                 file = TempFile.createFile(size);
@@ -60,6 +60,7 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
                             signal.countDown();
                         }
                     }
+                    Log.d("upload key:" + keyUp, "complex_upload_v1 response: " + info);
                 }
             });
         }
@@ -81,17 +82,17 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
         param.completeCount = 0;
         param.successCount = 0;
 
-        final int start = 30;
+        final int start = 35;
         for (int i = start; i < maxCount; i++) {
             Configuration config = new Configuration.Builder()
                     .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                     .useConcurrentResumeUpload(true)
                     .concurrentTaskCount(3)
-                    .chunkSize(i%4 * 1024 * 1024 + i)
+                    .chunkSize((i%4 + 1) * 1024 * 1024 + i)
                     .build();
 
             int size = (i + 1) * 1024;
-            String keyUp = "complex_upload_v2_" + size + "k";
+            final String keyUp = "android_complex_upload_v2_" + size + "k";
             File file = null;
             try {
                 file = TempFile.createFile(size);
@@ -104,13 +105,14 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
                 public void complete(String key, ResponseInfo info, JSONObject response) {
                     synchronized (param){
                         param.completeCount += 1;
-                        if (info != null && info.isOK()){
+                        if (info != null && (info.isOK() || info.statusCode == 614)){
                             param.successCount += 1;
                         }
                         if (param.completeCount == (maxCount - start)){
                             signal.countDown();
                         }
                     }
+                    Log.d("upload key:" + keyUp, "complex_upload_v2 response: " + info);
                 }
             });
         }
