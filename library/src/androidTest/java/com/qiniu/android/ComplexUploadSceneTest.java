@@ -30,7 +30,7 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
         param.completeCount = 0;
         param.successCount = 0;
 
-        for (int i = 20; i < maxCount; i++) {
+        for (int i = 35; i < maxCount; i++) {
             Configuration config = new Configuration.Builder()
                     .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                     .useConcurrentResumeUpload(true)
@@ -80,7 +80,7 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
         param.completeCount = 0;
         param.successCount = 0;
 
-        for (int i = 20; i < maxCount; i++) {
+        for (int i = 35; i < maxCount; i++) {
             Configuration config = new Configuration.Builder()
                     .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                     .useConcurrentResumeUpload(true)
