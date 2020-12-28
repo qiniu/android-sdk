@@ -30,7 +30,8 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
         param.completeCount = 0;
         param.successCount = 0;
 
-        for (int i = 35; i < maxCount; i++) {
+        final int start = 30;
+        for (int i = start; i < maxCount; i++) {
             Configuration config = new Configuration.Builder()
                     .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                     .useConcurrentResumeUpload(true)
@@ -55,7 +56,7 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
                         if (info != null && info.isOK()){
                             param.successCount += 1;
                         }
-                        if (param.completeCount == maxCount){
+                        if (param.completeCount == (maxCount - start)){
                             signal.countDown();
                         }
                     }
@@ -80,7 +81,8 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
         param.completeCount = 0;
         param.successCount = 0;
 
-        for (int i = 35; i < maxCount; i++) {
+        final int start = 30;
+        for (int i = start; i < maxCount; i++) {
             Configuration config = new Configuration.Builder()
                     .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                     .useConcurrentResumeUpload(true)
@@ -105,7 +107,7 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
                         if (info != null && info.isOK()){
                             param.successCount += 1;
                         }
-                        if (param.completeCount == maxCount){
+                        if (param.completeCount == (maxCount - start)){
                             signal.countDown();
                         }
                     }
@@ -119,7 +121,7 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
         }
 
         Log.d("ComplexUploadSceneTest", "complex_upload_v2 successCount: " + param.successCount);
-        assertTrue("success count" + param.successCount, param.successCount == param.completeCount);
+        assertTrue("success count" + param.successCount, param.successCount == (param.completeCount));
     }
 
 
