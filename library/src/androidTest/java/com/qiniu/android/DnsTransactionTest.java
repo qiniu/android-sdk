@@ -80,7 +80,7 @@ public class DnsTransactionTest extends BaseTest {
             }
         }, 60);
 
-        assertTrue(successCount < 2);
+        assertTrue("successCount:" + successCount, successCount < 2);
     }
 
 

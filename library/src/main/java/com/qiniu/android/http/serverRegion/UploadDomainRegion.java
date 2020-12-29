@@ -29,6 +29,35 @@ public class UploadDomainRegion implements IUploadRegion {
     private ZoneInfo zoneInfo;
 
     @Override
+    public boolean isEqual(IUploadRegion region) {
+        if (region == null) {
+            return false;
+        }
+
+        if (region.getZoneInfo() == null && getZoneInfo() == null) {
+            return true;
+        }
+
+        if (region.getZoneInfo() == null || getZoneInfo() == null) {
+            return false;
+        }
+
+        if (region.getZoneInfo().getRegionId() == null && getZoneInfo().getRegionId() == null) {
+            return true;
+        }
+
+        if (region.getZoneInfo().getRegionId() == null || getZoneInfo().getRegionId() == null) {
+            return false;
+        }
+
+        if (region.getZoneInfo().getRegionId().equals(getZoneInfo().getRegionId())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
     public boolean isValid() {
         return !isAllFrozen && (domainHostList.size() > 0 || oldDomainHostList.size() > 0);
     }

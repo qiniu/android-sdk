@@ -42,6 +42,7 @@ public class Utils {
         return AndroidNetwork.networkType(ContextGetter.applicationContext());
     }
 
+    /// 单位：毫秒
     public static long currentTimestamp(){
         return new Date().getTime();
     }

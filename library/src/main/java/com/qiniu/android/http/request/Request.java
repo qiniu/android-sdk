@@ -11,6 +11,7 @@ public class Request {
 
     public static final String HttpMethodGet = "GET";
     public static final String HttpMethodPOST = "POST";
+    public static final String HttpMethodPUT = "PUT";
 
     public final String urlString;
     public final String httpMethod;

@@ -217,7 +217,8 @@ public class SystemHttpClient implements IRequestClient {
                 String value = currentRequest.allHeaders.get(key);
                 requestBuilder.header(key, value);
             }
-        } else if (currentRequest.httpMethod.equals(Request.HttpMethodPOST)){
+        } else if (currentRequest.httpMethod.equals(Request.HttpMethodPOST) ||
+                currentRequest.httpMethod.equals(Request.HttpMethodPUT)){
             requestBuilder = new okhttp3.Request.Builder().url(currentRequest.urlString);
             requestBuilder = requestBuilder.headers(allHeaders);
 
@@ -241,7 +242,12 @@ public class SystemHttpClient implements IRequestClient {
                 }
             }, currentRequest.httpBody.length, null);
 
-            requestBuilder = requestBuilder.post(rbody);
+            if (currentRequest.httpMethod.equals(Request.HttpMethodPOST)){
+                requestBuilder = requestBuilder.post(rbody);
+            } else if (currentRequest.httpMethod.equals(Request.HttpMethodPUT)){
+                requestBuilder = requestBuilder.put(rbody);
+            }
+
         }
         return requestBuilder;
     }

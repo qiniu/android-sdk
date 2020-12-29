@@ -11,12 +11,12 @@ public class ReportConfig {
     public boolean isReportEnable;
 
     /**
-     * 每次上传最小时间间隔  单位：分钟  默认为10分钟
+     * 每次上传时间间隔  单位：分钟  默认为10分钟
      */
     public long interval;
 
     /**
-     *  记录文件大于 uploadThreshold 后才可能触发上传，单位：字节  默认为4 * 1024
+     *  记录文件大于 uploadThreshold 会触发上传，单位：字节  默认为4 * 1024
      */
     public long uploadThreshold;
 

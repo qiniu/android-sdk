@@ -50,22 +50,21 @@ class FormUpload extends BaseUpload {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
-                if (responseInfo.isOK()){
-                    AsyncRun.runInMain(new Runnable() {
-                        @Override
-                        public void run() {
-                            option.progressHandler.progress(key, 1.0);
-                        }
-                    });
-                    completeAction(responseInfo, response);
-                } else if (responseInfo.couldRetry() && config.allowBackupHost){
-                    boolean isSwitched = switchRegionAndUpload();
-                    if (!isSwitched){
+
+                if (!responseInfo.isOK()) {
+                    if (!switchRegionAndUploadIfNeededWithErrorResponse(responseInfo)) {
                         completeAction(responseInfo, response);
                     }
-                } else {
-                    completeAction(responseInfo, response);
+                    return;
                 }
+
+                AsyncRun.runInMain(new Runnable() {
+                    @Override
+                    public void run() {
+                        option.progressHandler.progress(key, 1.0);
+                    }
+                });
+                completeAction(responseInfo, response);
             }
         });
 

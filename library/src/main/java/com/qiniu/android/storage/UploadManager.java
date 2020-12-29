@@ -42,7 +42,7 @@ public class UploadManager {
      * @param config Configuration, default 1 Thread
      */
     public UploadManager(Configuration config) {
-        this.config = config;
+        this.config = config != null ? config : new Configuration.Builder().build();
         DnsPrefetchTransaction.addDnsLocalLoadTransaction();
         DnsPrefetchTransaction.setDnsCheckWhetherCachedValidTransactionAction();
     }
@@ -213,7 +213,7 @@ public class UploadManager {
                          final UpCompletionHandler completionHandler){
 
         final UpToken t = UpToken.parse(token);
-        if (t == null) {
+        if (t == null || !t.isValid()) {
             ResponseInfo info = ResponseInfo.invalidToken("invalid token");
             completeAction(token, key, info, null, null, completionHandler);
             return;
@@ -238,7 +238,7 @@ public class UploadManager {
                          final UpCompletionHandler completionHandler){
 
         final UpToken t = UpToken.parse(token);
-        if (t == null) {
+        if (t == null || !t.isValid()) {
             ResponseInfo info = ResponseInfo.invalidToken("invalid token");
             completeAction(token, key, info, null, null, completionHandler);
             return;
@@ -284,10 +284,10 @@ public class UploadManager {
             }
         };
         if (config.useConcurrentResumeUpload) {
-            final ConcurrentResumeUpload up = new ConcurrentResumeUpload(file, recorderKey, t, option, config, config.recorder, key, completionHandlerP);
+            final ConcurrentResumeUpload up = new ConcurrentResumeUpload(file, key, t, option, config, config.recorder, recorderKey, completionHandlerP);
             AsyncRun.runInBack(up);
         } else {
-            final ResumeUpload up = new ResumeUpload(file, key, t, option, config, config.recorder, recorderKey, completionHandlerP);
+            final PartsUpload up = new PartsUpload(file, key, t, option, config, config.recorder, recorderKey, completionHandlerP);
             AsyncRun.runInBack(up);
         }
     }
@@ -357,6 +357,14 @@ public class UploadManager {
         item.setReport(taskMetricsP.requestCount(), ReportItem.QualityKeyRequestsCount);
         item.setReport(taskMetricsP.regionCount(), ReportItem.QualityKeyRegionsCount);
         item.setReport(taskMetricsP.bytesSend(), ReportItem.QualityKeyBytesSent);
+
+        String errorType = ReportItem.requestReportErrorType(responseInfo);
+        item.setReport(errorType, ReportItem.QualityKeyErrorType);
+        if (responseInfo != null && errorType != null){
+            String errorDesc = responseInfo.error != null ? responseInfo.error : responseInfo.message;
+            item.setReport(errorDesc, ReportItem.QualityKeyErrorDescription);
+        }
+
         UploadInfoReporter.getInstance().report(item, token);
     }
 }

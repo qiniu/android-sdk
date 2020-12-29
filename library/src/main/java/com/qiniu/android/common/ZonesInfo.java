@@ -10,25 +10,29 @@ public class ZonesInfo {
 
     public final ArrayList<ZoneInfo> zonesInfo;
 
-
     public ZonesInfo(ArrayList<ZoneInfo> zonesInfo) {
         this.zonesInfo = zonesInfo;
     }
 
-    public static ZonesInfo createZonesInfo(JSONObject jsonObject){
+    public static ZonesInfo createZonesInfo(JSONObject jsonObject) {
         ArrayList<ZoneInfo> zonesInfo = new ArrayList<>();
         try {
-            JSONArray hosts = jsonObject.getJSONArray("hosts");
-            for (int i = 0; i < hosts.length(); i++) {
-                ZoneInfo zoneInfo = ZoneInfo.buildFromJson(hosts.getJSONObject(i));
-                if (zoneInfo != null){
-                    zonesInfo.add(zoneInfo);
+            if (jsonObject != null) {
+                JSONArray hosts = jsonObject.getJSONArray("hosts");
+                for (int i = 0; i < hosts.length(); i++) {
+                    ZoneInfo zoneInfo = ZoneInfo.buildFromJson(hosts.getJSONObject(i));
+                    if (zoneInfo != null && zoneInfo.isValid()) {
+                        zonesInfo.add(zoneInfo);
+                    }
                 }
             }
-        } catch (JSONException ignored) {}
+        } catch (Exception ignored) {
+        }
 
         return new ZonesInfo(zonesInfo);
     }
 
-
+    public boolean isValid() {
+        return zonesInfo != null && zonesInfo.size() > 0;
+    }
 }

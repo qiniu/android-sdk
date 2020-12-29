@@ -19,7 +19,9 @@ public final class ResponseInfo {
     public static final int RequestSuccess = 200;
 
     public static final int UnexpectedSysCallError = -10;
+    @Deprecated
     public static final int NoUsableHostError = -9;
+    public static final int SDKInteriorError = -9;
     public static final int MaliciousResponseError = -8;
     public static final int LocalIOError = -7;
     public static final int ZeroSizeFile = -6;
@@ -126,6 +128,11 @@ public final class ResponseInfo {
         }
     }
 
+    public static ResponseInfo successResponse() {
+        ResponseInfo responseInfo = new ResponseInfo(null, null, RequestSuccess, "inter:reqid", "inter:xlog", "inter:xvia", null, null);
+        return responseInfo;
+    }
+
     public static ResponseInfo zeroSize(String desc) {
         return errorInfo(ZeroSizeFile, (desc != null ? desc : "data size is 0"));
     }
@@ -158,8 +165,13 @@ public final class ResponseInfo {
         return errorInfo(MaliciousResponseError, desc);
     }
 
+    @Deprecated
     public static ResponseInfo noUsableHostError(String desc) {
         return errorInfo(NoUsableHostError, desc);
+    }
+
+    public static ResponseInfo sdkInteriorError(String desc) {
+        return errorInfo(SDKInteriorError, desc);
     }
 
     public static ResponseInfo unexpectedSysCallError(String desc) {
@@ -220,7 +232,7 @@ public final class ResponseInfo {
     public boolean couldRetry(){
         if (isCancelled()
             || (statusCode > 300 && statusCode < 400)
-            || (statusCode > 400 && statusCode < 500)
+            || (statusCode > 400 && statusCode < 500 && statusCode != 406)
             || statusCode == 501 || statusCode == 573
             || statusCode == 608 || statusCode == 612 || statusCode == 614 || statusCode == 616
             || statusCode == 619 || statusCode == 630 || statusCode == 631 || statusCode == 640
