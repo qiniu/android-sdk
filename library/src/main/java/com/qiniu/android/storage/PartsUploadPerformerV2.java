@@ -44,7 +44,7 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
     void serverInit(final PartsUploadPerformerCompleteHandler completeHandler) {
         final UploadFileInfoPartV2 uploadFileInfo = (UploadFileInfoPartV2) fileInfo;
         if (uploadFileInfo != null && uploadFileInfo.isValid()) {
-            LogUtil.i("key:" + StringUtils.nullToEmpty(key) + " serverInit success");
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " serverInit success");
             ResponseInfo responseInfo = ResponseInfo.successResponse();
             completeHandler.complete(responseInfo, null, null);
             return;
@@ -90,7 +90,7 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         }
 
         if (data == null) {
-            LogUtil.i("key:" + StringUtils.nullToEmpty(key) + " no data left");
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " no data left");
 
             ResponseInfo responseInfo = ResponseInfo.sdkInteriorError("no data left");
             completeHandler.complete(true, responseInfo, null, null);
@@ -99,7 +99,7 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
 
         data.data = getUploadData(data);
         if (data.data == null) {
-            LogUtil.i("key:" + StringUtils.nullToEmpty(key) + " get data error");
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " get data error");
 
             data.isUploading = false;
             data.isCompleted = false;

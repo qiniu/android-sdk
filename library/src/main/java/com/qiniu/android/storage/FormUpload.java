@@ -29,7 +29,7 @@ class FormUpload extends BaseUpload {
     @Override
     protected void startToUpload() {
 
-        LogUtil.i("key:" + StringUtils.nullToEmpty(key) + " form上传");
+        LogUtil.i("key:" + StringUtils.toNonnullString(key) + " form上传");
 
         uploadTransaction = new RequestTransaction(config, option, getTargetRegion(), getCurrentRegion(), key, token);
 

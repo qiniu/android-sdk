@@ -36,10 +36,10 @@ class PartsUpload extends BaseUpload {
         super.initData();
 
         if (config != null && config.resumeUploadVersion == Configuration.RESUME_UPLOAD_VERSION_V1) {
-            LogUtil.i("key:" + StringUtils.nullToEmpty(key) + " 分片V1");
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " 分片V1");
             uploadPerformer = new PartsUploadPerformerV1(file, fileName, key, token, option, config, recorderKey);
         } else {
-            LogUtil.i("key:" + StringUtils.nullToEmpty(key) + " 分片V2");
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " 分片V2");
             uploadPerformer = new PartsUploadPerformerV2(file, fileName, key, token, option, config, recorderKey);
         }
     }
@@ -76,13 +76,13 @@ class PartsUpload extends BaseUpload {
 
         if (uploadPerformer.currentRegion != null && uploadPerformer.currentRegion.isValid()) {
             insertRegionAtFirst(uploadPerformer.currentRegion);
-            LogUtil.i("key:" + StringUtils.nullToEmpty(key) + " 使用缓存region");
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " 使用缓存region");
         } else {
             uploadPerformer.switchRegion(getCurrentRegion());
         }
 
         if (uploadPerformer != null && uploadPerformer.currentRegion != null && uploadPerformer.currentRegion.getZoneInfo() != null) {
-            LogUtil.i("key:" + StringUtils.nullToEmpty(key) + " region:" + StringUtils.nullToEmpty(uploadPerformer.currentRegion.getZoneInfo().regionId));
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " region:" + StringUtils.toNonnullString(uploadPerformer.currentRegion.getZoneInfo().regionId));
         }
 
         if (file == null || !uploadPerformer.canReadFile()) {
@@ -98,7 +98,7 @@ class PartsUpload extends BaseUpload {
         if (isSuccess) {
             uploadPerformer.switchRegion(getCurrentRegion());
             if (uploadPerformer != null && uploadPerformer.currentRegion != null && uploadPerformer.currentRegion.getZoneInfo() != null) {
-                LogUtil.i("key:" + StringUtils.nullToEmpty(key) + " region:" + StringUtils.nullToEmpty(uploadPerformer.currentRegion.getZoneInfo().regionId));
+                LogUtil.i("key:" + StringUtils.toNonnullString(key) + " region:" + StringUtils.toNonnullString(uploadPerformer.currentRegion.getZoneInfo().regionId));
             }
         }
         return isSuccess;
@@ -115,7 +115,7 @@ class PartsUpload extends BaseUpload {
         uploadDataErrorResponse = null;
         uploadDataErrorResponseInfo = null;
 
-        LogUtil.i("key:" + StringUtils.nullToEmpty(key) + " serverInit");
+        LogUtil.i("key:" + StringUtils.toNonnullString(key) + " serverInit");
 
         // 1. 启动upload
         serverInit(new UploadFileCompleteHandler() {
@@ -129,7 +129,7 @@ class PartsUpload extends BaseUpload {
                     return;
                 }
 
-                LogUtil.i("key:" + StringUtils.nullToEmpty(key) + " uploadRestData");
+                LogUtil.i("key:" + StringUtils.toNonnullString(key) + " uploadRestData");
 
                 // 2. 上传数据
                 uploadRestData(new UploadFileRestDataCompleteHandler() {
@@ -142,7 +142,7 @@ class PartsUpload extends BaseUpload {
                             return;
                         }
 
-                        LogUtil.i("key:" + StringUtils.nullToEmpty(key) + " completeUpload");
+                        LogUtil.i("key:" + StringUtils.toNonnullString(key) + " completeUpload");
 
                         // 3. 组装文件
                         completeUpload(new UploadFileCompleteHandler() {
@@ -173,7 +173,7 @@ class PartsUpload extends BaseUpload {
     }
 
     protected void uploadRestData(final UploadFileRestDataCompleteHandler completeHandler) {
-        LogUtil.i("key:" + StringUtils.nullToEmpty(key) + " 串行分片");
+        LogUtil.i("key:" + StringUtils.toNonnullString(key) + " 串行分片");
         performUploadRestData(completeHandler);
     }
 

@@ -123,7 +123,7 @@ public final class StringUtils {
         return s == null || "".equals(s);
     }
 
-    public static String nullToEmpty(Object s) {
+    public static String toNonnullString(Object s) {
         return s == null ? "" : "" + s;
     }
 

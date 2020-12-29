@@ -155,8 +155,8 @@ abstract class PartsUploadPerformer {
             recorder.set(key, info.toString().getBytes());
         }
 
-        LogUtil.i("key:" + StringUtils.nullToEmpty(key) +
-                " recorderKey:" + StringUtils.nullToEmpty(recorderKey) +
+        LogUtil.i("key:" + StringUtils.toNonnullString(key) +
+                " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
                 " recordUploadInfo");
     }
 
@@ -168,15 +168,15 @@ abstract class PartsUploadPerformer {
         if (recorder != null && recorderKey != null) {
             recorder.del(recorderKey);
         }
-        LogUtil.i("key:" + StringUtils.nullToEmpty(key) +
-                " recorderKey:" + StringUtils.nullToEmpty(recorderKey) +
+        LogUtil.i("key:" + StringUtils.toNonnullString(key) +
+                " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
                 " removeUploadInfoRecord");
     }
 
     void recoverUploadInfoFromRecord() {
-        LogUtil.i("key:" + StringUtils.nullToEmpty(key) +
-                " recorderKey:" + StringUtils.nullToEmpty(recorderKey) +
-                " recorder:" + StringUtils.nullToEmpty(recorder) +
+        LogUtil.i("key:" + StringUtils.toNonnullString(key) +
+                " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
+                " recorder:" + StringUtils.toNonnullString(recorder) +
                 " recoverUploadInfoFromRecord");
 
         String key = recorderKey;
@@ -186,8 +186,8 @@ abstract class PartsUploadPerformer {
 
         byte[] data = recorder.get(key);
         if (data == null) {
-            LogUtil.i("key:" + StringUtils.nullToEmpty(key) +
-                    " recorderKey:" + StringUtils.nullToEmpty(recorderKey) +
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) +
+                    " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
                     " recoverUploadInfoFromRecord data:null");
             return;
         }
@@ -200,8 +200,8 @@ abstract class PartsUploadPerformer {
                     recoverFileInfo.size == file.length() &&
                     recoverFileInfo.modifyTime == file.lastModified()) {
 
-                LogUtil.i("key:" + StringUtils.nullToEmpty(key) +
-                        " recorderKey:" + StringUtils.nullToEmpty(recorderKey) +
+                LogUtil.i("key:" + StringUtils.toNonnullString(key) +
+                        " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
                         " recoverUploadInfoFromRecord valid");
 
                 fileInfo = recoverFileInfo;
@@ -211,8 +211,8 @@ abstract class PartsUploadPerformer {
                 targetRegion = region;
                 recoveredFrom = (long) ((recoverFileInfo.progress() * recoverFileInfo.size));
             } else {
-                LogUtil.i("key:" + StringUtils.nullToEmpty(key) +
-                        " recorderKey:" + StringUtils.nullToEmpty(recorderKey) +
+                LogUtil.i("key:" + StringUtils.toNonnullString(key) +
+                        " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
                         " recoverUploadInfoFromRecord invalid");
 
                 recorder.del(key);
@@ -221,8 +221,8 @@ abstract class PartsUploadPerformer {
                 recoveredFrom = null;
             }
         } catch (Exception e) {
-            LogUtil.i("key:" + StringUtils.nullToEmpty(key) +
-                    " recorderKey:" + StringUtils.nullToEmpty(recorderKey) +
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) +
+                    " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
                     " recoverUploadInfoFromRecord json:error");
 
             recorder.del(key);

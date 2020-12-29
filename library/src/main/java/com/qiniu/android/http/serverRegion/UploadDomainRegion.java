@@ -93,8 +93,8 @@ public class UploadDomainRegion implements IUploadRegion {
         this.oldDomainHostList = oldDomainHostList;
         this.oldDomainHashMap = createDomainDictionary(oldDomainHostList);
 
-        LogUtil.i("region :" + StringUtils.nullToEmpty(domainHostList));
-        LogUtil.i("region old:" + StringUtils.nullToEmpty(oldDomainHostList));
+        LogUtil.i("region :" + StringUtils.toNonnullString(domainHostList));
+        LogUtil.i("region old:" + StringUtils.toNonnullString(oldDomainHostList));
     }
 
     @Override
@@ -136,7 +136,7 @@ public class UploadDomainRegion implements IUploadRegion {
         if (server == null) {
             LogUtil.i("get server host:null ip:null");
         } else {
-            LogUtil.i("get server host:" + StringUtils.nullToEmpty(server.getHost()) + " ip:" + StringUtils.nullToEmpty(server.getIp()));
+            LogUtil.i("get server host:" + StringUtils.toNonnullString(server.getHost()) + " ip:" + StringUtils.toNonnullString(server.getIp()));
         }
 
         return server;
@@ -150,7 +150,7 @@ public class UploadDomainRegion implements IUploadRegion {
 
         // 无法连接到Host || Host不可用， 局部冻结
         if (!responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
-            LogUtil.i("partial freeze server host:" + StringUtils.nullToEmpty(freezeServer.getHost()) + " ip:" + StringUtils.nullToEmpty(freezeServer.getIp()));
+            LogUtil.i("partial freeze server host:" + StringUtils.toNonnullString(freezeServer.getHost()) + " ip:" + StringUtils.toNonnullString(freezeServer.getIp()));
 
             UploadServerDomain domain = null;
             domain = domainHashMap.get(freezeServer.getServerId());
@@ -165,7 +165,7 @@ public class UploadDomainRegion implements IUploadRegion {
 
         // Host不可用，全局冻结
         if (responseInfo.isHostUnavailable()) {
-            LogUtil.i("global freeze server host:" + StringUtils.nullToEmpty(freezeServer.getHost()) + " ip:" + StringUtils.nullToEmpty(freezeServer.getIp()));
+            LogUtil.i("global freeze server host:" + StringUtils.toNonnullString(freezeServer.getHost()) + " ip:" + StringUtils.toNonnullString(freezeServer.getIp()));
 
             UploadServerDomain domain = null;
             domain = domainHashMap.get(freezeServer.getServerId());

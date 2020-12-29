@@ -13,7 +13,6 @@ import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.Utils;
@@ -84,10 +83,10 @@ class HttpSingleRequest {
             }
         };
 
-        LogUtil.i("key:" + StringUtils.nullToEmpty(requestInfo.key) +
+        LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
                 " retry:" + currentRetryTime +
-                " url:" + StringUtils.nullToEmpty(request.urlString) +
-                " ip:" + StringUtils.nullToEmpty(request.ip));
+                " url:" + StringUtils.toNonnullString(request.urlString) +
+                " ip:" + StringUtils.toNonnullString(request.ip));
 
         client.request(request, isAsync, config.proxy, new IRequestClient.RequestClientProgress() {
             @Override
@@ -107,8 +106,8 @@ class HttpSingleRequest {
                 if (metrics != null){
                     requestMetricsList.add(metrics);
                 }
-                LogUtil.i("key:" + StringUtils.nullToEmpty(requestInfo.key) +
-                        " response:" + StringUtils.nullToEmpty(responseInfo));
+                LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
+                        " response:" + StringUtils.toNonnullString(responseInfo));
                 if (shouldRetryHandler != null && shouldRetryHandler.shouldRetry(responseInfo, response)
                     && currentRetryTime < config.retryMax
                     && responseInfo.couldHostRetry()){

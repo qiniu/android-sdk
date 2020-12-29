@@ -57,7 +57,7 @@ public class UploadInfoReporter {
         AsyncRun.runInBack(new Runnable() {
             @Override
             public void run() {
-                LogUtil.i("up log:" + StringUtils.nullToEmpty(jsonString));
+                LogUtil.i("up log:" + StringUtils.toNonnullString(jsonString));
                 synchronized (this) {
                     saveReportJsonString(jsonString);
                     reportToServerIfNeeded(tokenString);

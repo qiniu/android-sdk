@@ -115,10 +115,10 @@ class HttpRegionRequest {
         request.ip = serverIP;
         request.uploadServer = server;
 
-        LogUtil.i("key:" + StringUtils.nullToEmpty(requestInfo.key) +
-                " url:" + StringUtils.nullToEmpty(request.urlString));
-        LogUtil.i("key:" + StringUtils.nullToEmpty(requestInfo.key) +
-                " headers:" + StringUtils.nullToEmpty(request.allHeaders));
+        LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
+                " url:" + StringUtils.toNonnullString(request.urlString));
+        LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
+                " headers:" + StringUtils.toNonnullString(request.allHeaders));
 
         singleRequest.request(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, new HttpSingleRequest.RequestCompleteHandler() {
             @Override
