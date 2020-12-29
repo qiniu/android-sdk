@@ -6,6 +6,8 @@ import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.GroupTaskThread;
+import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONObject;
 
@@ -34,6 +36,8 @@ class ConcurrentResumeUpload extends PartsUpload {
 
     @Override
     protected void uploadRestData(final UploadFileRestDataCompleteHandler completeHandler) {
+        LogUtil.i("key:" + StringUtils.nullToEmpty(key));
+
         GroupTaskThread.GroupTaskCompleteHandler taskCompleteHandler = new GroupTaskThread.GroupTaskCompleteHandler() {
             @Override
             public void complete() {

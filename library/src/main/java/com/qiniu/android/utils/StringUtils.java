@@ -123,6 +123,10 @@ public final class StringUtils {
         return s == null || "".equals(s);
     }
 
+    public static String nullToEmpty(Object s) {
+        return s == null ? "" : "" + s;
+    }
+
     public static boolean isBlank(String s) {
         return s == null || s.trim().equals("");
     }

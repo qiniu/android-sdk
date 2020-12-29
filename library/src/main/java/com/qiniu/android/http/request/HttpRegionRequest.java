@@ -8,6 +8,8 @@ import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
+import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONObject;
 
@@ -112,6 +114,12 @@ class HttpRegionRequest {
         request.host = serverHost;
         request.ip = serverIP;
         request.uploadServer = server;
+
+        LogUtil.i("key:" + StringUtils.nullToEmpty(requestInfo.key) +
+                " url:" + StringUtils.nullToEmpty(request.urlString));
+        LogUtil.i("key:" + StringUtils.nullToEmpty(requestInfo.key) +
+                " headers:" + StringUtils.nullToEmpty(request.allHeaders));
+
         singleRequest.request(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, new HttpSingleRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, ArrayList<UploadSingleRequestMetrics> requestMetricsList, JSONObject response) {

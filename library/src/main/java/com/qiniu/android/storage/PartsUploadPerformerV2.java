@@ -4,6 +4,8 @@ import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
+import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,6 +44,7 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
     void serverInit(final PartsUploadPerformerCompleteHandler completeHandler) {
         final UploadFileInfoPartV2 uploadFileInfo = (UploadFileInfoPartV2) fileInfo;
         if (uploadFileInfo != null && uploadFileInfo.isValid()) {
+            LogUtil.i("key:" + StringUtils.nullToEmpty(key) + " serverInit success");
             ResponseInfo responseInfo = ResponseInfo.successResponse();
             completeHandler.complete(responseInfo, null, null);
             return;
@@ -87,6 +90,8 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         }
 
         if (data == null) {
+            LogUtil.i("key:" + StringUtils.nullToEmpty(key) + " no data left");
+
             ResponseInfo responseInfo = ResponseInfo.sdkInteriorError("no data left");
             completeHandler.complete(true, responseInfo, null, null);
             return;
@@ -94,6 +99,8 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
 
         data.data = getUploadData(data);
         if (data.data == null) {
+            LogUtil.i("key:" + StringUtils.nullToEmpty(key) + " get data error");
+
             data.isUploading = false;
             data.isCompleted = false;
             ResponseInfo responseInfo = ResponseInfo.localIOError("get data error");
