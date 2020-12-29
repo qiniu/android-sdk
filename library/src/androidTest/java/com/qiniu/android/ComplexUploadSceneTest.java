@@ -3,6 +3,7 @@ package com.qiniu.android;
 import android.test.AndroidTestCase;
 import android.util.Log;
 
+import com.qiniu.android.common.Config;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
@@ -17,32 +18,49 @@ import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-public class ComplexUploadSceneTest extends AndroidTestCase {
+public class ComplexUploadSceneTest extends UploadBaseTest {
 
     private final CountDownLatch signal = new CountDownLatch(1);
 
-    public void testMutiUpload(){
+    public void testMutiUploadV1(){
 
-        final int maxCount = 10;
+        final int maxCount = 40;
 
         final TestParam param = new TestParam();
         param.completeCount = 0;
         param.successCount = 0;
 
-        for (int i = 0; i < maxCount; i++) {
-            template((i + 1) * 100, new CompleteHandler() {
-                @Override
-                public void complete(boolean isSuccess) {
+        final int start = 37;
+        for (int i = start; i < maxCount; i++) {
+            Configuration config = new Configuration.Builder()
+                    .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
+                    .useConcurrentResumeUpload(true)
+                    .concurrentTaskCount(3)
+                    .chunkSize((i%4 + 1) * 1024 * 1024 + i)
+                    .build();
 
+            int size = (i + 1) * 1024;
+            final String keyUp = "android_complex_upload_v1_" + size + "k";
+            File file = null;
+            try {
+                file = TempFile.createFile(size);
+            } catch (IOException e) {
+                continue;
+            }
+
+            uploadFile(file, keyUp, config, null, new UpCompletionHandler() {
+                @Override
+                public void complete(String key, ResponseInfo info, JSONObject response) {
                     synchronized (param){
                         param.completeCount += 1;
-                        if (isSuccess){
+                        if (info != null && info.isOK()){
                             param.successCount += 1;
                         }
-                        if (param.completeCount == maxCount){
+                        if (param.completeCount == (maxCount - start)){
                             signal.countDown();
                         }
                     }
+                    Log.d("upload key:" + keyUp, "complex_upload_v1 response: " + info);
                 }
             });
         }
@@ -52,40 +70,60 @@ public class ComplexUploadSceneTest extends AndroidTestCase {
         } catch (InterruptedException e) {
         }
 
-        Log.d("ComplexUploadSceneTest", "complex_upload successCount: " + param.successCount);
+        Log.d("ComplexUploadSceneTest", "complex_upload_v1 successCount: " + param.successCount);
         assertTrue("success count" + param.successCount, param.successCount == param.completeCount);
     }
 
-    private void template(int size, final CompleteHandler completeHandler){
+    public void testMutiUploadV2(){
 
-        final String keyUp = "android_complex_upload_" + size + "k";
-        File file = null;
-        try {
-            file = TempFile.createFile(size);
-        } catch (IOException e) {
-            completeHandler.complete(false);
-            return;
+        final int maxCount = 40;
+
+        final TestParam param = new TestParam();
+        param.completeCount = 0;
+        param.successCount = 0;
+
+        final int start = 37;
+        for (int i = start; i < maxCount; i++) {
+            Configuration config = new Configuration.Builder()
+                    .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
+                    .useConcurrentResumeUpload(true)
+                    .concurrentTaskCount(3)
+                    .chunkSize((i%4 + 1) * 1024 * 1024 + i)
+                    .build();
+
+            int size = (i + 1) * 1024;
+            final String keyUp = "android_complex_upload_v2_" + size + "k";
+            File file = null;
+            try {
+                file = TempFile.createFile(size);
+            } catch (IOException e) {
+                continue;
+            }
+
+            uploadFile(file, keyUp, config, null, new UpCompletionHandler() {
+                @Override
+                public void complete(String key, ResponseInfo info, JSONObject response) {
+                    synchronized (param){
+                        param.completeCount += 1;
+                        if (info != null && (info.isOK() || info.statusCode == 614)){
+                            param.successCount += 1;
+                        }
+                        if (param.completeCount == (maxCount - start)){
+                            signal.countDown();
+                        }
+                    }
+                    Log.d("upload key:" + keyUp, "complex_upload_v2 response: " + info);
+                }
+            });
         }
 
-        Configuration configuration = new Configuration.Builder()
-                .useHttps(true)
-                .build();
-        UploadManager manager = new UploadManager(configuration);
+        try {
+            signal.await(); // wait for callback
+        } catch (InterruptedException e) {
+        }
 
-        manager.put(file, keyUp, TestConfig.token_na0, new UpCompletionHandler() {
-            @Override
-            public void complete(String key, ResponseInfo info, JSONObject response) {
-                if (info.isOK() && info.reqId != null && keyUp.equals(key)){
-                    completeHandler.complete(true);
-                } else {
-                    completeHandler.complete(false);
-                }
-            }
-        }, null);
-    }
-
-    private interface CompleteHandler{
-        void complete(boolean isSuccess);
+        Log.d("ComplexUploadSceneTest", "complex_upload_v2 successCount: " + param.successCount);
+        assertTrue("success count" + param.successCount, param.successCount == (param.completeCount));
     }
 
 

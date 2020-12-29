@@ -1,359 +1,377 @@
 package com.qiniu.android;
 
-import android.test.suitebuilder.annotation.LargeTest;
-
-import com.qiniu.android.common.FixedZone;
-import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
-import com.qiniu.android.storage.UpCompletionHandler;
-import com.qiniu.android.storage.UpProgressHandler;
-import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.utils.AsyncRun;
-import com.qiniu.android.utils.Etag;
-import com.qiniu.android.utils.LogUtil;
-
-import org.json.JSONObject;
 
 import java.io.File;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 
-public class ResumeUploadTest extends BaseTest {
+public class ResumeUploadTest extends UploadFlowTest {
 
-    private UploadManager uploadManager;
-    private volatile String key;
-    private volatile ResponseInfo info = null;
-    private volatile JSONObject resp;
-    private Queue<Double> queue = new LinkedList<Double>() {{
-        offer(0.00000001);
-        offer(0.00000001);
-        offer(0.00000001);
-        offer(0.00000001);
-        offer(0.00000001);
-    }};
 
-    private void putProgress(double size) {
-        if (size > 0.94) {
-            return;
-        }
-        queue.offer(size);
-        if (queue.size() > 4) {
-            queue.poll();
-        }
-    }
-
-    private boolean isProgressAllSame() {
-        double size = 0.00000001;
-        double _lit = 0.0000000001;
-        boolean same = true;
-        Iterator<Double> it = queue.iterator();
-        while (it.hasNext()) {
-            double temp = it.next();
-            same = same && (Math.abs(size - temp) < _lit);
-            size = temp;
-        }
-        return same;
-    }
-
-    private String getProgress() {
-        StringBuilder ss = new StringBuilder("");
-        Iterator<Double> it = queue.iterator();
-        while (it.hasNext()) {
-            ss.append(it.next()).append(", ");
-        }
-        return ss.toString();
-    }
-
-    private UploadOptions getUploadOptions() {
-        return new UploadOptions(null, null, false, new UpProgressHandler() {
-            public void progress(String key, double percent) {
-                LogUtil.d("== percent:" + percent);
-                putProgress(percent);
-            }
-        }, null);
-    }
-
-    public void setUp() throws Exception {
-        Configuration config = new Configuration.Builder()
+    public void testSwitchRegionV1() {
+        Configuration configuration = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                 .useConcurrentResumeUpload(false)
+                .useHttps(true)
                 .build();
-        uploadManager = new UploadManager(config);
+        int[] sizeArray = {5000, 8000, 10000, 20000};
+        for (int size : sizeArray) {
+            String key = "android_resume_switch_region_v1_" + size + "k";
+            try {
+                File file = TempFile.createFile(size, key);
+                switchRegionTestWithFile(file, key, configuration, null);
+                TempFile.remove(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    private void template(int size, boolean useHttps) throws Throwable {
-
-        final String expectKey = "android-resume-test2-" + size + "k";
-        final File f = TempFile.createFile(size);
-        String[] s = new String[]{"up-na0.qbox.me", "upload-na0.qbox.me"};
-        Zone z = new FixedZone(s);
-
-        Configuration.Builder builder = new Configuration.Builder()
-                .zone(z).useConcurrentResumeUpload(false)
-                .useHttps(useHttps);
-        Configuration configuration = builder.build();
-        UploadManager uploadManager = new UploadManager(configuration);
-        final UploadOptions options = getUploadOptions();
-        uploadManager.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                LogUtil.i(k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
+    public void testCancelV1() {
+        float cancelPercent = (float) 0.5;
+        Configuration configuration = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
+                .useConcurrentResumeUpload(false)
+                .useHttps(true)
+                .build();
+        int[] sizeArray = {10000, 20000};
+        for (int size : sizeArray) {
+            String key = "android_resume_cancel_v1_" + size + "k";
+            try {
+                File file = TempFile.createFile(size, key);
+                cancelTest(cancelPercent, file, key, configuration, null);
+                TempFile.remove(file);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        }, options);
-
-        wait(new WaitConditional() {
-            @Override
-            public boolean shouldWait() {
-                if (info == null){
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        }, 1200);
-
-        assertTrue(info.toString(), info.isOK());
-        assertNotNull(info.reqId);
-        assertEquals(info.toString(), expectKey, key);
-        String hash = resp.getString("hash");
-        assertEquals(hash, Etag.file(f));
-        TempFile.remove(f);
+        }
     }
 
-    @LargeTest
-    public void test4M1K() throws Throwable {
-        template(1024 * 4 + 1, false);
+    public void testHttpV1(){
+        Configuration configuration = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
+                .useConcurrentResumeUpload(false)
+                .useHttps(false)
+                .build();
+        int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
+        for (int size : sizeArray) {
+            String key = "android_resume_http_v1_" + size + "k";
+            try {
+                File file = TempFile.createFile(size, key);
+                uploadFileAndAssertSuccessResult(file, key, configuration, null);
+                TempFile.remove(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    @LargeTest
-    public void test8M1L() throws Throwable {
-        template(1024 * 8 + 1, false);
+    public void testHttpsV1(){
+        Configuration configuration = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
+                .useConcurrentResumeUpload(false)
+                .useHttps(true)
+                .build();
+        int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
+        for (int size : sizeArray) {
+            String key = "android_resume_https_v1_" + size + "k";
+            try {
+                File file = TempFile.createFile(size, key);
+                uploadFileAndAssertSuccessResult(file, key, configuration, null);
+                TempFile.remove(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    @LargeTest
-    public void test20M1K() throws Throwable {
-        template(1024 * 20 + 1, false);
+    public void testReuploadV1(){
+        Configuration configuration = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
+                .useConcurrentResumeUpload(false)
+                .useHttps(true)
+                .chunkSize(1024*1024)
+                .build();
+        int[] sizeArray = {30000};
+        for (int size : sizeArray) {
+            String key = "android_resume_reupload_v1_" + size + "k";
+            try {
+                File file = TempFile.createFile(size, key);
+                reuploadUploadTest((float)0.7, file, key, configuration, null);
+                TempFile.remove(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    @LargeTest
-    public void test4M1kHttps() throws Throwable {
-        template(1024 * 4 + 1, true);
+    public void testNoKeyV1(){
+        int size = 600;
+        String key = "android_resume_no_key_v1_" + size + "k";
+        File file = null;
+        try {
+            file = TempFile.createFile(size, key);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Configuration configurationHttp = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
+                .useConcurrentResumeUpload(false)
+                .useHttps(false)
+                .build();
+        uploadFileAndAssertSuccessResult(file, null, configurationHttp, null);
+
+        Configuration configurationHttps = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
+                .useConcurrentResumeUpload(false)
+                .useHttps(true)
+                .build();
+        uploadFileAndAssertSuccessResult(file, null, configurationHttps, null);
+
+        TempFile.remove(file);
     }
 
-    @LargeTest
-    public void test8M1kHttps() throws Throwable {
-        template(1024 * 8 + 1, true);
+    public void test0kV1(){
+        int size = 0;
+        String key = "android_resume_0k_v1_" + size + "k";
+        File file = null;
+        try {
+            file = TempFile.createFile(size, key);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Configuration configurationHttp = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
+                .useConcurrentResumeUpload(false)
+                .useHttps(false)
+                .build();
+        uploadFileAndAssertResult(ResponseInfo.ZeroSizeFile, file, key, configurationHttp, null);
+
+        Configuration configurationHttps = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
+                .useConcurrentResumeUpload(false)
+                .useHttps(true)
+                .build();
+        uploadFileAndAssertResult(ResponseInfo.ZeroSizeFile, file, key, configurationHttps, null);
+
+        TempFile.remove(file);
     }
 
-    @LargeTest
-    public void test20M1kHttps() throws Throwable {
-        template(1024 * 20 + 1, true);
+    public void testCustomParamV1() {
+
+        Map<String, String> userParam = new HashMap<>();
+        userParam.put("foo", "foo_value");
+        userParam.put("bar", "bar_value");
+
+        Map<String, String> metaParam = new HashMap<>();
+        metaParam.put("0000", "meta_value_0");
+        metaParam.put("x-qn-meta-aaa", "meta_value_1");
+        metaParam.put("x-qn-meta-key-2", "meta_value_2");
+
+        UploadOptions options = new UploadOptions(userParam, metaParam, null,true, null, null, null);
+
+        Configuration configuration = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
+                .useConcurrentResumeUpload(false)
+                .useHttps(false)
+                .build();
+
+        String key = "android_resume_custom_param_v1";
+        File file = null;
+        try {
+            file = TempFile.createFile(5 * 1024, key);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        uploadFileAndAssertSuccessResult(file, key, configuration, options);
     }
 
-
-    @LargeTest
-    public void testError() throws Throwable {
-
-        final String expectKey = "android-resume-error-test2";
-        final File f = TempFile.createFile(1);;
-        String[] s = new String[]{""};
-        Zone z = new FixedZone(s);
-
-        Configuration.Builder builder = new Configuration.Builder()
-                .zone(z).useConcurrentResumeUpload(false)
-                .useHttps(true);
-        Configuration configuration = builder.build();
-        UploadManager uploadManager = new UploadManager(configuration);
-        final UploadOptions options = getUploadOptions();
-        uploadManager.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                LogUtil.i(k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
+    public void testSwitchRegionV2() {
+        Configuration configuration = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
+                .useConcurrentResumeUpload(false)
+                .useHttps(true)
+                .build();
+        int[] sizeArray = {5000, 8000, 10000, 20000};
+        for (int size : sizeArray) {
+            String key = "android_resume_switch_region_v2_" + size + "k";
+            try {
+                File file = TempFile.createFile(size, key);
+                switchRegionTestWithFile(file, key, configuration, null);
+                TempFile.remove(file);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        }, options);
-
-        wait(new WaitConditional() {
-            @Override
-            public boolean shouldWait() {
-                if (info == null){
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        }, 1200);
-
-        assertTrue(info.toString(), !info.isOK());
-        assertNotNull(info.reqId == null);
-        assertEquals(info.toString(), expectKey, key);
-
-        TempFile.remove(f);
+        }
     }
 
-    @LargeTest
-    public void testNoTokenError() throws Throwable {
-
-        final String expectKey = "android-resume-noToken-test2";
-        final File f = TempFile.createFile(1);
-        String[] s = new String[]{"up-na0.qbox.me"};
-        Zone z = new FixedZone(s);
-
-        Configuration.Builder builder = new Configuration.Builder()
-                .zone(z).useConcurrentResumeUpload(false)
-                .useHttps(true);
-        Configuration configuration = builder.build();
-        UploadManager uploadManager = new UploadManager(configuration);
-        final UploadOptions options = getUploadOptions();
-
-        // file
-        uploadManager.put(f, expectKey, null, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                LogUtil.i(k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
+    public void testCancelV2() {
+        float cancelPercent = (float) 0.5;
+        Configuration configuration = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
+                .useConcurrentResumeUpload(false)
+                .useHttps(true)
+                .build();
+        int[] sizeArray = {10000, 20000};
+        for (int size : sizeArray) {
+            String key = "android_resume_cancel_v2_" + size + "k";
+            try {
+                File file = TempFile.createFile(size, key);
+                cancelTest(cancelPercent, file, key, configuration, null);
+                TempFile.remove(file);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        }, options);
-
-        wait(new WaitConditional() {
-            @Override
-            public boolean shouldWait() {
-                if (info == null){
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        }, 1200);
-
-        assertTrue(info.toString(), !info.isOK());
-        assertEquals(info.toString(), expectKey, key);
-        TempFile.remove(f);
-
-        // data
-        byte[] data = new byte[]{0, 1};
-        uploadManager.put(data, expectKey, "1", new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                LogUtil.i(k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
-            }
-        }, options);
-
-        wait(new WaitConditional() {
-            @Override
-            public boolean shouldWait() {
-                if (info == null){
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        }, 1200);
-
-        assertTrue(info.toString(), !info.isOK());
-        assertEquals(info.toString(), expectKey, key);
-        TempFile.remove(f);
+        }
     }
 
-
-    @LargeTest
-    public void testNoDataError() throws Throwable {
-
-        final String expectKey = "android-resume-noToken-test2";
-        String[] s = new String[]{"up-na0.qbox.me"};
-        Zone z = new FixedZone(s);
-
-        Configuration.Builder builder = new Configuration.Builder()
-                .zone(z).useConcurrentResumeUpload(false)
-                .useHttps(true);
-        Configuration configuration = builder.build();
-        UploadManager uploadManager = new UploadManager(configuration);
-        final UploadOptions options = getUploadOptions();
-
-        // file
-        File f = null;
-        uploadManager.put(f, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                LogUtil.i(k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
+    public void testHttpV2(){
+        Configuration configuration = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
+                .useConcurrentResumeUpload(false)
+                .useHttps(false)
+                .build();
+        int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
+        for (int size : sizeArray) {
+            String key = "android_resume_http_v2_" + size + "k";
+            try {
+                File file = TempFile.createFile(size, key);
+                uploadFileAndAssertSuccessResult(file, key, configuration, null);
+                TempFile.remove(file);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        }, options);
+        }
+    }
 
-        wait(new WaitConditional() {
-            @Override
-            public boolean shouldWait() {
-                if (info == null){
-                    return true;
-                } else {
-                    return false;
-                }
+    public void testHttpsV2(){
+        Configuration configuration = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
+                .useConcurrentResumeUpload(false)
+                .useHttps(true)
+                .build();
+        int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
+        for (int size : sizeArray) {
+            String key = "android_resume_https_v2_" + size + "k";
+            try {
+                File file = TempFile.createFile(size, key);
+                uploadFileAndAssertSuccessResult(file, key, configuration, null);
+                TempFile.remove(file);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        }, 1200);
+        }
+    }
 
-        assertTrue(info.toString(), !info.isOK());
-        assertEquals(info.toString(), expectKey, key);
-        TempFile.remove(f);
-
-        // file path
-        String fPath = null;
-        uploadManager.put(fPath, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                LogUtil.i(k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
+    public void testReuploadV2(){
+        Configuration configuration = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
+                .useConcurrentResumeUpload(false)
+                .useHttps(true)
+                .chunkSize(1024*1024)
+                .build();
+        int[] sizeArray = {30000};
+        for (int size : sizeArray) {
+            String key = "android_resume_reupload_v2_" + size + "k";
+            try {
+                File file = TempFile.createFile(size, key);
+                reuploadUploadTest((float)0.7, file, key, configuration, null);
+                TempFile.remove(file);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        }, options);
+        }
+    }
 
-        wait(new WaitConditional() {
-            @Override
-            public boolean shouldWait() {
-                if (info == null){
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        }, 1200);
+    public void testNoKeyV2(){
+        int size = 600;
+        String key = "android_resume_reupload_v2_" + size + "k";
+        File file = null;
+        try {
+            file = TempFile.createFile(size, key);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        assertTrue(info.toString(), !info.isOK());
-        assertEquals(info.toString(), expectKey, key);
-        TempFile.remove(f);
+        Configuration configurationHttp = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
+                .useConcurrentResumeUpload(false)
+                .useHttps(false)
+                .build();
+        uploadFileAndAssertSuccessResult(file, null, configurationHttp, null);
 
-        // data
-        byte[] data = null;
-        uploadManager.put(data, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
-            public void complete(String k, ResponseInfo rinfo, JSONObject response) {
-                LogUtil.i(k + rinfo);
-                key = k;
-                info = rinfo;
-                resp = response;
-            }
-        }, options);
+        Configuration configurationHttps = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
+                .useConcurrentResumeUpload(false)
+                .useHttps(true)
+                .build();
+        uploadFileAndAssertSuccessResult(file, null, configurationHttps, null);
 
-        wait(new WaitConditional() {
-            @Override
-            public boolean shouldWait() {
-                if (info == null){
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        }, 1200);
+        TempFile.remove(file);
+    }
 
-        assertTrue(info.toString(), !info.isOK());
-        assertEquals(info.toString(), expectKey, key);
+    public void test0kV2(){
+        int size = 0;
+        String key = "android_resume_0k_v2_" + size + "k";
+        File file = null;
+        try {
+            file = TempFile.createFile(size, key);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Configuration configurationHttp = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
+                .useConcurrentResumeUpload(false)
+                .useHttps(false)
+                .build();
+        uploadFileAndAssertResult(ResponseInfo.ZeroSizeFile, file, key, configurationHttp, null);
+
+        Configuration configurationHttps = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
+                .useConcurrentResumeUpload(false)
+                .useHttps(true)
+                .build();
+        uploadFileAndAssertResult(ResponseInfo.ZeroSizeFile, file, key, configurationHttps, null);
+
+        TempFile.remove(file);
+    }
+
+    public void testCustomParamV2() {
+
+        Map<String, String> userParam = new HashMap<>();
+        userParam.put("foo", "foo_value");
+        userParam.put("bar", "bar_value");
+
+        Map<String, String> metaParam = new HashMap<>();
+        metaParam.put("0000", "meta_value_0");
+        metaParam.put("x-qn-meta-aaa", "meta_value_1");
+        metaParam.put("x-qn-meta-key-2", "meta_value_2");
+
+        UploadOptions options = new UploadOptions(userParam, metaParam, null,true, null, null, null);
+
+        Configuration configuration = new Configuration.Builder()
+                .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
+                .useConcurrentResumeUpload(false)
+                .useHttps(false)
+                .build();
+
+        String key = "android_resume_custom_param_v2";
+        File file = null;
+        try {
+            file = TempFile.createFile(5 * 1024, key);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        uploadFileAndAssertSuccessResult(file, key, configuration, options);
     }
 }

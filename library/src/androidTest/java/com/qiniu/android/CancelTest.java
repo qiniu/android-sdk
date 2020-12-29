@@ -50,7 +50,7 @@ public class CancelTest extends BaseTest {
         checkTemp(ts, "testFile");
     }
 
-    public void testMultiFile() throws Throwable {
+    public void testMultiFileA() throws Throwable {
         Temp[] ts = new Temp[]{templateFile(400, 0.2), templateFile(700, 0.2), templateFile(1024, 0.51), templateFile(4 * 1024, 0.5), templateFile(8 * 1024 + 1, 0.6)};
         checkTemp(ts, "testFile");
     }
@@ -84,7 +84,7 @@ public class CancelTest extends BaseTest {
     private Temp templateFile(final int size, final double pos) throws Throwable {
         final CountDownLatch signal = new CountDownLatch(1);
         final File tempFile = TempFile.createFile(size);
-        final String expectKey = "file_" + UUID.randomUUID().toString();
+        final String expectKey = "file_" + size;
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:a", "test");
         params.put("x:b", "test2");
@@ -301,7 +301,7 @@ public class CancelTest extends BaseTest {
         wait(waitCondition, 10 * 60);
 
         assertTrue(temp.info != null);
-        assertTrue(temp.info.isOK());
+        assertTrue(temp.info.toString(), temp.info.isOK());
 
         TempFile.remove(tempFile);
     }

@@ -11,7 +11,7 @@ public class GlobalConfiguration {
     public boolean isDnsOpen = true;
 
     /**
-     *   dns 预取失败后 会进行重新预取  rePreHostNum为最多尝试次数
+     *   dns 预取失败后 会进行重新预取  dnsRepreHostNum为最多尝试次数
      */
     public int dnsRepreHostNum = 2;
 
@@ -31,6 +31,8 @@ public class GlobalConfiguration {
     public String dnsCacheDir = Utils.sdkDirectory() + "/dnsCache/";
 
     /**
+     *   Host全局冻结时间  单位：秒   默认：30  推荐范围：[10 ~ 60]
+     *   当某个Host的上传失败后并且可能短时间无法恢复，会冻结该Host，globalHostFrozenTime为全局冻结时间
      *   Host全局冻结时间  单位：秒   默认：10  推荐范围：[5 ~ 30]
      *   当某个Host的上传失败后并且可能短时间无法恢复，会冻结该Host
      */
@@ -49,6 +51,4 @@ public class GlobalConfiguration {
     public static GlobalConfiguration getInstance(){
         return configuration;
     }
-
-
 }

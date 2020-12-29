@@ -14,10 +14,14 @@ import java.util.Map;
 public final class UploadOptions {
 
     /**
-     * 扩展参数，以<code>x:</code>开头的用户自定义参数
-     * 可添加网络检测次数：netCheckTime，int类型，默认600，每增加1，检测时间增加500ms
+     * 用于服务器上传回调通知的自定义参数，参数的key必须以x: 开头  eg: x:foo
      */
     public final Map<String, String> params;
+
+    /**
+     * 用于设置meta数据，参数的key必须以x-qn-meta- 开头  eg: x-qn-meta-key
+     */
+    public final Map<String, String> metaDataParam;
 
     /**
      * 指定上传文件的MimeType
@@ -44,13 +48,31 @@ public final class UploadOptions {
      */
     public final NetReadyHandler netReadyHandler;
 
-    public UploadOptions(Map<String, String> params, String mimeType, boolean checkCrc,
-                         UpProgressHandler progressHandler, UpCancellationSignal cancellationSignal) {
+    public UploadOptions(Map<String, String> params,
+                         String mimeType,
+                         boolean checkCrc,
+                         UpProgressHandler progressHandler,
+                         UpCancellationSignal cancellationSignal) {
         this(params, mimeType, checkCrc, progressHandler, cancellationSignal, null);
     }
 
-    public UploadOptions(final Map<String, String> params, String mimeType, boolean checkCrc,
-                         UpProgressHandler progressHandler, UpCancellationSignal cancellationSignal, NetReadyHandler netReadyHandler) {
+    public UploadOptions(final Map<String, String> params,
+                         String mimeType,
+                         boolean checkCrc,
+                         UpProgressHandler progressHandler,
+                         UpCancellationSignal cancellationSignal,
+                         NetReadyHandler netReadyHandler) {
+            this(params, null, mimeType, checkCrc, progressHandler, cancellationSignal, netReadyHandler);
+    }
+
+    public UploadOptions(final Map<String, String> params,
+                         final Map<String, String> metaDataParam,
+                         String mimeType,
+                         boolean checkCrc,
+                         UpProgressHandler progressHandler,
+                         UpCancellationSignal cancellationSignal,
+                         NetReadyHandler netReadyHandler) {
+
         int netReadyCheckTime = 6;
         try {
             String netCheckTime = params.get("netCheckTime");
@@ -59,6 +81,7 @@ public final class UploadOptions {
             }
         } catch (Exception e) {}
         this.params = filterParam(params);
+        this.metaDataParam = filterMetaDataParam(metaDataParam);
         this.mimeType = mime(mimeType);
         this.checkCrc = checkCrc;
         this.progressHandler = progressHandler != null ? progressHandler : new UpProgressHandler() {
@@ -113,6 +136,27 @@ public final class UploadOptions {
         }
         return ret;
     }
+
+    /**
+     * 过滤meta data参数，只有参数名以<code>x-qn-meta-</code>开头的参数才会被使用
+     *
+     * @param params 待过滤的用户自定义参数
+     * @return 过滤后的参数
+     */
+    private static Map<String, String> filterMetaDataParam(Map<String, String> params) {
+        Map<String, String> ret = new HashMap<String, String>();
+        if (params == null) {
+            return ret;
+        }
+
+        for (Map.Entry<String, String> i : params.entrySet()) {
+            if (i.getKey().startsWith("x-qn-meta-") && i.getValue() != null && !i.getValue().equals("")) {
+                ret.put(i.getKey(), i.getValue());
+            }
+        }
+        return ret;
+    }
+
 
     public static UploadOptions defaultOptions() {
         return new UploadOptions(null, null, false, null, null);
