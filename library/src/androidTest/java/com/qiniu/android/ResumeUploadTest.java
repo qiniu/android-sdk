@@ -112,7 +112,7 @@ public class ResumeUploadTest extends UploadFlowTest {
 
     public void testNoKeyV1(){
         int size = 600;
-        String key = "android_resume_reupload_v1_" + size + "k";
+        String key = "android_resume_no_key_v1_" + size + "k";
         File file = null;
         try {
             file = TempFile.createFile(size, key);

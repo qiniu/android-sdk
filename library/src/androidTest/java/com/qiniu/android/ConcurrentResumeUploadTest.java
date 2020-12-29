@@ -127,7 +127,7 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
 
     public void testNoKeyV1(){
         int size = 600;
-        String key = "android_concurrent_resume_reupload_v1_" + size + "k";
+        String key = "android_concurrent_resume_no_key_v1_" + size + "k";
         File file = null;
         try {
             file = TempFile.createFile(size, key);
@@ -279,7 +279,7 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
 
     public void testNoKeyV2(){
         int size = 600;
-        String key = "android_concurrent_resume_reupload_v2_" + size + "k";
+        String key = "android_concurrent_resume_no_key_v2_" + size + "k";
         File file = null;
         try {
             file = TempFile.createFile(size, key);

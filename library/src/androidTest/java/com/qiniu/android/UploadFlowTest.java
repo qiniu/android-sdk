@@ -185,7 +185,7 @@ public class UploadFlowTest extends UploadBaseTest {
                     if (resumePercent <= minPercent) {
                         flags.isSuccess = true;
                     }
-                    LogUtil.d("== reupload percent:" + percent + " minPercent:" + minPercent);
+                    LogUtil.d("== upload reupload percent:" + percent + " minPercent:" + minPercent);
                 }
 
                 if (optionsReal.progressHandler != null) {
