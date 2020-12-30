@@ -163,9 +163,9 @@
 - com.qiniu.android.http.request.IUploadRegion
 - com.qiniu.android.http.request.Request
 - com.qiniu.android.http.request.RequestTransaction
-- com.qiniu.android.http.request.UploadFileInfo
-- com.qiniu.android.http.request.UploadFileInfo.UploadBlock
-- com.qiniu.android.http.request.UploadFileInfo.UploadData
+- com.qiniu.android.storage.UploadFileInfo
+- com.qiniu.android.storage.UploadFileInfo.UploadBlock
+- com.qiniu.android.storage.UploadFileInfo.UploadData
 
 
 ## 9 com.qiniu.android.http.request.handler

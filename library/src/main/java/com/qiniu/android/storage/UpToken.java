@@ -8,7 +8,7 @@ import org.json.JSONObject;
 /**
  * 内部使用的客户端 token 检查.
  */
- public final class UpToken {
+public final class UpToken {
 
     public final String token;
     public final String accessKey;
@@ -23,7 +23,7 @@ import org.json.JSONObject;
     }
 
     public static UpToken parse(String token) {
-        if (token == null){
+        if (token == null) {
             return null;
         }
         String[] t;
@@ -44,14 +44,15 @@ import org.json.JSONObject;
             return null;
         }
         String scope = obj.optString("scope");
-        String bucket = null;
+        String bucket = "";
         if (scope.equals("")) {
             return null;
         } else {
             String[] scopeSlice = new String[2];
             try {
                 scopeSlice = scope.split(":");
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
             if (scopeSlice.length > 0) {
                 bucket = scopeSlice[0];
             }
@@ -65,7 +66,11 @@ import org.json.JSONObject;
     }
 
     public static boolean isInvalid(UpToken token) {
-        return token == null || token == null;
+        return token == null || !token.isValid();
+    }
+
+    public boolean isValid() {
+        return accessKey != null && !accessKey.isEmpty() && bucket != null && !bucket.isEmpty();
     }
 
     public String toString() {
@@ -76,12 +81,12 @@ import org.json.JSONObject;
         return !returnUrl.equals("");
     }
 
-    public String index(){
+    public String index() {
         String index = "";
-        if (accessKey != null){
+        if (accessKey != null) {
             index += accessKey;
         }
-        if (bucket != null){
+        if (bucket != null) {
             index += bucket;
         }
         return index;

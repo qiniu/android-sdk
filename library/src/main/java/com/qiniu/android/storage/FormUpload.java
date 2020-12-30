@@ -5,6 +5,8 @@ import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.utils.AsyncRun;
+import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONObject;
 
@@ -26,6 +28,8 @@ class FormUpload extends BaseUpload {
 
     @Override
     protected void startToUpload() {
+
+        LogUtil.i("key:" + StringUtils.toNonnullString(key) + " form上传");
 
         uploadTransaction = new RequestTransaction(config, option, getTargetRegion(), getCurrentRegion(), key, token);
 
@@ -50,22 +54,21 @@ class FormUpload extends BaseUpload {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 addRegionRequestMetricsOfOneFlow(requestMetrics);
-                if (responseInfo.isOK()){
-                    AsyncRun.runInMain(new Runnable() {
-                        @Override
-                        public void run() {
-                            option.progressHandler.progress(key, 1.0);
-                        }
-                    });
-                    completeAction(responseInfo, response);
-                } else if (responseInfo.couldRetry() && config.allowBackupHost){
-                    boolean isSwitched = switchRegionAndUpload();
-                    if (!isSwitched){
+
+                if (!responseInfo.isOK()) {
+                    if (!switchRegionAndUploadIfNeededWithErrorResponse(responseInfo)) {
                         completeAction(responseInfo, response);
                     }
-                } else {
-                    completeAction(responseInfo, response);
+                    return;
                 }
+
+                AsyncRun.runInMain(new Runnable() {
+                    @Override
+                    public void run() {
+                        option.progressHandler.progress(key, 1.0);
+                    }
+                });
+                completeAction(responseInfo, response);
             }
         });
 

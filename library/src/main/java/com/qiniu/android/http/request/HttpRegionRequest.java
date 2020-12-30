@@ -8,6 +8,8 @@ import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
+import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONObject;
 
@@ -63,6 +65,17 @@ class HttpRegionRequest {
         performRequest(getNextServer(null), action, isAsync, data, header, "POST", shouldRetryHandler, progressHandler, completeHandler);
     }
 
+    void put(String action,
+             boolean isAsync,
+             byte[] data,
+             Map<String, String>header,
+             RequestShouldRetryHandler shouldRetryHandler,
+             RequestProgressHandler progressHandler,
+             RequestCompleteHandler completeHandler){
+        requestMetrics = new UploadRegionRequestMetrics(region);
+        performRequest(getNextServer(null), action, isAsync, data, header, "PUT", shouldRetryHandler, progressHandler, completeHandler);
+    }
+
     private void performRequest(IUploadServer server,
                                 final String action,
                                 final boolean isAsync,
@@ -74,10 +87,12 @@ class HttpRegionRequest {
                                 final RequestCompleteHandler completeHandler){
 
         if (server == null || server.getHost() == null || server.getHost().length() == 0) {
-            ResponseInfo responseInfo = ResponseInfo.noUsableHostError("server error");
+            ResponseInfo responseInfo = ResponseInfo.sdkInteriorError("server error");
             completeAction(responseInfo, null, completeHandler);
             return;
         }
+
+        currentServer = server;
 
         String serverHost = server.getHost();
         String serverIP = server.getIp();
@@ -85,9 +100,8 @@ class HttpRegionRequest {
         if (config.urlConverter != null){
             serverHost = config.urlConverter.convert(serverHost);
             serverIP = null;
+            server = null;
         }
-
-        currentServer = server;
 
         boolean toSkipDns;
         String scheme = config.useHttps ? "https://" : "http://";
@@ -101,6 +115,12 @@ class HttpRegionRequest {
         request.host = serverHost;
         request.ip = serverIP;
         request.uploadServer = server;
+
+        LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
+                " url:" + StringUtils.toNonnullString(request.urlString));
+        LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
+                " headers:" + StringUtils.toNonnullString(request.allHeaders));
+
         singleRequest.request(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, new HttpSingleRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, ArrayList<UploadSingleRequestMetrics> requestMetricsList, JSONObject response) {

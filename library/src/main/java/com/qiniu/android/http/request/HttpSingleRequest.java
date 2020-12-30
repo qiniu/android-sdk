@@ -14,8 +14,8 @@ import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.Utils;
 
 import org.json.JSONObject;
@@ -46,7 +46,7 @@ class HttpSingleRequest {
         this.token = token;
         this.requestInfo = requestInfo;
         this.requestState = requestState;
-        this.currentRetryTime = 1;
+        this.currentRetryTime = 0;
     }
 
     void request(Request request,
@@ -55,7 +55,7 @@ class HttpSingleRequest {
                  RequestShouldRetryHandler shouldRetryHandler,
                  RequestProgressHandler progressHandler,
                  RequestCompleteHandler completeHandler) {
-        currentRetryTime = 1;
+        currentRetryTime = 0;
         requestMetricsList = new ArrayList<>();
         retryRequest(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, completeHandler);
     }
@@ -84,6 +84,11 @@ class HttpSingleRequest {
             }
         };
 
+        LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
+                " retry:" + currentRetryTime +
+                " url:" + StringUtils.toNonnullString(request.urlString) +
+                " ip:" + StringUtils.toNonnullString(request.ip));
+
         client.request(request, isAsync, config.proxy, new IRequestClient.RequestClientProgress() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
@@ -102,6 +107,8 @@ class HttpSingleRequest {
                 if (metrics != null) {
                     requestMetricsList.add(metrics);
                 }
+                LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
+                        " response:" + StringUtils.toNonnullString(responseInfo));
                 if (shouldRetryHandler != null && shouldRetryHandler.shouldRetry(responseInfo, response)
                         && currentRetryTime < config.retryMax
                         && responseInfo.couldHostRetry()) {

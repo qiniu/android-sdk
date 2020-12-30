@@ -2,7 +2,7 @@
 
 [![@qiniu on weibo](http://img.shields.io/badge/weibo-%40qiniutek-blue.svg)](http://weibo.com/qiniutek)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE.md)
-[![Build Status](https://travis-ci.org/qiniu/android-sdk.svg?branch=master)](https://travis-ci.org/qiniu/android-sdk)
+[![Build Status](https://github.com/qiniu/android-sdk/workflows/Run%20Test%20Cases/badge.svg)](https://github.com/qiniu/android-sdk/actions)
 [![codecov](https://codecov.io/gh/qiniu/android-sdk/branch/master/graph/badge.svg)](https://codecov.io/gh/qiniu/android-sdk)
 [![Latest Stable Version](http://img.shields.io/maven-central/v/com.qiniu/qiniu-android-sdk.svg)](https://github.com/qiniu/android-sdk/releases)
 
@@ -13,8 +13,9 @@ https://github.com/qiniudemo/qiniu-lab-android
 
 ### 运行环境
 
-| Qiniu SDK 版本 | 最低 Android版本   |       依赖库版本           | 
+| Qiniu SDK 版本 | 最低 Android版本   |       依赖库版本           |
 |------------ |-----------------|------------------------|
+|  8.1.x        |  Android 5.0+     |        okhttp 4+         |
 |  8.0.x        |  Android 5.0+     |        okhttp 4+         |
 |  7.7.x        |  Android 5.0+     |        okhttp 4+         |
 |  7.6.x        |  Android 5.0+     |        okhttp 4+         |
@@ -27,7 +28,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 |  7.0.7        |  Android 2.2+     | android-async-http 1.4.8 |
 
 ### 注意
-* 推荐使用最新版：8.0.5
+* 推荐使用最新版：8.1.0
 * AndroidNetwork.getMobileDbm()可以获取手机信号强度，需要如下权限(API>=18时生效)
 ```
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
@@ -45,10 +46,10 @@ https://github.com/qiniudemo/qiniu-lab-android
 * Android Studio中添加dependencies 或者 在项目中添加maven依赖
 ```
 // 1. 直接导入
-implementation 'com.qiniu:qiniu-android-sdk:8.0.+'
+implementation 'com.qiniu:qiniu-android-sdk:8.1.+'
 
 // 2. 如果要修改okhttp依赖的版本，可采用以下方式（强烈建议使用七牛库依赖的okhttp版本）
-implementation ('com.qiniu:qiniu-android-sdk:8.0.+'){
+implementation ('com.qiniu:qiniu-android-sdk:8.1.+'){
     exclude (group: 'com.squareup.okhttp3', module: 'okhttp')
 }
 implementation 'com.squareup.okhttp3:okhttp:4.2.2'
@@ -179,7 +180,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 textView.setText(o + s + "\n" + "http://xm540.com1.z0.glb.clouddn.com/" + key);
             }
         }, new UploadOptions(null, "test-type", true, null, null));
-        
+
     }
 }
 
@@ -348,13 +349,13 @@ public class MainActivity extends Activity {
             imageview.setVisibility(View.VISIBLE);
             imageview.setImageBitmap(BitmapFactory.decodeFile(picturePath));
 
-            //自定义参数returnbody  
+            //自定义参数returnbody
             //"returnBody":"{\"key\":$(key),\"hash\":$(etag),\"fname\":$(fname),\"phone\":$(x:phone)}
             final String token = "xxxxx";
             button2.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
-					
+
 					//设定需要添加的自定义变量为Map<String, String>类型 并且放到UploadOptions第一个参数里面
                     HashMap<String, String> map = new HashMap<String, String>();
                     map.put("x:phone", "12345678");
@@ -436,7 +437,7 @@ public class MainActivity extends Activity {
 
     private UploadManager uploadManager;
     private final String tag = "MainActivity";
-    
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -445,7 +446,7 @@ public class MainActivity extends Activity {
         String aaa = UrlSafeBase64.encodeToString(path);
         File file =new File(path);
     }
-    
+
     private void upload(final String localPath,final String key)
     {
         Thread thread = new Thread()
@@ -534,7 +535,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     public void onClick(View v) {
         LogUtil.i("starting......");
         byte[] data=new byte[]{ 0, 1, 2, 3, 3, 4, 5, 6,0, 1, 2, 3, 4, 5, 6,0, 1, 2, 3, 4, 5, 6,0, 1, 2, 3, 4, 5, 6,0, 1, 2, 3, 4, 5, 6,0, 1, 2, 3,};
-        
+
        for(int i=0;i<data.length;i++){
         	String expectKey =UUID.randomUUID().toString();
             uploadManager.put(data, expectKey, uptoken, new UpCompletionHandler() {

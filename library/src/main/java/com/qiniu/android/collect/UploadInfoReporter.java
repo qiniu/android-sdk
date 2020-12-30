@@ -8,6 +8,7 @@ import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONObject;
 
@@ -35,27 +36,29 @@ public class UploadInfoReporter {
 
     private static UploadInfoReporter instance = new UploadInfoReporter();
 
-    private UploadInfoReporter(){}
+    private UploadInfoReporter() {
+    }
 
-    public static UploadInfoReporter getInstance(){
+    public static UploadInfoReporter getInstance() {
         return instance;
     }
 
-    public synchronized void report(ReportItem reportItem,
-                                    final String tokenString){
-        if (reportItem == null){
+    public synchronized void report(final ReportItem reportItem,
+                                    final String tokenString) {
+        if (reportItem == null) {
             return;
         }
 
         final String jsonString = reportItem.toJson();
-        if (!checkReportAvailable() || jsonString == null){
+        if (!checkReportAvailable() || jsonString == null) {
             return;
         }
 
         AsyncRun.runInBack(new Runnable() {
             @Override
             public void run() {
-                synchronized (this){
+                LogUtil.i("up log:" + StringUtils.toNonnullString(jsonString));
+                synchronized (this) {
                     saveReportJsonString(jsonString);
                     reportToServerIfNeeded(tokenString);
                 }
@@ -63,49 +66,49 @@ public class UploadInfoReporter {
         });
     }
 
-    public void clean(){
+    public void clean() {
         cleanRecorderFile();
         cleanTempLogFile();
     }
 
-    private void cleanRecorderFile(){
-        if (recorderFile.exists()){
+    private void cleanRecorderFile() {
+        if (recorderFile.exists()) {
             recorderFile.delete();
         }
     }
 
-    private void cleanTempLogFile(){
-        if (recorderTempFile.exists()){
+    private void cleanTempLogFile() {
+        if (recorderTempFile.exists()) {
             recorderTempFile.delete();
         }
     }
 
-    private boolean checkReportAvailable(){
-        if (!config.isReportEnable){
+    private boolean checkReportAvailable() {
+        if (!config.isReportEnable) {
             return false;
         }
-        if (config.maxRecordFileSize <= config.uploadThreshold){
+        if (config.maxRecordFileSize <= config.uploadThreshold) {
             LogUtil.e("maxRecordFileSize must be larger than uploadThreshold");
             return false;
         }
         return true;
     }
 
-    private void saveReportJsonString(final String jsonString){
+    private void saveReportJsonString(final String jsonString) {
 
-        if (!recordDirectory.exists() && !recordDirectory.mkdirs()){
+        if (!recordDirectory.exists() && !recordDirectory.mkdirs()) {
             return;
         }
 
-        if (!recordDirectory.isDirectory()){
+        if (!recordDirectory.isDirectory()) {
             LogUtil.e("recordDirectory is not a directory");
             return;
         }
 
-        if (!recorderFile.exists()){
+        if (!recorderFile.exists()) {
             try {
                 boolean isSuccess = recorderFile.createNewFile();
-                if (!isSuccess){
+                if (!isSuccess) {
                     return;
                 }
             } catch (IOException e) {
@@ -113,8 +116,8 @@ public class UploadInfoReporter {
                 return;
             }
         }
-        
-        if (recorderFile.length() > config.maxRecordFileSize){
+
+        if (recorderFile.length() > config.maxRecordFileSize) {
             return;
         }
 
@@ -129,54 +132,55 @@ public class UploadInfoReporter {
             if (fos != null) {
                 try {
                     fos.close();
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
             }
         }
     }
 
-    private void reportToServerIfNeeded(String tokenString){
-        if (isReporting){
+    private void reportToServerIfNeeded(String tokenString) {
+        if (isReporting) {
             return;
         }
         boolean needToReport = false;
         long currentTime = new Date().getTime();
 
-        if (recorderTempFile.exists()){
+        if (recorderTempFile.exists()) {
             needToReport = true;
         } else if ((recorderFile.length() > config.uploadThreshold)
-             || (lastReportTime == 0 || (currentTime - lastReportTime) > config.interval * 60)){
+                || (lastReportTime == 0 || (currentTime - lastReportTime) > config.interval * 60)) {
             boolean isSuccess = recorderFile.renameTo(recorderTempFile);
             if (isSuccess) {
                 needToReport = true;
             }
         }
-        if (needToReport && !this.isReporting){
+        if (needToReport && !this.isReporting) {
             reportToServer(tokenString);
         }
     }
 
-    private void reportToServer(String tokenString){
+    private void reportToServer(String tokenString) {
 
         isReporting = true;
 
         RequestTransaction transaction = createUploadRequestTransaction(tokenString);
-        if (transaction == null){
+        if (transaction == null) {
             return;
         }
 
         byte[] logData = getLogData();
-        if (logData == null || logData.length == 0){
+        if (logData == null || logData.length == 0) {
             return;
         }
 
         transaction.reportLog(logData, X_Log_Client_Id, true, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                if (responseInfo.isOK()){
+                if (responseInfo.isOK()) {
                     lastReportTime = new Date().getTime();
                     if (X_Log_Client_Id == null
                             && responseInfo.responseHeader != null
-                            && responseInfo.responseHeader.get("x-log-client-id") != null){
+                            && responseInfo.responseHeader.get("x-log-client-id") != null) {
                         X_Log_Client_Id = responseInfo.responseHeader.get("x-log-client-id");
                     }
                     cleanTempLogFile();
@@ -189,12 +193,12 @@ public class UploadInfoReporter {
 
     }
 
-    private byte[] getLogData(){
-        if (recorderTempFile == null || recorderTempFile.length() == 0){
+    private byte[] getLogData() {
+        if (recorderTempFile == null || recorderTempFile.length() == 0) {
             return null;
         }
 
-        int fileSize = (int)recorderTempFile.length();
+        int fileSize = (int) recorderTempFile.length();
         RandomAccessFile randomAccessFile = null;
         byte[] data = null;
         try {
@@ -202,7 +206,7 @@ public class UploadInfoReporter {
             ByteArrayOutputStream out = new ByteArrayOutputStream(fileSize);
             int len = 0;
             byte[] buff = new byte[fileSize];
-            while ((len = randomAccessFile.read(buff)) >= 0){
+            while ((len = randomAccessFile.read(buff)) >= 0) {
                 out.write(buff, 0, len);
             }
             data = out.toByteArray();
@@ -210,22 +214,23 @@ public class UploadInfoReporter {
         } catch (IOException e) {
             data = null;
         } finally {
-            if (randomAccessFile != null){
+            if (randomAccessFile != null) {
                 try {
                     randomAccessFile.close();
-                } catch (IOException e){}
+                } catch (IOException e) {
+                }
             }
         }
 
         return data;
     }
 
-    private RequestTransaction createUploadRequestTransaction(String tokenString){
-        if (config == null){
+    private RequestTransaction createUploadRequestTransaction(String tokenString) {
+        if (config == null) {
             return null;
         }
         UpToken token = UpToken.parse(tokenString);
-        if (token == null){
+        if (token == null) {
             return null;
         }
         ArrayList<String> hosts = new ArrayList<>();
@@ -235,7 +240,7 @@ public class UploadInfoReporter {
         return transaction;
     }
 
-    private void destroyTransactionResource(){
+    private void destroyTransactionResource() {
         transaction = null;
     }
 }

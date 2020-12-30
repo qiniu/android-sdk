@@ -2,34 +2,23 @@ package com.qiniu.android.storage;
 
 import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
-import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
-import com.qiniu.android.http.request.UploadFileInfo;
-import com.qiniu.android.http.request.IUploadRegion;
+import com.qiniu.android.utils.AsyncRun;
+import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.Utils;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 
-abstract class PartsUpload extends BaseUpload {
-    private static final String kRecordFileInfoKey = "recordFileInfo";
-    private static final String kRecordZoneInfoKey = "recordZoneInfo";
+class PartsUpload extends BaseUpload {
 
-    protected static long blockSize = 4*1024*1024;
-    // 定制chunk大小 在执行run之前赋值
-    protected Long chunkSize;
+    PartsUploadPerformer uploadPerformer;
 
-    // 断点续传时，起始上传偏移, 暂只做为日志打点，不参与上传逻辑
-    private Long recoveredFrom;
-    private UploadFileInfo uploadFileInfo;
-
-    private RandomAccessFile randomAccessFile;
+    private ResponseInfo uploadDataErrorResponseInfo;
+    private JSONObject uploadDataErrorResponse;
 
     protected PartsUpload(File file,
                           String key,
@@ -40,45 +29,63 @@ abstract class PartsUpload extends BaseUpload {
                           String recorderKey,
                           UpTaskCompletionHandler completionHandler) {
         super(file, key, token, option, config, recorder, recorderKey, completionHandler);
-        RandomAccessFile randomAccessFile = null;
-        if (file != null){
-            try {
-                randomAccessFile = new RandomAccessFile(file, "r");
-            } catch (FileNotFoundException ignored) {}
+    }
+
+    @Override
+    protected void initData() {
+        super.initData();
+
+        if (config != null && config.resumeUploadVersion == Configuration.RESUME_UPLOAD_VERSION_V1) {
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " 分片V1");
+            uploadPerformer = new PartsUploadPerformerV1(file, fileName, key, token, option, config, recorderKey);
+        } else {
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " 分片V2");
+            uploadPerformer = new PartsUploadPerformerV2(file, fileName, key, token, option, config, recorderKey);
         }
-        this.randomAccessFile = randomAccessFile;
     }
 
-    protected UploadFileInfo getUploadFileInfo(){
-        return uploadFileInfo;
+    boolean isAllUploaded() {
+        if (uploadPerformer.fileInfo == null) {
+            return false;
+        } else {
+            return uploadPerformer.fileInfo.isAllUploaded();
+        }
     }
 
-    private void closeUploadFileInfo(){
-        if (randomAccessFile != null){
-            try {
-                randomAccessFile.close();
-            } catch (IOException ignored) {
+    private void setErrorResponse(ResponseInfo responseInfo, JSONObject response) {
+        if (responseInfo == null) {
+            return;
+        }
+
+        if (uploadDataErrorResponseInfo == null || responseInfo.statusCode != ResponseInfo.SDKInteriorError) {
+            uploadDataErrorResponseInfo = responseInfo;
+            if (response == null) {
+                uploadDataErrorResponse = responseInfo.response;
+            } else {
+                uploadDataErrorResponse = response;
             }
         }
-    }
-
-    protected RandomAccessFile getRandomAccessFile() {
-        return randomAccessFile;
     }
 
     @Override
     protected int prepareToUpload() {
         int code = super.prepareToUpload();
-        if (code != 0){
+        if (code != 0) {
             return code;
         }
 
-        recoverUploadInfoFromRecord();
-        if (uploadFileInfo == null){
-            uploadFileInfo = new UploadFileInfo(file.length(), PartsUpload.blockSize, getUploadChunkSize(), file.lastModified());
+        if (uploadPerformer.currentRegion != null && uploadPerformer.currentRegion.isValid()) {
+            insertRegionAtFirst(uploadPerformer.currentRegion);
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " 使用缓存region");
+        } else {
+            uploadPerformer.switchRegion(getCurrentRegion());
         }
 
-        if (randomAccessFile == null){
+        if (uploadPerformer != null && uploadPerformer.currentRegion != null && uploadPerformer.currentRegion.getZoneInfo() != null) {
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " region:" + StringUtils.toNonnullString(uploadPerformer.currentRegion.getZoneInfo().regionId));
+        }
+
+        if (file == null || !uploadPerformer.canReadFile()) {
             code = ResponseInfo.LocalIOError;
         }
 
@@ -86,126 +93,189 @@ abstract class PartsUpload extends BaseUpload {
     }
 
     @Override
+    protected boolean switchRegion() {
+        boolean isSuccess = super.switchRegion();
+        if (isSuccess) {
+            uploadPerformer.switchRegion(getCurrentRegion());
+            if (uploadPerformer != null && uploadPerformer.currentRegion != null && uploadPerformer.currentRegion.getZoneInfo() != null) {
+                LogUtil.i("key:" + StringUtils.toNonnullString(key) + " region:" + StringUtils.toNonnullString(uploadPerformer.currentRegion.getZoneInfo().regionId));
+            }
+        }
+        return isSuccess;
+    }
+
+    @Override
     protected boolean switchRegionAndUpload() {
         reportBlock();
-        if (uploadFileInfo != null){
-            uploadFileInfo.clearUploadState();
+        return super.switchRegionAndUpload();
+    }
+
+    @Override
+    protected void startToUpload() {
+        uploadDataErrorResponse = null;
+        uploadDataErrorResponseInfo = null;
+
+        LogUtil.i("key:" + StringUtils.toNonnullString(key) + " serverInit");
+
+        // 1. 启动upload
+        serverInit(new UploadFileCompleteHandler() {
+            @Override
+            public void complete(ResponseInfo responseInfo, JSONObject response) {
+
+                if (!responseInfo.isOK()) {
+                    if (!switchRegionAndUploadIfNeededWithErrorResponse(responseInfo)) {
+                        completeAction(responseInfo, response);
+                    }
+                    return;
+                }
+
+                LogUtil.i("key:" + StringUtils.toNonnullString(key) + " uploadRestData");
+
+                // 2. 上传数据
+                uploadRestData(new UploadFileRestDataCompleteHandler() {
+                    @Override
+                    public void complete() {
+                        if (!isAllUploaded()) {
+                            if (!switchRegionAndUploadIfNeededWithErrorResponse(uploadDataErrorResponseInfo)) {
+                                completeAction(uploadDataErrorResponseInfo, uploadDataErrorResponse);
+                            }
+                            return;
+                        }
+
+                        LogUtil.i("key:" + StringUtils.toNonnullString(key) + " completeUpload");
+
+                        // 3. 组装文件
+                        completeUpload(new UploadFileCompleteHandler() {
+                            @Override
+                            public void complete(ResponseInfo responseInfo, JSONObject response) {
+
+                                if (!responseInfo.isOK()) {
+                                    if (!switchRegionAndUploadIfNeededWithErrorResponse(responseInfo)) {
+                                        completeAction(responseInfo, response);
+                                    }
+                                    return;
+                                }
+
+                                AsyncRun.runInMain(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        option.progressHandler.progress(key, 1.0);
+                                    }
+                                });
+                                completeAction(responseInfo, response);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+    }
+
+    protected void uploadRestData(final UploadFileRestDataCompleteHandler completeHandler) {
+        LogUtil.i("key:" + StringUtils.toNonnullString(key) + " 串行分片");
+        performUploadRestData(completeHandler);
+    }
+
+    protected void performUploadRestData(final UploadFileRestDataCompleteHandler completeHandler) {
+        if (isAllUploaded()) {
+            completeHandler.complete();
+            return;
         }
 
-        boolean isSwitched = super.switchRegionAndUpload();
-        if (isSwitched){
-            removeUploadInfoRecord();
-        }
-        return isSwitched;
+        uploadNextData(new UploadFileDataCompleteHandler() {
+            @Override
+            public void complete(boolean stop, ResponseInfo responseInfo, JSONObject response) {
+                if (stop || (responseInfo != null && !responseInfo.isOK())) {
+                    completeHandler.complete();
+                } else {
+                    performUploadRestData(completeHandler);
+                }
+            }
+        });
+    }
+
+
+    protected void serverInit(final UploadFileCompleteHandler completeHandler) {
+
+        uploadPerformer.serverInit(new PartsUploadPerformer.PartsUploadPerformerCompleteHandler() {
+            @Override
+            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                if (responseInfo != null && !responseInfo.isOK()) {
+                    setErrorResponse(responseInfo, response);
+                }
+                addRegionRequestMetricsOfOneFlow(requestMetrics);
+                completeHandler.complete(responseInfo, response);
+            }
+        });
+    }
+
+    protected void uploadNextData(final UploadFileDataCompleteHandler completeHandler) {
+
+        uploadPerformer.uploadNextData(new PartsUploadPerformer.PartsUploadPerformerDataCompleteHandler() {
+            @Override
+            public void complete(boolean stop, ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                if (responseInfo != null && !responseInfo.isOK()) {
+                    setErrorResponse(responseInfo, response);
+                }
+                addRegionRequestMetricsOfOneFlow(requestMetrics);
+                completeHandler.complete(stop, responseInfo, response);
+            }
+        });
+    }
+
+    protected void completeUpload(final UploadFileCompleteHandler completeHandler) {
+
+        uploadPerformer.completeUpload(new PartsUploadPerformer.PartsUploadPerformerCompleteHandler() {
+            @Override
+            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                if (responseInfo != null && !responseInfo.isOK()) {
+                    setErrorResponse(responseInfo, response);
+                }
+                addRegionRequestMetricsOfOneFlow(requestMetrics);
+                completeHandler.complete(responseInfo, response);
+            }
+        });
     }
 
     @Override
     protected void completeAction(ResponseInfo responseInfo, JSONObject response) {
         reportBlock();
-        closeUploadFileInfo();
+        uploadPerformer.closeFile();
+        if (shouldRemoveUploadInfoRecord(responseInfo)) {
+            uploadPerformer.removeUploadInfoRecord();
+        }
         super.completeAction(responseInfo, response);
-
-        uploadFileInfo = null;
     }
 
-
-    protected void recordUploadInfo(){
-        String key = recorderKey;
-        if (recorder == null || key == null || key.length() == 0){
-            return;
-        }
-
-        JSONObject zoneInfo = null;
-        JSONObject fileInfo = null;
-        IUploadRegion currentRegion = getCurrentRegion();
-        if (currentRegion != null && currentRegion.getZoneInfo() != null){
-            zoneInfo = currentRegion.getZoneInfo().detailInfo;
-        }
-        if (uploadFileInfo != null){
-            fileInfo = uploadFileInfo.toJsonObject();
-        }
-        if (zoneInfo != null && fileInfo != null){
-            JSONObject info = new JSONObject();
-            try {
-                info.put(kRecordZoneInfoKey, zoneInfo);
-                info.put(kRecordFileInfoKey, fileInfo);
-            } catch (JSONException ignored) {}
-            recorder.set(key, info.toString().getBytes());
-        }
+    private boolean shouldRemoveUploadInfoRecord(ResponseInfo responseInfo) {
+        return responseInfo != null && (responseInfo.isOK() || responseInfo.statusCode == 612 || responseInfo.statusCode == 614 || responseInfo.statusCode == 701);
     }
 
-    protected void removeUploadInfoRecord(){
-        recoveredFrom = null;
-        if (uploadFileInfo != null){
-            uploadFileInfo.clearUploadState();
-        }
-        if (recorder != null && recorderKey != null){
-            recorder.del(recorderKey);
-        }
-    }
-
-    private void recoverUploadInfoFromRecord(){
-        String key = recorderKey;
-        if (recorder == null || key == null || key.length() == 0){
-            return;
-        }
-
-        byte[] data = recorder.get(key);
-        if (data == null){
-            return;
-        }
-
-        try {
-            JSONObject info = new JSONObject(new String(data));
-            ZoneInfo zoneInfo = ZoneInfo.buildFromJson(info.getJSONObject(kRecordZoneInfoKey));
-            UploadFileInfo fileInfo = UploadFileInfo.fileFromJson(info.getJSONObject(kRecordFileInfoKey));
-            if (zoneInfo != null && fileInfo != null &&
-                    fileInfo.size == file.length() && fileInfo.modifyTime == file.lastModified() &&
-                    fileInfo.uploadBlocks != null && fileInfo.uploadBlocks.size() > 0 && fileInfo.uploadBlocks.get(0).uploadDataList != null &&
-                    fileInfo.uploadBlocks.get(0).uploadDataList.size() > 0 && fileInfo.uploadBlocks.get(0).uploadDataList.get(0).size == getUploadChunkSize()){
-                insertRegionAtFirstByZoneInfo(zoneInfo);
-                uploadFileInfo = fileInfo;
-                recoveredFrom = (long)((fileInfo.progress() * fileInfo.size));
-            } else {
-                recorder.del(key);
-            }
-        } catch (Exception e) {
-            recorder.del(key);
-        }
-    }
-
-    private long getUploadChunkSize(){
-        if (chunkSize != null){
-            return  chunkSize;
-        } else {
-            return config.chunkSize;
-        }
-    }
-
-    private void reportBlock(){
+    private void reportBlock() {
 
         UploadRegionRequestMetrics metrics = getCurrentRegionRequestMetrics();
-        if (metrics == null){
+        if (metrics == null) {
             metrics = new UploadRegionRequestMetrics(null);
         }
 
         String currentZoneRegionId = null;
-        if (getCurrentRegion() != null && getCurrentRegion().getZoneInfo() != null && getCurrentRegion().getZoneInfo().regionId != null){
+        if (getCurrentRegion() != null && getCurrentRegion().getZoneInfo() != null && getCurrentRegion().getZoneInfo().regionId != null) {
             currentZoneRegionId = getCurrentRegion().getZoneInfo().regionId;
         }
         String targetZoneRegionId = null;
-        if (getTargetRegion() != null && getTargetRegion().getZoneInfo() != null && getTargetRegion().getZoneInfo().regionId != null){
+        if (getTargetRegion() != null && getTargetRegion().getZoneInfo() != null && getTargetRegion().getZoneInfo().regionId != null) {
             targetZoneRegionId = getTargetRegion().getZoneInfo().regionId;
         }
 
         ReportItem item = new ReportItem();
         item.setReport(ReportItem.LogTypeBlock, ReportItem.BlockKeyLogType);
-        item.setReport((Utils.currentTimestamp()/1000), ReportItem.BlockKeyUpTime);
+        item.setReport((Utils.currentTimestamp() / 1000), ReportItem.BlockKeyUpTime);
         item.setReport(currentZoneRegionId, ReportItem.BlockKeyTargetRegionId);
         item.setReport(targetZoneRegionId, ReportItem.BlockKeyCurrentRegionId);
         item.setReport(metrics.totalElapsedTime(), ReportItem.BlockKeyTotalElapsedTime);
         item.setReport(metrics.bytesSend(), ReportItem.BlockKeyBytesSent);
-        item.setReport(recoveredFrom, ReportItem.BlockKeyRecoveredFrom);
+        item.setReport(uploadPerformer.recoveredFrom, ReportItem.BlockKeyRecoveredFrom);
         item.setReport(file.length(), ReportItem.BlockKeyFileSize);
         item.setReport(Utils.getCurrentProcessID(), ReportItem.BlockKeyPid);
         item.setReport(Utils.getCurrentThreadID(), ReportItem.BlockKeyTid);
@@ -213,5 +283,17 @@ abstract class PartsUpload extends BaseUpload {
         item.setReport(Utils.currentTimestamp(), ReportItem.BlockKeyClientTime);
 
         UploadInfoReporter.getInstance().report(item, token.token);
+    }
+
+    protected interface UploadFileRestDataCompleteHandler {
+        void complete();
+    }
+
+    protected interface UploadFileCompleteHandler {
+        void complete(ResponseInfo responseInfo, JSONObject response);
+    }
+
+    protected interface UploadFileDataCompleteHandler {
+        void complete(boolean stop, ResponseInfo responseInfo, JSONObject response);
     }
 }

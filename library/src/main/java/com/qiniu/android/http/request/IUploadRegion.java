@@ -7,6 +7,8 @@ public interface IUploadRegion {
 
     boolean isValid();
 
+    boolean isEqual(IUploadRegion region);
+
     ZoneInfo getZoneInfo();
 
     void setupRegionData(ZoneInfo zoneInfo);

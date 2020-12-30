@@ -2,12 +2,13 @@ package com.qiniu.android.http.metrics;
 
 import com.qiniu.android.http.request.IUploadRegion;
 
-import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class UploadRegionRequestMetrics {
 
     public final IUploadRegion region;
-    private ArrayList <UploadSingleRequestMetrics> metricsList = new ArrayList<>();
+    private List<UploadSingleRequestMetrics> metricsList = new CopyOnWriteArrayList<>();
 
     public UploadRegionRequestMetrics(IUploadRegion region) {
         this.region = region;
@@ -43,7 +44,7 @@ public class UploadRegionRequestMetrics {
         return bytes;
     }
 
-    public void addMetricsList(ArrayList<UploadSingleRequestMetrics> metricsList){
+    public void addMetricsList(List<UploadSingleRequestMetrics> metricsList){
         if (metricsList == null || metricsList.size() == 0){
             return;
         }

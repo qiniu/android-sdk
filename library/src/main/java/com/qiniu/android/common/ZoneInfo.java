@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,29 +31,31 @@ public class ZoneInfo {
     public List<String> allHosts;
     public JSONObject detailInfo;
 
+    private final Date buildDate;
+
     public static ZoneInfo buildInfo(List<String> mainHosts,
-                                     String regionId){
+                                     String regionId) {
         return buildInfo(mainHosts, null, regionId);
     }
 
     public static ZoneInfo buildInfo(List<String> mainHosts,
                                      List<String> oldHosts,
-                                     String regionId){
-        if (mainHosts == null){
+                                     String regionId) {
+        if (mainHosts == null) {
             return null;
         }
 
         HashMap<String, Object> up = new HashMap<>();
         up.put("domains", mainHosts);
-        if (oldHosts != null){
+        if (oldHosts != null) {
             up.put("old", oldHosts);
         }
 
-        if (regionId == null){
+        if (regionId == null) {
             regionId = EmptyRegionId;
         }
         HashMap<String, Object> info = new HashMap<>();
-        info.put("ttl", 86400*1000);
+        info.put("ttl", 86400 * 1000);
         info.put("region", regionId);
         info.put("up", up);
 
@@ -61,7 +64,8 @@ public class ZoneInfo {
         ZoneInfo zoneInfo = null;
         try {
             zoneInfo = ZoneInfo.buildFromJson(object);
-        } catch (JSONException e) {}
+        } catch (JSONException e) {
+        }
         return zoneInfo;
     }
 
@@ -73,10 +77,10 @@ public class ZoneInfo {
         this.regionId = regionId;
         this.domains = domains;
         this.old_domains = old_domains;
+        this.buildDate = new Date();
     }
 
     /**
-     *
      * @param obj Not allowed to be null
      * @return
      * @throws JSONException
@@ -88,22 +92,22 @@ public class ZoneInfo {
 
         int ttl = obj.optInt("ttl");
         String regionId = obj.optString("region");
-        if (regionId == null){
+        if (regionId == null) {
             regionId = EmptyRegionId;
         }
 
         JSONObject up = obj.optJSONObject("up");
-        if (up == null){
+        if (up == null) {
             return null;
         }
 
         List<String> allHosts = new ArrayList<>();
         List<String> domains = new ArrayList<>();
         JSONArray domainsJson = up.optJSONArray("domains");
-        if (domainsJson != null && domainsJson.length() > 0){
-            for (int i=0; i< domainsJson.length(); i++) {
+        if (domainsJson != null && domainsJson.length() > 0) {
+            for (int i = 0; i < domainsJson.length(); i++) {
                 String domain = domainsJson.optString(i);
-                if (domain != null && domain.length() > 0){
+                if (domain != null && domain.length() > 0) {
                     domains.add(domain);
                     allHosts.add(domain);
                 }
@@ -112,17 +116,17 @@ public class ZoneInfo {
 
         List<String> old_domains = new ArrayList<>();
         JSONArray old_domainsJson = up.optJSONArray("old");
-        if (old_domainsJson != null && old_domainsJson.length() > 0){
-            for (int i=0; i< old_domainsJson.length(); i++) {
+        if (old_domainsJson != null && old_domainsJson.length() > 0) {
+            for (int i = 0; i < old_domainsJson.length(); i++) {
                 String domain = old_domainsJson.optString(i);
-                if (domain != null && domain.length() > 0){
+                if (domain != null && domain.length() > 0) {
                     old_domains.add(domain);
                     allHosts.add(domain);
                 }
             }
         }
 
-        if (domains.size() == 0 && old_domains.size() == 0){
+        if (domains.size() == 0 && old_domains.size() == 0) {
             return null;
         }
 
@@ -134,7 +138,7 @@ public class ZoneInfo {
         return zoneInfo;
     }
 
-    public String getRegionId(){
+    public String getRegionId() {
         return regionId;
     }
 
@@ -146,6 +150,11 @@ public class ZoneInfo {
         return new JSONObject(m).toString();
     }
 
+    public boolean isValid() {
+        int currentTimestamp = (int) (new Date().getTime() * 0.001);
+        int buildTimestamp = (int) (buildDate.getTime() * 0.001);
+        return ttl > (currentTimestamp - buildTimestamp);
+    }
 
     public static class UploadServerGroup {
         public final String info;
@@ -153,8 +162,8 @@ public class ZoneInfo {
         public final ArrayList<String> backup;
         public final ArrayList<String> allHosts;
 
-        public static UploadServerGroup buildInfoFromJson(JSONObject jsonObject){
-            if (jsonObject == null){
+        public static UploadServerGroup buildInfoFromJson(JSONObject jsonObject) {
+            if (jsonObject == null) {
                 return null;
             }
 
@@ -165,7 +174,8 @@ public class ZoneInfo {
 
             try {
                 info = jsonObject.getString("info");
-            } catch (JSONException e) {}
+            } catch (JSONException e) {
+            }
 
             try {
                 JSONArray mainArray = jsonObject.getJSONArray("main");
@@ -174,7 +184,8 @@ public class ZoneInfo {
                     main.add(item);
                     allHosts.add(item);
                 }
-            } catch (JSONException e) {}
+            } catch (JSONException e) {
+            }
 
             try {
                 JSONArray mainArray = jsonObject.getJSONArray("backup");
@@ -183,7 +194,8 @@ public class ZoneInfo {
                     main.add(item);
                     allHosts.add(item);
                 }
-            } catch (JSONException e){}
+            } catch (JSONException e) {
+            }
 
             return new UploadServerGroup(info, main, backup, allHosts);
         }
