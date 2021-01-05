@@ -345,7 +345,7 @@ public class UploadManager {
                                String token){
 
         UpToken upToken = UpToken.parse(token);
-        if (!upToken.isValid()) {
+        if (upToken == null || !upToken.isValid()) {
             return;
         }
 
