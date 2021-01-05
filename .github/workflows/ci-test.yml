@@ -1,4 +1,10 @@
-on: [push]
+on:
+  push:
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
 name: Run Test Cases
 jobs:
   test-on-mac:
