@@ -6,6 +6,8 @@ public class LogUtilsTest extends BaseTest {
 
     public void testLog(){
 
+        LogUtil.enableLog(true);
+
         Throwable throwable = new Throwable();
 
         assertTrue(LogUtil.v("log") > 0);
