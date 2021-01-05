@@ -148,7 +148,7 @@ class HttpSingleRequest {
                                Request request,
                                UploadSingleRequestMetrics requestMetrics){
 
-        if (requestInfo == null || !requestInfo.shouldReportRequestLog() || requestMetrics == null){
+        if (token == null || !token.isValid() || requestInfo == null || !requestInfo.shouldReportRequestLog() || requestMetrics == null){
             return;
         }
 
@@ -200,6 +200,9 @@ class HttpSingleRequest {
             item.setReport(prefetchTime, ReportItem.RequestKeyPrefetchedBefore);
         }
         item.setReport(DnsPrefetcher.getInstance().lastPrefetchErrorMessage, ReportItem.RequestKeyPrefetchedErrorMessage);
+
+        item.setReport(requestMetrics.clientName, ReportItem.RequestKeyHttpClient);
+        item.setReport(requestMetrics.clientVersion, ReportItem.RequestKeyHttpClientVersion);
 
         UploadInfoReporter.getInstance().report(item, token.token);
     }

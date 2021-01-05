@@ -12,6 +12,9 @@ public class UploadSingleRequestMetrics {
     public Request request;
     public ResponseInfo response;
 
+    public String clientName;
+    public String clientVersion;
+
     public Date startDate;
     public Date endDate;
 
