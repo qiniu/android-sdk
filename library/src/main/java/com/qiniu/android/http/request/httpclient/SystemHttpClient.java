@@ -45,6 +45,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.internal.Version;
 
 import static com.qiniu.android.http.ResponseInfo.NetworkError;
 
@@ -71,6 +72,8 @@ public class SystemHttpClient implements IRequestClient {
                         RequestClientCompleteHandler complete) {
 
         metrics = new UploadSingleRequestMetrics();
+        metrics.clientName = "okhttp";
+        metrics.clientVersion = Version.userAgent.replace("okhttp/", "");
         metrics.setRequest(request);
         currentRequest = request;
         httpClient = createHttpClient(connectionProxy);

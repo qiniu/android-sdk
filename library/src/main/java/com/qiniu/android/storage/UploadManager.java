@@ -345,6 +345,10 @@ public class UploadManager {
                                String token){
 
         UpToken upToken = UpToken.parse(token);
+        if (upToken == null || !upToken.isValid()) {
+            return;
+        }
+
         UploadTaskMetrics taskMetricsP = taskMetrics != null ? taskMetrics : new UploadTaskMetrics(null);
 
         ReportItem item = new ReportItem();
@@ -352,11 +356,16 @@ public class UploadManager {
         item.setReport((Utils.currentTimestamp()/1000), ReportItem.QualityKeyUpTime);
         item.setReport(ReportItem.qualityResult(responseInfo), ReportItem.QualityKeyResult);
         item.setReport(key, ReportItem.QualityKeyTargetKey);
-        item.setReport(upToken != null ? upToken.bucket : null, ReportItem.QualityKeyTargetBucket);
+        item.setReport(upToken.bucket, ReportItem.QualityKeyTargetBucket);
         item.setReport(taskMetricsP.totalElapsedTime(), ReportItem.QualityKeyTotalElapsedTime);
         item.setReport(taskMetricsP.requestCount(), ReportItem.QualityKeyRequestsCount);
         item.setReport(taskMetricsP.regionCount(), ReportItem.QualityKeyRegionsCount);
         item.setReport(taskMetricsP.bytesSend(), ReportItem.QualityKeyBytesSent);
+
+        item.setReport(Utils.systemName(), ReportItem.QualityKeyOsName);
+        item.setReport(Utils.systemVersion(), ReportItem.QualityKeyOsVersion);
+        item.setReport(Utils.sdkLanguage(), ReportItem.QualityKeySDKName);
+        item.setReport(Utils.sdkVerion(), ReportItem.QualityKeySDKVersion);
 
         String errorType = ReportItem.requestReportErrorType(responseInfo);
         item.setReport(errorType, ReportItem.QualityKeyErrorType);

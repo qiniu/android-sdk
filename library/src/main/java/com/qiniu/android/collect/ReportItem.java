@@ -73,6 +73,8 @@ public class ReportItem {
     public static final String RequestKeySDKName = "sdk_name";
     public static final String RequestKeySDKVersion = "sdk_version";
     public static final String RequestKeyClientTime = "client_time";
+    public static final String RequestKeyHttpClient = "http_client";
+    public static final String RequestKeyHttpClientVersion = "http_client_version";
     public static final String RequestKeyNetworkType = "network_type";
     public static final String RequestKeySignalStrength = "signal_strength";
     public static final String RequestKeyPrefetchedDnsSource = "prefetched_dns_source";
@@ -82,6 +84,8 @@ public class ReportItem {
     // 分块上传统计⽇志
     public static final String BlockKeyLogType = "log_type";
     public static final String BlockKeyUpTime = "up_time";
+    public static final String BlockKeyTargetBucket = "target_bucket";
+    public static final String BlockKeyTargetKey = "target_key";
     public static final String BlockKeyTargetRegionId = "target_region_id";
     public static final String BlockKeyCurrentRegionId = "current_region_id";
     public static final String BlockKeyTotalElapsedTime = "total_elapsed_time";
@@ -92,6 +96,10 @@ public class ReportItem {
     public static final String BlockKeyTid = "tid";
     public static final String BlockKeyUpApiVersion = "up_api_version";
     public static final String BlockKeyClientTime = "client_time";
+    public static final String BlockKeyOsName = "os_name";
+    public static final String BlockKeyOsVersion = "os_version";
+    public static final String BlockKeySDKName = "sdk_name";
+    public static final String BlockKeySDKVersion = "sdk_version";
 
 
     // 上传质量统计
@@ -107,6 +115,10 @@ public class ReportItem {
     public static final String QualityKeyCloudType = "cloud_type";
     public static final String QualityKeyErrorType = "error_type";
     public static final String QualityKeyErrorDescription = "error_description";
+    public static final String QualityKeyOsName = "os_name";
+    public static final String QualityKeyOsVersion = "os_version";
+    public static final String QualityKeySDKName = "sdk_name";
+    public static final String QualityKeySDKVersion = "sdk_version";
 
     public static String requestReportStatusCode(ResponseInfo responseInfo){
         if (responseInfo == null){

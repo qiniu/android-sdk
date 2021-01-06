@@ -7,6 +7,8 @@ import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.serverRegion.UploadDomainRegion;
 import com.qiniu.android.utils.AsyncRun;
+import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -152,6 +154,10 @@ abstract class PartsUploadPerformer {
             }
             recorder.set(key, info.toString().getBytes());
         }
+
+        LogUtil.i("key:" + StringUtils.toNonnullString(key) +
+                " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
+                " recordUploadInfo");
     }
 
     void removeUploadInfoRecord() {
@@ -162,9 +168,17 @@ abstract class PartsUploadPerformer {
         if (recorder != null && recorderKey != null) {
             recorder.del(recorderKey);
         }
+        LogUtil.i("key:" + StringUtils.toNonnullString(key) +
+                " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
+                " removeUploadInfoRecord");
     }
 
     void recoverUploadInfoFromRecord() {
+        LogUtil.i("key:" + StringUtils.toNonnullString(key) +
+                " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
+                " recorder:" + StringUtils.toNonnullString(recorder) +
+                " recoverUploadInfoFromRecord");
+
         String key = recorderKey;
         if (recorder == null || key == null || key.length() == 0 || file == null) {
             return;
@@ -172,6 +186,9 @@ abstract class PartsUploadPerformer {
 
         byte[] data = recorder.get(key);
         if (data == null) {
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) +
+                    " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
+                    " recoverUploadInfoFromRecord data:null");
             return;
         }
 
@@ -182,6 +199,11 @@ abstract class PartsUploadPerformer {
             if (zoneInfo != null && recoverFileInfo != null && !recoverFileInfo.isEmpty() && file != null &&
                     recoverFileInfo.size == file.length() &&
                     recoverFileInfo.modifyTime == file.lastModified()) {
+
+                LogUtil.i("key:" + StringUtils.toNonnullString(key) +
+                        " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
+                        " recoverUploadInfoFromRecord valid");
+
                 fileInfo = recoverFileInfo;
                 UploadDomainRegion region = new UploadDomainRegion();
                 region.setupRegionData(zoneInfo);
@@ -189,12 +211,20 @@ abstract class PartsUploadPerformer {
                 targetRegion = region;
                 recoveredFrom = (long) ((recoverFileInfo.progress() * recoverFileInfo.size));
             } else {
+                LogUtil.i("key:" + StringUtils.toNonnullString(key) +
+                        " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
+                        " recoverUploadInfoFromRecord invalid");
+
                 recorder.del(key);
                 currentRegion = null;
                 targetRegion = null;
                 recoveredFrom = null;
             }
         } catch (Exception e) {
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) +
+                    " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
+                    " recoverUploadInfoFromRecord json:error");
+
             recorder.del(key);
             currentRegion = null;
             targetRegion = null;

@@ -13,8 +13,8 @@ import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.Utils;
 
 import org.json.JSONObject;
@@ -83,7 +83,10 @@ class HttpSingleRequest {
             }
         };
 
-        LogUtil.d("=== single:" + request.urlString + "  ip:" + (request.ip != null ? request.ip : ""));
+        LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
+                " retry:" + currentRetryTime +
+                " url:" + StringUtils.toNonnullString(request.urlString) +
+                " ip:" + StringUtils.toNonnullString(request.ip));
 
         client.request(request, isAsync, config.proxy, new IRequestClient.RequestClientProgress() {
             @Override
@@ -103,6 +106,8 @@ class HttpSingleRequest {
                 if (metrics != null){
                     requestMetricsList.add(metrics);
                 }
+                LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
+                        " response:" + StringUtils.toNonnullString(responseInfo));
                 if (shouldRetryHandler != null && shouldRetryHandler.shouldRetry(responseInfo, response)
                     && currentRetryTime < config.retryMax
                     && responseInfo.couldHostRetry()){
@@ -143,7 +148,7 @@ class HttpSingleRequest {
                                Request request,
                                UploadSingleRequestMetrics requestMetrics){
 
-        if (requestInfo == null || !requestInfo.shouldReportRequestLog() || requestMetrics == null){
+        if (token == null || !token.isValid() || requestInfo == null || !requestInfo.shouldReportRequestLog() || requestMetrics == null){
             return;
         }
 
@@ -195,6 +200,9 @@ class HttpSingleRequest {
             item.setReport(prefetchTime, ReportItem.RequestKeyPrefetchedBefore);
         }
         item.setReport(DnsPrefetcher.getInstance().lastPrefetchErrorMessage, ReportItem.RequestKeyPrefetchedErrorMessage);
+
+        item.setReport(requestMetrics.clientName, ReportItem.RequestKeyHttpClient);
+        item.setReport(requestMetrics.clientVersion, ReportItem.RequestKeyHttpClientVersion);
 
         UploadInfoReporter.getInstance().report(item, token.token);
     }

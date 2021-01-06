@@ -4,8 +4,9 @@ import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
+import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.StringUtils;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -63,6 +64,8 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
             }
         }
         if (block == null || chunk == null) {
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " no chunk left");
+
             ResponseInfo responseInfo = ResponseInfo.sdkInteriorError("no chunk left");
             completeHandler.complete(true, responseInfo, null, null);
             return;
@@ -70,6 +73,8 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
 
         chunk.data = getDataWithChunk(chunk, block);
         if (chunk.data == null) {
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " no chunk left");
+
             chunk.isUploading = false;
             chunk.isCompleted = false;
             ResponseInfo responseInfo = ResponseInfo.localIOError("get data error");
@@ -116,8 +121,10 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
         };
 
         if (uploadChunk.isFirstData()) {
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " makeBlock");
             makeBlock(uploadBlock, uploadChunk, progressHandler, completeHandlerP);
         } else {
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " makeBlock");
             uploadChunk(uploadBlock, uploadChunk, progressHandler, completeHandlerP);
         }
     }

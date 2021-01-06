@@ -5,6 +5,7 @@ import android.text.TextUtils;
 
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.utils.StringUtils;
+import com.qiniu.android.utils.Utils;
 
 import java.nio.charset.Charset;
 import java.util.Locale;
@@ -35,7 +36,8 @@ public final class UserAgent {
     }
 
     static String getUserAgent(String id) {
-        return format("QiniuAndroid/%s (%s; %s; %s", Constants.VERSION,
+        String addition = Utils.isDebug() ? "_Debug" : "";
+        return format("QiniuAndroid%s/%s (%s; %s; %s",addition, Constants.VERSION,
                 osVersion(), device(), id);
     }
 
