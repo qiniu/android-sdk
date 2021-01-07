@@ -9,7 +9,7 @@ public class SingleFlight {
 
     private Map<String, SingleFlightCall> callInfo = new HashMap<>();
 
-    void perform(String key, ActionHandler actionHandler, CompleteHandler completeHandler) throws Exception {
+    public void perform(String key, ActionHandler actionHandler, CompleteHandler completeHandler) throws Exception {
         if (actionHandler == null) {
             return;
         }
@@ -47,7 +47,7 @@ public class SingleFlight {
                 throw call.exception;
             } else if (call.value != null) {
                 if (completeHandler != null) {
-                    completeHandler.complete(null);
+                    completeHandler.complete(call.value);
                 }
             }
             return;
