@@ -4,6 +4,7 @@ import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.storage.UpToken;
+import com.qiniu.android.utils.SingleFlight;
 
 import org.json.JSONObject;
 
@@ -22,6 +23,8 @@ public final class AutoZone extends Zone {
     private String ucServer;
     private Map<String, ZonesInfo> zonesInfoMap = new ConcurrentHashMap<>();
     private ArrayList<RequestTransaction> transactions = new ArrayList<>();
+
+    private static final SingleFlight SingleFlight = new SingleFlight();
 
     //私有云可能改变ucServer
     public void setUcServer(String ucServer) {
@@ -72,27 +75,56 @@ public final class AutoZone extends Zone {
             return;
         }
 
-        final RequestTransaction transaction = createUploadRequestTransaction(token);
-        transaction.queryUploadHosts(true, new RequestTransaction.RequestCompleteHandler() {
-            @Override
-            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                if (responseInfo != null && responseInfo.isOK() && response != null) {
-                    ZonesInfo zonesInfoP = ZonesInfo.createZonesInfo(response);
-                    zonesInfoMap.put(cacheKey, zonesInfoP);
-                    GlobalCache.getInstance().cache(response, cacheKey);
-                    completeHandler.complete(0, responseInfo, requestMetrics);
-                } else {
-                    if (responseInfo.isNetworkBroken()) {
-                        completeHandler.complete(ResponseInfo.NetworkError, responseInfo, requestMetrics);
-                    } else {
-                        ZonesInfo zonesInfoP = FixedZone.localsZoneInfo().getZonesInfo(token);
+
+        try {
+            SingleFlight.perform(cacheKey, new SingleFlight.ActionHandler() {
+                @Override
+                public void action(final com.qiniu.android.utils.SingleFlight.CompleteHandler completeHandler) throws Exception {
+
+                    final RequestTransaction transaction = createUploadRequestTransaction(token);
+                    transaction.queryUploadHosts(true, new RequestTransaction.RequestCompleteHandler() {
+                        @Override
+                        public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                            destroyUploadRequestTransaction(transaction);
+
+                            SingleFlightValue value = new SingleFlightValue();
+                            value.responseInfo = responseInfo;
+                            value.response = response;
+                            value.metrics = requestMetrics;
+                            completeHandler.complete(value);
+                        }
+                    });
+                }
+
+            }, new SingleFlight.CompleteHandler() {
+                @Override
+                public void complete(Object value) {
+                    SingleFlightValue singleFlightValue = (SingleFlightValue)value;
+                    ResponseInfo responseInfo = singleFlightValue.responseInfo;
+                    UploadRegionRequestMetrics requestMetrics = singleFlightValue.metrics;
+                    JSONObject response = singleFlightValue.response;
+
+                    if (responseInfo != null && responseInfo.isOK() && response != null) {
+                        ZonesInfo zonesInfoP = ZonesInfo.createZonesInfo(response);
                         zonesInfoMap.put(cacheKey, zonesInfoP);
+                        GlobalCache.getInstance().cache(response, cacheKey);
                         completeHandler.complete(0, responseInfo, requestMetrics);
+                    } else {
+                        if (responseInfo.isNetworkBroken()) {
+                            completeHandler.complete(ResponseInfo.NetworkError, responseInfo, requestMetrics);
+                        } else {
+                            ZonesInfo zonesInfoP = FixedZone.localsZoneInfo().getZonesInfo(token);
+                            zonesInfoMap.put(cacheKey, zonesInfoP);
+                            completeHandler.complete(0, responseInfo, requestMetrics);
+                        }
                     }
                 }
-                destroyUploadRequestTransaction(transaction);
-            }
-        });
+            });
+
+        } catch (Exception e) {
+            /// 此处永远不会执行，回调只为占位
+            completeHandler.complete(ResponseInfo.NetworkError, ResponseInfo.localIOError("uc query"), null);
+        }
     }
 
     private RequestTransaction createUploadRequestTransaction(UpToken token) {
@@ -107,6 +139,11 @@ public final class AutoZone extends Zone {
         transactions.remove(transaction);
     }
 
+    private static class SingleFlightValue {
+        private ResponseInfo responseInfo;
+        private JSONObject response;
+        private UploadRegionRequestMetrics metrics;
+    }
 
     private static class GlobalCache {
         private static GlobalCache globalCache = new GlobalCache();

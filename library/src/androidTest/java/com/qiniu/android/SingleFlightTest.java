@@ -109,6 +109,8 @@ public class SingleFlightTest extends BaseTest {
                 return testStatus.maxCount != testStatus.completeCount;
             }
         }, 60);
+
+        LogUtil.d("== async completeCount:" + testStatus.completeCount + " end");
     }
 
     private void singleFlightPerform(final SingleFlight singleFlight,
@@ -136,7 +138,7 @@ public class SingleFlightTest extends BaseTest {
                     };
 
                     if (isAsync) {
-                         AsyncRun.runInBack(new Runnable() {
+                         new Thread(new Runnable() {
                             @Override
                             public void run() {
                                 try {
@@ -145,7 +147,7 @@ public class SingleFlightTest extends BaseTest {
                                     singleFlightCompleteHandler.complete(null);
                                 }
                             }
-                        });
+                        }).start();
                     } else {
                         completeHandlerP.complete();
                     }
@@ -157,7 +159,6 @@ public class SingleFlightTest extends BaseTest {
                         singleFlightPerform(singleFlight, index, retryCount + 1, isAsync, completeHandler);
                     } else {
                         LogUtil.d("== " + (isAsync ? "async" : "sync") + " action complete retryCount:" + retryCount + " value:" + value + " index:" + index);
-                        assertTrue(value != null);
                         if (!isAsync) {
                             assertTrue("index:" + index + "value error",(value + "").equals(index + ""));
                         }

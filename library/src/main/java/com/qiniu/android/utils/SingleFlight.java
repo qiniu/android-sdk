@@ -9,6 +9,12 @@ public class SingleFlight {
 
     private Map<String, SingleFlightCall> callInfo = new HashMap<>();
 
+    /**
+     * 异步 SingleFlight 执行函数
+     * @param key actionHandler 对应的 key，同一时刻同一个 key 最多只有一个对应的 actionHandler 在执行
+     * @param actionHandler 执行函数，注意：actionHandler 中，【完成回调】和【抛出异常】二者有且有一个，且只能出现一次
+     * @param completeHandler  single flight 执行 actionHandler 后的完成回调
+     */
     public void perform(String key, ActionHandler actionHandler, CompleteHandler completeHandler) throws Exception {
         if (actionHandler == null) {
             return;
@@ -32,9 +38,8 @@ public class SingleFlight {
             }
 
             synchronized (call) {
-                if (call.exception != null || call.value != null) {
-                    shouldComplete = true;
-                } else {
+                shouldComplete = call.isComplete;
+                if (!shouldComplete) {
                     SingleFlightTask task = new SingleFlightTask();
                     task.completeHandler = completeHandler;
                     call.tasks.add(task);
@@ -45,7 +50,7 @@ public class SingleFlight {
         if (shouldComplete) {
             if (call.exception != null) {
                 throw call.exception;
-            } else if (call.value != null) {
+            } else {
                 if (completeHandler != null) {
                     completeHandler.complete(call.value);
                 }
@@ -65,6 +70,10 @@ public class SingleFlight {
                 public void complete(Object value) {
                     List<SingleFlightTask> currentTasks = null;
                     synchronized (finalCall) {
+                        if (finalCall.isComplete) {
+                            return;
+                        }
+                        finalCall.isComplete = true;
                         finalCall.value = value;
                         currentTasks = new ArrayList<>(finalCall.tasks);
                     }
@@ -83,6 +92,10 @@ public class SingleFlight {
         } catch (Exception e) {
             List<SingleFlightTask> currentTasks = null;
             synchronized (finalCall) {
+                if (finalCall.isComplete) {
+                    return;
+                }
+                finalCall.isComplete = true;
                 finalCall.exception = e;
                 currentTasks = new ArrayList<>(call.tasks);
             }
@@ -104,6 +117,7 @@ public class SingleFlight {
     }
 
     private static class SingleFlightCall {
+        private boolean isComplete = false;
         private List<SingleFlightTask> tasks = new ArrayList<>();
         private Object value;
         private Exception exception;
