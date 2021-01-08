@@ -1,6 +1,5 @@
 package com.qiniu.android;
 
-import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.SingleFlight;
 
