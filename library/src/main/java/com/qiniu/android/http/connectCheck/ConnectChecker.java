@@ -11,7 +11,7 @@ import com.qiniu.android.utils.Wait;
 
 import org.json.JSONObject;
 
-public class ConnectChecker implements  {
+public class ConnectChecker {
 
     private static SingleFlight<Boolean> singleFlight = new SingleFlight<>();
 
