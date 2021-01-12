@@ -7,16 +7,29 @@ import com.qiniu.android.http.request.Request;
 import com.qiniu.android.http.request.httpclient.SystemHttpClient;
 import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.utils.SingleFlight;
+import com.qiniu.android.utils.Wait;
 
 import org.json.JSONObject;
 
-public class ConnectChecker {
+public class ConnectChecker implements  {
 
     private static SingleFlight<Boolean> singleFlight = new SingleFlight<>();
 
     public static boolean check() {
 
-        return false;
+        final CheckResult result = new CheckResult();
+
+        final Wait wait = new Wait();
+        check(new CheckCompleteHandler() {
+            @Override
+            public void complete(boolean isConnected) {
+                result.isConnected = isConnected;
+                wait.stopWait();
+            }
+        });
+        wait.startWait();
+
+        return result.isConnected;
     }
 
     private static void check(final CheckCompleteHandler completeHandler) {
@@ -98,6 +111,10 @@ public class ConnectChecker {
     private static class CheckStatus {
         private int totalCount = 0;
         private int completeCount = 0;
+        private boolean isConnected = false;
+    }
+
+    private static class CheckResult {
         private boolean isConnected = false;
     }
 }
