@@ -101,10 +101,10 @@ public class ConnectChecker {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
                 if (responseInfo.statusCode > 99) {
-                    LogUtil.i("== checkHost:" + host + "result: true");
+                    LogUtil.i("== checkHost:" + host + " result: true");
                     completeHandler.complete(true);
                 } else {
-                    LogUtil.i("== checkHost:" + host + "result: false");
+                    LogUtil.i("== checkHost:" + host + " result: false");
                     completeHandler.complete(false);
                 }
             }
