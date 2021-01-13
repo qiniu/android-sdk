@@ -93,7 +93,7 @@ public class ConnectChecker {
 
     private static void checkHost(final String host, final CheckCompleteHandler completeHandler) {
 
-        Request request = new Request(host, Request.HttpMethodHEAD, null, null, 3);
+        Request request = new Request(host, Request.HttpMethodHEAD, null, null, GlobalConfiguration.getInstance().connectCheckTimeout);
         SystemHttpClient client = new SystemHttpClient();
 
         LogUtil.i("== checkHost:" + host);

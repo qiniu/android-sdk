@@ -54,6 +54,11 @@ public class GlobalConfiguration {
      */
     public String[] connectCheckURLStrings = new String[]{"https://www.baidu.com", "https://www.google.com"};
 
+    /**
+     * 网络连接状态检测HEAD请求超时，默认：3s
+     */
+    public int connectCheckTimeout = 3;
+
     private static GlobalConfiguration configuration = new GlobalConfiguration();
 
     private GlobalConfiguration() {
