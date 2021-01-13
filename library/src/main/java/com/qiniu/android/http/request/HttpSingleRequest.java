@@ -109,7 +109,7 @@ class HttpSingleRequest {
                 }
 
                 if (shouldCheckConnect(responseInfo) && !ConnectChecker.check()) {
-                    String message = "check origin statusCode:" + responseInfo.statusCode + " error:" + responseInfo.message;
+                    String message = "check origin statusCode:" + responseInfo.statusCode + " error:" + responseInfo.error;
                     responseInfo = ResponseInfo.errorInfo(ResponseInfo.NetworkSlow, message);
                 }
 
