@@ -6,6 +6,7 @@ import com.qiniu.android.http.request.IRequestClient;
 import com.qiniu.android.http.request.Request;
 import com.qiniu.android.http.request.httpclient.SystemHttpClient;
 import com.qiniu.android.storage.GlobalConfiguration;
+import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.SingleFlight;
 import com.qiniu.android.utils.Wait;
 
@@ -66,19 +67,23 @@ public class ConnectChecker {
         allHosts = allHosts.clone();
         final CheckStatus checkStatus = new CheckStatus();
         checkStatus.totalCount = allHosts.length;
+        checkStatus.completeCount = 0;
         for (String host : allHosts) {
             checkHost(host, new CheckCompleteHandler() {
                 @Override
                 public void complete(boolean isHostConnected) {
 
-                    synchronized (this) {
+                    synchronized (checkStatus) {
                         checkStatus.completeCount += 1;
                     }
                     if (isHostConnected) {
                         checkStatus.isConnected = true;
                     }
                     if (checkStatus.completeCount == checkStatus.totalCount) {
+                        LogUtil.i("== check all hosts has completed totalCount:" + checkStatus.totalCount + " completeCount:" + checkStatus.completeCount);
                         completeHandler.complete(checkStatus.isConnected);
+                    } else {
+                        LogUtil.i("== check all hosts not completed totalCount:" + checkStatus.totalCount + " completeCount:" + checkStatus.completeCount);
                     }
                 }
             });
@@ -86,17 +91,20 @@ public class ConnectChecker {
 
     }
 
-    private static void checkHost(String host, final CheckCompleteHandler completeHandler) {
+    private static void checkHost(final String host, final CheckCompleteHandler completeHandler) {
 
-        Request request = new Request(host, "HEAD", null, null, 3);
+        Request request = new Request(host, Request.HttpMethodHEAD, null, null, 3);
         SystemHttpClient client = new SystemHttpClient();
 
+        LogUtil.i("== checkHost:" + host);
         client.request(request, true, null, null, new IRequestClient.RequestClientCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
                 if (responseInfo.statusCode > 99) {
+                    LogUtil.i("== checkHost:" + host + "result: true");
                     completeHandler.complete(true);
                 } else {
+                    LogUtil.i("== checkHost:" + host + "result: false");
                     completeHandler.complete(false);
                 }
             }

@@ -6,6 +6,7 @@ import java.util.Map;
 
 public class Request {
 
+    public static final String HttpMethodHEAD = "HEAD";
     public static final String HttpMethodGet = "GET";
     public static final String HttpMethodPOST = "POST";
     public static final String HttpMethodPUT = "PUT";
