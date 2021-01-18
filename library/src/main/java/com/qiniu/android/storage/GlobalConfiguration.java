@@ -52,7 +52,7 @@ public class GlobalConfiguration {
      * 当请求的 Response 为网络异常时，并发对 connectCheckURLStrings 中 URLString 进行 HEAD 请求，以此检测当前网络状态的链接状态，其中任意一个 URLString 链接成功则认为当前网络状态链接良好；
      * 当 connectCheckURLStrings 为 nil 或者 空数组时则弃用检测功能。
      */
-    public String[] connectCheckURLStrings = new String[]{"https://www.baidu.com", "https://www.google.com"};
+    public String[] connectCheckURLStrings = new String[]{"http://www.baidu.com", "http://www.google.com"};
 
     /**
      * 网络连接状态检测HEAD请求超时，默认：3s
