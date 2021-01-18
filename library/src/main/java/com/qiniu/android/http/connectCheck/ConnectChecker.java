@@ -68,6 +68,7 @@ public class ConnectChecker {
         final CheckStatus checkStatus = new CheckStatus();
         checkStatus.totalCount = allHosts.length;
         checkStatus.completeCount = 0;
+        checkStatus.isCompleted = false;
         for (String host : allHosts) {
             checkHost(host, new CheckCompleteHandler() {
                 @Override
@@ -79,8 +80,16 @@ public class ConnectChecker {
                     if (isHostConnected) {
                         checkStatus.isConnected = true;
                     }
-                    if (checkStatus.completeCount == checkStatus.totalCount) {
-                        LogUtil.i("== check all hosts has completed totalCount:" + checkStatus.totalCount + " completeCount:" + checkStatus.completeCount);
+                    if (isHostConnected || checkStatus.completeCount == checkStatus.totalCount) {
+                        synchronized (checkStatus) {
+                            if (checkStatus.isCompleted) {
+                                LogUtil.i("== check all hosts has completed totalCount:" + checkStatus.totalCount + " completeCount:" + checkStatus.completeCount);
+                                return;
+                            } else {
+                                LogUtil.i("== check all hosts completed totalCount:" + checkStatus.totalCount + " completeCount:" + checkStatus.completeCount);
+                                checkStatus.isCompleted = true;
+                            }
+                        }
                         completeHandler.complete(checkStatus.isConnected);
                     } else {
                         LogUtil.i("== check all hosts not completed totalCount:" + checkStatus.totalCount + " completeCount:" + checkStatus.completeCount);
@@ -119,6 +128,7 @@ public class ConnectChecker {
     private static class CheckStatus {
         private int totalCount = 0;
         private int completeCount = 0;
+        private boolean isCompleted = false;
         private boolean isConnected = false;
     }
 
