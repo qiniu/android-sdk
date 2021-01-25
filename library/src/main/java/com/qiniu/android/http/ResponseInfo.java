@@ -279,7 +279,7 @@ public final class ResponseInfo {
 
     public boolean isHostUnavailable(){
         // 基本不可恢复，注：会影响下次请求，范围太大可能会造成大量的timeout
-        if (isTlsError() || statusCode == 502 || statusCode == 503 || statusCode == 504 || statusCode == 599) {
+        if (statusCode == 502 || statusCode == 503 || statusCode == 504 || statusCode == 599) {
             return true;
         } else {
             return false;

@@ -4,6 +4,7 @@ package com.qiniu.android.http.request;
 import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.connectCheck.ConnectChecker;
 import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.request.httpclient.SystemHttpClient;
 import com.qiniu.android.http.request.handler.CheckCancelHandler;
@@ -106,6 +107,12 @@ class HttpSingleRequest {
                 if (metrics != null){
                     requestMetricsList.add(metrics);
                 }
+
+                if (shouldCheckConnect(responseInfo) && !ConnectChecker.check()) {
+                    String message = "check origin statusCode:" + responseInfo.statusCode + " error:" + responseInfo.error;
+                    responseInfo = ResponseInfo.errorInfo(ResponseInfo.NetworkSlow, message);
+                }
+
                 LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
                         " response:" + StringUtils.toNonnullString(responseInfo));
                 if (shouldRetryHandler != null && shouldRetryHandler.shouldRetry(responseInfo, response)
@@ -126,6 +133,15 @@ class HttpSingleRequest {
 
     }
 
+    private boolean shouldCheckConnect(ResponseInfo responseInfo) {
+        return responseInfo != null && (
+                responseInfo.statusCode == -1001 || /* timeout */
+                responseInfo.statusCode == -1003 || /* unknown host */
+                responseInfo.statusCode == -1004 || /* cannot connect to host */
+                responseInfo.statusCode == -1005 || /* connection lost */
+                responseInfo.statusCode == -1009 || /* not connected to host */
+                responseInfo.isTlsError());
+    }
 
     private synchronized void completeAction(Request request,
                                              ResponseInfo responseInfo,
