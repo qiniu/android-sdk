@@ -3,8 +3,8 @@ package com.qiniu.android.http.request;
 public class UploadRequestState {
 
     private boolean isUseOldServer;
-    private boolean isHTTP3;
     private boolean isUserCancel;
+    private String httpVersion;
 
     boolean isUserCancel(){
         return isUserCancel;
@@ -22,11 +22,19 @@ public class UploadRequestState {
         isUseOldServer = useOldServer;
     }
 
-    public boolean isHTTP3() {
-        return isHTTP3;
+    public String httpVersion() {
+        return httpVersion;
     }
 
-    public void setHTTP3(boolean HTTP3) {
-        isHTTP3 = HTTP3;
+    public void setHttpVersion(String httpVersion) {
+        this.httpVersion = httpVersion;
+    }
+
+    protected UploadRequestState clone() {
+        UploadRequestState state = new UploadRequestState();
+        state.httpVersion = httpVersion;
+        state.isUseOldServer = isUseOldServer;
+        state.isUserCancel = isUserCancel;
+        return state;
     }
 }

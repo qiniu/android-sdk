@@ -8,9 +8,9 @@ public class UploadServerFreezeManagerTest extends BaseTest {
 
         String host = "baidu.com";
         String type = host;
-        UploadServerFreezeManager.getInstance().freezeHost(host, type, 10);
+        UploadServerFreezeManager.getInstance().freezeType(type, 10);
 
-        boolean isFrozen = UploadServerFreezeManager.getInstance().isFreezeHost(host, type);
+        boolean isFrozen = UploadServerFreezeManager.getInstance().isTypeFrozen(type);
         assertTrue(isFrozen);
     }
 
@@ -18,13 +18,13 @@ public class UploadServerFreezeManagerTest extends BaseTest {
 
         String host = "baidu.com";
         String type = host;
-        UploadServerFreezeManager.getInstance().freezeHost(host, type, 10);
+        UploadServerFreezeManager.getInstance().freezeType(type, 10);
 
-        boolean isFrozen = UploadServerFreezeManager.getInstance().isFreezeHost(host, type);
+        boolean isFrozen = UploadServerFreezeManager.getInstance().isTypeFrozen(type);
         assertTrue(isFrozen);
 
-        UploadServerFreezeManager.getInstance().unfreezeHost(host, type);
-        isFrozen = UploadServerFreezeManager.getInstance().isFreezeHost(host, type);
+        UploadServerFreezeManager.getInstance().unfreezeType(type);
+        isFrozen = UploadServerFreezeManager.getInstance().isTypeFrozen(type);
         assertTrue(isFrozen == false);
 
     }

@@ -19,7 +19,7 @@ public class UploadDomainRegionTest extends BaseTest {
         UploadDomainRegion region = new UploadDomainRegion();
         region.setupRegionData(zone.getZonesInfo(null).zonesInfo.get(0));
 
-        UploadServerFreezeManager.getInstance().freezeHost(host, type, 100);
+        UploadServerFreezeManager.getInstance().freezeType(type, 100);
 
         UploadRequestState state = new UploadRequestState();
         state.setUseOldServer(false);

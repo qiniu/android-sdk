@@ -60,22 +60,6 @@ public class NetworkStatusManager {
         asyncRecordNetworkStatusInfo();
     }
 
-
-    public void updateNetworkStatus(String type, boolean supportHTTP3) {
-        if (type == null || type.length() == 0) {
-            return;
-        }
-        NetworkStatus status = networkStatusInfo.get(type);
-        if (status == null) {
-            status = new NetworkStatus();
-            networkStatusInfo.put(type, status);
-        }
-        status.setSupportHTTP3(supportHTTP3);
-
-        asyncRecordNetworkStatusInfo();
-    }
-
-
     // ---------- 持久化 -----------
     private void asyncRecordNetworkStatusInfo() {
         synchronized (this) {
@@ -172,15 +156,6 @@ public class NetworkStatusManager {
     public static class NetworkStatus {
 
         private int speed;
-        private long http3FrozenTimestamp;
-
-        public boolean isSupportHTTP3() {
-            return http3FrozenTimestamp < (new Date()).getTime();
-        }
-
-        public void setSupportHTTP3(boolean supportHTTP3) {
-            http3FrozenTimestamp = new Date().getTime();
-        }
 
         public int getSpeed() {
             return speed;
@@ -194,7 +169,6 @@ public class NetworkStatusManager {
             JSONObject jsonObject = new JSONObject();
             try {
                 jsonObject.put("speed", speed);
-                jsonObject.put("http3FrozenTimestamp", http3FrozenTimestamp);
             } catch (Exception ignored) {
             }
             return jsonObject;
@@ -208,7 +182,6 @@ public class NetworkStatusManager {
             NetworkStatus status = new NetworkStatus();
             try {
                 status.speed = jsonObject.getInt("speed");
-                status.http3FrozenTimestamp = jsonObject.getLong("http3FrozenTimestamp");
             } catch (Exception ignored) {
             }
             return status;
