@@ -52,23 +52,21 @@ class HttpSingleRequest {
 
     void request(Request request,
                  boolean isAsync,
-                 boolean toSkipDns,
                  RequestShouldRetryHandler shouldRetryHandler,
                  RequestProgressHandler progressHandler,
                  RequestCompleteHandler completeHandler) {
         currentRetryTime = 0;
         requestMetricsList = new ArrayList<>();
-        retryRequest(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, completeHandler);
+        retryRequest(request, isAsync, shouldRetryHandler, progressHandler, completeHandler);
     }
 
     private void retryRequest(final Request request,
                               final boolean isAsync,
-                              final boolean toSkipDns,
                               final RequestShouldRetryHandler shouldRetryHandler,
                               final RequestProgressHandler progressHandler,
                               final RequestCompleteHandler completeHandler) {
 
-        if (toSkipDns) {
+        if (request.uploadServer.isHttp3()) {
             client = new SystemHttpClient();
         } else {
             client = new SystemHttpClient();
@@ -125,7 +123,7 @@ class HttpSingleRequest {
                         Thread.sleep(config.retryInterval);
                     } catch (InterruptedException ignored) {
                     }
-                    retryRequest(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, completeHandler);
+                    retryRequest(request, isAsync, shouldRetryHandler, progressHandler, completeHandler);
                 } else {
                     completeAction(request, responseInfo, response, metrics, completeHandler);
                 }

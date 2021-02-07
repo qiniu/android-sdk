@@ -103,14 +103,8 @@ class HttpRegionRequest {
             server = null;
         }
 
-        boolean toSkipDns;
         String scheme = config.useHttps ? "https://" : "http://";
         String urlString = scheme + serverHost + (action != null ? action : "");
-        if (serverIP != null && serverIP.length() > 0) {
-            toSkipDns = false;
-        } else {
-            toSkipDns = true;
-        }
         final Request request = new Request(urlString, method, header, data, config.connectTimeout);
         request.host = serverHost;
         request.ip = serverIP;
@@ -121,7 +115,7 @@ class HttpRegionRequest {
         LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
                 " headers:" + StringUtils.toNonnullString(request.allHeaders));
 
-        singleRequest.request(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, new HttpSingleRequest.RequestCompleteHandler() {
+        singleRequest.request(request, isAsync, shouldRetryHandler, progressHandler, new HttpSingleRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, ArrayList<UploadSingleRequestMetrics> requestMetricsList, JSONObject response) {
 

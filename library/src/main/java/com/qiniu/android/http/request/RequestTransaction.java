@@ -109,7 +109,7 @@ public class RequestTransaction {
 
         HashMap<String, String> header = new HashMap<>();
         header.put("User-Agent", userAgent);
-        String action = "/v4/query?ak=" + (token.accessKey != null ? token.accessKey : "") + "&bucket=" + (token.bucket != null ? token.bucket : "");
+        String action = String.format("/v4/query?ak=%s&bucket=%s&sdk_version=%s&sdk_name=%s", token.accessKey, token.bucket, Utils.sdkVerion(), Utils.sdkLanguage());
         regionRequest.get(action, isAsync, header, shouldRetryHandler, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {

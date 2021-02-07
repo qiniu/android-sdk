@@ -123,7 +123,7 @@ public final class AutoZone extends Zone {
 
         } catch (Exception e) {
             /// 此处永远不会执行，回调只为占位
-            completeHandler.complete(ResponseInfo.NetworkError, ResponseInfo.localIOError("uc query"), null);
+            completeHandler.complete(ResponseInfo.NetworkError, ResponseInfo.localIOError(e.toString()), null);
         }
     }
 

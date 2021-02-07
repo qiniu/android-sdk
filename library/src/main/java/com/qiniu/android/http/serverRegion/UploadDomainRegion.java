@@ -84,6 +84,9 @@ public class UploadDomainRegion implements IUploadRegion {
         this.zoneInfo = zoneInfo;
 
         isAllFrozen = false;
+        http3Enabled = zoneInfo.http3Enabled;
+        // 暂不开启
+        http3Enabled = false;
 
         ArrayList<String> domainHostList = new ArrayList<>();
         if (zoneInfo.domains != null) {
@@ -217,13 +220,13 @@ public class UploadDomainRegion implements IUploadRegion {
         }
 
         // 2. http2 冻结
-        // 无法连接到Host || Host不可用， 局部冻结
+        // 2.1 无法连接到Host || Host不可用， 局部冻结
         if (!responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
             LogUtil.i("partial freeze server host:" + StringUtils.toNonnullString(freezeServer.getHost()) + " ip:" + StringUtils.toNonnullString(freezeServer.getIp()));
             partialHttp2Freezer.freezeType(frozenType, GlobalConfiguration.getInstance().partialHostFrozenTime);
         }
 
-        // Host不可用，全局冻结
+        // 2.2 Host不可用，全局冻结
         if (responseInfo.isHostUnavailable()) {
             LogUtil.i("global freeze server host:" + StringUtils.toNonnullString(freezeServer.getHost()) + " ip:" + StringUtils.toNonnullString(freezeServer.getIp()));
             UploadServerFreezeUtil.globalHttp2Freezer().freezeType(frozenType, GlobalConfiguration.getInstance().globalHostFrozenTime);
