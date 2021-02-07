@@ -4,6 +4,7 @@ package com.qiniu.android.http.request;
 import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.connectCheck.ConnectChecker;
 import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.networkStatus.NetworkStatusManager;
 import com.qiniu.android.http.request.httpclient.SystemHttpClient;
@@ -107,6 +108,12 @@ class HttpSingleRequest {
                 if (metrics != null) {
                     requestMetricsList.add(metrics);
                 }
+
+                if (shouldCheckConnect(responseInfo) && !ConnectChecker.check()) {
+                    String message = "check origin statusCode:" + responseInfo.statusCode + " error:" + responseInfo.error;
+                    responseInfo = ResponseInfo.errorInfo(ResponseInfo.NetworkSlow, message);
+                }
+
                 LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
                         " response:" + StringUtils.toNonnullString(responseInfo));
                 if (shouldRetryHandler != null && shouldRetryHandler.shouldRetry(responseInfo, response)
@@ -127,6 +134,15 @@ class HttpSingleRequest {
 
     }
 
+    private boolean shouldCheckConnect(ResponseInfo responseInfo) {
+        return responseInfo != null && (
+                responseInfo.statusCode == -1001 || /* timeout */
+                responseInfo.statusCode == -1003 || /* unknown host */
+                responseInfo.statusCode == -1004 || /* cannot connect to host */
+                responseInfo.statusCode == -1005 || /* connection lost */
+                responseInfo.statusCode == -1009 || /* not connected to host */
+                responseInfo.isTlsError());
+    }
 
     private synchronized void completeAction(Request request,
                                              ResponseInfo responseInfo,
@@ -164,7 +180,7 @@ class HttpSingleRequest {
                                Request request,
                                UploadSingleRequestMetrics requestMetrics) {
 
-        if (requestInfo == null || !requestInfo.shouldReportRequestLog() || requestMetrics == null) {
+        if (token == null || !token.isValid() || requestInfo == null || !requestInfo.shouldReportRequestLog() || requestMetrics == null){
             return;
         }
 
@@ -216,6 +232,9 @@ class HttpSingleRequest {
             item.setReport(prefetchTime, ReportItem.RequestKeyPrefetchedBefore);
         }
         item.setReport(DnsPrefetcher.getInstance().lastPrefetchErrorMessage, ReportItem.RequestKeyPrefetchedErrorMessage);
+
+        item.setReport(requestMetrics.clientName, ReportItem.RequestKeyHttpClient);
+        item.setReport(requestMetrics.clientVersion, ReportItem.RequestKeyHttpClientVersion);
 
         UploadInfoReporter.getInstance().report(item, token.token);
     }

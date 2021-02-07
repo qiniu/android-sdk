@@ -254,6 +254,10 @@ class PartsUpload extends BaseUpload {
 
     private void reportBlock() {
 
+        if (token == null || !token.isValid()) {
+            return;
+        }
+
         UploadRegionRequestMetrics metrics = getCurrentRegionRequestMetrics();
         if (metrics == null) {
             metrics = new UploadRegionRequestMetrics(null);
@@ -271,6 +275,8 @@ class PartsUpload extends BaseUpload {
         ReportItem item = new ReportItem();
         item.setReport(ReportItem.LogTypeBlock, ReportItem.BlockKeyLogType);
         item.setReport((Utils.currentTimestamp() / 1000), ReportItem.BlockKeyUpTime);
+        item.setReport(key, ReportItem.QualityKeyTargetKey);
+        item.setReport(token.bucket, ReportItem.QualityKeyTargetBucket);
         item.setReport(currentZoneRegionId, ReportItem.BlockKeyTargetRegionId);
         item.setReport(targetZoneRegionId, ReportItem.BlockKeyCurrentRegionId);
         item.setReport(metrics.totalElapsedTime(), ReportItem.BlockKeyTotalElapsedTime);
@@ -279,8 +285,19 @@ class PartsUpload extends BaseUpload {
         item.setReport(file.length(), ReportItem.BlockKeyFileSize);
         item.setReport(Utils.getCurrentProcessID(), ReportItem.BlockKeyPid);
         item.setReport(Utils.getCurrentThreadID(), ReportItem.BlockKeyTid);
-        item.setReport(1, ReportItem.BlockKeyUpApiVersion);
+
+        if (config != null && config.resumeUploadVersion == Configuration.RESUME_UPLOAD_VERSION_V1) {
+            item.setReport(1, ReportItem.BlockKeyUpApiVersion);
+        } else {
+            item.setReport(2, ReportItem.BlockKeyUpApiVersion);
+        }
+
         item.setReport(Utils.currentTimestamp(), ReportItem.BlockKeyClientTime);
+
+        item.setReport(Utils.systemName(), ReportItem.BlockKeyOsName);
+        item.setReport(Utils.systemVersion(), ReportItem.BlockKeyOsVersion);
+        item.setReport(Utils.sdkLanguage(), ReportItem.BlockKeySDKName);
+        item.setReport(Utils.sdkVerion(), ReportItem.BlockKeySDKVersion);
 
         UploadInfoReporter.getInstance().report(item, token.token);
     }

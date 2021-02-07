@@ -1,14 +1,12 @@
 package com.qiniu.android.http.request;
 
-import java.net.Inet4Address;
-import java.net.Inet6Address;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Request {
 
+    public static final String HttpMethodHEAD = "HEAD";
     public static final String HttpMethodGet = "GET";
     public static final String HttpMethodPOST = "POST";
     public static final String HttpMethodPUT = "PUT";

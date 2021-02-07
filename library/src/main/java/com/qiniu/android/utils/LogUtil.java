@@ -9,7 +9,7 @@ import java.util.Date;
  */
 public class LogUtil {
 
-    private static boolean enableLog = Utils.isDebug();
+    private static boolean enableLog = false;
     private static int logLevel = Log.VERBOSE;
     private static boolean enableDate = false;
     private static boolean enableFile = true;
@@ -253,10 +253,10 @@ public class LogUtil {
     }
 
     private static boolean shouldLog(int logLevel, String tag, String msg, Throwable tr) {
-        if (logLevel < LogUtil.logLevel || (msg == null || msg.length() == 0) && tr == null) {
+        if (!enableLog || logLevel < LogUtil.logLevel || ((msg == null || msg.length() == 0) && tr == null)) {
             return false;
         } else {
-            return enableLog;
+            return true;
         }
     }
 
