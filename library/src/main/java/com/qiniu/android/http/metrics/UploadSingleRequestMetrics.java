@@ -9,6 +9,8 @@ import java.util.Date;
 
 public class UploadSingleRequestMetrics {
 
+    public ResponseInfo connectCheckResponse;
+
     public Request request;
     public ResponseInfo response;
 

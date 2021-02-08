@@ -10,7 +10,7 @@ public class ConnectCheckTest extends BaseTest {
         int maxCount = 100;
         int successCount = 0;
         for (int i = 0; i < maxCount; i++) {
-            if (ConnectChecker.check()) {
+            if (ConnectChecker.isConnected(ConnectChecker.check())) {
                 successCount += 1;
             }
         }
@@ -23,7 +23,7 @@ public class ConnectCheckTest extends BaseTest {
         int maxCount = 100;
         int successCount = 0;
         for (int i = 0; i < maxCount; i++) {
-            if (ConnectChecker.check()) {
+            if (ConnectChecker.isConnected(ConnectChecker.check())) {
                 successCount += 1;
             }
         }
@@ -36,7 +36,7 @@ public class ConnectCheckTest extends BaseTest {
         int maxCount = 100;
         int successCount = 0;
         for (int i = 0; i < maxCount; i++) {
-            if (ConnectChecker.check()) {
+            if (ConnectChecker.isConnected(ConnectChecker.check())) {
                 successCount += 1;
             }
         }

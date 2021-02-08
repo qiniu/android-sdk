@@ -107,9 +107,15 @@ class HttpSingleRequest {
                     requestMetricsList.add(metrics);
                 }
 
-                if (shouldCheckConnect(responseInfo) && !ConnectChecker.check()) {
-                    String message = "check origin statusCode:" + responseInfo.statusCode + " error:" + responseInfo.error;
-                    responseInfo = ResponseInfo.errorInfo(ResponseInfo.NetworkSlow, message);
+                if (shouldCheckConnect(responseInfo)) {
+                    ResponseInfo checkResponse = ConnectChecker.check();
+                    if (metrics != null) {
+                        metrics.connectCheckResponse = checkResponse;
+                    }
+                    if (!ConnectChecker.isConnected(checkResponse)) {
+                        String message = "check origin statusCode:" + responseInfo.statusCode + " error:" + responseInfo.error;
+                        responseInfo = ResponseInfo.errorInfo(ResponseInfo.NetworkSlow, message);
+                    }
                 }
 
                 LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
@@ -133,13 +139,13 @@ class HttpSingleRequest {
     }
 
     private boolean shouldCheckConnect(ResponseInfo responseInfo) {
-        return responseInfo != null && (
-                responseInfo.statusCode == -1001 || /* timeout */
-                responseInfo.statusCode == -1003 || /* unknown host */
-                responseInfo.statusCode == -1004 || /* cannot connect to host */
-                responseInfo.statusCode == -1005 || /* connection lost */
-                responseInfo.statusCode == -1009 || /* not connected to host */
-                responseInfo.isTlsError());
+        return responseInfo != null &&
+                (responseInfo.statusCode == -1001 || /* timeout */
+                        responseInfo.statusCode == -1003 || /* unknown host */
+                        responseInfo.statusCode == -1004 || /* cannot connect to host */
+                        responseInfo.statusCode == -1005 || /* connection lost */
+                        responseInfo.statusCode == -1009 || /* not connected to host */
+                        responseInfo.isTlsError());
     }
 
     private synchronized void completeAction(Request request,
@@ -166,8 +172,8 @@ class HttpSingleRequest {
         long byteCount = requestMetrics.bytesSend();
         if (requestMetrics.startDate != null && requestMetrics.endDate != null && byteCount > 1024 * 1024) {
             double second = requestMetrics.endDate.getTime() - requestMetrics.endDate.getTime();
-            if (second > 0){
-                int speed = (int)(byteCount * 1000 / second);
+            if (second > 0) {
+                int speed = (int) (byteCount * 1000 / second);
                 String type = Utils.getIpType(server.getIp(), server.getHost());
                 NetworkStatusManager.getInstance().updateNetworkStatus(type, speed);
             }
@@ -178,7 +184,7 @@ class HttpSingleRequest {
                                Request request,
                                UploadSingleRequestMetrics requestMetrics) {
 
-        if (token == null || !token.isValid() || requestInfo == null || !requestInfo.shouldReportRequestLog() || requestMetrics == null){
+        if (token == null || !token.isValid() || requestInfo == null || !requestInfo.shouldReportRequestLog() || requestMetrics == null) {
             return;
         }
 

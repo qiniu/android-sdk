@@ -14,53 +14,57 @@ import org.json.JSONObject;
 
 public class ConnectChecker {
 
-    private static SingleFlight<Boolean> singleFlight = new SingleFlight<>();
+    private static SingleFlight<ResponseInfo> singleFlight = new SingleFlight<>();
 
-    public static boolean check() {
+    public static boolean isConnected(ResponseInfo responseInfo) {
+        return responseInfo != null && responseInfo.statusCode > 99;
+    }
+
+    public static ResponseInfo check() {
 
         final CheckResult result = new CheckResult();
 
         final Wait wait = new Wait();
         check(new CheckCompleteHandler() {
             @Override
-            public void complete(boolean isConnected) {
-                result.isConnected = isConnected;
+            public void complete(ResponseInfo responseInfo) {
+                result.responseInfo = responseInfo;
                 wait.stopWait();
             }
         });
         wait.startWait();
 
-        return result.isConnected;
+        return result.responseInfo;
     }
 
     private static void check(final CheckCompleteHandler completeHandler) {
 
         try {
-            singleFlight.perform("connect_check", new SingleFlight.ActionHandler<Boolean>() {
+            singleFlight.perform("connect_check", new SingleFlight.ActionHandler<ResponseInfo>() {
                 @Override
-                public void action(final SingleFlight.CompleteHandler<Boolean> singleFlightComplete) throws Exception {
+                public void action(final SingleFlight.CompleteHandler<ResponseInfo> singleFlightComplete) throws Exception {
                     checkAllHosts(new CheckCompleteHandler() {
                         @Override
-                        public void complete(boolean isConnected) {
-                            singleFlightComplete.complete(isConnected);
+                        public void complete(ResponseInfo responseInfo) {
+                            singleFlightComplete.complete(responseInfo);
                         }
                     });
                 }
-            }, new SingleFlight.CompleteHandler<Boolean>() {
+            }, new SingleFlight.CompleteHandler<ResponseInfo>() {
                 @Override
-                public void complete(Boolean value) {
-                    completeHandler.complete(value);
+                public void complete(ResponseInfo responseInfo) {
+                    completeHandler.complete(responseInfo);
                 }
             });
         } catch (Exception e) {
-            completeHandler.complete(true);
+            completeHandler.complete(null);
         }
     }
 
     private static void checkAllHosts(final CheckCompleteHandler completeHandler) {
         String[] allHosts = GlobalConfiguration.getInstance().connectCheckURLStrings;
         if (allHosts == null) {
-            completeHandler.complete(true);
+            completeHandler.complete(null);
             return;
         }
 
@@ -72,8 +76,8 @@ public class ConnectChecker {
         for (String host : allHosts) {
             checkHost(host, new CheckCompleteHandler() {
                 @Override
-                public void complete(boolean isHostConnected) {
-
+                public void complete(ResponseInfo responseInfo) {
+                    boolean isHostConnected = isConnected(responseInfo);
                     synchronized (checkStatus) {
                         checkStatus.completeCount += 1;
                     }
@@ -90,7 +94,7 @@ public class ConnectChecker {
                                 checkStatus.isCompleted = true;
                             }
                         }
-                        completeHandler.complete(checkStatus.isConnected);
+                        completeHandler.complete(responseInfo);
                     } else {
                         LogUtil.i("== check all hosts not completed totalCount:" + checkStatus.totalCount + " completeCount:" + checkStatus.completeCount);
                     }
@@ -109,20 +113,15 @@ public class ConnectChecker {
         client.request(request, true, null, null, new IRequestClient.RequestClientCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
-                if (responseInfo.statusCode > 99) {
-                    LogUtil.i("== checkHost:" + host + " result: true");
-                    completeHandler.complete(true);
-                } else {
-                    LogUtil.i("== checkHost:" + host + " result: false");
-                    completeHandler.complete(false);
-                }
+                LogUtil.i("== checkHost:" + host + " responseInfo:" + responseInfo);
+                completeHandler.complete(responseInfo);
             }
         });
     }
 
 
     private interface CheckCompleteHandler {
-        void complete(boolean isConnected);
+        void complete(ResponseInfo responseInfo);
     }
 
     private static class CheckStatus {
@@ -133,6 +132,6 @@ public class ConnectChecker {
     }
 
     private static class CheckResult {
-        private boolean isConnected = false;
+        private ResponseInfo responseInfo;
     }
 }
