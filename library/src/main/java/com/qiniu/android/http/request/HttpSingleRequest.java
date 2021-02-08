@@ -140,7 +140,8 @@ class HttpSingleRequest {
 
     private boolean shouldCheckConnect(ResponseInfo responseInfo) {
         return responseInfo != null &&
-                (responseInfo.statusCode == -1001 || /* timeout */
+                (responseInfo.statusCode == ResponseInfo.NetworkError || /* network error */
+                        responseInfo.statusCode == -1001 || /* timeout */
                         responseInfo.statusCode == -1003 || /* unknown host */
                         responseInfo.statusCode == -1004 || /* cannot connect to host */
                         responseInfo.statusCode == -1005 || /* connection lost */
