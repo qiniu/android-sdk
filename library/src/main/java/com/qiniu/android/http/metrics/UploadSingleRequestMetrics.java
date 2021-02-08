@@ -9,6 +9,9 @@ import java.util.Date;
 
 public class UploadSingleRequestMetrics {
 
+    // 请求的 httpVersion
+    public String httpVersion;
+
     // 只有进行网络检测才会有 connectCheckMetrics
     public UploadSingleRequestMetrics connectCheckMetrics;
 

@@ -251,6 +251,8 @@ class HttpSingleRequest {
             item.setReport(networkMeasuring, ReportItem.RequestKeyNetworkMeasuring);
         }
 
+        item.setReport(requestMetrics.httpVersion, ReportItem.RequestKeyHttpVersion);
+
         UploadInfoReporter.getInstance().report(item, token.token);
     }
 

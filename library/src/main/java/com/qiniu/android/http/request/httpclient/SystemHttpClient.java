@@ -447,6 +447,13 @@ public class SystemHttpClient implements IRequestClient {
         final ResponseInfo info = ResponseInfo.create(request, statusCode, responseHeader, responseJson, errorMessage);
         metrics.response = info;
         metrics.request = request;
+        if (response.protocol() == Protocol.HTTP_1_0) {
+            metrics.httpVersion = "1.0";
+        } else if (response.protocol() == Protocol.HTTP_1_1) {
+            metrics.httpVersion = "1.1";
+        } else if (response.protocol() == Protocol.HTTP_2) {
+            metrics.httpVersion = "2";
+        }
         complete.complete(info, metrics, info.response);
 
         releaseResource();
