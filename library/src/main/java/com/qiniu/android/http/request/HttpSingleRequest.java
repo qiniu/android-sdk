@@ -108,11 +108,11 @@ class HttpSingleRequest {
                 }
 
                 if (shouldCheckConnect(responseInfo)) {
-                    ResponseInfo checkResponse = ConnectChecker.check();
+                    UploadSingleRequestMetrics checkMetrics = ConnectChecker.check();
                     if (metrics != null) {
-                        metrics.connectCheckResponse = checkResponse;
+                        metrics.connectCheckMetrics = checkMetrics;
                     }
-                    if (!ConnectChecker.isConnected(checkResponse)) {
+                    if (!ConnectChecker.isConnected(checkMetrics)) {
                         String message = "check origin statusCode:" + responseInfo.statusCode + " error:" + responseInfo.error;
                         responseInfo = ResponseInfo.errorInfo(ResponseInfo.NetworkSlow, message);
                     }
@@ -240,6 +240,16 @@ class HttpSingleRequest {
 
         item.setReport(requestMetrics.clientName, ReportItem.RequestKeyHttpClient);
         item.setReport(requestMetrics.clientVersion, ReportItem.RequestKeyHttpClientVersion);
+
+        if (requestMetrics.connectCheckMetrics != null) {
+            String connectCheckDuration = String.format("%s", requestMetrics.connectCheckMetrics.totalElapsedTime());
+            String connectCheckStatusCode = "";
+            if (requestMetrics.connectCheckMetrics.response != null) {
+                connectCheckStatusCode = String.format("%s", requestMetrics.connectCheckMetrics.response.statusCode);
+            }
+            String networkMeasuring = String.format("duration:%s status_code:%s", connectCheckDuration, connectCheckStatusCode);
+            item.setReport(networkMeasuring, ReportItem.RequestKeyNetworkMeasuring);
+        }
 
         UploadInfoReporter.getInstance().report(item, token.token);
     }

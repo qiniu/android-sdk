@@ -14,46 +14,46 @@ import org.json.JSONObject;
 
 public class ConnectChecker {
 
-    private static SingleFlight<ResponseInfo> singleFlight = new SingleFlight<>();
+    private static SingleFlight<UploadSingleRequestMetrics> singleFlight = new SingleFlight<>();
 
-    public static boolean isConnected(ResponseInfo responseInfo) {
-        return responseInfo != null && responseInfo.statusCode > 99;
+    public static boolean isConnected(UploadSingleRequestMetrics metrics) {
+        return metrics != null && metrics.response != null && metrics.response.statusCode > 99;
     }
 
-    public static ResponseInfo check() {
+    public static UploadSingleRequestMetrics check() {
 
         final CheckResult result = new CheckResult();
 
         final Wait wait = new Wait();
         check(new CheckCompleteHandler() {
             @Override
-            public void complete(ResponseInfo responseInfo) {
-                result.responseInfo = responseInfo;
+            public void complete(UploadSingleRequestMetrics metrics) {
+                result.metrics = metrics;
                 wait.stopWait();
             }
         });
         wait.startWait();
 
-        return result.responseInfo;
+        return result.metrics;
     }
 
     private static void check(final CheckCompleteHandler completeHandler) {
 
         try {
-            singleFlight.perform("connect_check", new SingleFlight.ActionHandler<ResponseInfo>() {
+            singleFlight.perform("connect_check", new SingleFlight.ActionHandler<UploadSingleRequestMetrics>() {
                 @Override
-                public void action(final SingleFlight.CompleteHandler<ResponseInfo> singleFlightComplete) throws Exception {
+                public void action(final SingleFlight.CompleteHandler<UploadSingleRequestMetrics> singleFlightComplete) throws Exception {
                     checkAllHosts(new CheckCompleteHandler() {
                         @Override
-                        public void complete(ResponseInfo responseInfo) {
-                            singleFlightComplete.complete(responseInfo);
+                        public void complete(UploadSingleRequestMetrics metrics) {
+                            singleFlightComplete.complete(metrics);
                         }
                     });
                 }
-            }, new SingleFlight.CompleteHandler<ResponseInfo>() {
+            }, new SingleFlight.CompleteHandler<UploadSingleRequestMetrics>() {
                 @Override
-                public void complete(ResponseInfo responseInfo) {
-                    completeHandler.complete(responseInfo);
+                public void complete(UploadSingleRequestMetrics metrics) {
+                    completeHandler.complete(metrics);
                 }
             });
         } catch (Exception e) {
@@ -76,8 +76,8 @@ public class ConnectChecker {
         for (String host : allHosts) {
             checkHost(host, new CheckCompleteHandler() {
                 @Override
-                public void complete(ResponseInfo responseInfo) {
-                    boolean isHostConnected = isConnected(responseInfo);
+                public void complete(UploadSingleRequestMetrics metrics) {
+                    boolean isHostConnected = isConnected(metrics);
                     synchronized (checkStatus) {
                         checkStatus.completeCount += 1;
                     }
@@ -94,7 +94,7 @@ public class ConnectChecker {
                                 checkStatus.isCompleted = true;
                             }
                         }
-                        completeHandler.complete(responseInfo);
+                        completeHandler.complete(metrics);
                     } else {
                         LogUtil.i("== check all hosts not completed totalCount:" + checkStatus.totalCount + " completeCount:" + checkStatus.completeCount);
                     }
@@ -114,14 +114,14 @@ public class ConnectChecker {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
                 LogUtil.i("== checkHost:" + host + " responseInfo:" + responseInfo);
-                completeHandler.complete(responseInfo);
+                completeHandler.complete(metrics);
             }
         });
     }
 
 
     private interface CheckCompleteHandler {
-        void complete(ResponseInfo responseInfo);
+        void complete(UploadSingleRequestMetrics metrics);
     }
 
     private static class CheckStatus {
@@ -132,6 +132,6 @@ public class ConnectChecker {
     }
 
     private static class CheckResult {
-        private ResponseInfo responseInfo;
+        private UploadSingleRequestMetrics metrics;
     }
 }

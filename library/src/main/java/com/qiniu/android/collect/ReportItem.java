@@ -80,6 +80,7 @@ public class ReportItem {
     public static final String RequestKeyPrefetchedDnsSource = "prefetched_dns_source";
     public static final String RequestKeyPrefetchedBefore = "prefetched_before";
     public static final String RequestKeyPrefetchedErrorMessage = "prefetched_error_message";
+    public static final String RequestKeyNetworkMeasuring = "network_measuring";
 
     // 分块上传统计⽇志
     public static final String BlockKeyLogType = "log_type";
