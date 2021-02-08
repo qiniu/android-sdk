@@ -160,10 +160,12 @@ class HttpSingleRequest {
         }
         client = null;
 
+        updateHostNetworkStatus(responseInfo, request.uploadServer, requestMetrics);
+        reportRequest(responseInfo, request, requestMetrics);
+
         if (completeHandler != null) {
             completeHandler.complete(responseInfo, requestMetricsList, response);
         }
-        reportRequest(responseInfo, request, requestMetrics);
     }
 
     private void updateHostNetworkStatus(ResponseInfo responseInfo, IUploadServer server, UploadSingleRequestMetrics requestMetrics) {
