@@ -125,13 +125,17 @@ public class UploadDomainRegion implements IUploadRegion {
         freezeServerIfNeed(responseInfo, freezeServer);
 
         UploadServer server = null;
-        ArrayList<String> hostList = requestState.isUseOldServer() ? oldDomainHostList : domainHostList;
-        HashMap<String, UploadServerDomain> domainInfo = requestState.isUseOldServer() ? oldDomainHashMap : domainHashMap;
+        boolean isUseOldServer = requestState.isUseOldServer();
+        ArrayList<String> hostList = isUseOldServer ? oldDomainHostList : domainHostList;
+        HashMap<String, UploadServerDomain> domainInfo = isUseOldServer ? oldDomainHashMap : domainHashMap;
 
         // 1. 优先选择http3
         if (http3Enabled && freezeServer != null && freezeServer.isHttp3()) {
             for (String host : hostList) {
                 UploadServerDomain domain = domainInfo.get(host);
+                if (domain == null) {
+                    continue;
+                }
                 IUploadServer domainServer = domain.getServer(new UploadServerDomain.GetServerCondition() {
                     @Override
                     public boolean condition(String host, UploadServer serverP, UploadServer filterServer) {
@@ -162,6 +166,9 @@ public class UploadDomainRegion implements IUploadRegion {
         // 2. 挑选http2
         for (String host : hostList) {
             UploadServerDomain domain = domainInfo.get(host);
+            if (domain == null) {
+                continue;
+            }
             IUploadServer domainServer = domain.getServer(new UploadServerDomain.GetServerCondition() {
                 @Override
                 public boolean condition(String host, UploadServer serverP, UploadServer filterServer) {
