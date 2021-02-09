@@ -51,22 +51,24 @@ class HttpSingleRequest {
     }
 
     void request(Request request,
+                 IUploadServer server,
                  boolean isAsync,
                  RequestShouldRetryHandler shouldRetryHandler,
                  RequestProgressHandler progressHandler,
                  RequestCompleteHandler completeHandler) {
         currentRetryTime = 0;
         requestMetricsList = new ArrayList<>();
-        retryRequest(request, isAsync, shouldRetryHandler, progressHandler, completeHandler);
+        retryRequest(request, server, isAsync, shouldRetryHandler, progressHandler, completeHandler);
     }
 
     private void retryRequest(final Request request,
+                              final IUploadServer server,
                               final boolean isAsync,
                               final RequestShouldRetryHandler shouldRetryHandler,
                               final RequestProgressHandler progressHandler,
                               final RequestCompleteHandler completeHandler) {
 
-        if (request.uploadServer.isHttp3()) {
+        if (server.isHttp3()) {
             client = new SystemHttpClient();
         } else {
             client = new SystemHttpClient();
@@ -129,9 +131,9 @@ class HttpSingleRequest {
                         Thread.sleep(config.retryInterval);
                     } catch (InterruptedException ignored) {
                     }
-                    retryRequest(request, isAsync, shouldRetryHandler, progressHandler, completeHandler);
+                    retryRequest(request, server, isAsync, shouldRetryHandler, progressHandler, completeHandler);
                 } else {
-                    completeAction(request, responseInfo, response, metrics, completeHandler);
+                    completeAction(server, responseInfo, response, metrics, completeHandler);
                 }
             }
         });
@@ -149,7 +151,7 @@ class HttpSingleRequest {
                         responseInfo.isTlsError());
     }
 
-    private synchronized void completeAction(Request request,
+    private synchronized void completeAction(IUploadServer server,
                                              ResponseInfo responseInfo,
                                              JSONObject response,
                                              UploadSingleRequestMetrics requestMetrics,
@@ -160,8 +162,8 @@ class HttpSingleRequest {
         }
         client = null;
 
-        updateHostNetworkStatus(responseInfo, request.uploadServer, requestMetrics);
-        reportRequest(responseInfo, request, requestMetrics);
+        updateHostNetworkStatus(responseInfo, server, requestMetrics);
+        reportRequest(responseInfo, server, requestMetrics);
 
         if (completeHandler != null) {
             completeHandler.complete(responseInfo, requestMetricsList, response);
@@ -173,18 +175,16 @@ class HttpSingleRequest {
             return;
         }
         long byteCount = requestMetrics.bytesSend();
-        if (requestMetrics.startDate != null && requestMetrics.endDate != null && byteCount > 1024 * 1024) {
-            double second = requestMetrics.endDate.getTime() - requestMetrics.endDate.getTime();
-            if (second > 0) {
-                int speed = (int) (byteCount * 1000 / second);
-                String type = Utils.getIpType(server.getIp(), server.getHost());
-                NetworkStatusManager.getInstance().updateNetworkStatus(type, speed);
-            }
+        long second = requestMetrics.totalElapsedTime();
+        if (second > 0 && byteCount > 1024 * 1024) {
+            int speed = (int) (byteCount * 1000 / second);
+            String type = Utils.getIpType(server.getIp(), server.getHost());
+            NetworkStatusManager.getInstance().updateNetworkStatus(type, speed);
         }
     }
 
     private void reportRequest(ResponseInfo responseInfo,
-                               Request request,
+                               IUploadServer server,
                                UploadSingleRequestMetrics requestMetrics) {
 
         if (token == null || !token.isValid() || requestInfo == null || !requestInfo.shouldReportRequestLog() || requestMetrics == null) {
@@ -197,7 +197,7 @@ class HttpSingleRequest {
         item.setReport((currentTimestamp / 1000), ReportItem.RequestKeyUpTime);
         item.setReport(ReportItem.requestReportStatusCode(responseInfo), ReportItem.RequestKeyStatusCode);
         item.setReport(responseInfo != null ? responseInfo.reqId : null, ReportItem.RequestKeyRequestId);
-        item.setReport(request != null ? request.host : null, ReportItem.RequestKeyHost);
+        item.setReport(requestMetrics.request != null ? requestMetrics.request.host : null, ReportItem.RequestKeyHost);
         item.setReport(requestMetrics.remoteAddress, ReportItem.RequestKeyRemoteIp);
         item.setReport(requestMetrics.remotePort, ReportItem.RequestKeyPort);
         item.setReport(requestInfo.bucket, ReportItem.RequestKeyTargetBucket);
@@ -233,9 +233,9 @@ class HttpSingleRequest {
         item.setReport(Utils.getCurrentNetworkType(), ReportItem.RequestKeyNetworkType);
         item.setReport(Utils.getCurrentSignalStrength(), ReportItem.RequestKeySignalStrength);
 
-        item.setReport(request.uploadServer.getSource(), ReportItem.RequestKeyPrefetchedDnsSource);
-        if (request.uploadServer.getIpPrefetchedTime() != null) {
-            Long prefetchTime = request.uploadServer.getIpPrefetchedTime() - currentTimestamp;
+        item.setReport(server.getSource(), ReportItem.RequestKeyPrefetchedDnsSource);
+        if (server.getIpPrefetchedTime() != null) {
+            Long prefetchTime = server.getIpPrefetchedTime() - currentTimestamp;
             item.setReport(prefetchTime, ReportItem.RequestKeyPrefetchedBefore);
         }
         item.setReport(DnsPrefetcher.getInstance().lastPrefetchErrorMessage, ReportItem.RequestKeyPrefetchedErrorMessage);

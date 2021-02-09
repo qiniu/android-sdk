@@ -98,9 +98,8 @@ class HttpRegionRequest {
         String serverIP = server.getIp();
 
         if (config.urlConverter != null){
-            serverHost = config.urlConverter.convert(serverHost);
             serverIP = null;
-            server = null;
+            serverHost = config.urlConverter.convert(serverHost);
         }
 
         String scheme = config.useHttps ? "https://" : "http://";
@@ -108,14 +107,13 @@ class HttpRegionRequest {
         final Request request = new Request(urlString, method, header, data, config.connectTimeout);
         request.host = serverHost;
         request.ip = serverIP;
-        request.uploadServer = server;
 
         LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
                 " url:" + StringUtils.toNonnullString(request.urlString));
         LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
                 " headers:" + StringUtils.toNonnullString(request.allHeaders));
 
-        singleRequest.request(request, isAsync, shouldRetryHandler, progressHandler, new HttpSingleRequest.RequestCompleteHandler() {
+        singleRequest.request(request, server, isAsync, shouldRetryHandler, progressHandler, new HttpSingleRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, ArrayList<UploadSingleRequestMetrics> requestMetricsList, JSONObject response) {
 

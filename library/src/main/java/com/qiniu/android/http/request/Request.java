@@ -20,8 +20,6 @@ public class Request {
     public String host;
     public String ip;
 
-    protected IUploadServer uploadServer;
-
     public Request(String urlString,
                    String httpMethod,
                    Map<String, String> allHeaders,
@@ -36,12 +34,12 @@ public class Request {
     }
 
     public InetAddress getInetAddress(){
-        if (host == null || uploadServer == null || uploadServer.getIp() == null) {
+        if (host == null || ip == null || ip.length() == 0) {
             return null;
         }
 
         try {
-            InetAddress ipAddress = InetAddress.getByName(uploadServer.getIp());
+            InetAddress ipAddress = InetAddress.getByName(ip);
             return InetAddress.getByAddress(host, ipAddress.getAddress());
         } catch (Exception e) {
             return null;
