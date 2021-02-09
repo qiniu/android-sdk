@@ -24,8 +24,8 @@ public class UploadDomainRegion implements IUploadRegion {
     // 是否支持http3
     private boolean http3Enabled;
 
-    // 是否获取过，PS：当第一次获取Domain，而区域所有Domain又全部冻结时，返回一个domain尝试一次
-    private boolean hasGot;
+    // 是否冻结过Host，PS：如果没有冻结过 Host,则当前 Region 上传也就不会有错误信息，可能会返回-9，所以必须要再进行一次尝试
+    private boolean hasFreezeHost;
     private boolean isAllFrozen;
     // 局部冻结管理对象
     private UploadServerFreezeManager partialHttp2Freezer = new UploadServerFreezeManager();
@@ -189,7 +189,7 @@ public class UploadDomainRegion implements IUploadRegion {
             server = (UploadServer) UploadServerNetworkStatus.getBetterNetworkServer(domainServer, server);
         }
 
-        if (server == null && !hasGot && hostList.size() > 0) {
+        if (server == null && !hasFreezeHost && hostList.size() > 0) {
             int index = (int) (Math.random() * hostList.size());
             String host = hostList.get(index);
             UploadServerDomain domain = domainInfo.get(host);
@@ -198,7 +198,6 @@ public class UploadDomainRegion implements IUploadRegion {
             }
             unfreezeServer(server);
         }
-        hasGot = true;
 
         if (server != null) {
             server.setHttpVersion(IUploadServer.HttpVersion2);
@@ -221,6 +220,7 @@ public class UploadDomainRegion implements IUploadRegion {
         // 1. http3 冻结
         if (freezeServer.isHttp3()) {
             if (!responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
+                hasFreezeHost = true;
                 UploadServerFreezeUtil.globalHttp3Freezer().freezeType(frozenType, Http3FrozenTime);
             }
             return;
@@ -229,12 +229,14 @@ public class UploadDomainRegion implements IUploadRegion {
         // 2. http2 冻结
         // 2.1 无法连接到Host || Host不可用， 局部冻结
         if (!responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
+            hasFreezeHost = true;
             LogUtil.i("partial freeze server host:" + StringUtils.toNonnullString(freezeServer.getHost()) + " ip:" + StringUtils.toNonnullString(freezeServer.getIp()));
             partialHttp2Freezer.freezeType(frozenType, GlobalConfiguration.getInstance().partialHostFrozenTime);
         }
 
         // 2.2 Host不可用，全局冻结
         if (responseInfo.isHostUnavailable()) {
+            hasFreezeHost = true;
             LogUtil.i("global freeze server host:" + StringUtils.toNonnullString(freezeServer.getHost()) + " ip:" + StringUtils.toNonnullString(freezeServer.getIp()));
             UploadServerFreezeUtil.globalHttp2Freezer().freezeType(frozenType, GlobalConfiguration.getInstance().globalHostFrozenTime);
         }
