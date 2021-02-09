@@ -254,7 +254,6 @@ public class UploadDomainRegion implements IUploadRegion {
 
     private static class UploadServerDomain {
 
-        private boolean isAllFrozen = false;
         protected final String host;
         protected ArrayList<UploadIpGroup> ipGroupList = new ArrayList<>();
 
@@ -263,7 +262,7 @@ public class UploadDomainRegion implements IUploadRegion {
         }
 
         protected UploadServer getServer(GetServerCondition condition) {
-            if (isAllFrozen || host == null || host.length() == 0) {
+            if (host == null || host.length() == 0) {
                 return null;
             }
 
