@@ -35,6 +35,6 @@ public class UploadServerFreezeUtil {
 
     public static String getFrozenType(String host, String ip) {
         String ipType = Utils.getIpType(ip, host);
-        return String.format("%s-%s", host, ip);
+        return String.format("%s-%s", host, ipType);
     }
 }

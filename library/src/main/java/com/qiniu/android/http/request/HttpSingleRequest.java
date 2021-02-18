@@ -22,6 +22,7 @@ import com.qiniu.android.utils.Utils;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 
 class HttpSingleRequest {
@@ -176,7 +177,7 @@ class HttpSingleRequest {
         }
         long byteCount = requestMetrics.bytesSend();
         long second = requestMetrics.totalElapsedTime();
-        if (second > 0 && byteCount > 1024 * 1024) {
+        if (second > 0 && byteCount >= 1024 * 1024) {
             int speed = (int) (byteCount * 1000 / second);
             String type = Utils.getIpType(server.getIp(), server.getHost());
             NetworkStatusManager.getInstance().updateNetworkStatus(type, speed);
@@ -244,10 +245,10 @@ class HttpSingleRequest {
         item.setReport(requestMetrics.clientVersion, ReportItem.RequestKeyHttpClientVersion);
 
         if (requestMetrics.connectCheckMetrics != null) {
-            String connectCheckDuration = String.format("%s", requestMetrics.connectCheckMetrics.totalElapsedTime());
+            String connectCheckDuration = String.format(Locale.ENGLISH,"%d", requestMetrics.connectCheckMetrics.totalElapsedTime());
             String connectCheckStatusCode = "";
             if (requestMetrics.connectCheckMetrics.response != null) {
-                connectCheckStatusCode = String.format("%s", requestMetrics.connectCheckMetrics.response.statusCode);
+                connectCheckStatusCode = String.format(Locale.ENGLISH,"%d", requestMetrics.connectCheckMetrics.response.statusCode);
             }
             String networkMeasuring = String.format("duration:%s status_code:%s", connectCheckDuration, connectCheckStatusCode);
             item.setReport(networkMeasuring, ReportItem.RequestKeyNetworkMeasuring);
