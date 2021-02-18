@@ -16,8 +16,8 @@ public class UploadServerNetworkStatus {
             return true;
         }
 
-        String serverTypeA = Utils.getIpType(serverA.getIp(), serverA.getHost());
-        String serverTypeB = Utils.getIpType(serverB.getIp(), serverB.getHost());
+        String serverTypeA = NetworkStatusManager.getNetworkStatusType(serverA.getHost(), serverA.getIp());
+        String serverTypeB = NetworkStatusManager.getNetworkStatusType(serverB.getHost(), serverB.getIp());
         if (serverTypeA == null) {
             return false;
         } else if (serverTypeB == null) {

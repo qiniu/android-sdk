@@ -179,7 +179,7 @@ class HttpSingleRequest {
         long second = requestMetrics.totalElapsedTime();
         if (second > 0 && byteCount >= 1024 * 1024) {
             int speed = (int) (byteCount * 1000 / second);
-            String type = Utils.getIpType(server.getIp(), server.getHost());
+            String type = NetworkStatusManager.getNetworkStatusType(server.getHost(), server.getIp());
             NetworkStatusManager.getInstance().updateNetworkStatus(type, speed);
         }
     }

@@ -35,6 +35,10 @@ public class NetworkStatusManager {
         networkStatusManager.asyncRecoverNetworkStatusFromDisk();
     }
 
+    public static String getNetworkStatusType(String host, String ip) {
+        return Utils.getIpType(ip, host);
+    }
+
     public NetworkStatus getNetworkStatus(String type) {
         if (type == null || type.length() == 0) {
             return null;
