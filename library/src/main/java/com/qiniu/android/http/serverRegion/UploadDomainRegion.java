@@ -155,6 +155,10 @@ public class UploadDomainRegion implements IUploadRegion {
                 });
 
                 server = (UploadServer) UploadServerNetworkStatus.getBetterNetworkServer(domainServer, server);
+
+                if (server != null) {
+                    break;
+                }
             }
 
             if (server != null) {
@@ -187,6 +191,10 @@ public class UploadDomainRegion implements IUploadRegion {
             });
 
             server = (UploadServer) UploadServerNetworkStatus.getBetterNetworkServer(domainServer, server);
+
+            if (server != null) {
+                break;
+            }
         }
 
         if (server == null && !hasFreezeHost && hostList.size() > 0) {
