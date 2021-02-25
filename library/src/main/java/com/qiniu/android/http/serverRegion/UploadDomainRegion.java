@@ -4,8 +4,10 @@ import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.dns.IDnsNetworkAddress;
+import com.qiniu.android.http.networkStatus.UploadServerNetworkStatus;
 import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.request.IUploadServer;
+import com.qiniu.android.http.request.UploadRequestState;
 import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
@@ -17,12 +19,16 @@ import java.util.List;
 
 
 public class UploadDomainRegion implements IUploadRegion {
+    private static int Http3FrozenTime = 3600 * 24;
 
-    // 是否获取过，PS：当第一次获取Domain，而区域所有Domain又全部冻结时，返回一个domain尝试一次
-    private boolean hasGot;
+    // 是否支持http3
+    private boolean http3Enabled;
+
+    // 是否冻结过Host，PS：如果没有冻结过 Host,则当前 Region 上传也就不会有错误信息，可能会返回-9，所以必须要再进行一次尝试
+    private boolean hasFreezeHost;
     private boolean isAllFrozen;
     // 局部冻结管理对象
-    private UploadServerFreezeManager partialFreezeManager = new UploadServerFreezeManager();
+    private UploadServerFreezeManager partialHttp2Freezer = new UploadServerFreezeManager();
 
     private ArrayList<String> domainHostList;
     private HashMap<String, UploadServerDomain> domainHashMap;
@@ -78,6 +84,9 @@ public class UploadDomainRegion implements IUploadRegion {
         this.zoneInfo = zoneInfo;
 
         isAllFrozen = false;
+        http3Enabled = zoneInfo.http3Enabled;
+        // 暂不开启
+        http3Enabled = false;
 
         ArrayList<String> domainHostList = new ArrayList<>();
         if (zoneInfo.domains != null) {
@@ -97,28 +106,98 @@ public class UploadDomainRegion implements IUploadRegion {
         LogUtil.i("region old:" + StringUtils.toNonnullString(oldDomainHostList));
     }
 
+    private HashMap<String, UploadServerDomain> createDomainDictionary(List<String> hosts) {
+        HashMap<String, UploadServerDomain> domainHashMap = new HashMap<>();
+        for (int i = 0; i < hosts.size(); i++) {
+            String host = hosts.get(i);
+            UploadServerDomain domain = new UploadServerDomain(host);
+            domainHashMap.put(host, domain);
+        }
+        return domainHashMap;
+    }
+
     @Override
-    public IUploadServer getNextServer(boolean isOldServer, ResponseInfo responseInfo, IUploadServer freezeServer) {
-        if (isAllFrozen) {
+    public IUploadServer getNextServer(UploadRequestState requestState, ResponseInfo responseInfo, IUploadServer freezeServer) {
+        if (isAllFrozen || requestState == null) {
             return null;
         }
 
         freezeServerIfNeed(responseInfo, freezeServer);
 
-        ArrayList<String> hostList = isOldServer ? oldDomainHostList : domainHostList;
-        HashMap<String, UploadServerDomain> domainInfo = isOldServer ? oldDomainHashMap : domainHashMap;
-        IUploadServer server = null;
+        UploadServer server = null;
+        boolean isUseOldServer = requestState.isUseOldServer();
+        ArrayList<String> hostList = isUseOldServer ? oldDomainHostList : domainHostList;
+        HashMap<String, UploadServerDomain> domainInfo = isUseOldServer ? oldDomainHashMap : domainHashMap;
+
+        // 1. 优先选择http3
+        if (http3Enabled && freezeServer != null && freezeServer.isHttp3()) {
+            for (String host : hostList) {
+                UploadServerDomain domain = domainInfo.get(host);
+                if (domain == null) {
+                    continue;
+                }
+                IUploadServer domainServer = domain.getServer(new UploadServerDomain.GetServerCondition() {
+                    @Override
+                    public boolean condition(String host, UploadServer serverP, UploadServer filterServer) {
+
+                        // 1.1 剔除冻结对象
+                        String filterServerIP = filterServer == null ? null : filterServer.getIp();
+                        String frozenType = UploadServerFreezeUtil.getFrozenType(host, filterServerIP);
+                        boolean isFrozen = UploadServerFreezeUtil.isTypeFrozenByFreezeManagers(frozenType, new UploadServerFreezeManager[]{UploadServerFreezeUtil.globalHttp3Freezer()});
+
+                        if (isFrozen) {
+                            return false;
+                        }
+
+                        // 1.2 挑选网络状态最优
+                        return UploadServerNetworkStatus.isServerNetworkBetter(filterServer, serverP);
+                    }
+                });
+
+                server = (UploadServer) UploadServerNetworkStatus.getBetterNetworkServer(domainServer, server);
+
+                if (server != null) {
+                    break;
+                }
+            }
+
+            if (server != null) {
+                server.setHttpVersion(IUploadServer.HttpVersion3);
+                return server;
+            }
+        }
+
+        // 2. 挑选http2
         for (String host : hostList) {
             UploadServerDomain domain = domainInfo.get(host);
-            if (domain != null) {
-                server = domain.getServer(new UploadServerFreezeManager[]{partialFreezeManager, UploadServerFreezeManager.getInstance()});
+            if (domain == null) {
+                continue;
             }
+            IUploadServer domainServer = domain.getServer(new UploadServerDomain.GetServerCondition() {
+                @Override
+                public boolean condition(String host, UploadServer serverP, UploadServer filterServer) {
+                    // 1.1 剔除冻结对象
+                    String filterServerIP = filterServer == null ? null : filterServer.getIp();
+                    String frozenType = UploadServerFreezeUtil.getFrozenType(host, filterServerIP);
+                    boolean isFrozen = UploadServerFreezeUtil.isTypeFrozenByFreezeManagers(frozenType, new UploadServerFreezeManager[]{partialHttp2Freezer, UploadServerFreezeUtil.globalHttp2Freezer()});
+
+                    if (isFrozen) {
+                        return false;
+                    }
+
+                    // 1.2 挑选网络状态最优
+                    return UploadServerNetworkStatus.isServerNetworkBetter(filterServer, serverP);
+                }
+            });
+
+            server = (UploadServer) UploadServerNetworkStatus.getBetterNetworkServer(domainServer, server);
+
             if (server != null) {
                 break;
             }
         }
 
-        if (server == null && !hasGot && hostList.size() > 0) {
+        if (server == null && !hasFreezeHost && hostList.size() > 0) {
             int index = (int) (Math.random() * hostList.size());
             String host = hostList.get(index);
             UploadServerDomain domain = domainInfo.get(host);
@@ -127,16 +206,13 @@ public class UploadDomainRegion implements IUploadRegion {
             }
             unfreezeServer(server);
         }
-        hasGot = true;
 
-        if (server == null) {
-            isAllFrozen = true;
-        }
-
-        if (server == null) {
-            LogUtil.i("get server host:null ip:null");
-        } else {
+        if (server != null) {
+            server.setHttpVersion(IUploadServer.HttpVersion2);
             LogUtil.i("get server host:" + StringUtils.toNonnullString(server.getHost()) + " ip:" + StringUtils.toNonnullString(server.getIp()));
+        } else {
+            isAllFrozen = true;
+            LogUtil.i("get server host:null ip:null");
         }
 
         return server;
@@ -148,34 +224,29 @@ public class UploadDomainRegion implements IUploadRegion {
             return;
         }
 
-        // 无法连接到Host || Host不可用， 局部冻结
-        if (!responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
-            LogUtil.i("partial freeze server host:" + StringUtils.toNonnullString(freezeServer.getHost()) + " ip:" + StringUtils.toNonnullString(freezeServer.getIp()));
-
-            UploadServerDomain domain = null;
-            domain = domainHashMap.get(freezeServer.getServerId());
-            if (domain != null) {
-                domain.freeze(freezeServer.getIp(), partialFreezeManager, GlobalConfiguration.getInstance().partialHostFrozenTime);
+        String frozenType = UploadServerFreezeUtil.getFrozenType(freezeServer.getHost(), freezeServer.getIp());
+        // 1. http3 冻结
+        if (freezeServer.isHttp3()) {
+            if (!responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
+                hasFreezeHost = true;
+                UploadServerFreezeUtil.globalHttp3Freezer().freezeType(frozenType, Http3FrozenTime);
             }
-            domain = oldDomainHashMap.get(freezeServer.getServerId());
-            if (domain != null) {
-                domain.freeze(freezeServer.getIp(), partialFreezeManager, GlobalConfiguration.getInstance().partialHostFrozenTime);
-            }
+            return;
         }
 
-        // Host不可用，全局冻结
-        if (responseInfo.isHostUnavailable()) {
-            LogUtil.i("global freeze server host:" + StringUtils.toNonnullString(freezeServer.getHost()) + " ip:" + StringUtils.toNonnullString(freezeServer.getIp()));
+        // 2. http2 冻结
+        // 2.1 无法连接到Host || Host不可用， 局部冻结
+        if (!responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
+            hasFreezeHost = true;
+            LogUtil.i("partial freeze server host:" + StringUtils.toNonnullString(freezeServer.getHost()) + " ip:" + StringUtils.toNonnullString(freezeServer.getIp()));
+            partialHttp2Freezer.freezeType(frozenType, GlobalConfiguration.getInstance().partialHostFrozenTime);
+        }
 
-            UploadServerDomain domain = null;
-            domain = domainHashMap.get(freezeServer.getServerId());
-            if (domain != null) {
-                domain.freeze(freezeServer.getIp(), UploadServerFreezeManager.getInstance(), GlobalConfiguration.getInstance().globalHostFrozenTime);
-            }
-            domain = oldDomainHashMap.get(freezeServer.getServerId());
-            if (domain != null) {
-                domain.freeze(freezeServer.getIp(), UploadServerFreezeManager.getInstance(), GlobalConfiguration.getInstance().globalHostFrozenTime);
-            }
+        // 2.2 Host不可用，全局冻结
+        if (responseInfo.isHostUnavailable()) {
+            hasFreezeHost = true;
+            LogUtil.i("global freeze server host:" + StringUtils.toNonnullString(freezeServer.getHost()) + " ip:" + StringUtils.toNonnullString(freezeServer.getIp()));
+            UploadServerFreezeUtil.globalHttp2Freezer().freezeType(frozenType, GlobalConfiguration.getInstance().globalHostFrozenTime);
         }
     }
 
@@ -184,31 +255,13 @@ public class UploadDomainRegion implements IUploadRegion {
             return;
         }
 
-        UploadServerDomain domain = null;
-        domain = domainHashMap.get(freezeServer.getServerId());
-        if (domain != null) {
-            domain.unfreeze(freezeServer.getIp(), new UploadServerFreezeManager[]{partialFreezeManager, UploadServerFreezeManager.getInstance()});
-        }
-        domain = oldDomainHashMap.get(freezeServer.getServerId());
-        if (domain != null) {
-            domain.unfreeze(freezeServer.getIp(), new UploadServerFreezeManager[]{partialFreezeManager, UploadServerFreezeManager.getInstance()});
-        }
-    }
-
-    private HashMap<String, UploadServerDomain> createDomainDictionary(List<String> hosts) {
-        HashMap<String, UploadServerDomain> domainHashMap = new HashMap<>();
-        for (int i = 0; i < hosts.size(); i++) {
-            String host = hosts.get(i);
-            UploadServerDomain domain = new UploadServerDomain(host);
-            domainHashMap.put(host, domain);
-        }
-        return domainHashMap;
+        String frozenType = UploadServerFreezeUtil.getFrozenType(freezeServer.getHost(), freezeServer.getIp());
+        partialHttp2Freezer.unfreezeType(frozenType);
     }
 
 
     private static class UploadServerDomain {
 
-        private boolean isAllFrozen = false;
         protected final String host;
         protected ArrayList<UploadIpGroup> ipGroupList = new ArrayList<>();
 
@@ -216,59 +269,44 @@ public class UploadDomainRegion implements IUploadRegion {
             this.host = host;
         }
 
-        protected IUploadServer getServer(UploadServerFreezeManager[] freezeManagerList) {
-            if (isAllFrozen || host == null || host.length() == 0) {
+        protected UploadServer getServer(GetServerCondition condition) {
+            if (host == null || host.length() == 0) {
                 return null;
             }
 
-            if (ipGroupList == null || ipGroupList.size() == 0) {
-                createIpGroupList();
+            synchronized (this) {
+                if (ipGroupList == null || ipGroupList.size() == 0) {
+                    createIpGroupList();
+                }
             }
+
+            UploadServer server = null;
 
             // 解析到IP:
             if (ipGroupList != null && ipGroupList.size() > 0) {
-                UploadServer server = null;
                 for (UploadIpGroup ipGroup : ipGroupList) {
-                    // 黑名单中不存在 & 未被冻结
-                    if (ipGroup.groupType != null && !isGroupFrozenByFreezeManagers(ipGroup.groupType, freezeManagerList)) {
-                        IDnsNetworkAddress networkAddress = ipGroup.getNetworkAddress();
-                        server = new UploadServer(host, host, networkAddress.getIpValue(), networkAddress.getSourceValue(), networkAddress.getTimestampValue());
+                    IDnsNetworkAddress networkAddress = ipGroup.getNetworkAddress();
+                    UploadServer filterServer = new UploadServer(host, host, networkAddress.getIpValue(), networkAddress.getSourceValue(), networkAddress.getTimestampValue());
+
+                    if (condition == null || condition.condition(host, server, filterServer)) {
+                        server = filterServer;
+                    }
+
+                    if (condition == null) {
                         break;
                     }
                 }
-                if (server == null) {
-                    isAllFrozen = true;
-                }
+
                 return server;
             }
 
             // 未解析到IP:
-            // 黑名单中不存在 & 未被冻结
-            String groupType = Utils.getIpType(null, host);
-            if (groupType != null && !isGroupFrozenByFreezeManagers(groupType, freezeManagerList)) {
-                return new UploadServer(host, host, null, null, null);
-            } else {
-                isAllFrozen = true;
-                return null;
-            }
-        }
-
-        protected boolean isGroupFrozenByFreezeManagers(String groupType, UploadServerFreezeManager[] freezeManagerList) {
-            if (groupType == null) {
-                return true;
-            }
-            if (freezeManagerList == null || freezeManagerList.length == 0) {
-                return false;
+            if (condition == null || condition.condition(host, null, null)) {
+                // 未解析时，没有可比性，直接返回自身，自身即为最优
+                server = new UploadServer(host, host, null, null, null);
             }
 
-            boolean isFrozen = false;
-            for (UploadServerFreezeManager freezeManager : freezeManagerList) {
-                isFrozen = freezeManager.isFreezeHost(host, groupType);
-                if (isFrozen) {
-                    break;
-                }
-            }
-            return isFrozen;
+            return server;
         }
 
         protected UploadServer getOneServer() {
@@ -286,7 +324,7 @@ public class UploadDomainRegion implements IUploadRegion {
             }
         }
 
-        private synchronized void createIpGroupList() {
+        private void createIpGroupList() {
             if (ipGroupList != null && ipGroupList.size() > 0) {
                 return;
             }
@@ -322,20 +360,8 @@ public class UploadDomainRegion implements IUploadRegion {
             this.ipGroupList = ipGroupList;
         }
 
-        protected void freeze(String ip, UploadServerFreezeManager freezeManager, int frozenTime) {
-            if (freezeManager == null) {
-                return;
-            }
-            freezeManager.freezeHost(host, Utils.getIpType(ip, this.host), frozenTime);
-        }
-
-        protected void unfreeze(String ip, UploadServerFreezeManager[] freezeManagerList) {
-            if (freezeManagerList == null || freezeManagerList.length == 0) {
-                return;
-            }
-            for (UploadServerFreezeManager freezeManager : freezeManagerList) {
-                freezeManager.unfreezeHost(host, Utils.getIpType(ip, this.host));
-            }
+        protected interface GetServerCondition {
+            boolean condition(String host, UploadServer server, UploadServer filterServer);
         }
     }
 

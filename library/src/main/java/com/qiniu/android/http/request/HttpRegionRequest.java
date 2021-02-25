@@ -24,7 +24,7 @@ class HttpRegionRequest {
     private final IUploadRegion region;
     private final UploadRequestInfo requestInfo;
 
-    private boolean isUseOldServer;
+    private UploadRequestState requestState;
     private HttpSingleRequest singleRequest;
     private IUploadServer currentServer;
     private UploadRegionRequestMetrics requestMetrics;
@@ -40,6 +40,7 @@ class HttpRegionRequest {
         this.token = token;
         this.region = region;
         this.requestInfo = requestInfo;
+        this.requestState = requestState;
 
         singleRequest = new HttpSingleRequest(config, uploadOption, token, requestInfo, requestState);
     }
@@ -97,30 +98,22 @@ class HttpRegionRequest {
         String serverIP = server.getIp();
 
         if (config.urlConverter != null){
-            serverHost = config.urlConverter.convert(serverHost);
             serverIP = null;
-            server = null;
+            serverHost = config.urlConverter.convert(serverHost);
         }
 
-        boolean toSkipDns;
         String scheme = config.useHttps ? "https://" : "http://";
         String urlString = scheme + serverHost + (action != null ? action : "");
-        if (serverIP != null && serverIP.length() > 0) {
-            toSkipDns = false;
-        } else {
-            toSkipDns = true;
-        }
         final Request request = new Request(urlString, method, header, data, config.connectTimeout);
         request.host = serverHost;
         request.ip = serverIP;
-        request.uploadServer = server;
 
         LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
                 " url:" + StringUtils.toNonnullString(request.urlString));
         LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
                 " headers:" + StringUtils.toNonnullString(request.allHeaders));
 
-        singleRequest.request(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, new HttpSingleRequest.RequestCompleteHandler() {
+        singleRequest.request(request, server, isAsync, shouldRetryHandler, progressHandler, new HttpSingleRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, ArrayList<UploadSingleRequestMetrics> requestMetricsList, JSONObject response) {
 
@@ -160,11 +153,11 @@ class HttpRegionRequest {
 
     private IUploadServer getNextServer(ResponseInfo responseInfo){
 
-        if (responseInfo != null && responseInfo.isTlsError()) {
-            isUseOldServer = true;
+        if (requestState != null && responseInfo != null && responseInfo.isTlsError()) {
+            requestState.setUseOldServer(true);
         }
 
-        return region.getNextServer(isUseOldServer, responseInfo, currentServer);
+        return region.getNextServer(requestState, responseInfo, currentServer);
     }
 
 

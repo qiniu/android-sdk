@@ -6,6 +6,7 @@ import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.connectCheck.ConnectChecker;
 import com.qiniu.android.http.dns.DnsPrefetcher;
+import com.qiniu.android.http.networkStatus.NetworkStatusManager;
 import com.qiniu.android.http.request.httpclient.SystemHttpClient;
 import com.qiniu.android.http.request.handler.CheckCancelHandler;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
@@ -21,6 +22,7 @@ import com.qiniu.android.utils.Utils;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 
 class HttpSingleRequest {
@@ -32,7 +34,7 @@ class HttpSingleRequest {
     private final UploadRequestInfo requestInfo;
     private final UploadRequestState requestState;
 
-    private ArrayList <UploadSingleRequestMetrics> requestMetricsList;
+    private ArrayList<UploadSingleRequestMetrics> requestMetricsList;
 
     private IRequestClient client;
 
@@ -50,24 +52,24 @@ class HttpSingleRequest {
     }
 
     void request(Request request,
+                 IUploadServer server,
                  boolean isAsync,
-                 boolean toSkipDns,
                  RequestShouldRetryHandler shouldRetryHandler,
                  RequestProgressHandler progressHandler,
-                 RequestCompleteHandler completeHandler){
+                 RequestCompleteHandler completeHandler) {
         currentRetryTime = 0;
         requestMetricsList = new ArrayList<>();
-        retryRequest(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, completeHandler);
+        retryRequest(request, server, isAsync, shouldRetryHandler, progressHandler, completeHandler);
     }
 
     private void retryRequest(final Request request,
+                              final IUploadServer server,
                               final boolean isAsync,
-                              final boolean toSkipDns,
                               final RequestShouldRetryHandler shouldRetryHandler,
                               final RequestProgressHandler progressHandler,
-                              final RequestCompleteHandler completeHandler){
+                              final RequestCompleteHandler completeHandler) {
 
-        if (toSkipDns){
+        if (server.isHttp3()) {
             client = new SystemHttpClient();
         } else {
             client = new SystemHttpClient();
@@ -77,7 +79,7 @@ class HttpSingleRequest {
             @Override
             public boolean checkCancel() {
                 boolean isCancelled = requestState.isUserCancel();
-                if (! isCancelled && uploadOption.cancellationSignal != null) {
+                if (!isCancelled && uploadOption.cancellationSignal != null) {
                     isCancelled = uploadOption.cancellationSignal.isCancelled();
                 }
                 return isCancelled;
@@ -94,39 +96,45 @@ class HttpSingleRequest {
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
                 if (checkCancelHandler.checkCancel()) {
                     requestState.setUserCancel(true);
-                    if (client != null){
+                    if (client != null) {
                         client.cancel();
                     }
-                } else if (progressHandler != null){
+                } else if (progressHandler != null) {
                     progressHandler.progress(totalBytesWritten, totalBytesExpectedToWrite);
                 }
             }
         }, new IRequestClient.RequestClientCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
-                if (metrics != null){
+                if (metrics != null) {
                     requestMetricsList.add(metrics);
                 }
 
-                if (shouldCheckConnect(responseInfo) && !ConnectChecker.check()) {
-                    String message = "check origin statusCode:" + responseInfo.statusCode + " error:" + responseInfo.error;
-                    responseInfo = ResponseInfo.errorInfo(ResponseInfo.NetworkSlow, message);
+                if (shouldCheckConnect(responseInfo)) {
+                    UploadSingleRequestMetrics checkMetrics = ConnectChecker.check();
+                    if (metrics != null) {
+                        metrics.connectCheckMetrics = checkMetrics;
+                    }
+                    if (!ConnectChecker.isConnected(checkMetrics)) {
+                        String message = "check origin statusCode:" + responseInfo.statusCode + " error:" + responseInfo.error;
+                        responseInfo = ResponseInfo.errorInfo(ResponseInfo.NetworkSlow, message);
+                    }
                 }
 
                 LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
                         " response:" + StringUtils.toNonnullString(responseInfo));
                 if (shouldRetryHandler != null && shouldRetryHandler.shouldRetry(responseInfo, response)
-                    && currentRetryTime < config.retryMax
-                    && responseInfo.couldHostRetry()){
+                        && currentRetryTime < config.retryMax
+                        && responseInfo.couldHostRetry()) {
                     currentRetryTime += 1;
 
                     try {
                         Thread.sleep(config.retryInterval);
                     } catch (InterruptedException ignored) {
                     }
-                    retryRequest(request, isAsync, toSkipDns, shouldRetryHandler, progressHandler, completeHandler);
+                    retryRequest(request, server, isAsync, shouldRetryHandler, progressHandler, completeHandler);
                 } else {
-                    completeAction(request, responseInfo, response, metrics, completeHandler);
+                    completeAction(server, responseInfo, response, metrics, completeHandler);
                 }
             }
         });
@@ -134,47 +142,63 @@ class HttpSingleRequest {
     }
 
     private boolean shouldCheckConnect(ResponseInfo responseInfo) {
-        return responseInfo != null && (
-                responseInfo.statusCode == -1001 || /* timeout */
-                responseInfo.statusCode == -1003 || /* unknown host */
-                responseInfo.statusCode == -1004 || /* cannot connect to host */
-                responseInfo.statusCode == -1005 || /* connection lost */
-                responseInfo.statusCode == -1009 || /* not connected to host */
-                responseInfo.isTlsError());
+        return responseInfo != null &&
+                (responseInfo.statusCode == ResponseInfo.NetworkError || /* network error */
+                        responseInfo.statusCode == -1001 || /* timeout */
+                        responseInfo.statusCode == -1003 || /* unknown host */
+                        responseInfo.statusCode == -1004 || /* cannot connect to host */
+                        responseInfo.statusCode == -1005 || /* connection lost */
+                        responseInfo.statusCode == -1009 || /* not connected to host */
+                        responseInfo.isTlsError());
     }
 
-    private synchronized void completeAction(Request request,
+    private synchronized void completeAction(IUploadServer server,
                                              ResponseInfo responseInfo,
                                              JSONObject response,
                                              UploadSingleRequestMetrics requestMetrics,
                                              RequestCompleteHandler completeHandler) {
 
-        if (client == null){
+        if (client == null) {
             return;
         }
         client = null;
 
-        if (completeHandler != null){
+        updateHostNetworkStatus(responseInfo, server, requestMetrics);
+        reportRequest(responseInfo, server, requestMetrics);
+
+        if (completeHandler != null) {
             completeHandler.complete(responseInfo, requestMetricsList, response);
         }
-        reportRequest(responseInfo, request, requestMetrics);
+    }
+
+    private void updateHostNetworkStatus(ResponseInfo responseInfo, IUploadServer server, UploadSingleRequestMetrics requestMetrics) {
+        if (requestMetrics == null) {
+            return;
+        }
+        long byteCount = requestMetrics.bytesSend();
+        long second = requestMetrics.totalElapsedTime();
+        if (second > 0 && byteCount >= 1024 * 1024) {
+            int speed = (int) (byteCount * 1000 / second);
+            String type = NetworkStatusManager.getNetworkStatusType(server.getHost(), server.getIp());
+            NetworkStatusManager.getInstance().updateNetworkStatus(type, speed);
+        }
     }
 
     private void reportRequest(ResponseInfo responseInfo,
-                               Request request,
-                               UploadSingleRequestMetrics requestMetrics){
+                               IUploadServer server,
+                               UploadSingleRequestMetrics requestMetrics) {
 
-        if (token == null || !token.isValid() || requestInfo == null || !requestInfo.shouldReportRequestLog() || requestMetrics == null){
+        if (token == null || !token.isValid() || requestInfo == null || !requestInfo.shouldReportRequestLog() || requestMetrics == null) {
             return;
         }
 
         long currentTimestamp = Utils.currentTimestamp();
         ReportItem item = new ReportItem();
         item.setReport(ReportItem.LogTypeRequest, ReportItem.RequestKeyLogType);
-        item.setReport((currentTimestamp/1000), ReportItem.RequestKeyUpTime);
+        item.setReport((currentTimestamp / 1000), ReportItem.RequestKeyUpTime);
         item.setReport(ReportItem.requestReportStatusCode(responseInfo), ReportItem.RequestKeyStatusCode);
         item.setReport(responseInfo != null ? responseInfo.reqId : null, ReportItem.RequestKeyRequestId);
-        item.setReport(request != null ? request.host : null, ReportItem.RequestKeyHost);
+        item.setReport(requestMetrics.request != null ? requestMetrics.request.host : null, ReportItem.RequestKeyHost);
         item.setReport(requestMetrics.remoteAddress, ReportItem.RequestKeyRemoteIp);
         item.setReport(requestMetrics.remotePort, ReportItem.RequestKeyPort);
         item.setReport(requestInfo.bucket, ReportItem.RequestKeyTargetBucket);
@@ -197,7 +221,7 @@ class HttpSingleRequest {
         String errorType = ReportItem.requestReportErrorType(responseInfo);
         item.setReport(errorType, ReportItem.RequestKeyErrorType);
         String errorDesc = null;
-        if (responseInfo != null && errorType != null){
+        if (responseInfo != null && errorType != null) {
             errorDesc = responseInfo.error != null ? responseInfo.error : responseInfo.message;
         }
         item.setReport(errorDesc, ReportItem.RequestKeyErrorDescription);
@@ -210,15 +234,27 @@ class HttpSingleRequest {
         item.setReport(Utils.getCurrentNetworkType(), ReportItem.RequestKeyNetworkType);
         item.setReport(Utils.getCurrentSignalStrength(), ReportItem.RequestKeySignalStrength);
 
-        item.setReport(request.uploadServer.getSource(), ReportItem.RequestKeyPrefetchedDnsSource);
-        if (request.uploadServer.getIpPrefetchedTime() != null){
-            Long prefetchTime = request.uploadServer.getIpPrefetchedTime() - currentTimestamp;
+        item.setReport(server.getSource(), ReportItem.RequestKeyPrefetchedDnsSource);
+        if (server.getIpPrefetchedTime() != null) {
+            Long prefetchTime = server.getIpPrefetchedTime() - currentTimestamp;
             item.setReport(prefetchTime, ReportItem.RequestKeyPrefetchedBefore);
         }
         item.setReport(DnsPrefetcher.getInstance().lastPrefetchErrorMessage, ReportItem.RequestKeyPrefetchedErrorMessage);
 
         item.setReport(requestMetrics.clientName, ReportItem.RequestKeyHttpClient);
         item.setReport(requestMetrics.clientVersion, ReportItem.RequestKeyHttpClientVersion);
+
+        if (requestMetrics.connectCheckMetrics != null) {
+            String connectCheckDuration = String.format(Locale.ENGLISH,"%d", requestMetrics.connectCheckMetrics.totalElapsedTime());
+            String connectCheckStatusCode = "";
+            if (requestMetrics.connectCheckMetrics.response != null) {
+                connectCheckStatusCode = String.format(Locale.ENGLISH,"%d", requestMetrics.connectCheckMetrics.response.statusCode);
+            }
+            String networkMeasuring = String.format("duration:%s status_code:%s", connectCheckDuration, connectCheckStatusCode);
+            item.setReport(networkMeasuring, ReportItem.RequestKeyNetworkMeasuring);
+        }
+
+        item.setReport(requestMetrics.httpVersion, ReportItem.RequestKeyHttpVersion);
 
         UploadInfoReporter.getInstance().report(item, token.token);
     }

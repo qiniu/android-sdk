@@ -14,53 +14,57 @@ import org.json.JSONObject;
 
 public class ConnectChecker {
 
-    private static SingleFlight<Boolean> singleFlight = new SingleFlight<>();
+    private static SingleFlight<UploadSingleRequestMetrics> singleFlight = new SingleFlight<>();
 
-    public static boolean check() {
+    public static boolean isConnected(UploadSingleRequestMetrics metrics) {
+        return metrics != null && metrics.response != null && metrics.response.statusCode > 99;
+    }
+
+    public static UploadSingleRequestMetrics check() {
 
         final CheckResult result = new CheckResult();
 
         final Wait wait = new Wait();
         check(new CheckCompleteHandler() {
             @Override
-            public void complete(boolean isConnected) {
-                result.isConnected = isConnected;
+            public void complete(UploadSingleRequestMetrics metrics) {
+                result.metrics = metrics;
                 wait.stopWait();
             }
         });
         wait.startWait();
 
-        return result.isConnected;
+        return result.metrics;
     }
 
     private static void check(final CheckCompleteHandler completeHandler) {
 
         try {
-            singleFlight.perform("connect_check", new SingleFlight.ActionHandler<Boolean>() {
+            singleFlight.perform("connect_check", new SingleFlight.ActionHandler<UploadSingleRequestMetrics>() {
                 @Override
-                public void action(final SingleFlight.CompleteHandler<Boolean> singleFlightComplete) throws Exception {
+                public void action(final SingleFlight.CompleteHandler<UploadSingleRequestMetrics> singleFlightComplete) throws Exception {
                     checkAllHosts(new CheckCompleteHandler() {
                         @Override
-                        public void complete(boolean isConnected) {
-                            singleFlightComplete.complete(isConnected);
+                        public void complete(UploadSingleRequestMetrics metrics) {
+                            singleFlightComplete.complete(metrics);
                         }
                     });
                 }
-            }, new SingleFlight.CompleteHandler<Boolean>() {
+            }, new SingleFlight.CompleteHandler<UploadSingleRequestMetrics>() {
                 @Override
-                public void complete(Boolean value) {
-                    completeHandler.complete(value);
+                public void complete(UploadSingleRequestMetrics metrics) {
+                    completeHandler.complete(metrics);
                 }
             });
         } catch (Exception e) {
-            completeHandler.complete(true);
+            completeHandler.complete(null);
         }
     }
 
     private static void checkAllHosts(final CheckCompleteHandler completeHandler) {
         String[] allHosts = GlobalConfiguration.getInstance().connectCheckURLStrings;
         if (allHosts == null) {
-            completeHandler.complete(true);
+            completeHandler.complete(null);
             return;
         }
 
@@ -72,8 +76,8 @@ public class ConnectChecker {
         for (String host : allHosts) {
             checkHost(host, new CheckCompleteHandler() {
                 @Override
-                public void complete(boolean isHostConnected) {
-
+                public void complete(UploadSingleRequestMetrics metrics) {
+                    boolean isHostConnected = isConnected(metrics);
                     synchronized (checkStatus) {
                         checkStatus.completeCount += 1;
                     }
@@ -90,7 +94,7 @@ public class ConnectChecker {
                                 checkStatus.isCompleted = true;
                             }
                         }
-                        completeHandler.complete(checkStatus.isConnected);
+                        completeHandler.complete(metrics);
                     } else {
                         LogUtil.i("== check all hosts not completed totalCount:" + checkStatus.totalCount + " completeCount:" + checkStatus.completeCount);
                     }
@@ -109,20 +113,15 @@ public class ConnectChecker {
         client.request(request, true, null, null, new IRequestClient.RequestClientCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
-                if (responseInfo.statusCode > 99) {
-                    LogUtil.i("== checkHost:" + host + " result: true");
-                    completeHandler.complete(true);
-                } else {
-                    LogUtil.i("== checkHost:" + host + " result: false");
-                    completeHandler.complete(false);
-                }
+                LogUtil.i("== checkHost:" + host + " responseInfo:" + responseInfo);
+                completeHandler.complete(metrics);
             }
         });
     }
 
 
     private interface CheckCompleteHandler {
-        void complete(boolean isConnected);
+        void complete(UploadSingleRequestMetrics metrics);
     }
 
     private static class CheckStatus {
@@ -133,6 +132,6 @@ public class ConnectChecker {
     }
 
     private static class CheckResult {
-        private boolean isConnected = false;
+        private UploadSingleRequestMetrics metrics;
     }
 }

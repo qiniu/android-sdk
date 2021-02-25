@@ -2,13 +2,14 @@ package com.qiniu.android.http.serverRegion;
 
 import com.qiniu.android.http.request.IUploadServer;
 
-public class UploadServer implements IUploadServer {
+public class UploadServer extends IUploadServer {
 
     private final String serverId;
     private final String host;
     private final String ip;
     private final String source;
     private final Long ipPrefetchedTime;
+    private String httpVersion;
 
     public UploadServer(String serverId,
                         String host,
@@ -25,6 +26,15 @@ public class UploadServer implements IUploadServer {
     @Override
     public String getServerId() {
         return this.serverId;
+    }
+
+    @Override
+    public String getHttpVersion() {
+        return httpVersion;
+    }
+
+    public void setHttpVersion(String httpVersion) {
+        this.httpVersion = httpVersion;
     }
 
     @Override

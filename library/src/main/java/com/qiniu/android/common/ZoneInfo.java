@@ -24,6 +24,7 @@ public class ZoneInfo {
     private static int DOMAIN_FROZEN_SECONDS = 10 * 60;
 
     public final int ttl;
+    public final boolean http3Enabled;
     public final List<String> domains;
     public final List<String> old_domains;
 
@@ -70,10 +71,12 @@ public class ZoneInfo {
     }
 
     private ZoneInfo(int ttl,
+                     boolean http3Enabled,
                      String regionId,
                      List<String> domains,
                      List<String> old_domains) {
         this.ttl = ttl;
+        this.http3Enabled = http3Enabled;
         this.regionId = regionId;
         this.domains = domains;
         this.old_domains = old_domains;
@@ -91,6 +94,14 @@ public class ZoneInfo {
         }
 
         int ttl = obj.optInt("ttl");
+        boolean http3Enabled = false;
+        try {
+            JSONObject features = obj.getJSONObject("features");
+            JSONObject http3 = features.getJSONObject("http3");
+            http3Enabled = http3.getBoolean("enabled");
+        } catch (Exception ignored) {
+        }
+
         String regionId = obj.optString("region");
         if (regionId == null) {
             regionId = EmptyRegionId;
@@ -130,7 +141,7 @@ public class ZoneInfo {
             return null;
         }
 
-        ZoneInfo zoneInfo = new ZoneInfo(ttl, regionId, domains, old_domains);
+        ZoneInfo zoneInfo = new ZoneInfo(ttl, http3Enabled, regionId, domains, old_domains);
         zoneInfo.detailInfo = obj;
 
         zoneInfo.allHosts = allHosts;

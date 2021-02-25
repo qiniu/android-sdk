@@ -47,6 +47,7 @@ public class ReportItem {
     public static final String RequestKeyStatusCode = "status_code";
     public static final String RequestKeyRequestId = "req_id";
     public static final String RequestKeyHost = "host";
+    public static final String RequestKeyHttpVersion = "http_version";
     public static final String RequestKeyRemoteIp = "remote_ip";
     public static final String RequestKeyPort = "port";
     public static final String RequestKeyTargetBucket = "target_bucket";
@@ -80,6 +81,7 @@ public class ReportItem {
     public static final String RequestKeyPrefetchedDnsSource = "prefetched_dns_source";
     public static final String RequestKeyPrefetchedBefore = "prefetched_before";
     public static final String RequestKeyPrefetchedErrorMessage = "prefetched_error_message";
+    public static final String RequestKeyNetworkMeasuring = "network_measuring";
 
     // 分块上传统计⽇志
     public static final String BlockKeyLogType = "log_type";

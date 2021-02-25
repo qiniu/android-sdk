@@ -61,10 +61,12 @@ public class DnsTransactionTest extends BaseTest {
                 public void run() {
 
                     boolean isSuccess = DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(zone, UpToken.parse(TestConfig.token_z0));
-                    if (isSuccess){
-                        successCount += 1;
+                    synchronized (this) {
+                        if (isSuccess) {
+                            successCount += 1;
+                        }
+                        completeCount += 1;
                     }
-                    completeCount += 1;
                 }
             }).start();
         }
@@ -80,7 +82,7 @@ public class DnsTransactionTest extends BaseTest {
             }
         }, 60);
 
-        assertTrue("successCount:" + successCount, successCount < 2);
+        assertTrue("successCount:" + successCount, successCount < 3);
     }
 
 

@@ -2,6 +2,7 @@ package com.qiniu.android;
 
 import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.http.request.IUploadServer;
+import com.qiniu.android.http.request.UploadRequestState;
 import com.qiniu.android.http.serverRegion.UploadDomainRegion;
 import com.qiniu.android.http.serverRegion.UploadServerFreezeManager;
 import com.qiniu.android.utils.Utils;
@@ -18,9 +19,11 @@ public class UploadDomainRegionTest extends BaseTest {
         UploadDomainRegion region = new UploadDomainRegion();
         region.setupRegionData(zone.getZonesInfo(null).zonesInfo.get(0));
 
-        UploadServerFreezeManager.getInstance().freezeHost(host, type, 100);
+        UploadServerFreezeManager.getInstance().freezeType(type, 100);
 
-        IUploadServer server = region.getNextServer(false, null, null);
+        UploadRequestState state = new UploadRequestState();
+        state.setUseOldServer(false);
+        IUploadServer server = region.getNextServer(state, null, null);
 
         assertNotNull(server);
     }

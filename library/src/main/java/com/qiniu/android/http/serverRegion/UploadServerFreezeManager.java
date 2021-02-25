@@ -20,58 +20,46 @@ public class UploadServerFreezeManager {
         return manager;
     }
 
-    public boolean isFreezeHost(String host, String type) {
-        if (host == null || host.length() == 0) {
+    public boolean isTypeFrozen(String type) {
+        if (type == null || type.length() == 0) {
             return true;
         }
         boolean isFrozen = true;
-        String infoKey = getItemInfoKey(host, type);
-        UploadServerFreezeItem item = frozenInfo.get(infoKey);
+        UploadServerFreezeItem item = frozenInfo.get(type);
         if (item == null || !item.isFrozenByDate(new Date())) {
             isFrozen = false;
         }
         return isFrozen;
     }
 
-    public void freezeHost(String host, String type, int frozenTime) {
-        if (host == null || host.length() == 0) {
+    public void freezeType(String type, int frozenTime) {
+        if (type == null || type.length() == 0) {
             return;
         }
-        String infoKey = getItemInfoKey(host, type);
-        UploadServerFreezeItem item = frozenInfo.get(infoKey);
+        UploadServerFreezeItem item = frozenInfo.get(type);
         if (item == null) {
-            item = new UploadServerFreezeItem(host, type);
-            frozenInfo.put(infoKey, item);
+            item = new UploadServerFreezeItem(type);
+            frozenInfo.put(type, item);
         }
         item.freeze(frozenTime);
     }
 
-    public void unfreezeHost(String host, String type) {
-        if (host == null || host.length() == 0) {
+    public void unfreezeType(String type) {
+        if (type == null || type.length() == 0) {
             return;
         }
-        String infoKey = getItemInfoKey(host, type);
-        if (infoKey != null) {
-            frozenInfo.remove(infoKey);
-        }
-    }
-
-    private String getItemInfoKey(String host, String type) {
-        return String.format("%s:%s", (host != null ? host : "none"), (type != null ? type : "none"));
+        frozenInfo.remove(type);
     }
 
     private static class UploadServerFreezeItem {
-        protected final String host;
         protected final String type;
-        protected Date freezeDate;
+        private Date freezeDate;
 
-        protected UploadServerFreezeItem(String host,
-                                         String type) {
-            this.host = host;
+        private UploadServerFreezeItem(String type) {
             this.type = type;
         }
 
-        protected synchronized boolean isFrozenByDate(Date date) {
+        private synchronized boolean isFrozenByDate(Date date) {
             boolean isFrozen = true;
             if (freezeDate == null || freezeDate.getTime() < date.getTime()) {
                 isFrozen = false;
@@ -79,7 +67,7 @@ public class UploadServerFreezeManager {
             return isFrozen;
         }
 
-        protected synchronized void freeze(int frozenTime) {
+        private synchronized void freeze(int frozenTime) {
             freezeDate = new Date(Utils.currentTimestamp() + frozenTime * 1000);
         }
 
