@@ -2,6 +2,7 @@ package com.qiniu.android;
 
 import com.qiniu.android.common.AutoZone;
 import com.qiniu.android.common.FixedZone;
+import com.qiniu.android.http.dns.DnsPrefetchTransaction;
 import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.dns.IDnsNetworkAddress;
 import com.qiniu.android.storage.UpToken;
@@ -87,15 +88,13 @@ public class DnsApiTest extends BaseTest {
     public void testMutiThreadPrefetch(){
 
         final AutoZone zone = new AutoZone();
-        final DnsPrefetcher dnsPrefetcher = DnsPrefetcher.getInstance();
-
         final TestParam param = new TestParam();
 
         for (int i = 0; i < param.count; i++) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    boolean isSuccess = dnsPrefetcher.checkAndPrefetchDnsIfNeed(zone, UpToken.parse(TestConfig.token_z0));
+                    boolean isSuccess = DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(zone, UpToken.parse(TestConfig.token_z0));
                     synchronized (this){
                         if (isSuccess){
                             param.successCount += 1;
