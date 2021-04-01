@@ -1,5 +1,5 @@
 #Changelog
-## 8.2.0(2021-02-20)
+## 8.2.0(2021-04-01)
 ## 增加
 * 增加雾存储 FixedZone.zoneFogCnEast1
 
