@@ -172,11 +172,19 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         if (randomAccessFile == null || data == null) {
             return null;
         }
+
+        int readSize = 0;
         byte[] uploadData = new byte[(int) data.size];
         try {
             synchronized (randomAccessFile) {
                 randomAccessFile.seek(data.offset);
-                randomAccessFile.read(uploadData, 0, (int) data.size);
+                while (readSize < data.size) {
+                    int ret = randomAccessFile.read(uploadData, readSize, (int)(data.size - readSize));
+                    if (ret < 0) {
+                        break;
+                    }
+                    readSize += ret;
+                }
             }
         } catch (IOException e) {
             uploadData = null;
