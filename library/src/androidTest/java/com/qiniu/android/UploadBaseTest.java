@@ -6,11 +6,13 @@ import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
+import com.qiniu.android.utils.Etag;
 import com.qiniu.android.utils.LogUtil;
 
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 
 public class UploadBaseTest extends BaseTest {
 
@@ -58,6 +60,18 @@ public class UploadBaseTest extends BaseTest {
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.isOK());
         assertTrue(completeInfo.responseInfo.toString(), verifyUploadKey(key, completeInfo.key));
+
+        // 成功验证 etag
+        String etag = null;
+        String serverEtag = null;
+        try {
+            etag = Etag.file(file);
+            serverEtag = completeInfo.responseInfo.response.getString("hash");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        LogUtil.d("=== upload etag:" + etag + " response etag:" + serverEtag);
+        assertEquals("file:" + etag + " server etag:" + serverEtag, etag, serverEtag);
     }
 
     protected void uploadFileAndAssertResult(int statusCode,
@@ -96,6 +110,20 @@ public class UploadBaseTest extends BaseTest {
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.statusCode == statusCode);
         assertTrue(completeInfo.responseInfo.toString(), verifyUploadKey(key, completeInfo.key));
+
+        // 成功验证 etag
+        if (statusCode == 200) {
+            String etag = null;
+            String serverEtag = null;
+            try {
+                etag = Etag.file(file);
+                serverEtag = completeInfo.responseInfo.response.getString("hash");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            LogUtil.d("=== upload etag:" + etag + " response etag:" + serverEtag);
+            assertEquals("file:" + etag + " server etag:" + serverEtag, etag, serverEtag);
+        }
     }
 
     protected void uploadFile(File file,
@@ -146,6 +174,18 @@ public class UploadBaseTest extends BaseTest {
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.isOK());
         assertTrue(completeInfo.responseInfo.toString(), verifyUploadKey(key, completeInfo.key));
+
+        // 成功验证 etag
+        String etag = null;
+        String serverEtag = null;
+        try {
+            etag = Etag.data(data);
+            serverEtag = completeInfo.responseInfo.response.getString("hash");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        LogUtil.d("=== upload etag:" + etag + " response etag:" + serverEtag);
+        assertEquals("file:" + etag + " server etag:" + serverEtag, etag, serverEtag);
     }
 
     protected void uploadDataAndAssertResult(int statusCode,
@@ -183,6 +223,20 @@ public class UploadBaseTest extends BaseTest {
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.statusCode == statusCode);
         assertTrue(completeInfo.responseInfo.toString(), verifyUploadKey(key, completeInfo.key));
+
+        // 成功验证 etag
+        if (statusCode == 200) {
+            String etag = null;
+            String serverEtag = null;
+            try {
+                etag = Etag.data(data);
+                serverEtag = completeInfo.responseInfo.response.getString("hash");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            LogUtil.d("=== upload etag:" + etag + " response etag:" + serverEtag);
+            assertEquals("file:" + etag + " server etag:" + serverEtag, etag, serverEtag);
+        }
     }
 
     protected void uploadData(byte[] data,

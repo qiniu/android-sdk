@@ -19,6 +19,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -184,6 +185,7 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(true)
+                .chunkSize(4*1024*1024)
                 .useHttps(true)
                 .build();
         int[] sizeArray = {5000, 8000, 10000, 20000};
@@ -204,6 +206,7 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(true)
+                .chunkSize(4*1024*1024)
                 .useHttps(true)
                 .build();
         int[] sizeArray = {10000, 20000};
@@ -223,11 +226,13 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(true)
+                .chunkSize(4*1024*1024)
                 .useHttps(false)
                 .build();
         int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
+        long timestamp = new Date().getTime();
         for (int size : sizeArray) {
-            String key = "android_concurrent_resume_http_v2_" + size + "k";
+            String key = "android_concurrent_resume_http_v2_" + timestamp + "_" + size + "k";
             try {
                 File file = TempFile.createFile(size, key);
                 uploadFileAndAssertSuccessResult(file, key, configuration, null);
@@ -243,6 +248,7 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(true)
                 .useHttps(true)
+                .chunkSize(4*1024*1024)
                 .build();
         int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
         for (int size : sizeArray) {
@@ -262,7 +268,7 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(true)
                 .useHttps(true)
-                .chunkSize(1024*1024)
+                .chunkSize(4*1024*1024)
                 .build();
         int[] sizeArray = {30000};
         for (int size : sizeArray) {

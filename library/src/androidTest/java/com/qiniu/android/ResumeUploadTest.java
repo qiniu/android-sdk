@@ -198,6 +198,7 @@ public class ResumeUploadTest extends UploadFlowTest {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
+                .chunkSize(4*1024*1024)
                 .useHttps(true)
                 .build();
         int[] sizeArray = {5000, 8000, 10000, 20000};
@@ -218,6 +219,7 @@ public class ResumeUploadTest extends UploadFlowTest {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
+                .chunkSize(4*1024*1024)
                 .useHttps(true)
                 .build();
         int[] sizeArray = {10000, 20000};
@@ -237,6 +239,7 @@ public class ResumeUploadTest extends UploadFlowTest {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
+                .chunkSize(4*1024*1024)
                 .useHttps(false)
                 .build();
         int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
@@ -256,6 +259,7 @@ public class ResumeUploadTest extends UploadFlowTest {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
+                .chunkSize(4*1024*1024)
                 .useHttps(true)
                 .build();
         int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
@@ -276,7 +280,7 @@ public class ResumeUploadTest extends UploadFlowTest {
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
                 .useHttps(true)
-                .chunkSize(1024*1024)
+                .chunkSize(4*1024*1024)
                 .build();
         int[] sizeArray = {30000};
         for (int size : sizeArray) {
@@ -361,6 +365,7 @@ public class ResumeUploadTest extends UploadFlowTest {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
+                .chunkSize(4*1024*1024)
                 .useHttps(false)
                 .build();
 
