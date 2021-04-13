@@ -98,7 +98,7 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
             return;
         }
 
-        data.data = getUploadData(data);
+        data.data = getUploadDataWithRetry(data);
         if (data.data == null) {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " get data error");
 
@@ -168,21 +168,41 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         });
     }
 
+    private byte[] getUploadDataWithRetry(UploadData data) {
+        byte[] uploadData = null;
+
+        int maxTime = 3;
+        int index = 0;
+        while (index < maxTime) {
+            uploadData = getUploadData(data);
+            if (uploadData != null) {
+                break;
+            }
+            index ++;
+        }
+
+        return uploadData;
+    }
+
     private synchronized byte[] getUploadData(UploadData data) {
         if (randomAccessFile == null || data == null) {
             return null;
         }
 
         int readSize = 0;
-        byte[] uploadData = new byte[(int) data.size];
+        byte[] uploadData = new byte[data.size];
         try {
             randomAccessFile.seek(data.offset);
             while (readSize < data.size) {
-                int ret = randomAccessFile.read(uploadData, readSize, (int) (data.size - readSize));
+                int ret = randomAccessFile.read(uploadData, readSize, data.size - readSize);
                 if (ret < 0) {
                     break;
                 }
                 readSize += ret;
+            }
+            // 读数据非预期
+            if (readSize != data.size) {
+                uploadData = null;
             }
         } catch (IOException e) {
             uploadData = null;
