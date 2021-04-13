@@ -99,7 +99,6 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         }
 
         data.data = getUploadData(data);
-        final String etagA = Etag.data(data.data);
         if (data.data == null) {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " get data error");
 
@@ -136,8 +135,6 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
                     } catch (JSONException e) {
                     }
                 }
-                boolean isEqual = etagA.equals(etag);
-                System.out.println("===: isEqual:" + isEqual);
                 if (responseInfo.isOK() && etag != null && md5 != null) {
                     uploadData.progress = 1;
                     uploadData.etag = etag;
