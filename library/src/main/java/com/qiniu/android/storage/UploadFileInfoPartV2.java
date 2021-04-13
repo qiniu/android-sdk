@@ -25,9 +25,7 @@ public class UploadFileInfoPartV2 extends UploadFileInfo {
         this.uploadDataList = uploadDataList;
     }
 
-    UploadFileInfoPartV2(long size,
-                         long dataSize,
-                         long modifyTime) {
+    UploadFileInfoPartV2(long size, int dataSize, long modifyTime) {
         super(size, modifyTime);
         this.uploadDataList = createDataList(dataSize);
     }
@@ -63,13 +61,13 @@ public class UploadFileInfoPartV2 extends UploadFileInfo {
         return fileInfo;
     }
 
-    private ArrayList<UploadData> createDataList(long dataSize) {
+    private ArrayList<UploadData> createDataList(int dataSize) {
         long offset = 0;
         int dataIndex = 1;
         ArrayList<UploadData> dataList = new ArrayList<UploadData>();
         while (offset < size) {
             long lastSize = size - offset;
-            long dataSizeP = Math.min(lastSize, dataSize);
+            int dataSizeP = Math.min((int)lastSize, dataSize);
             UploadData data = new UploadData(offset, dataSizeP, dataIndex);
             if (data != null) {
                 dataList.add(data);

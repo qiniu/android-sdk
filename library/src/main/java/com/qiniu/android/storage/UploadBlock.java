@@ -15,10 +15,7 @@ class UploadBlock {
 
     String context;
 
-    UploadBlock(long offset,
-                long blockSize,
-                long dataSize,
-                int index) {
+    UploadBlock(long offset, long blockSize, int dataSize, int index) {
         this.offset = offset;
         this.size = blockSize;
         this.index = index;
@@ -92,13 +89,13 @@ class UploadBlock {
         return progress;
     }
 
-    private ArrayList<UploadData> createDataList(long dataSize) {
+    private ArrayList<UploadData> createDataList(int dataSize) {
         long offset = 0;
         int dataIndex = 1;
         ArrayList<UploadData> datas = new ArrayList<UploadData>();
         while (offset < size) {
             long lastSize = size - offset;
-            long dataSizeP = Math.min(lastSize, dataSize);
+            int dataSizeP = Math.min((int) lastSize, dataSize);
             UploadData data = new UploadData(offset, dataSizeP, dataIndex);
             if (data != null) {
                 datas.add(data);

@@ -16,7 +16,7 @@ import java.util.ArrayList;
 
 class PartsUploadPerformerV1 extends PartsUploadPerformer {
 
-    private static long BlockSize = 4 * 1024 * 1024;
+    private static int BlockSize = 4 * 1024 * 1024;
 
     PartsUploadPerformerV1(File file,
                            String fileName,
@@ -205,7 +205,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
         return data;
     }
 
-    private long getUploadChunkSize() {
+    private int getUploadChunkSize() {
         if (config.useConcurrentResumeUpload) {
             return BlockSize;
         } else {

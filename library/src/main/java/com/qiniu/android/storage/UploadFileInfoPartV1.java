@@ -17,10 +17,7 @@ class UploadFileInfoPartV1 extends UploadFileInfo {
         this.uploadBlocks = uploadBlocks;
     }
 
-    UploadFileInfoPartV1(long size,
-                         long blockSize,
-                         long dataSize,
-                         long modifyTime) {
+    UploadFileInfoPartV1(long size, int blockSize, int dataSize, long modifyTime) {
         super(size, modifyTime);
         this.uploadBlocks = createBlocks(blockSize, dataSize);
     }
@@ -50,14 +47,13 @@ class UploadFileInfoPartV1 extends UploadFileInfo {
         return fileInfo;
     }
 
-    private ArrayList<UploadBlock> createBlocks(long blockSize,
-                                                long dataSize) {
+    private ArrayList<UploadBlock> createBlocks(int blockSize, int dataSize) {
         long offset = 0;
         int blockIndex = 0;
         ArrayList<UploadBlock> blocks = new ArrayList<>();
         while (offset < size) {
             long lastSize = size - offset;
-            long blockSizeP = Math.min(lastSize, blockSize);
+            int blockSizeP = Math.min((int)lastSize, blockSize);
             UploadBlock block = new UploadBlock(offset, blockSizeP, dataSize, blockIndex);
             if (block != null) {
                 blocks.add(block);
