@@ -4,6 +4,7 @@ import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
+import com.qiniu.android.utils.Etag;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
 
@@ -98,6 +99,7 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         }
 
         data.data = getUploadData(data);
+        final String etagA = Etag.data(data.data);
         if (data.data == null) {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " get data error");
 
@@ -134,7 +136,8 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
                     } catch (JSONException e) {
                     }
                 }
-
+                boolean isEqual = etagA.equals(etag);
+                System.out.println("===: isEqual:" + isEqual);
                 if (responseInfo.isOK() && etag != null && md5 != null) {
                     uploadData.progress = 1;
                     uploadData.etag = etag;
@@ -168,7 +171,7 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         });
     }
 
-    private byte[] getUploadData(UploadData data) {
+    private synchronized byte[] getUploadData(UploadData data) {
         if (randomAccessFile == null || data == null) {
             return null;
         }
@@ -176,15 +179,13 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         int readSize = 0;
         byte[] uploadData = new byte[(int) data.size];
         try {
-            synchronized (randomAccessFile) {
-                randomAccessFile.seek(data.offset);
-                while (readSize < data.size) {
-                    int ret = randomAccessFile.read(uploadData, readSize, (int)(data.size - readSize));
-                    if (ret < 0) {
-                        break;
-                    }
-                    readSize += ret;
+            randomAccessFile.seek(data.offset);
+            while (readSize < data.size) {
+                int ret = randomAccessFile.read(uploadData, readSize, (int) (data.size - readSize));
+                if (ret < 0) {
+                    break;
                 }
+                readSize += ret;
             }
         } catch (IOException e) {
             uploadData = null;

@@ -184,23 +184,20 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
 
     }
 
-    private byte[] getDataWithChunk(UploadData chunk,
-                                    UploadBlock block) {
+    private synchronized byte[] getDataWithChunk(UploadData chunk, UploadBlock block) {
         if (randomAccessFile == null || chunk == null || block == null) {
             return null;
         }
         int readSize = 0;
         byte[] data = new byte[(int) chunk.size];
         try {
-            synchronized (randomAccessFile) {
-                randomAccessFile.seek((chunk.offset + block.offset));
-                while (readSize < chunk.size) {
-                    int ret = randomAccessFile.read(data, readSize, (int)(chunk.size - readSize));
-                    if (ret < 0) {
-                        break;
-                    }
-                    readSize += ret;
+            randomAccessFile.seek((chunk.offset + block.offset));
+            while (readSize < chunk.size) {
+                int ret = randomAccessFile.read(data, readSize, (int) (chunk.size - readSize));
+                if (ret < 0) {
+                    break;
                 }
+                readSize += ret;
             }
         } catch (IOException e) {
             data = null;

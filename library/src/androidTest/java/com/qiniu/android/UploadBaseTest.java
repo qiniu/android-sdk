@@ -16,7 +16,7 @@ import java.io.IOException;
 
 public class UploadBaseTest extends BaseTest {
 
-    protected UploadOptions defaultOptions = new UploadOptions(null, null, false, new UpProgressHandler() {
+    protected UploadOptions defaultOptions = new UploadOptions(null, null, true, new UpProgressHandler() {
         @Override
         public void progress(String key, double percent) {
             LogUtil.d("== upload key:" + (key == null ? "" : key) + " progress:" + percent);
