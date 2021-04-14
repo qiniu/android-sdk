@@ -6,7 +6,7 @@ import org.json.JSONObject;
 class UploadData {
 
     final long offset;
-    final long size;
+    final int size;
     final int index;
 
     String etag;
@@ -16,9 +16,7 @@ class UploadData {
 
     byte[] data;
 
-    UploadData(long offset,
-               long size,
-               int index) {
+    UploadData(long offset, int size, int index) {
         this.offset = offset;
         this.size = size;
         this.index = index;
@@ -32,14 +30,14 @@ class UploadData {
             return null;
         }
         long offset = 0;
-        long size = 0;
+        int size = 0;
         int index = 0;
         String etag = null;
         boolean isCompleted = false;
         double progress = 0;
         try {
             offset = jsonObject.getLong("offset");
-            size = jsonObject.getLong("size");
+            size = jsonObject.getInt("size");
             index = jsonObject.getInt("index");
             isCompleted = jsonObject.getBoolean("isCompleted");
             progress = jsonObject.getDouble("progress");

@@ -47,6 +47,21 @@ public final class FixedZone extends Zone {
             new String[]{"upload-as0.qbox.me", "up-as0.qbox.me"},
             "as0");
 
+    /**
+     *    zone fog-cn-east-1 雾存储 华东-1
+     *    分片上传暂时仅支持分片 api v2
+     *    分片 api v2设置方式：配置 Configuration 的 resumeUploadVersion 为 Configuration.RESUME_UPLOAD_VERSION_V2
+     *    eg:
+     *    Configuration configuration = new Configuration.Builder()
+     *                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
+     *                 .build();
+     *
+     *    @return 实例
+     */
+    public static final Zone zoneFogCnEast1 = new FixedZone(new String[]{"upload-fog-cn-east-1.qiniup.com", "up-fog-cn-east-1.qiniup.com"},
+            new String[]{"upload-fog-cn-east-1.qiniup.com", "up-fog-cn-east-1.qiniup.com"},
+            "fog-cn-east-1");
+
     private ZonesInfo zonesInfo;
 
     public static FixedZone localsZoneInfo() {

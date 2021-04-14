@@ -16,7 +16,7 @@ import java.util.ArrayList;
 
 class PartsUploadPerformerV1 extends PartsUploadPerformer {
 
-    private static long BlockSize = 4 * 1024 * 1024;
+    private static int BlockSize = 4 * 1024 * 1024;
 
     PartsUploadPerformerV1(File file,
                            String fileName,
@@ -71,7 +71,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
             return;
         }
 
-        chunk.data = getDataWithChunk(chunk, block);
+        chunk.data = getChunkDataWithRetry(chunk, block);
         if (chunk.data == null) {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " no chunk left");
 
@@ -184,16 +184,41 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
 
     }
 
-    private byte[] getDataWithChunk(UploadData chunk,
-                                    UploadBlock block) {
+    private byte[] getChunkDataWithRetry(UploadData chunk, UploadBlock block) {
+        byte[] uploadData = null;
+
+        int maxTime = 3;
+        int index = 0;
+        while (index < maxTime) {
+            uploadData = getChunkData(chunk, block);
+            if (uploadData != null) {
+                break;
+            }
+            index ++;
+        }
+
+        return uploadData;
+    }
+
+    private synchronized byte[] getChunkData(UploadData chunk, UploadBlock block) {
         if (randomAccessFile == null || chunk == null || block == null) {
             return null;
         }
-        byte[] data = new byte[(int) chunk.size];
+        int readSize = 0;
+        byte[] data = new byte[chunk.size];
         try {
-            synchronized (randomAccessFile) {
-                randomAccessFile.seek((chunk.offset + block.offset));
-                randomAccessFile.read(data, 0, (int) chunk.size);
+            randomAccessFile.seek((chunk.offset + block.offset));
+            while (readSize < chunk.size) {
+                int ret = randomAccessFile.read(data, readSize, (chunk.size - readSize));
+                if (ret < 0) {
+                    break;
+                }
+                readSize += ret;
+            }
+
+            // 读数据非预期
+            if (readSize != chunk.size) {
+                data = null;
             }
         } catch (IOException e) {
             data = null;
@@ -201,7 +226,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
         return data;
     }
 
-    private long getUploadChunkSize() {
+    private int getUploadChunkSize() {
         if (config.useConcurrentResumeUpload) {
             return BlockSize;
         } else {
