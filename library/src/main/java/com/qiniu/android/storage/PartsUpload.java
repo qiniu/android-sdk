@@ -37,18 +37,18 @@ class PartsUpload extends BaseUpload {
 
         if (config != null && config.resumeUploadVersion == Configuration.RESUME_UPLOAD_VERSION_V1) {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " 分片V1");
-            uploadPerformer = new PartsUploadPerformerV1(file, fileName, key, token, option, config, recorderKey);
+            uploadPerformer = new PartsUploadPerformerV1(uploadSource, fileName, key, token, option, config, recorderKey);
         } else {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " 分片V2");
-            uploadPerformer = new PartsUploadPerformerV2(file, fileName, key, token, option, config, recorderKey);
+            uploadPerformer = new PartsUploadPerformerV2(uploadSource, fileName, key, token, option, config, recorderKey);
         }
     }
 
     boolean isAllUploaded() {
-        if (uploadPerformer.fileInfo == null) {
+        if (uploadPerformer.uploadInfo == null) {
             return false;
         } else {
-            return uploadPerformer.fileInfo.isAllUploaded();
+            return uploadPerformer.uploadInfo.isAllUploaded();
         }
     }
 
@@ -85,7 +85,7 @@ class PartsUpload extends BaseUpload {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " region:" + StringUtils.toNonnullString(uploadPerformer.currentRegion.getZoneInfo().regionId));
         }
 
-        if (file == null || !uploadPerformer.canReadFile()) {
+        if (!uploadPerformer.canReadFile()) {
             code = ResponseInfo.LocalIOError;
         }
 
@@ -282,7 +282,7 @@ class PartsUpload extends BaseUpload {
         item.setReport(metrics.totalElapsedTime(), ReportItem.BlockKeyTotalElapsedTime);
         item.setReport(metrics.bytesSend(), ReportItem.BlockKeyBytesSent);
         item.setReport(uploadPerformer.recoveredFrom, ReportItem.BlockKeyRecoveredFrom);
-        item.setReport(file.length(), ReportItem.BlockKeyFileSize);
+        item.setReport(uploadSource.getFileSize(), ReportItem.BlockKeyFileSize);
         item.setReport(Utils.getCurrentProcessID(), ReportItem.BlockKeyPid);
         item.setReport(Utils.getCurrentThreadID(), ReportItem.BlockKeyTid);
 

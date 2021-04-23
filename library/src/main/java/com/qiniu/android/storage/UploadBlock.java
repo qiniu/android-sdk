@@ -5,13 +5,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 class UploadBlock {
 
     final long offset;
     final long size;
     final int index;
-    final ArrayList<UploadData> uploadDataList;
+    final List<UploadData> uploadDataList;
 
     String context;
 
@@ -22,10 +23,7 @@ class UploadBlock {
         this.uploadDataList = createDataList(dataSize);
     }
 
-    private UploadBlock(long offset,
-                        long blockSize,
-                        int index,
-                        ArrayList<UploadData> uploadDataList) {
+    UploadBlock(long offset, long blockSize, int index, List<UploadData> uploadDataList) {
         this.offset = offset;
         this.size = blockSize;
         this.index = index;
@@ -56,7 +54,7 @@ class UploadBlock {
             }
         } catch (JSONException e) {
         }
-        ;
+
         UploadBlock block = new UploadBlock(offset, size, index, uploadDataList);
         if (context != null && context.length() > 0) {
             block.context = context;

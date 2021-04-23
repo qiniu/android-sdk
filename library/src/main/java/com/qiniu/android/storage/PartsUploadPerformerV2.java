@@ -4,7 +4,6 @@ import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
-import com.qiniu.android.utils.Etag;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
 
@@ -18,33 +17,33 @@ import java.util.Map;
 
 class PartsUploadPerformerV2 extends PartsUploadPerformer {
 
-    PartsUploadPerformerV2(File file,
+    PartsUploadPerformerV2(UploadSource uploadSource,
                            String fileName,
                            String key,
                            UpToken token,
                            UploadOptions options,
                            Configuration config,
                            String recorderKey) {
-        super(file, fileName, key, token, options, config, recorderKey);
+        super(uploadSource, fileName, key, token, options, config, recorderKey);
     }
 
     @Override
-    UploadFileInfo getFileFromJson(JSONObject jsonObject) {
+    UploadInfo getUploadInfoFromJson(UploadSource source, JSONObject jsonObject) {
         if (jsonObject == null) {
             return null;
         }
-        return UploadFileInfoPartV2.fileFromJson(jsonObject);
+        return UploadInfoV2.infoFromJson(source, jsonObject);
     }
 
     @Override
-    UploadFileInfo getDefaultUploadFileInfo() {
-        return new UploadFileInfoPartV2(file.length(), config.chunkSize, file.lastModified());
+    UploadInfo getDefaultUploadInfo() {
+        return new UploadInfoV2(uploadSource, config);
     }
 
     @Override
     void serverInit(final PartsUploadPerformerCompleteHandler completeHandler) {
-        final UploadFileInfoPartV2 uploadFileInfo = (UploadFileInfoPartV2) fileInfo;
-        if (uploadFileInfo != null && uploadFileInfo.isValid()) {
+        final UploadInfoV2 info = (UploadInfoV2) uploadInfo;
+        if (info != null && info.isValid()) {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " serverInit success");
             ResponseInfo responseInfo = ResponseInfo.successResponse();
             completeHandler.complete(responseInfo, null, null);
@@ -68,8 +67,8 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
                     }
                 }
                 if (responseInfo.isOK() && uploadId != null && expireAt != null) {
-                    uploadFileInfo.uploadId = uploadId;
-                    uploadFileInfo.expireAt = expireAt;
+                    info.uploadId = uploadId;
+                    info.expireAt = expireAt;
                     recordUploadInfo();
                 }
                 completeHandler.complete(responseInfo, requestMetrics, response);
@@ -79,11 +78,16 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
 
     @Override
     void uploadNextData(final PartsUploadPerformerDataCompleteHandler completeHandler) {
-        UploadFileInfoPartV2 uploadFileInfo = (UploadFileInfoPartV2) fileInfo;
+        final UploadInfoV2 info = (UploadInfoV2) uploadInfo;
 
         UploadData data = null;
         synchronized (this) {
-            data = uploadFileInfo.nextUploadData();
+            try {
+                data = info.nextUploadData();
+            } catch (IOException e) {
+                //todo: 此处可能无法恢复
+            }
+
             if (data != null) {
                 data.isUploading = true;
                 data.isCompleted = false;
@@ -98,7 +102,7 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
             return;
         }
 
-        data.data = getUploadDataWithRetry(data);
+//        data.data = getUploadDataWithRetry(data);
         if (data.data == null) {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " get data error");
 
@@ -119,11 +123,10 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         };
 
         final RequestTransaction transaction = createUploadRequestTransaction();
-        transaction.uploadPart(true, uploadFileInfo.uploadId, data.index, data.data, progressHandler, new RequestTransaction.RequestCompleteHandler() {
+        transaction.uploadPart(true, info.uploadId, data.index, data.data, progressHandler, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 
-                uploadData.data = null;
                 destroyUploadRequestTransaction(transaction);
 
                 String etag = null;
@@ -140,6 +143,7 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
                     uploadData.etag = etag;
                     uploadData.isUploading = false;
                     uploadData.isCompleted = true;
+                    uploadData.data = null;
                     recordUploadInfo();
                     notifyProgress();
                 } else {
@@ -153,12 +157,12 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
 
     @Override
     void completeUpload(final PartsUploadPerformerCompleteHandler completeHandler) {
-        final UploadFileInfoPartV2 uploadFileInfo = (UploadFileInfoPartV2) fileInfo;
+        final UploadInfoV2 info = (UploadInfoV2) uploadInfo;
 
-        List<Map<String, Object>> partInfoArray = uploadFileInfo.getPartInfoArray();
+        List<Map<String, Object>> partInfoArray = info.getPartInfoArray();
         final RequestTransaction transaction = createUploadRequestTransaction();
 
-        transaction.completeParts(true, fileName, uploadFileInfo.uploadId, partInfoArray, new RequestTransaction.RequestCompleteHandler() {
+        transaction.completeParts(true, fileName, info.uploadId, partInfoArray, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 
@@ -168,45 +172,45 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         });
     }
 
-    private byte[] getUploadDataWithRetry(UploadData data) {
-        byte[] uploadData = null;
-
-        int maxTime = 3;
-        int index = 0;
-        while (index < maxTime) {
-            uploadData = getUploadData(data);
-            if (uploadData != null) {
-                break;
-            }
-            index ++;
-        }
-
-        return uploadData;
-    }
-
-    private synchronized byte[] getUploadData(UploadData data) {
-        if (randomAccessFile == null || data == null) {
-            return null;
-        }
-
-        int readSize = 0;
-        byte[] uploadData = new byte[data.size];
-        try {
-            randomAccessFile.seek(data.offset);
-            while (readSize < data.size) {
-                int ret = randomAccessFile.read(uploadData, readSize, data.size - readSize);
-                if (ret < 0) {
-                    break;
-                }
-                readSize += ret;
-            }
-            // 读数据非预期
-            if (readSize != data.size) {
-                uploadData = null;
-            }
-        } catch (IOException e) {
-            uploadData = null;
-        }
-        return uploadData;
-    }
+//    private byte[] getUploadDataWithRetry(UploadData data) {
+//        byte[] uploadData = null;
+//
+//        int maxTime = 3;
+//        int index = 0;
+//        while (index < maxTime) {
+//            uploadData = getUploadData(data);
+//            if (uploadData != null) {
+//                break;
+//            }
+//            index ++;
+//        }
+//
+//        return uploadData;
+//    }
+//
+//    private synchronized byte[] getUploadData(UploadData data) {
+//        if (randomAccessFile == null || data == null) {
+//            return null;
+//        }
+//
+//        int readSize = 0;
+//        byte[] uploadData = new byte[data.size];
+//        try {
+//            randomAccessFile.seek(data.offset);
+//            while (readSize < data.size) {
+//                int ret = randomAccessFile.read(uploadData, readSize, data.size - readSize);
+//                if (ret < 0) {
+//                    break;
+//                }
+//                readSize += ret;
+//            }
+//            // 读数据非预期
+//            if (readSize != data.size) {
+//                uploadData = null;
+//            }
+//        } catch (IOException e) {
+//            uploadData = null;
+//        }
+//        return uploadData;
+//    }
 }

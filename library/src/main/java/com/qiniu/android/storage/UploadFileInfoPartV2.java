@@ -78,6 +78,7 @@ public class UploadFileInfoPartV2 extends UploadFileInfo {
         return dataList;
     }
 
+    @Override
     double progress() {
         if (uploadDataList == null) {
             return 0;
@@ -113,12 +114,14 @@ public class UploadFileInfoPartV2 extends UploadFileInfo {
         return data;
     }
 
+    @Override
     void clearUploadState() {
         for (UploadData data : uploadDataList) {
             data.clearUploadState();
         }
     }
 
+    @Override
     boolean isAllUploaded() {
         if (uploadDataList == null || uploadDataList.size() == 0) {
             return true;
@@ -149,6 +152,7 @@ public class UploadFileInfoPartV2 extends UploadFileInfo {
         return infoArray;
     }
 
+    @Override
     JSONObject toJsonObject() {
         JSONObject jsonObject = new JSONObject();
         try {

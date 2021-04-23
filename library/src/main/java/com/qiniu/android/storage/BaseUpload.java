@@ -18,7 +18,7 @@ abstract class BaseUpload implements Runnable {
     protected final String key;
     protected final String fileName;
     protected final byte[] data;
-    protected final File file;
+    protected final UploadSource uploadSource;
     protected final UpToken token;
     protected final UploadOptions option;
     protected final Configuration config;
@@ -43,7 +43,7 @@ abstract class BaseUpload implements Runnable {
                        Recorder recorder,
                        String recorderKey,
                        UpTaskCompletionHandler completionHandler) {
-        this.file = file;
+        this.uploadSource = new UploadSourceFile(file);
         this.data = data;
         this.fileName = fileName != null ? fileName : "?";
         this.key = key;

@@ -10,9 +10,9 @@ class UploadFileInfoPartV1 extends UploadFileInfo {
 
     final ArrayList<UploadBlock> uploadBlocks;
 
-    UploadFileInfoPartV1(long size,
-                         long modifyTime,
-                         ArrayList<UploadBlock> uploadBlocks) {
+    private UploadFileInfoPartV1(long size,
+                                 long modifyTime,
+                                 ArrayList<UploadBlock> uploadBlocks) {
         super(size, modifyTime);
         this.uploadBlocks = uploadBlocks;
     }
@@ -53,7 +53,7 @@ class UploadFileInfoPartV1 extends UploadFileInfo {
         ArrayList<UploadBlock> blocks = new ArrayList<>();
         while (offset < size) {
             long lastSize = size - offset;
-            int blockSizeP = Math.min((int)lastSize, blockSize);
+            int blockSizeP = Math.min((int) lastSize, blockSize);
             UploadBlock block = new UploadBlock(offset, blockSizeP, dataSize, blockIndex);
             if (block != null) {
                 blocks.add(block);
@@ -64,6 +64,7 @@ class UploadFileInfoPartV1 extends UploadFileInfo {
         return blocks;
     }
 
+    @Override
     double progress() {
         if (uploadBlocks == null || uploadBlocks.size() == 0) {
             return 0;
@@ -100,6 +101,7 @@ class UploadFileInfoPartV1 extends UploadFileInfo {
         return block;
     }
 
+    @Override
     void clearUploadState() {
         if (uploadBlocks == null || uploadBlocks.size() == 0) {
             return;
@@ -109,6 +111,7 @@ class UploadFileInfoPartV1 extends UploadFileInfo {
         }
     }
 
+    @Override
     boolean isAllUploaded() {
         if (uploadBlocks == null || uploadBlocks.size() == 0) {
             return true;
@@ -136,6 +139,7 @@ class UploadFileInfoPartV1 extends UploadFileInfo {
         return contexts;
     }
 
+    @Override
     JSONObject toJsonObject() {
         JSONObject jsonObject = new JSONObject();
         try {

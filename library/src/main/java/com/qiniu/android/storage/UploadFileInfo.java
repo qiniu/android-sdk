@@ -1,32 +1,18 @@
 package com.qiniu.android.storage;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 abstract class UploadFileInfo {
 
     final long size;
     final long modifyTime;
 
-    UploadFileInfo(long fileSize,
-                   long modifyTime) {
+    UploadFileInfo(long fileSize, long modifyTime) {
         this.size = fileSize;
         this.modifyTime = modifyTime;
     }
 
-    static UploadFileInfo fileFromJson(JSONObject jsonObject){
-        return null;
-    }
-
-    double progress() {
-        return 0;
-    }
+    abstract double progress();
 
     abstract boolean isEmpty();
 

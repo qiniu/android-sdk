@@ -13,10 +13,6 @@ import com.qiniu.android.utils.StringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,8 +22,7 @@ abstract class PartsUploadPerformer {
 
     final String key;
     final String fileName;
-    final File file;
-    final RandomAccessFile randomAccessFile;
+    final UploadSource uploadSource;
 
     final UpToken token;
     final UploadOptions options;
@@ -40,17 +35,17 @@ abstract class PartsUploadPerformer {
     private double previousPercent;
 
     Long recoveredFrom;
-    UploadFileInfo fileInfo;
+    UploadInfo uploadInfo;
     List<RequestTransaction> uploadTransactions;
 
-    PartsUploadPerformer(File file,
+    PartsUploadPerformer(UploadSource uploadSource,
                          String fileName,
                          String key,
                          UpToken token,
                          UploadOptions options,
                          Configuration config,
                          String recorderKey) {
-        this.file = file;
+        this.uploadSource = uploadSource;
         this.key = key;
         this.fileName = fileName;
         this.token = token;
@@ -59,45 +54,30 @@ abstract class PartsUploadPerformer {
         this.recorder = config.recorder;
         this.recorderKey = recorderKey;
 
-        RandomAccessFile randomAccessFile = null;
-        if (file != null) {
-            try {
-                randomAccessFile = new RandomAccessFile(file, "r");
-            } catch (FileNotFoundException ignored) {
-            }
-        }
-        this.randomAccessFile = randomAccessFile;
         this.initData();
     }
 
     void initData() {
         uploadTransactions = new ArrayList<>();
         recoverUploadInfoFromRecord();
-        if (fileInfo == null) {
-            fileInfo = getDefaultUploadFileInfo();
+        if (uploadInfo == null) {
+            uploadInfo = getDefaultUploadInfo();
         }
     }
 
     boolean canReadFile() {
-        return randomAccessFile != null;
+        return uploadSource != null && uploadSource.isValid();
     }
 
     void closeFile() {
-        if (randomAccessFile != null) {
-            try {
-                randomAccessFile.close();
-            } catch (IOException e) {
-                try {
-                    randomAccessFile.close();
-                } catch (IOException ignored) {
-                }
-            }
+        if (uploadSource != null) {
+            uploadSource.close();
         }
     }
 
     void switchRegion(IUploadRegion region) {
-        if (fileInfo != null) {
-            fileInfo.clearUploadState();
+        if (uploadInfo != null) {
+            uploadInfo.clearUploadState();
         }
         currentRegion = region;
         recoveredFrom = null;
@@ -107,10 +87,10 @@ abstract class PartsUploadPerformer {
     }
 
     void notifyProgress() {
-        if (fileInfo == null) {
+        if (uploadInfo == null) {
             return;
         }
-        double percent = fileInfo.progress();
+        double percent = uploadInfo.progress();
         if (percent > 0.95) {
             percent = 0.95;
         }
@@ -142,10 +122,10 @@ abstract class PartsUploadPerformer {
         if (currentRegion != null && currentRegion.getZoneInfo() != null) {
             zoneInfoJson = currentRegion.getZoneInfo().detailInfo;
         }
-        if (fileInfo != null) {
-            fileInfoJson = fileInfo.toJsonObject();
+        if (uploadInfo != null) {
+            fileInfoJson = uploadInfo.toJsonObject();
         }
-        if (zoneInfoJson != null && fileInfo != null) {
+        if (zoneInfoJson != null && uploadInfo != null) {
             JSONObject info = new JSONObject();
             try {
                 info.put(kRecordZoneInfoKey, zoneInfoJson);
@@ -162,8 +142,8 @@ abstract class PartsUploadPerformer {
 
     void removeUploadInfoRecord() {
         recoveredFrom = null;
-        if (fileInfo != null) {
-            fileInfo.clearUploadState();
+        if (uploadInfo != null) {
+            uploadInfo.clearUploadState();
         }
         if (recorder != null && recorderKey != null) {
             recorder.del(recorderKey);
@@ -180,7 +160,7 @@ abstract class PartsUploadPerformer {
                 " recoverUploadInfoFromRecord");
 
         String key = recorderKey;
-        if (recorder == null || key == null || key.length() == 0 || file == null) {
+        if (recorder == null || key == null || key.length() == 0 || uploadSource == null) {
             return;
         }
 
@@ -195,21 +175,20 @@ abstract class PartsUploadPerformer {
         try {
             JSONObject info = new JSONObject(new String(data));
             ZoneInfo zoneInfo = ZoneInfo.buildFromJson(info.getJSONObject(kRecordZoneInfoKey));
-            UploadFileInfo recoverFileInfo = getFileFromJson(info.getJSONObject(kRecordFileInfoKey));
-            if (zoneInfo != null && recoverFileInfo != null && !recoverFileInfo.isEmpty() && file != null &&
-                    recoverFileInfo.size == file.length() &&
-                    recoverFileInfo.modifyTime == file.lastModified()) {
+            UploadInfo recoverUploadInfo = getUploadInfoFromJson(uploadSource, info.getJSONObject(kRecordFileInfoKey));
+            if (zoneInfo != null && recoverUploadInfo != null && recoverUploadInfo.isValid() && recoverUploadInfo.isSameUploadInfo(uploadInfo)) {
 
                 LogUtil.i("key:" + StringUtils.toNonnullString(key) +
                         " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
                         " recoverUploadInfoFromRecord valid");
 
-                fileInfo = recoverFileInfo;
+                uploadInfo = recoverUploadInfo;
                 UploadDomainRegion region = new UploadDomainRegion();
                 region.setupRegionData(zoneInfo);
                 currentRegion = region;
                 targetRegion = region;
-                recoveredFrom = (long) ((recoverFileInfo.progress() * recoverFileInfo.size));
+                //todo: recoveredFrom
+                recoveredFrom = (long) ((recoverUploadInfo.progress() * recoverUploadInfo.fileSize));
             } else {
                 LogUtil.i("key:" + StringUtils.toNonnullString(key) +
                         " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
@@ -252,9 +231,9 @@ abstract class PartsUploadPerformer {
         }
     }
 
-    abstract UploadFileInfo getDefaultUploadFileInfo();
+    abstract UploadInfo getDefaultUploadInfo();
 
-    abstract UploadFileInfo getFileFromJson(JSONObject jsonObject);
+    abstract UploadInfo getUploadInfoFromJson(UploadSource source, JSONObject jsonObject);
 
     abstract void serverInit(PartsUploadPerformerCompleteHandler completeHandler);
 

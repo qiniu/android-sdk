@@ -10,7 +10,6 @@ import com.qiniu.android.utils.StringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -18,27 +17,27 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
 
     private static int BlockSize = 4 * 1024 * 1024;
 
-    PartsUploadPerformerV1(File file,
+    PartsUploadPerformerV1(UploadSource uploadSource,
                            String fileName,
                            String key,
                            UpToken token,
                            UploadOptions options,
                            Configuration config,
                            String recorderKey) {
-        super(file, fileName, key, token, options, config, recorderKey);
+        super(uploadSource, fileName, key, token, options, config, recorderKey);
     }
 
     @Override
-    UploadFileInfo getFileFromJson(JSONObject jsonObject) {
+    UploadInfo getUploadInfoFromJson(UploadSource source, JSONObject jsonObject) {
         if (jsonObject == null) {
             return null;
         }
-        return UploadFileInfoPartV1.fileFromJson(jsonObject);
+        return UploadInfoV1.infoFromJson(source, jsonObject);
     }
 
     @Override
-    UploadFileInfo getDefaultUploadFileInfo() {
-        return new UploadFileInfoPartV1(file.length(), BlockSize, getUploadChunkSize(), file.lastModified());
+    UploadInfo getDefaultUploadInfo() {
+        return new UploadInfoV1(uploadSource, config);
     }
 
     @Override
@@ -49,12 +48,18 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
 
     @Override
     void uploadNextData(final PartsUploadPerformerDataCompleteHandler completeHandler) {
-        UploadFileInfoPartV1 uploadFileInfo = (UploadFileInfoPartV1) fileInfo;
+        UploadInfoV1 info = (UploadInfoV1) uploadInfo;
         UploadBlock block = null;
         UploadData chunk = null;
 
         synchronized (this) {
-            block = uploadFileInfo.nextUploadBlock();
+
+            try {
+                block = info.nextUploadBlock();
+            } catch (IOException e) {
+                //todo: 此处可能导致后面无法恢复
+            }
+
             if (block != null) {
                 chunk = block.nextUploadData();
                 if (chunk != null) {
@@ -71,7 +76,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
             return;
         }
 
-        chunk.data = getChunkDataWithRetry(chunk, block);
+//        chunk.data = getChunkDataWithRetry(chunk, block);
         if (chunk.data == null) {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " no chunk left");
 
@@ -95,8 +100,6 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 
-                uploadChunk.data = null;
-
                 String blockContext = null;
                 if (response != null) {
                     try {
@@ -105,6 +108,8 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
                     }
                 }
                 if (responseInfo.isOK() && blockContext != null) {
+                    uploadChunk.data = null;
+
                     uploadBlock.context = blockContext;
                     uploadChunk.progress = 1;
                     uploadChunk.isUploading = false;
@@ -131,17 +136,17 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
 
     @Override
     void completeUpload(final PartsUploadPerformerCompleteHandler completeHandler) {
-        UploadFileInfoPartV1 uploadFileInfo = (UploadFileInfoPartV1) fileInfo;
+        UploadInfoV1 info = (UploadInfoV1) uploadInfo;
 
         String[] contexts = null;
-        ArrayList<String> contextsList = uploadFileInfo.allBlocksContexts();
+        ArrayList<String> contextsList = info.allBlocksContexts();
 
         if (contextsList != null && contextsList.size() > 0) {
             contexts = contextsList.toArray(new String[contextsList.size()]);
         }
 
         final RequestTransaction transaction = createUploadRequestTransaction();
-        transaction.makeFile(uploadFileInfo.size, fileName, contexts, true, new RequestTransaction.RequestCompleteHandler() {
+        transaction.makeFile(info.getSourceSize(), fileName, contexts, true, new RequestTransaction.RequestCompleteHandler() {
 
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
@@ -184,53 +189,53 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
 
     }
 
-    private byte[] getChunkDataWithRetry(UploadData chunk, UploadBlock block) {
-        byte[] uploadData = null;
+//    private byte[] getChunkDataWithRetry(UploadData chunk, UploadBlock block) {
+//        byte[] uploadData = null;
+//
+//        int maxTime = 3;
+//        int index = 0;
+//        while (index < maxTime) {
+//            uploadData = getChunkData(chunk, block);
+//            if (uploadData != null) {
+//                break;
+//            }
+//            index ++;
+//        }
+//
+//        return uploadData;
+//    }
 
-        int maxTime = 3;
-        int index = 0;
-        while (index < maxTime) {
-            uploadData = getChunkData(chunk, block);
-            if (uploadData != null) {
-                break;
-            }
-            index ++;
-        }
-
-        return uploadData;
-    }
-
-    private synchronized byte[] getChunkData(UploadData chunk, UploadBlock block) {
-        if (randomAccessFile == null || chunk == null || block == null) {
-            return null;
-        }
-        int readSize = 0;
-        byte[] data = new byte[chunk.size];
-        try {
-            randomAccessFile.seek((chunk.offset + block.offset));
-            while (readSize < chunk.size) {
-                int ret = randomAccessFile.read(data, readSize, (chunk.size - readSize));
-                if (ret < 0) {
-                    break;
-                }
-                readSize += ret;
-            }
-
-            // 读数据非预期
-            if (readSize != chunk.size) {
-                data = null;
-            }
-        } catch (IOException e) {
-            data = null;
-        }
-        return data;
-    }
-
-    private int getUploadChunkSize() {
-        if (config.useConcurrentResumeUpload) {
-            return BlockSize;
-        } else {
-            return config.chunkSize;
-        }
-    }
+//    private synchronized byte[] getChunkData(UploadData chunk, UploadBlock block) {
+//        if (randomAccessFile == null || chunk == null || block == null) {
+//            return null;
+//        }
+//        int readSize = 0;
+//        byte[] data = new byte[chunk.size];
+//        try {
+//            randomAccessFile.seek((chunk.offset + block.offset));
+//            while (readSize < chunk.size) {
+//                int ret = randomAccessFile.read(data, readSize, (chunk.size - readSize));
+//                if (ret < 0) {
+//                    break;
+//                }
+//                readSize += ret;
+//            }
+//
+//            // 读数据非预期
+//            if (readSize != chunk.size) {
+//                data = null;
+//            }
+//        } catch (IOException e) {
+//            data = null;
+//        }
+//        return data;
+//    }
+//
+//    private int getUploadChunkSize() {
+//        if (config.useConcurrentResumeUpload) {
+//            return BlockSize;
+//        } else {
+//            return config.chunkSize;
+//        }
+//    }
 }
