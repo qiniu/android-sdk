@@ -123,15 +123,6 @@ public class UploadFlowTest extends UploadBaseTest {
         uriInfo.configWithFile(file);
         reuploadUploadTest(resumePercent, uriInfo, key, configuration, options);
 
-        InputStream stream = null;
-        try {
-            stream = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-        }
-        UploadInfo<InputStream> streamInfo = new UploadInfo<>(stream);
-        streamInfo.configWithFile(file);
-        reuploadUploadTest(resumePercent, streamInfo, key, configuration, options);
-
         byte[] data = getDataFromFile(file);
         UploadInfo<byte[]> dataInfo = new UploadInfo<>(data);
         dataInfo.configWithFile(file);
@@ -244,24 +235,6 @@ public class UploadFlowTest extends UploadBaseTest {
         UploadInfo<Uri> uriInfo = new UploadInfo<>(uri);
         uriInfo.configWithFile(file);
         switchRegionTestWithFile(uriInfo, key, configuration, options);
-
-        InputStream stream = null;
-        try {
-            stream = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-        }
-        UploadInfo<InputStream> streamInfo = new UploadInfo<>(stream);
-        streamInfo.configWithFile(file);
-        switchRegionTestWithFile(streamInfo, key, configuration, options);
-
-        streamInfo.size = -1;
-        switchRegionTestWithFile(streamInfo, key, configuration, options);
-        if (stream != null) {
-            try {
-                stream.close();
-            } catch (IOException e) {
-            }
-        }
 
         byte[] data = getDataFromFile(file);
         UploadInfo<byte[]> dataInfo = new UploadInfo<>(data);

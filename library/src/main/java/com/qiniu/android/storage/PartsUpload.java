@@ -95,7 +95,7 @@ class PartsUpload extends BaseUpload {
     @Override
     protected boolean switchRegion() {
         // 重新加载资源，如果加载失败，不可切换 region
-        if (!uploadSource.couldReloadInfo() || !uploadSource.reloadInfo()) {
+        if (!uploadPerformer.couldReloadInfo() || !uploadPerformer.reloadInfo()) {
             return false;
         }
 

@@ -181,6 +181,7 @@ abstract class BaseUpload implements Runnable {
     }
 
     protected boolean switchRegion() {
+
         if (regions == null) {
             return false;
         }

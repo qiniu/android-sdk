@@ -36,11 +36,14 @@ class UploadSourceUri extends UploadSourceStream {
 
     @Override
     public boolean couldReloadInfo() {
-        return uri != null && StringUtils.isNullOrEmpty(uri.getScheme());
+        return uri != null && !StringUtils.isNullOrEmpty(uri.getScheme());
     }
 
     @Override
     public boolean reloadInfo() {
+        super.reloadInfo();
+        close();
+
         InputStream inputStream = createInputStream(uri);
         setInputStream(inputStream);
         return inputStream != null;

@@ -65,10 +65,10 @@ class UploadSourceFile implements UploadSource {
 
             // 读数据非预期
             if (readSize != dataSize) {
-                data = null;
+                throw new IOException("read file data error");
             }
         } catch (IOException e) {
-            data = null;
+            throw new IOException(e.getMessage());
         }
         return data;
     }

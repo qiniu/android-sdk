@@ -21,6 +21,7 @@ class UploadInfoV2 extends UploadInfo {
     private int dataSize;
     private boolean isEOF = false;
     private List<UploadData> dataList;
+    private IOException readException = null;
 
     String uploadId;
     // 单位：秒
@@ -87,21 +88,31 @@ class UploadInfoV2 extends UploadInfo {
     }
 
     UploadData nextUploadData() throws IOException {
-        // 1. 从内存的 dataList 中读取需要上传的 block
+
+        // 从内存的 dataList 中读取需要上传的 block
         UploadData data = nextUploadDataFormDataList();
         if (data != null) {
             if (data.data == null) {
+                // 资源读取异常，不可读取
+                if (readException != null) {
+                    throw readException;
+                }
                 data.data = readData(data.size, data.offset);
             }
             return data;
         }
 
-        // 2. 资源已经读取完毕，不能再读取
+        // 资源读取异常，不可读取
+        if (readException != null) {
+            throw readException;
+        }
+
+        // 资源已经读取完毕，不能再读取
         if (isEOF) {
             return null;
         }
 
-        // 3. 从资源中读取新的 data 进行上传
+        // 从资源中读取新的 data 进行上传
         long dataOffset = 0;
 
         if (dataList.size() > 0) {
@@ -112,7 +123,13 @@ class UploadInfoV2 extends UploadInfo {
         int dataIndex = dataList.size() + 1; // 片的 index， 从 1 开始
         int dataSize = this.dataSize; // 片的大小
         // 读取片数据
-        byte[] dataBytes = readData(dataSize, dataOffset);
+        byte[] dataBytes = null;
+        try {
+            dataBytes = readData(dataSize, dataOffset);
+        } catch (IOException e) {
+            readException = e;
+            throw e;
+        }
 
         // 片数据大小不符合预期说明已经读到文件结尾
         if (dataBytes.length < dataSize) {
@@ -161,6 +178,13 @@ class UploadInfoV2 extends UploadInfo {
             }
         }
         return infoArray;
+    }
+
+    @Override
+    boolean reloadInfo() {
+        isEOF = false;
+        readException = null;
+        return super.reloadInfo();
     }
 
     @Override

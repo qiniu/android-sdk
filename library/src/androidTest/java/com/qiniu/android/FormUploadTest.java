@@ -22,7 +22,7 @@ public class FormUploadTest extends UploadFlowTest {
                 .build();
         int[] sizeArray = {5, 50, 200, 500, 800, 1000, 2000, 3000, 4000};
         for (int size : sizeArray) {
-            String key = "android_form_switch_region_" + size + "k";
+            String key = "android_Form_switch_region_" + size + "k";
             File file = null;
             try {
                 file = TempFile.createFile(size, key);
@@ -52,7 +52,7 @@ public class FormUploadTest extends UploadFlowTest {
         }
     }
 
-    public void testHttpV1() {
+    public void testHttp() {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                 .useConcurrentResumeUpload(true)
@@ -60,7 +60,7 @@ public class FormUploadTest extends UploadFlowTest {
                 .build();
         int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
         for (int size : sizeArray) {
-            String key = "android_form_http_v1_" + size + "k";
+            String key = "android_form_http" + size + "k";
             File file = null;
             try {
                 file = TempFile.createFile(size, key);
@@ -71,7 +71,7 @@ public class FormUploadTest extends UploadFlowTest {
         }
     }
 
-    public void testHttpsV1() {
+    public void testHttps() {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                 .useConcurrentResumeUpload(true)
@@ -79,7 +79,7 @@ public class FormUploadTest extends UploadFlowTest {
                 .build();
         int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
         for (int size : sizeArray) {
-            String key = "android_form_https_v1_" + size + "k";
+            String key = "android_form_https" + size + "k";
             File file = null;
             try {
                 file = TempFile.createFile(size, key);
@@ -112,7 +112,7 @@ public class FormUploadTest extends UploadFlowTest {
     public void test100up() {
         int count = 100;
         for (int i = 1; i < count; i++) {
-            String key = "android_form_100_up_" + i + "k";
+            String key = "android_form_100_UP_" + i + "k";
             File file = null;
             try {
                 file = TempFile.createFile(10, key);

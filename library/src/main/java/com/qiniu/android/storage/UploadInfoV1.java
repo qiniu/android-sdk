@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 class UploadInfoV1 extends UploadInfo {
+
     private static final String TypeKey = "infoType";
     private static final String TypeValue = "UploadInfoV1";
     private static final int BlockSize = 4 * 1024 * 1024;
@@ -16,6 +17,7 @@ class UploadInfoV1 extends UploadInfo {
     private int dataSize = 0;
     private boolean isEOF = false;
     private List<UploadBlock> blockList = new ArrayList<>();
+    private IOException readException = null;
 
     private UploadInfoV1() {
     }
@@ -67,6 +69,13 @@ class UploadInfoV1 extends UploadInfo {
         info.blockList = blockList;
         info.setSource(source);
         return info;
+    }
+
+    @Override
+    boolean reloadInfo() {
+        isEOF = false;
+        readException = null;
+        return super.reloadInfo();
     }
 
     @Override
@@ -159,12 +168,17 @@ class UploadInfoV1 extends UploadInfo {
             return block;
         }
 
-        // 2. 资源已经读取完毕，不能再读取
+        // 2. 资源读取异常，不可读取
+        if (readException != null) {
+            throw readException;
+        }
+
+        // 3. 资源已经读取完毕，不能再读取
         if (isEOF) {
             return null;
         }
 
-        // 3. 从资源中读取新的 block 进行上传
+        // 4. 从资源中读取新的 block 进行上传
         long blockOffset = 0;
 
         if (blockList.size() > 0) {
@@ -180,7 +194,14 @@ class UploadInfoV1 extends UploadInfo {
             int dataSize = Math.min(this.dataSize, BlockSize - dataOffSize);
 
             // 读取片数据
-            byte[] dataBytes = readData(dataSize, blockOffset + dataOffSize);
+            byte[] dataBytes = null;
+            try {
+                dataBytes = readData(dataSize, blockOffset + dataOffSize);
+            } catch (IOException e) {
+                readException = e;
+                throw e;
+            }
+
             // 片数据大小不符合预期说明已经读到文件结尾
             if (dataBytes.length < dataSize) {
                 dataSize = dataBytes.length;
@@ -237,6 +258,10 @@ class UploadInfoV1 extends UploadInfo {
         UploadData data = block.nextUploadData();
         // 当知道 size 提前创建块信息 和 从本地恢复数据时存在 没有 data 数据的情况
         if (data.data == null) {
+            // 资源读取异常，不可读取
+            if (readException != null) {
+                throw readException;
+            }
             data.data = readData(data.size, block.offset + data.offset);
         }
         return data;

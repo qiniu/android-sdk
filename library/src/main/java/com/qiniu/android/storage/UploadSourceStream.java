@@ -57,6 +57,7 @@ class UploadSourceStream implements UploadSource {
 
     @Override
     public boolean reloadInfo() {
+        readOffset = 0;
         return false;
     }
 
@@ -96,7 +97,7 @@ class UploadSourceStream implements UploadSource {
                 } else if (readOffset < dataOffset) {
                     readOffset += inputStream.skip(dataOffset - readOffset);
                 } else {
-                    throw new IOException("read data error");
+                    throw new IOException("read stream data error");
                 }
             }
         }

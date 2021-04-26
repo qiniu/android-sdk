@@ -112,7 +112,12 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         if (data == null) {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " no data left");
 
-            ResponseInfo responseInfo = ResponseInfo.sdkInteriorError("no data left");
+            ResponseInfo responseInfo = null;
+            if (uploadInfo.getSourceSize() != 0) {
+                responseInfo = ResponseInfo.sdkInteriorError("no chunk left");
+            } else {
+                responseInfo = ResponseInfo.zeroSize("file is empty");
+            }
             completeHandler.complete(true, responseInfo, null, null);
             return;
         }
@@ -174,46 +179,4 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
             }
         });
     }
-
-//    private byte[] getUploadDataWithRetry(UploadData data) {
-//        byte[] uploadData = null;
-//
-//        int maxTime = 3;
-//        int index = 0;
-//        while (index < maxTime) {
-//            uploadData = getUploadData(data);
-//            if (uploadData != null) {
-//                break;
-//            }
-//            index ++;
-//        }
-//
-//        return uploadData;
-//    }
-//
-//    private synchronized byte[] getUploadData(UploadData data) {
-//        if (randomAccessFile == null || data == null) {
-//            return null;
-//        }
-//
-//        int readSize = 0;
-//        byte[] uploadData = new byte[data.size];
-//        try {
-//            randomAccessFile.seek(data.offset);
-//            while (readSize < data.size) {
-//                int ret = randomAccessFile.read(uploadData, readSize, data.size - readSize);
-//                if (ret < 0) {
-//                    break;
-//                }
-//                readSize += ret;
-//            }
-//            // 读数据非预期
-//            if (readSize != data.size) {
-//                uploadData = null;
-//            }
-//        } catch (IOException e) {
-//            uploadData = null;
-//        }
-//        return uploadData;
-//    }
 }

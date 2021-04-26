@@ -28,6 +28,23 @@ abstract class UploadInfo {
     }
 
     /**
+     * 是否可以重新加载文件信息，也即是否可以重新读取信息
+     * @return return
+     */
+    boolean couldReloadInfo() {
+        return source.couldReloadInfo();
+    }
+
+    /**
+     * 重新加载文件信息，以便于重新读取
+     *
+     * @return 重新加载是否成功
+     */
+    boolean reloadInfo() {
+        return source.reloadInfo();
+    }
+
+    /**
      * 是否为同一个 UploadInfo
      * 同一个：source 相同，上传方式相同
      */

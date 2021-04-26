@@ -67,6 +67,14 @@ abstract class PartsUploadPerformer {
         return uploadInfo != null && uploadInfo.hasValidResource();
     }
 
+    boolean couldReloadInfo() {
+        return uploadInfo.couldReloadInfo();
+    }
+
+    boolean reloadInfo() {
+        return uploadInfo.reloadInfo();
+    }
+
     void closeFile() {
         if (uploadInfo != null) {
             uploadInfo.close();

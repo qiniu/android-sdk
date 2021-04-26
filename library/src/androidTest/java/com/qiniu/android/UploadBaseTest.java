@@ -97,7 +97,19 @@ public class UploadBaseTest extends BaseTest {
         UploadInfo<InputStream> streamInfo = new UploadInfo<>(stream);
         streamInfo.configWithFile(file);
         uploadFileAndAssertResult(statusCode, streamInfo, token, key, configuration, options);
+        if (stream != null) {
+            try {
+                stream.close();
+            } catch (IOException e) {
+            }
+        }
 
+        try {
+            stream = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+        }
+        streamInfo = new UploadInfo<>(stream);
+        streamInfo.configWithFile(file);
         streamInfo.size = -1;
         uploadFileAndAssertResult(statusCode, streamInfo, token, key, configuration, options);
         if (stream != null) {
