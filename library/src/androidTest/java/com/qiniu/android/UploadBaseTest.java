@@ -16,6 +16,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 
@@ -97,6 +98,15 @@ public class UploadBaseTest extends BaseTest {
         streamInfo.configWithFile(file);
         uploadFileAndAssertResult(statusCode, streamInfo, token, key, configuration, options);
 
+        streamInfo.size = -1;
+        uploadFileAndAssertResult(statusCode, streamInfo, token, key, configuration, options);
+        if (stream != null) {
+            try {
+                stream.close();
+            } catch (IOException e) {
+            }
+        }
+
         if (file.length() < 10 * 1024 *1024) {
             byte[] data = getDataFromFile(file);
             UploadInfo<byte[]> dataInfo = new UploadInfo<>(data);
@@ -128,7 +138,7 @@ public class UploadBaseTest extends BaseTest {
             }
         }, 5 * 60);
 
-        LogUtil.d("=== upload response key:" + (key != null ? key : "") + " response:" + completeInfo.responseInfo);
+        LogUtil.d("=== upload file type:" + file.type() + " response key:" + (key != null ? key : "") + " response:" + completeInfo.responseInfo);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.statusCode == statusCode);
         assertTrue(completeInfo.responseInfo.toString(), verifyUploadKey(key, completeInfo.key));
@@ -171,7 +181,7 @@ public class UploadBaseTest extends BaseTest {
         } else if (file.info instanceof Uri) {
             manager.put((Uri) file.info, key, token, completionHandler, options);
         } else if (file.info instanceof InputStream) {
-            manager.put((InputStream) file.info, -1, "", key, token, completionHandler, options);
+            manager.put((InputStream) file.info, file.size, file.fileName, key, token, completionHandler, options);
         } else if (file.info instanceof byte[]) {
             manager.put((byte[]) file.info, key, token, completionHandler, options);
         } else {
@@ -212,6 +222,20 @@ public class UploadBaseTest extends BaseTest {
             try {
                 etag = Etag.file(file);
             } catch (Exception ignore) {
+            }
+        }
+
+        public String type() {
+            if (info instanceof File) {
+                return "file";
+            } else if (info instanceof Uri) {
+                return "uri";
+            } else if (info instanceof InputStream) {
+                return "stream";
+            } else if (info instanceof byte[]) {
+                return "byte_array";
+            } else {
+                return "none";
             }
         }
     }

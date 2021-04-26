@@ -112,6 +112,10 @@ class UploadInfoV1 extends UploadInfo {
 
     @Override
     boolean isAllUploaded() {
+        if (getSourceSize() <= 0) {
+            return false;
+        }
+
         if (blockList == null || blockList.size() == 0) {
             return true;
         }
@@ -168,7 +172,7 @@ class UploadInfoV1 extends UploadInfo {
             blockOffset = lastBlock.offset + lastBlock.size;
         }
 
-        int dataIndex = 0; // 片在块中的 index
+        int dataIndex = 1; // 片在块中的 index, 从 1 开始
         int dataOffSize = 0; // 片在块中的偏移量
         List<UploadData> dataList = new ArrayList<>();
         while (dataOffSize < BlockSize && !isEOF) {

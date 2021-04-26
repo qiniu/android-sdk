@@ -39,7 +39,11 @@ class UploadSourceStream implements UploadSource {
 
     @Override
     public long getSize() {
-        return size;
+        if (size > UnknownSourceSize) {
+            return size;
+        } else {
+            return UnknownSourceSize;
+        }
     }
 
     public void setSize(long size) {
@@ -64,6 +68,7 @@ class UploadSourceStream implements UploadSource {
 
         byte[] buffer = null;
         synchronized (this) {
+            boolean isEOF = false;
             while (true) {
                 if (readOffset == dataOffset) {
                     int readSize = 0;
@@ -71,16 +76,22 @@ class UploadSourceStream implements UploadSource {
                     while (readSize < dataSize) {
                         int ret = inputStream.read(buffer, readSize, dataSize - readSize);
                         if (ret < 0) {
+                            isEOF = true;
                             break;
                         }
                         readSize += ret;
                     }
+
                     if (dataSize != readSize) {
                         byte[] newBuffer = new byte[readSize];
                         System.arraycopy(buffer, 0, newBuffer, 0, readSize);
                         buffer = newBuffer;
                     }
+
                     readOffset += readSize;
+                    if (isEOF) {
+                        size = readOffset;
+                    }
                     break;
                 } else if (readOffset < dataOffset) {
                     readOffset += inputStream.skip(dataOffset - readOffset);

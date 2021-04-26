@@ -254,6 +254,15 @@ public class UploadFlowTest extends UploadBaseTest {
         streamInfo.configWithFile(file);
         switchRegionTestWithFile(streamInfo, key, configuration, options);
 
+        streamInfo.size = -1;
+        switchRegionTestWithFile(streamInfo, key, configuration, options);
+        if (stream != null) {
+            try {
+                stream.close();
+            } catch (IOException e) {
+            }
+        }
+
         byte[] data = getDataFromFile(file);
         UploadInfo<byte[]> dataInfo = new UploadInfo<>(data);
         dataInfo.configWithFile(file);

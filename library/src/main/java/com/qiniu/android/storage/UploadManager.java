@@ -353,9 +353,9 @@ public class UploadManager {
 
         if (source.getSize() > 0 && source.getSize() <= config.putThreshold) {
             ResponseInfo errorInfo = null;
-            byte[] data = new byte[(int) source.getSize()];
+            byte[] data = null;
             try {
-                source.readData((int) source.getSize(), 0);
+                data = source.readData((int) source.getSize(), 0);
             } catch (IOException e) {
                 errorInfo = ResponseInfo.localIOError("get upload file data error:" + e.getMessage());
             } finally {

@@ -2,6 +2,7 @@ package com.qiniu.android.storage;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -9,6 +10,8 @@ import android.provider.MediaStore;
 import com.qiniu.android.utils.ContextGetter;
 import com.qiniu.android.utils.StringUtils;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,13 +24,14 @@ class UploadSourceUri extends UploadSourceStream {
     UploadSourceUri(Uri uri) {
         super(createInputStream(uri));
         this.uri = uri;
-        loadFileInfo();
+
         reloadInfo();
+        loadFileInfo();
     }
 
     @Override
     public String getId() {
-        return getFileName() + modifyDate;
+        return getFileName() + "_" + modifyDate;
     }
 
     @Override
@@ -80,6 +84,25 @@ class UploadSourceUri extends UploadSourceStream {
             return;
         }
 
+        if ("file".equals(uri.getScheme())) {
+            tryLoadFileInfoByPath();
+        } else {
+            tryLoadFileInfoByCursor();
+        }
+    }
+
+    private void tryLoadFileInfoByPath() {
+        if (uri.getPath() != null) {
+            File file = new File(uri.getPath());
+            if (file.exists() && file.isFile()) {
+                setFileName(file.getName());
+                setSize(file.length());
+                modifyDate = file.lastModified() + "";
+            }
+        }
+    }
+
+    private void tryLoadFileInfoByCursor() {
         ContentResolver resolver = getContextResolver();
         if (resolver == null) {
             return;

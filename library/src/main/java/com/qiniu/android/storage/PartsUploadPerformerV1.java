@@ -81,8 +81,12 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
 
         if (block == null || chunk == null) {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " no chunk left");
-
-            ResponseInfo responseInfo = ResponseInfo.sdkInteriorError("no chunk left");
+            ResponseInfo responseInfo = null;
+            if (uploadInfo.getSourceSize() != 0) {
+                responseInfo = ResponseInfo.sdkInteriorError("no chunk left");
+            } else {
+                responseInfo = ResponseInfo.zeroSize("file is empty");
+            }
             completeHandler.complete(true, responseInfo, null, null);
             return;
         }

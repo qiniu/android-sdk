@@ -22,7 +22,7 @@ class UploadSourceFile implements UploadSource {
 
     @Override
     public String getId() {
-        return getFileName() + file.lastModified();
+        return getFileName() + "_" + file.lastModified();
     }
 
     @Override

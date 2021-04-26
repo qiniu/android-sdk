@@ -109,7 +109,7 @@ class UploadInfoV2 extends UploadInfo {
             dataOffset = lastData.offset + lastData.size;
         }
 
-        int dataIndex = dataList.size(); // 片的 index
+        int dataIndex = dataList.size() + 1; // 片的 index， 从 1 开始
         int dataSize = this.dataSize; // 片的大小
         // 读取片数据
         byte[] dataBytes = readData(dataSize, dataOffset);
@@ -217,6 +217,10 @@ class UploadInfoV2 extends UploadInfo {
 
     @Override
     boolean isAllUploaded() {
+        if (getSourceSize() <= 0) {
+            return false;
+        }
+
         if (dataList == null || dataList.size() == 0) {
             return true;
         }

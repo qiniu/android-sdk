@@ -51,6 +51,9 @@ abstract class UploadInfo {
      * @return
      */
     long getSourceSize() {
+        if (sourceSize < 0) {
+            sourceSize = source.getSize();
+        }
         return sourceSize;
     }
 
