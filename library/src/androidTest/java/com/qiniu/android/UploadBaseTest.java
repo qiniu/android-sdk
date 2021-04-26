@@ -1,5 +1,7 @@
 package com.qiniu.android;
 
+import android.net.Uri;
+
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
@@ -12,7 +14,10 @@ import com.qiniu.android.utils.LogUtil;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOException;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.RandomAccessFile;
 
 public class UploadBaseTest extends BaseTest {
 
@@ -39,43 +44,27 @@ public class UploadBaseTest extends BaseTest {
                                                     String key,
                                                     Configuration configuration,
                                                     UploadOptions options) {
+        uploadFileAndAssertResult(ResponseInfo.RequestSuccess, file, key, configuration, options);
+    }
 
-        final UploadCompleteInfo completeInfo = new UploadCompleteInfo();
-        uploadFile(file, key, configuration, options, new UpCompletionHandler() {
-            @Override
-            public void complete(String key, ResponseInfo info, JSONObject response) {
-                completeInfo.responseInfo = info;
-                completeInfo.key = key;
-            }
-        });
-
-        wait(new WaitConditional() {
-            @Override
-            public boolean shouldWait() {
-                return completeInfo.responseInfo == null;
-            }
-        }, 5 * 60);
-
-        LogUtil.d("=== upload response key:" + (key != null ? key : "") + " response:" + completeInfo.responseInfo);
-        assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
-        assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.isOK());
-        assertTrue(completeInfo.responseInfo.toString(), verifyUploadKey(key, completeInfo.key));
-
-        // 成功验证 etag
-        String etag = null;
-        String serverEtag = null;
-        try {
-            etag = Etag.file(file);
-            serverEtag = completeInfo.responseInfo.response.getString("hash");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        LogUtil.d("=== upload etag:" + etag + " response etag:" + serverEtag);
-        assertEquals("file:" + etag + " server etag:" + serverEtag, etag, serverEtag);
+    protected void uploadFileAndAssertSuccessResult(UploadInfo file,
+                                                    String key,
+                                                    Configuration configuration,
+                                                    UploadOptions options) {
+        uploadFileAndAssertResult(ResponseInfo.RequestSuccess, file, key, configuration, options);
     }
 
     protected void uploadFileAndAssertResult(int statusCode,
                                              File file,
+                                             String key,
+                                             Configuration configuration,
+                                             UploadOptions options) {
+
+        uploadFileAndAssertResult(statusCode, file, TestConfig.token_na0, key, configuration, options);
+    }
+
+    protected void uploadFileAndAssertResult(int statusCode,
+                                             UploadInfo file,
                                              String key,
                                              Configuration configuration,
                                              UploadOptions options) {
@@ -90,121 +79,41 @@ public class UploadBaseTest extends BaseTest {
                                              Configuration configuration,
                                              UploadOptions options) {
 
-        final UploadCompleteInfo completeInfo = new UploadCompleteInfo();
-        uploadFile(file, token, key, configuration, options, new UpCompletionHandler() {
-            @Override
-            public void complete(String key, ResponseInfo info, JSONObject response) {
-                completeInfo.responseInfo = info;
-                completeInfo.key = key;
-            }
-        });
+        UploadInfo<File> fileInfo = new UploadInfo<>(file);
+        fileInfo.configWithFile(file);
+        uploadFileAndAssertResult(statusCode, fileInfo, token, key, configuration, options);
 
-        wait(new WaitConditional() {
-            @Override
-            public boolean shouldWait() {
-                return completeInfo.responseInfo == null;
-            }
-        }, 5 * 60);
+        Uri uri = Uri.fromFile(file);
+        UploadInfo<Uri> uriInfo = new UploadInfo<>(uri);
+        uriInfo.configWithFile(file);
+        uploadFileAndAssertResult(statusCode, uriInfo, token, key, configuration, options);
 
-        LogUtil.d("=== upload response key:" + (key != null ? key : "") + " response:" + completeInfo.responseInfo);
-        assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
-        assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.statusCode == statusCode);
-        assertTrue(completeInfo.responseInfo.toString(), verifyUploadKey(key, completeInfo.key));
-
-        // 成功验证 etag
-        if (statusCode == 200) {
-            String etag = null;
-            String serverEtag = null;
-            try {
-                etag = Etag.file(file);
-                serverEtag = completeInfo.responseInfo.response.getString("hash");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            LogUtil.d("=== upload etag:" + etag + " response etag:" + serverEtag);
-            assertEquals("file:" + etag + " server etag:" + serverEtag, etag, serverEtag);
-        }
-    }
-
-    protected void uploadFile(File file,
-                              String key,
-                              Configuration configuration,
-                              UploadOptions options,
-                              UpCompletionHandler completionHandler) {
-
-        uploadFile(file, TestConfig.token_na0, key, configuration, options, completionHandler);
-    }
-
-    protected void uploadFile(File file,
-                              String token,
-                              String key,
-                              Configuration configuration,
-                              UploadOptions options,
-                              UpCompletionHandler completionHandler) {
-        if (options == null) {
-            options = defaultOptions;
-        }
-        UploadManager manager = new UploadManager(configuration);
-        manager.put(file, key, token, completionHandler, options);
-    }
-
-
-    protected void uploadDataAndAssertSuccessResult(byte[] data,
-                                                    String key,
-                                                    Configuration configuration,
-                                                    UploadOptions options) {
-
-        final UploadCompleteInfo completeInfo = new UploadCompleteInfo();
-        uploadData(data, key, configuration, options, new UpCompletionHandler() {
-            @Override
-            public void complete(String key, ResponseInfo info, JSONObject response) {
-                completeInfo.responseInfo = info;
-                completeInfo.key = key;
-            }
-        });
-
-        wait(new WaitConditional() {
-            @Override
-            public boolean shouldWait() {
-                return completeInfo.responseInfo == null;
-            }
-        }, 5 * 60);
-
-        LogUtil.d("=== upload response key:" + (key != null ? key : "") + " response:" + completeInfo.responseInfo);
-        assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
-        assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.isOK());
-        assertTrue(completeInfo.responseInfo.toString(), verifyUploadKey(key, completeInfo.key));
-
-        // 成功验证 etag
-        String etag = null;
-        String serverEtag = null;
+        InputStream stream = null;
         try {
-            etag = Etag.data(data);
-            serverEtag = completeInfo.responseInfo.response.getString("hash");
-        } catch (Exception e) {
-            e.printStackTrace();
+            stream = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
         }
-        LogUtil.d("=== upload etag:" + etag + " response etag:" + serverEtag);
-        assertEquals("file:" + etag + " server etag:" + serverEtag, etag, serverEtag);
+        UploadInfo<InputStream> streamInfo = new UploadInfo<>(stream);
+        streamInfo.configWithFile(file);
+        uploadFileAndAssertResult(statusCode, streamInfo, token, key, configuration, options);
+
+        if (file.length() < 10 * 1024 *1024) {
+            byte[] data = getDataFromFile(file);
+            UploadInfo<byte[]> dataInfo = new UploadInfo<>(data);
+            dataInfo.configWithFile(file);
+            uploadFileAndAssertResult(statusCode, dataInfo, token, key, configuration, options);
+        }
     }
 
-    protected void uploadDataAndAssertResult(int statusCode,
-                                             byte[] data,
-                                             String key,
-                                             Configuration configuration,
-                                             UploadOptions options) {
-
-        uploadDataAndAssertResult(statusCode, data, TestConfig.token_na0, key, configuration, options);
-    }
-
-    protected void uploadDataAndAssertResult(int statusCode,
-                                             byte[] data,
+    protected void uploadFileAndAssertResult(int statusCode,
+                                             UploadInfo file,
                                              String token,
                                              String key,
                                              Configuration configuration,
                                              UploadOptions options) {
+
         final UploadCompleteInfo completeInfo = new UploadCompleteInfo();
-        uploadData(data, token, key, configuration, options, new UpCompletionHandler() {
+        upload(file, token, key, configuration, options, new UpCompletionHandler() {
             @Override
             public void complete(String key, ResponseInfo info, JSONObject response) {
                 completeInfo.responseInfo = info;
@@ -225,11 +134,10 @@ public class UploadBaseTest extends BaseTest {
         assertTrue(completeInfo.responseInfo.toString(), verifyUploadKey(key, completeInfo.key));
 
         // 成功验证 etag
-        if (statusCode == 200) {
-            String etag = null;
+        if (statusCode == ResponseInfo.RequestSuccess) {
+            String etag = file.etag;
             String serverEtag = null;
             try {
-                etag = Etag.data(data);
                 serverEtag = completeInfo.responseInfo.response.getString("hash");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -239,28 +147,74 @@ public class UploadBaseTest extends BaseTest {
         }
     }
 
-    protected void uploadData(byte[] data,
-                              String key,
-                              Configuration configuration,
-                              UploadOptions options,
-                              UpCompletionHandler completionHandler) {
+    protected void upload(UploadInfo file,
+                          String key,
+                          Configuration configuration,
+                          UploadOptions options,
+                          UpCompletionHandler completionHandler) {
 
-        uploadData(data, TestConfig.token_na0, key, configuration, options, completionHandler);
+        upload(file, TestConfig.token_na0, key, configuration, options, completionHandler);
     }
 
-    protected void uploadData(byte[] data,
-                              String token,
-                              String key,
-                              Configuration configuration,
-                              UploadOptions options,
-                              UpCompletionHandler completionHandler) {
+    protected void upload(UploadInfo file,
+                          String token,
+                          String key,
+                          Configuration configuration,
+                          UploadOptions options,
+                          UpCompletionHandler completionHandler) {
         if (options == null) {
             options = defaultOptions;
         }
         UploadManager manager = new UploadManager(configuration);
-        manager.put(data, key, token, completionHandler, options);
+        if (file.info instanceof File) {
+            manager.put((File) file.info, key, token, completionHandler, options);
+        } else if (file.info instanceof Uri) {
+            manager.put((Uri) file.info, key, token, completionHandler, options);
+        } else if (file.info instanceof InputStream) {
+            manager.put((InputStream) file.info, -1, "", key, token, completionHandler, options);
+        } else if (file.info instanceof byte[]) {
+            manager.put((byte[]) file.info, key, token, completionHandler, options);
+        } else {
+            completionHandler.complete(key, ResponseInfo.fileError(new Exception("test case file type error")), null);
+        }
     }
 
+    protected byte[] getDataFromFile(File file) {
+        byte[] bytes = new byte[(int) file.length()];
+        try {
+            RandomAccessFile accessFile = new RandomAccessFile(file, "r");
+            accessFile.readFully(bytes);
+        } catch (Exception e) {
+            bytes = null;
+        }
+        return bytes;
+    }
+
+    protected static class UploadInfo<T> {
+        protected final T info;
+        protected String fileName;
+        protected long size = -1;
+        protected String etag;
+        protected String md5;
+
+        public UploadInfo(T info) {
+            this.info = info;
+        }
+
+        public void configWithFile(File file) {
+            fileName = file.getName();
+            size = file.length();
+            try {
+                etag = Etag.file(file);
+            } catch (Exception ignore) {
+            }
+
+            try {
+                etag = Etag.file(file);
+            } catch (Exception ignore) {
+            }
+        }
+    }
 
     protected static class UploadCompleteInfo {
         String key;

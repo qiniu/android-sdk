@@ -81,17 +81,32 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         final UploadInfoV2 info = (UploadInfoV2) uploadInfo;
 
         UploadData data = null;
+        IOException readException = null;
         synchronized (this) {
             try {
                 data = info.nextUploadData();
             } catch (IOException e) {
-                //todo: 此处可能无法恢复
+                // 此处可能无法恢复
+                readException = e;
             }
 
             if (data != null) {
-                data.isUploading = true;
-                data.isCompleted = false;
+                if (data.data == null) {
+                    readException = new IOException("get data error");
+                    data = null;
+                } else {
+                    data.isUploading = true;
+                    data.isCompleted = false;
+                }
             }
+        }
+
+        if (readException != null) {
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " " + readException.getMessage());
+
+            ResponseInfo responseInfo = ResponseInfo.localIOError(readException.getMessage());
+            completeHandler.complete(true, responseInfo, null, responseInfo.response);
+            return;
         }
 
         if (data == null) {
@@ -102,22 +117,11 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
             return;
         }
 
-//        data.data = getUploadDataWithRetry(data);
-        if (data.data == null) {
-            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " get data error");
-
-            data.isUploading = false;
-            data.isCompleted = false;
-            ResponseInfo responseInfo = ResponseInfo.localIOError("get data error");
-            completeHandler.complete(true, responseInfo, null, responseInfo.response);
-            return;
-        }
-
         final UploadData uploadData = data;
         RequestProgressHandler progressHandler = new RequestProgressHandler() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
-                uploadData.progress = (double) totalBytesWritten / (double) totalBytesExpectedToWrite;
+                uploadData.setUploadSize(totalBytesWritten);
                 notifyProgress();
             }
         };
@@ -139,7 +143,6 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
                     }
                 }
                 if (responseInfo.isOK() && etag != null && md5 != null) {
-                    uploadData.progress = 1;
                     uploadData.etag = etag;
                     uploadData.isUploading = false;
                     uploadData.isCompleted = true;

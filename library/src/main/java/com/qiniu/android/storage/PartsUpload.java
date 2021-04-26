@@ -20,7 +20,7 @@ class PartsUpload extends BaseUpload {
     private ResponseInfo uploadDataErrorResponseInfo;
     private JSONObject uploadDataErrorResponse;
 
-    protected PartsUpload(File file,
+    protected PartsUpload(UploadSource source,
                           String key,
                           UpToken token,
                           UploadOptions option,
@@ -28,7 +28,7 @@ class PartsUpload extends BaseUpload {
                           Recorder recorder,
                           String recorderKey,
                           UpTaskCompletionHandler completionHandler) {
-        super(file, key, token, option, config, recorder, recorderKey, completionHandler);
+        super(source, key, token, option, config, recorder, recorderKey, completionHandler);
     }
 
     @Override
@@ -94,6 +94,11 @@ class PartsUpload extends BaseUpload {
 
     @Override
     protected boolean switchRegion() {
+        // 重新加载资源，如果加载失败，不可切换 region
+        if (!uploadSource.couldReloadInfo() || !uploadSource.reloadInfo()) {
+            return false;
+        }
+
         boolean isSuccess = super.switchRegion();
         if (isSuccess) {
             uploadPerformer.switchRegion(getCurrentRegion());
@@ -282,7 +287,7 @@ class PartsUpload extends BaseUpload {
         item.setReport(metrics.totalElapsedTime(), ReportItem.BlockKeyTotalElapsedTime);
         item.setReport(metrics.bytesSend(), ReportItem.BlockKeyBytesSent);
         item.setReport(uploadPerformer.recoveredFrom, ReportItem.BlockKeyRecoveredFrom);
-        item.setReport(uploadSource.getFileSize(), ReportItem.BlockKeyFileSize);
+        item.setReport(uploadSource.getSize(), ReportItem.BlockKeyFileSize);
         item.setReport(Utils.getCurrentProcessID(), ReportItem.BlockKeyPid);
         item.setReport(Utils.getCurrentThreadID(), ReportItem.BlockKeyTid);
 

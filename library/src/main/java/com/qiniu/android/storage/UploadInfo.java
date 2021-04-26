@@ -8,7 +8,7 @@ abstract class UploadInfo {
 
     protected String sourceId;
     protected String fileName = null;
-    protected long fileSize = -1;
+    protected long sourceSize = UploadSource.UnknownSourceSize;
     protected Configuration configuration;
 
     private UploadSource source;
@@ -19,7 +19,7 @@ abstract class UploadInfo {
     UploadInfo(UploadSource source, Configuration configuration) {
         this.source = source;
         this.configuration = configuration;
-        this.fileSize = source.getFileSize();
+        this.sourceSize = source.getSize();
         this.sourceId = source.getId() != null ? source.getId() : "";
     }
 
@@ -32,7 +32,18 @@ abstract class UploadInfo {
      * 同一个：source 相同，上传方式相同
      */
     boolean isSameUploadInfo(UploadInfo info) {
-        return info != null && sourceId.equals(info.sourceId);
+        if (info == null || !sourceId.equals(info.sourceId)) {
+            return false;
+        }
+
+        // 检测文件大小，如果能获取到文件大小的话，就进行检测
+        if (info.sourceSize > UploadSource.UnknownSourceSize &&
+                sourceSize > UploadSource.UnknownSourceSize &&
+                info.sourceSize != sourceSize) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -40,25 +51,30 @@ abstract class UploadInfo {
      * @return
      */
     long getSourceSize() {
-        if (fileSize > 0) {
-            return fileSize;
-        }
-        return -1;
+        return sourceSize;
     }
 
     /**
-     * 是否有效，为空则无效
+     * 数据源是否有效，为空则无效
+     * @return 是否有效
+     */
+    boolean hasValidResource() {
+        return source != null;
+    }
+
+    /**
+     * 是否有效
      * @return 是否有效
      */
     boolean isValid() {
-        return source != null && source.isValid();
+        return hasValidResource();
     }
 
     /**
-     * 上传进度
-     * @return 上传进度
+     * 获取已上传数据的大小
+     * @return 已上传数据的大小
      */
-    abstract double progress();
+    abstract long uploadSize();
 
     /**
      * 是否已没有文件内容需要上传

@@ -1,18 +1,23 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.utils.StringUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 class UploadInfoV2 extends UploadInfo {
-
+    private final static String TypeKey = "infoType";
+    private final static String TypeValue = "UploadInfoV2";
     private final static int maxDataSize = 1024 * 1024 * 1024;
+
     private int dataSize;
     private boolean isEOF = false;
     private List<UploadData> dataList;
@@ -40,14 +45,17 @@ class UploadInfoV2 extends UploadInfo {
         if (jsonObject == null) {
             return null;
         }
-        long size = 0;
+
+        long sourceSize = 0;
         int dataSize = 0;
+        String type = null;
         String sourceId = null;
         Long expireAt = null;
         String uploadId = null;
         List<UploadData> dataList = new ArrayList<>();
         try {
-            size = jsonObject.getLong("size");
+            type = jsonObject.optString(TypeKey);
+            sourceSize = jsonObject.getLong("sourceSize");
             dataSize = jsonObject.getInt("dataSize");
             sourceId = jsonObject.optString("sourceId");
             expireAt = jsonObject.getLong("expireAt");
@@ -63,8 +71,12 @@ class UploadInfoV2 extends UploadInfo {
         } catch (JSONException e) {
         }
 
+        if (!TypeValue.equals(type)) {
+            return null;
+        }
+
         UploadInfoV2 info = new UploadInfoV2();
-        info.fileSize = size;
+        info.sourceSize = sourceSize;
         info.dataSize = dataSize;
         info.dataList = dataList;
         info.sourceId = sourceId;
@@ -93,7 +105,7 @@ class UploadInfoV2 extends UploadInfo {
         long dataOffset = 0;
 
         if (dataList.size() > 0) {
-            UploadData lastData= dataList.get(dataList.size() - 1);
+            UploadData lastData = dataList.get(dataList.size() - 1);
             dataOffset = lastData.offset + lastData.size;
         }
 
@@ -161,7 +173,7 @@ class UploadInfoV2 extends UploadInfo {
             return false;
         }
 
-        UploadInfoV2 infoV2 = (UploadInfoV2)info;
+        UploadInfoV2 infoV2 = (UploadInfoV2) info;
         return dataSize == infoV2.dataSize;
     }
 
@@ -173,8 +185,29 @@ class UploadInfoV2 extends UploadInfo {
     }
 
     @Override
-    double progress() {
-        return 0;
+    long uploadSize() {
+        if (dataList == null || dataList.size() == 0) {
+            return 0;
+        }
+        long uploadSize = 0;
+        for (UploadData data : dataList) {
+            uploadSize += data.uploadSize();
+        }
+        return uploadSize;
+    }
+
+    @Override
+    boolean isValid() {
+        if (!super.isValid()) {
+            return false;
+        }
+
+        if (StringUtils.isNullOrEmpty(uploadId) || expireAt == null) {
+            return false;
+        }
+
+        long timestamp = new Date().getTime() / 1000;
+        return expireAt > (timestamp - 3600 * 24 * 2);
     }
 
     @Override
@@ -201,8 +234,10 @@ class UploadInfoV2 extends UploadInfo {
     JSONObject toJsonObject() {
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("size", fileSize);
+            jsonObject.put(TypeKey, TypeValue);
             jsonObject.put("sourceId", sourceId);
+            jsonObject.put("sourceSize", sourceSize);
+            jsonObject.put("dataSize", dataSize);
             jsonObject.put("expireAt", expireAt);
             jsonObject.put("uploadId", uploadId);
             if (dataList != null && dataList.size() > 0) {
@@ -222,14 +257,14 @@ class UploadInfoV2 extends UploadInfo {
 
     private List<UploadData> createDataList(int dataSize) {
         List<UploadData> dataList = new ArrayList<UploadData>();
-        if (fileSize < 0) {
+        if (sourceSize <= UploadSource.UnknownSourceSize) {
             return dataList;
         }
 
         long offset = 0;
         int dataIndex = 1;
-        while (offset < fileSize) {
-            long lastSize = fileSize - offset;
+        while (offset < sourceSize) {
+            long lastSize = sourceSize - offset;
             int dataSizeP = Math.min((int) lastSize, dataSize);
             UploadData data = new UploadData(offset, dataSizeP, dataIndex);
             dataList.add(data);

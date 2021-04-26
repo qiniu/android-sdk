@@ -3,6 +3,10 @@ package com.qiniu.android.storage;
 import java.io.IOException;
 
 interface UploadSource {
+    /**
+     * 未知大小
+     */
+    long UnknownSourceSize = -1;
 
     /**
      * 获取资源唯一标识
@@ -14,12 +18,6 @@ interface UploadSource {
      * @return 资源修改时间
      */
     String getId();
-
-    /**
-     * 是否有效
-     * @return 是否有效
-     */
-    boolean isValid();
 
     /**
      * 是否可以重新加载文件信息，也即是否可以重新读取信息
@@ -42,9 +40,13 @@ interface UploadSource {
 
     /**
      * 获取资源大小
+     * 作用：
+     * 1. 验证资源是否为同一资源
+     * 2. 计算上传进度
+     *
      * @return 资源大小
      */
-    long getFileSize();
+    long getSize();
 
     /**
      * 读取数据

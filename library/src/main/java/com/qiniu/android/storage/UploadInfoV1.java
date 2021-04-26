@@ -9,8 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 class UploadInfoV1 extends UploadInfo {
-
-    private static int BlockSize = 4 * 1024 * 1024;
+    private static final String TypeKey = "infoType";
+    private static final String TypeValue = "UploadInfoV1";
+    private static final int BlockSize = 4 * 1024 * 1024;
 
     private int dataSize = 0;
     private boolean isEOF = false;
@@ -34,12 +35,14 @@ class UploadInfoV1 extends UploadInfo {
         if (jsonObject == null) {
             return null;
         }
-        long size = 0;
+        long sourceSize = 0;
         int dataSize = 0;
+        String type = null;
         String sourceId = null;
         List<UploadBlock> blockList = new ArrayList<UploadBlock>();
         try {
-            size = jsonObject.getLong("size");
+            type = jsonObject.optString(TypeKey);
+            sourceSize = jsonObject.getLong("sourceSize");
             dataSize = jsonObject.getInt("dataSize");
             sourceId = jsonObject.optString("sourceId");
             JSONArray blockJsonArray = jsonObject.getJSONArray("blockList");
@@ -53,8 +56,12 @@ class UploadInfoV1 extends UploadInfo {
         } catch (JSONException ignored) {
         }
 
+        if (!TypeValue.equals(type)) {
+            return null;
+        }
+
         UploadInfoV1 info = new UploadInfoV1();
-        info.fileSize = size;
+        info.sourceSize = sourceSize;
         info.dataSize = dataSize;
         info.sourceId = sourceId;
         info.blockList = blockList;
@@ -87,15 +94,15 @@ class UploadInfoV1 extends UploadInfo {
     }
 
     @Override
-    double progress() {
-        if (blockList == null || blockList.size() == 0 || fileSize < 0) {
+    long uploadSize() {
+        if (blockList == null || blockList.size() == 0) {
             return 0;
         }
-        double progress = 0;
-//        for (UploadBlock block : blocks) {
-//            progress += block.progress() * ((double) block.size / (double) size);
-//        }
-        return progress;
+        long uploadSize = 0;
+        for (UploadBlock block : blockList) {
+            uploadSize += block.uploadSize();
+        }
+        return uploadSize;
     }
 
     @Override
@@ -122,9 +129,10 @@ class UploadInfoV1 extends UploadInfo {
     JSONObject toJsonObject() {
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("size", fileSize);
-            jsonObject.put("dataSize", dataSize);
+            jsonObject.put(TypeKey, TypeValue);
             jsonObject.put("sourceId", sourceId);
+            jsonObject.put("sourceSize", sourceSize);
+            jsonObject.put("dataSize", dataSize);
             if (blockList != null && blockList.size() > 0) {
                 JSONArray blockJsonArray = new JSONArray();
                 for (UploadBlock block : blockList) {
@@ -218,6 +226,10 @@ class UploadInfoV1 extends UploadInfo {
     }
 
     UploadData nextUploadData(UploadBlock block) throws IOException {
+        if (block == null) {
+            return null;
+        }
+
         UploadData data = block.nextUploadData();
         // 当知道 size 提前创建块信息 和 从本地恢复数据时存在 没有 data 数据的情况
         if (data.data == null) {
@@ -241,14 +253,14 @@ class UploadInfoV1 extends UploadInfo {
 
     private List<UploadBlock> createBlockList(int blockSize, int dataSize) {
         List<UploadBlock> blockList = new ArrayList<>();
-        if (fileSize < 0) {
+        if (sourceSize <= UploadSource.UnknownSourceSize) {
             return blockList;
         }
 
         long offset = 0;
         int blockIndex = 0;
-        while (offset < fileSize) {
-            long lastSize = fileSize - offset;
+        while (offset < sourceSize) {
+            long lastSize = sourceSize - offset;
             int blockSizeP = Math.min((int) lastSize, blockSize);
             UploadBlock block = new UploadBlock(offset, blockSizeP, dataSize, blockIndex);
             blockList.add(block);

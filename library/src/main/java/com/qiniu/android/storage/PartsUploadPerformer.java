@@ -59,19 +59,17 @@ abstract class PartsUploadPerformer {
 
     void initData() {
         uploadTransactions = new ArrayList<>();
+        uploadInfo = getDefaultUploadInfo();
         recoverUploadInfoFromRecord();
-        if (uploadInfo == null) {
-            uploadInfo = getDefaultUploadInfo();
-        }
     }
 
     boolean canReadFile() {
-        return uploadSource != null && uploadSource.isValid();
+        return uploadInfo != null && uploadInfo.hasValidResource();
     }
 
     void closeFile() {
-        if (uploadSource != null) {
-            uploadSource.close();
+        if (uploadInfo != null) {
+            uploadInfo.close();
         }
     }
 
@@ -90,7 +88,23 @@ abstract class PartsUploadPerformer {
         if (uploadInfo == null) {
             return;
         }
-        double percent = uploadInfo.progress();
+        final long uploadSize = uploadInfo.uploadSize();
+        final long totalSize = uploadInfo.getSourceSize();
+
+        if (totalSize <= 0 || uploadSize < 0) {
+            return;
+        }
+        AsyncRun.runInMain(new Runnable() {
+            @Override
+            public void run() {
+                if (options != null && options.progressHandler != null && options.progressHandler instanceof UpProgressBytesHandler) {
+                    LogUtil.i("key:" + key + " progress uploadSize:" + uploadSize + " totalSize" + totalSize);
+                    ((UpProgressBytesHandler)options.progressHandler).progress(key, uploadSize, totalSize);
+                }
+            }
+        });
+
+        double percent = (double) uploadSize / (double) totalSize;
         if (percent > 0.95) {
             percent = 0.95;
         }
@@ -105,6 +119,7 @@ abstract class PartsUploadPerformer {
             @Override
             public void run() {
                 if (options != null && options.progressHandler != null) {
+                    LogUtil.i("key:" + key + " progress:" + notifyPercent);
                     options.progressHandler.progress(key, notifyPercent);
                 }
             }
@@ -176,7 +191,7 @@ abstract class PartsUploadPerformer {
             JSONObject info = new JSONObject(new String(data));
             ZoneInfo zoneInfo = ZoneInfo.buildFromJson(info.getJSONObject(kRecordZoneInfoKey));
             UploadInfo recoverUploadInfo = getUploadInfoFromJson(uploadSource, info.getJSONObject(kRecordFileInfoKey));
-            if (zoneInfo != null && recoverUploadInfo != null && recoverUploadInfo.isValid() && recoverUploadInfo.isSameUploadInfo(uploadInfo)) {
+            if (zoneInfo != null && recoverUploadInfo != null && recoverUploadInfo.isValid() && uploadInfo.isSameUploadInfo(recoverUploadInfo)) {
 
                 LogUtil.i("key:" + StringUtils.toNonnullString(key) +
                         " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
@@ -187,8 +202,7 @@ abstract class PartsUploadPerformer {
                 region.setupRegionData(zoneInfo);
                 currentRegion = region;
                 targetRegion = region;
-                //todo: recoveredFrom
-                recoveredFrom = (long) ((recoverUploadInfo.progress() * recoverUploadInfo.fileSize));
+                recoveredFrom = recoverUploadInfo.uploadSize();
             } else {
                 LogUtil.i("key:" + StringUtils.toNonnullString(key) +
                         " recorderKey:" + StringUtils.toNonnullString(recorderKey) +

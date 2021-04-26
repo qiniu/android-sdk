@@ -48,7 +48,9 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
                 continue;
             }
 
-            uploadFile(file, keyUp, config, null, new UpCompletionHandler() {
+            UploadInfo<File> info = new UploadInfo<>(file);
+            info.configWithFile(file);
+            upload(info, keyUp, config, null, new UpCompletionHandler() {
                 @Override
                 public void complete(String key, ResponseInfo info, JSONObject response) {
                     synchronized (param){
@@ -100,7 +102,9 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
                 continue;
             }
 
-            uploadFile(file, keyUp, config, null, new UpCompletionHandler() {
+            UploadInfo<File> info = new UploadInfo<>(file);
+            info.configWithFile(file);
+            upload(info, keyUp, config, null, new UpCompletionHandler() {
                 @Override
                 public void complete(String key, ResponseInfo info, JSONObject response) {
                     synchronized (param){

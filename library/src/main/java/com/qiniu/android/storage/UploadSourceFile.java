@@ -13,33 +13,26 @@ class UploadSourceFile implements UploadSource {
     UploadSourceFile(File file) {
         this.file = file;
         RandomAccessFile randomAccessFile = null;
-        if (file != null) {
-            try {
-                randomAccessFile = new RandomAccessFile(file, "r");
-            } catch (FileNotFoundException ignored) {
-            }
+        try {
+            randomAccessFile = new RandomAccessFile(file, "r");
+        } catch (FileNotFoundException ignored) {
         }
         this.randomAccessFile = randomAccessFile;
     }
 
     @Override
     public String getId() {
-        return file.lastModified() + "";
-    }
-
-    @Override
-    public boolean isValid() {
-        return file != null && file.exists();
+        return getFileName() + file.lastModified();
     }
 
     @Override
     public boolean couldReloadInfo() {
-        return file != null;
+        return randomAccessFile != null;
     }
 
     @Override
     public boolean reloadInfo() {
-        return false;
+        return true;
     }
 
     @Override
@@ -48,14 +41,14 @@ class UploadSourceFile implements UploadSource {
     }
 
     @Override
-    public long getFileSize() {
+    public long getSize() {
         return file.length();
     }
 
     @Override
     public byte[] readData(int dataSize, long dataOffset) throws IOException {
         if (randomAccessFile == null) {
-            return null;
+            throw new IOException("file is invalid");
         }
 
         int readSize = 0;

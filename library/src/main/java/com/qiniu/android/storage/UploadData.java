@@ -12,7 +12,8 @@ class UploadData {
     String etag;
     boolean isCompleted;
     boolean isUploading;
-    double progress;
+
+    private long uploadSize = 0;
 
     byte[] data;
 
@@ -22,7 +23,7 @@ class UploadData {
         this.index = index;
         this.isCompleted = false;
         this.isUploading = false;
-        this.progress = 0;
+        this.uploadSize = 0;
     }
 
     static UploadData dataFromJson(JSONObject jsonObject) {
@@ -34,25 +35,31 @@ class UploadData {
         int index = 0;
         String etag = null;
         boolean isCompleted = false;
-        double progress = 0;
         try {
             offset = jsonObject.getLong("offset");
             size = jsonObject.getInt("size");
             index = jsonObject.getInt("index");
             isCompleted = jsonObject.getBoolean("isCompleted");
-            progress = jsonObject.getDouble("progress");
             etag = jsonObject.getString("etag");
         } catch (JSONException ignored) {
         }
         UploadData uploadData = new UploadData(offset, size, index);
         uploadData.isCompleted = isCompleted;
-        uploadData.progress = progress;
         uploadData.etag = etag;
+        uploadData.uploadSize = 0;
         return uploadData;
     }
 
     boolean isFirstData() {
         return index == 1;
+    }
+
+    void setUploadSize(long uploadSize) {
+        this.uploadSize = uploadSize;
+    }
+
+    long uploadSize() {
+        return isCompleted ? size : uploadSize;
     }
 
     void clearUploadState() {
@@ -68,7 +75,6 @@ class UploadData {
             jsonObject.put("size", size);
             jsonObject.put("index", index);
             jsonObject.put("isCompleted", isCompleted);
-            jsonObject.put("progress", progress);
             jsonObject.put("etag", etag);
         } catch (JSONException e) {
             e.printStackTrace();

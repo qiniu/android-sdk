@@ -19,6 +19,7 @@ public final class TempFile {
     public static File createFile(int kiloSize) throws IOException {
         return createFile(kiloSize, "qiniu_" + (1024 * kiloSize) + "k");
     }
+
     public static File createFile(int kiloSize, String fileName) throws IOException {
         FileOutputStream fos = null;
         try {

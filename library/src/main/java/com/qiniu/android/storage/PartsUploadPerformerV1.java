@@ -15,8 +15,6 @@ import java.util.ArrayList;
 
 class PartsUploadPerformerV1 extends PartsUploadPerformer {
 
-    private static int BlockSize = 4 * 1024 * 1024;
-
     PartsUploadPerformerV1(UploadSource uploadSource,
                            String fileName,
                            String key,
@@ -52,37 +50,39 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
         UploadBlock block = null;
         UploadData chunk = null;
 
+        IOException readException = null;
         synchronized (this) {
-
             try {
                 block = info.nextUploadBlock();
+                chunk = info.nextUploadData(block);
             } catch (IOException e) {
-                //todo: 此处可能导致后面无法恢复
+                // 此处可能导致后面无法恢复
+                readException = e;
             }
 
-            if (block != null) {
-                chunk = block.nextUploadData();
-                if (chunk != null) {
+            if (chunk != null) {
+                if (chunk.data == null) {
+                    readException = new IOException("get data error");
+                    chunk = null;
+                } else {
                     chunk.isUploading = true;
                     chunk.isCompleted = false;
                 }
             }
         }
-        if (block == null || chunk == null) {
+
+        if (readException != null) {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " no chunk left");
 
-            ResponseInfo responseInfo = ResponseInfo.sdkInteriorError("no chunk left");
+            ResponseInfo responseInfo = ResponseInfo.localIOError(readException.getMessage());
             completeHandler.complete(true, responseInfo, null, null);
             return;
         }
 
-//        chunk.data = getChunkDataWithRetry(chunk, block);
-        if (chunk.data == null) {
+        if (block == null || chunk == null) {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " no chunk left");
 
-            chunk.isUploading = false;
-            chunk.isCompleted = false;
-            ResponseInfo responseInfo = ResponseInfo.localIOError("get data error");
+            ResponseInfo responseInfo = ResponseInfo.sdkInteriorError("no chunk left");
             completeHandler.complete(true, responseInfo, null, null);
             return;
         }
@@ -92,7 +92,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
         RequestProgressHandler progressHandler = new RequestProgressHandler() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
-                uploadChunk.progress = (double) totalBytesWritten / (double) totalBytesExpectedToWrite;
+                uploadChunk.setUploadSize(totalBytesWritten);
                 notifyProgress();
             }
         };
@@ -111,7 +111,6 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
                     uploadChunk.data = null;
 
                     uploadBlock.context = blockContext;
-                    uploadChunk.progress = 1;
                     uploadChunk.isUploading = false;
                     uploadChunk.isCompleted = true;
                     recordUploadInfo();

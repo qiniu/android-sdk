@@ -76,15 +76,15 @@ class UploadBlock {
         return isCompleted;
     }
 
-    double progress() {
+    long uploadSize() {
         if (uploadDataList == null) {
             return 0;
         }
-        double progress = 0;
+        long uploadSize = 0;
         for (UploadData data : uploadDataList) {
-            progress += data.progress * ((double) data.size / size);
+            uploadSize += data.uploadSize();
         }
-        return progress;
+        return uploadSize;
     }
 
     private ArrayList<UploadData> createDataList(int dataSize) {
