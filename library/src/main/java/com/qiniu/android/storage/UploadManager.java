@@ -135,6 +135,7 @@ public class UploadManager {
      * 上传文件
      *
      * @param inputStream       上传的资源流
+     * @param id          资源 id, 作为构建断点续传信息保存的 key, 如果为空则使用 fileName
      * @param size              上传资源的大小，不知道大小，配置 -1
      * @param fileName          上传资源流的文件名
      * @param key               上传资源保存的文件名
@@ -143,6 +144,7 @@ public class UploadManager {
      * @param options           上传数据的可选参数
      */
     public void put(final InputStream inputStream,
+                    final String id,
                     final long size,
                     final String fileName,
                     final String key,
@@ -153,6 +155,7 @@ public class UploadManager {
             return;
         }
         UploadSourceStream stream = new UploadSourceStream(inputStream);
+        stream.setId(id);
         stream.setSize(size);
         stream.setFileName(fileName);
         putSource(stream, key, token, options, completionHandler);
@@ -250,6 +253,7 @@ public class UploadManager {
      * 注：切勿在主线程调用
      *
      * @param inputStream 上传的资源流
+     * @param id          资源 id, 作为构建断点续传信息保存的 key, 如果为空则使用 fileName
      * @param size        上传资源的大小，不知道大小，配置 -1
      * @param fileName    上传资源流的文件名
      * @param key         上传数据保存的文件名
@@ -258,6 +262,7 @@ public class UploadManager {
      * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
      */
     public ResponseInfo syncPut(InputStream inputStream,
+                                String id,
                                 long size,
                                 String fileName,
                                 String key,
@@ -265,6 +270,7 @@ public class UploadManager {
                                 UploadOptions options) {
 
         UploadSourceStream stream = new UploadSourceStream(inputStream);
+        stream.setId(id);
         stream.setSize(size);
         stream.setFileName(fileName);
         return syncPut(new UploadSourceStream(inputStream), key, token, options);

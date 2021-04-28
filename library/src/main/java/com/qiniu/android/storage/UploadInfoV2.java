@@ -1,5 +1,6 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.utils.MD5;
 import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONArray;
@@ -18,28 +19,26 @@ class UploadInfoV2 extends UploadInfo {
     private final static String TypeValue = "UploadInfoV2";
     private final static int maxDataSize = 1024 * 1024 * 1024;
 
-    private int dataSize;
-    private boolean isEOF = false;
+    private final int dataSize;
     private List<UploadData> dataList;
+
+    private boolean isEOF = false;
     private IOException readException = null;
 
     String uploadId;
     // 单位：秒
     Long expireAt;
 
-    private UploadInfoV2() {
+    private UploadInfoV2(UploadSource source, int dataSize, List<UploadData> dataList) {
+        super(source);
+        this.dataSize = dataSize;
+        this.dataList = dataList;
     }
 
     UploadInfoV2(UploadSource source, Configuration configuration) {
         super(source, configuration);
-
-        if (configuration.chunkSize > maxDataSize) {
-            this.dataSize = maxDataSize;
-        } else {
-            this.dataSize = configuration.chunkSize;
-        }
-
-        dataList = createDataList(this.dataSize);
+        this.dataSize = Math.min(configuration.chunkSize, maxDataSize);
+        this.dataList = new ArrayList<>();
     }
 
     static UploadInfoV2 infoFromJson(UploadSource source, JSONObject jsonObject) {
@@ -47,18 +46,14 @@ class UploadInfoV2 extends UploadInfo {
             return null;
         }
 
-        long sourceSize = 0;
         int dataSize = 0;
         String type = null;
-        String sourceId = null;
         Long expireAt = null;
         String uploadId = null;
         List<UploadData> dataList = new ArrayList<>();
         try {
             type = jsonObject.optString(TypeKey);
-            sourceSize = jsonObject.getLong("sourceSize");
             dataSize = jsonObject.getInt("dataSize");
-            sourceId = jsonObject.optString("sourceId");
             expireAt = jsonObject.getLong("expireAt");
             uploadId = jsonObject.optString("uploadId");
             JSONArray dataJsonArray = jsonObject.getJSONArray("dataList");
@@ -72,36 +67,69 @@ class UploadInfoV2 extends UploadInfo {
         } catch (JSONException e) {
         }
 
-        if (!TypeValue.equals(type)) {
+        UploadInfoV2 info = new UploadInfoV2(source, dataSize, dataList);
+        info.setInfoFromJson(jsonObject);
+        info.expireAt = expireAt;
+        info.uploadId = uploadId;
+
+        if (!TypeValue.equals(type) || !source.getId().equals(info.getSourceId())) {
             return null;
         }
 
-        UploadInfoV2 info = new UploadInfoV2();
-        info.sourceSize = sourceSize;
-        info.dataSize = dataSize;
-        info.dataList = dataList;
-        info.sourceId = sourceId;
-        info.expireAt = expireAt;
-        info.uploadId = uploadId;
-        info.setSource(source);
         return info;
     }
 
     UploadData nextUploadData() throws IOException {
 
-        // 从内存的 dataList 中读取需要上传的 block
-        UploadData data = nextUploadDataFormDataList();
-        if (data != null) {
-            if (data.data == null) {
-                // 资源读取异常，不可读取
-                if (readException != null) {
-                    throw readException;
-                }
-                data.data = readData(data.size, data.offset);
+        // 从 dataList 中读取需要上传的 data
+        UploadData data = null;
+        while (true) {
+            // 从 dataList 中读取需要上传的 data: 未检测数据有效性
+            data = nextUploadDataFormDataList();
+            if (data == null) {
+                break;
             }
+
+            // 加载数据信息并检测数据有效性
+            UploadData newData = loadData(data);
+            // 根据 data 未加载到数据, data 及其以后的数据是无效的
+            if (newData == null) {
+                // 有多余的 data 则移除，包含 data
+                if (data.size > data.index) {
+                    dataList = dataList.subList(0, data.index);
+                }
+                isEOF = true;
+                data = null;
+                break;
+            }
+
+            // 加载到数据
+            // 加载到数据不符合预期，更换 data 信息
+            if (newData != data) {
+                dataList.set(newData.index - 1, newData);
+            }
+
+            // 数据读取结束
+            if (newData.size < dataSize) {
+                // 有多余的 data 则移除，不包含包含 newData
+                if (dataList.size() > newData.index + 1) {
+                    dataList = dataList.subList(0, newData.index + 1);
+                }
+                isEOF = true;
+            }
+
+            data = newData;
+
+            if (data.needToUpload()) {
+                break;
+            }
+        }
+
+        if (data != null) {
             return data;
         }
 
+        // 内存的 dataList 中没有可上传的数据，则从资源中读并创建 data
         // 资源读取异常，不可读取
         if (readException != null) {
             throw readException;
@@ -114,38 +142,23 @@ class UploadInfoV2 extends UploadInfo {
 
         // 从资源中读取新的 data 进行上传
         long dataOffset = 0;
-
         if (dataList.size() > 0) {
             UploadData lastData = dataList.get(dataList.size() - 1);
             dataOffset = lastData.offset + lastData.size;
         }
-
         int dataIndex = dataList.size() + 1; // 片的 index， 从 1 开始
-        int dataSize = this.dataSize; // 片的大小
-        // 读取片数据
-        byte[] dataBytes = null;
-        try {
-            dataBytes = readData(dataSize, dataOffset);
-        } catch (IOException e) {
-            readException = e;
-            throw e;
-        }
-
-        // 片数据大小不符合预期说明已经读到文件结尾
-        if (dataBytes.length < dataSize) {
-            dataSize = dataBytes.length;
+        data = new UploadData(dataOffset, dataSize, dataIndex);
+        data = loadData(data);
+        // 资源 EOF
+        if (data == null || data.size < dataSize) {
             isEOF = true;
         }
 
-        // 未读到数据不必构建片模型
-        if (dataSize == 0) {
-            return null;
+        // 读到 data,由于是新数据，则必定为需要上传的数据
+        if (data != null) {
+            data.updateState(UploadData.State.WaitToUpload);
+            dataList.add(data);
         }
-
-        // 构造片模型
-        data = new UploadData(dataOffset, dataSize, dataIndex);
-        data.data = dataBytes;
-        dataList.add(data);
 
         return data;
     }
@@ -156,11 +169,59 @@ class UploadInfoV2 extends UploadInfo {
         }
         UploadData data = null;
         for (UploadData dataP : dataList) {
-            if (!dataP.isCompleted && !dataP.isUploading) {
+            if (dataP.needToUpload()) {
                 data = dataP;
                 break;
             }
         }
+        return data;
+    }
+
+    // 加载片中的数据
+    // 1. 数据片已加载，直接返回
+    // 2. 数据块未加载，读块数据
+    // 2.1 如果未读到数据，则已 EOF，返回 null
+    // 2.2 如果块读到数据
+    // 2.2.1 如果块数据符合预期，当片未上传，则加载片数据
+    // 2.2.2 如果块数据不符合预期，创建新块，加载片信息
+    private UploadData loadData(UploadData data) throws IOException {
+        if (data == null) {
+            return null;
+        }
+
+        // 之前已加载并验证过数据，不必在验证
+        if (data.data != null) {
+            return data;
+        }
+
+        // 根据 data 信息加载 dataBytes
+        byte[] dataBytes = null;
+        try {
+            dataBytes = readData(data.size, data.offset);
+        } catch (IOException e) {
+            readException = e;
+            throw e;
+        }
+
+        // 没有数据不需要上传
+        if (dataBytes == null || dataBytes.length == 0) {
+            return null;
+        }
+
+        String md5 = MD5.encrypt(dataBytes);
+        // 判断当前 block 的数据是否和实际数据吻合，不吻合则之前 block 被抛弃，重新创建 block
+        if (dataBytes.length != data.size || data.md5 == null || !data.md5.equals(md5)) {
+            data = new UploadData(data.offset, dataBytes.length, data.index);
+            data.md5 = md5;
+        }
+
+        if (StringUtils.isNullOrEmpty(data.etag)) {
+            data.data = dataBytes;
+            data.updateState(UploadData.State.WaitToUpload);
+        } else {
+            data.updateState(UploadData.State.Complete);
+        }
+
         return data;
     }
 
@@ -170,7 +231,7 @@ class UploadInfoV2 extends UploadInfo {
         }
         ArrayList<Map<String, Object>> infoArray = new ArrayList<>();
         for (UploadData data : dataList) {
-            if (data.etag != null) {
+            if (data.getState() == UploadData.State.Complete && !StringUtils.isNullOrEmpty(data.etag)) {
                 HashMap<String, Object> info = new HashMap<>();
                 info.put("etag", data.etag);
                 info.put("partNumber", data.index);
@@ -234,14 +295,10 @@ class UploadInfoV2 extends UploadInfo {
         return expireAt > (timestamp - 3600 * 24 * 2);
     }
 
-    @Override
-    boolean isAllUploadingOrUploaded() {
-        return false;
-    }
-
+    // 文件已经读取结束 & 所有片均上传
     @Override
     boolean isAllUploaded() {
-        if (getSourceSize() <= 0) {
+        if (!isEOF) {
             return false;
         }
 
@@ -250,7 +307,7 @@ class UploadInfoV2 extends UploadInfo {
         }
         boolean isCompleted = true;
         for (UploadData data : dataList) {
-            if (!data.isCompleted) {
+            if (!data.isUploaded()) {
                 isCompleted = false;
                 break;
             }
@@ -260,11 +317,12 @@ class UploadInfoV2 extends UploadInfo {
 
     @Override
     JSONObject toJsonObject() {
-        JSONObject jsonObject = new JSONObject();
+        JSONObject jsonObject = super.toJsonObject();
+        if (jsonObject == null) {
+            jsonObject = new JSONObject();
+        }
         try {
             jsonObject.put(TypeKey, TypeValue);
-            jsonObject.put("sourceId", sourceId);
-            jsonObject.put("sourceSize", sourceSize);
             jsonObject.put("dataSize", dataSize);
             jsonObject.put("expireAt", expireAt);
             jsonObject.put("uploadId", uploadId);
@@ -281,24 +339,5 @@ class UploadInfoV2 extends UploadInfo {
         } catch (JSONException ignored) {
         }
         return jsonObject;
-    }
-
-    private List<UploadData> createDataList(int dataSize) {
-        List<UploadData> dataList = new ArrayList<UploadData>();
-        if (sourceSize <= UploadSource.UnknownSourceSize) {
-            return dataList;
-        }
-
-        long offset = 0;
-        int dataIndex = 1;
-        while (offset < sourceSize) {
-            long lastSize = sourceSize - offset;
-            int dataSizeP = Math.min((int) lastSize, dataSize);
-            UploadData data = new UploadData(offset, dataSizeP, dataIndex);
-            dataList.add(data);
-            offset += dataSizeP;
-            dataIndex += 1;
-        }
-        return dataList;
     }
 }

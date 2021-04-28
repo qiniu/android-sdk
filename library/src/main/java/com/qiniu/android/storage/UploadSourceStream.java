@@ -1,5 +1,7 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.utils.StringUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -8,6 +10,7 @@ class UploadSourceStream implements UploadSource {
     private long readOffset = 0;
 
     private InputStream inputStream;
+    private String id;
     private long size = UploadSource.UnknownSourceSize;
     private String fileName;
 
@@ -23,9 +26,14 @@ class UploadSourceStream implements UploadSource {
         this.inputStream = inputStream;
     }
 
+
+    void setId(String id) {
+        this.id = id;
+    }
+
     @Override
     public String getId() {
-        return fileName;
+        return !StringUtils.isNullOrEmpty(id) ? id : fileName;
     }
 
     public void setFileName(String fileName) {
@@ -83,7 +91,7 @@ class UploadSourceStream implements UploadSource {
                         readSize += ret;
                     }
 
-                    if (dataSize != readSize) {
+                    if (readSize < dataSize) {
                         byte[] newBuffer = new byte[readSize];
                         System.arraycopy(buffer, 0, newBuffer, 0, readSize);
                         buffer = newBuffer;

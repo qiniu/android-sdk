@@ -2,7 +2,6 @@ package com.qiniu.android.storage;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
@@ -11,7 +10,6 @@ import com.qiniu.android.utils.ContextGetter;
 import com.qiniu.android.utils.StringUtils;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;

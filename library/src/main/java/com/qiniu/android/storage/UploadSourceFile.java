@@ -52,25 +52,26 @@ class UploadSourceFile implements UploadSource {
         }
 
         int readSize = 0;
-        byte[] data = new byte[dataSize];
+        byte[] buffer = new byte[dataSize];
         try {
             randomAccessFile.seek(dataOffset);
             while (readSize < dataSize) {
-                int ret = randomAccessFile.read(data, readSize, (dataSize - readSize));
+                int ret = randomAccessFile.read(buffer, readSize, (dataSize - readSize));
                 if (ret < 0) {
                     break;
                 }
                 readSize += ret;
             }
 
-            // 读数据非预期
-            if (readSize != dataSize) {
-                throw new IOException("read file data error");
+            if (readSize < dataSize) {
+                byte[] newBuffer = new byte[readSize];
+                System.arraycopy(buffer, 0, newBuffer, 0, readSize);
+                buffer = newBuffer;
             }
         } catch (IOException e) {
             throw new IOException(e.getMessage());
         }
-        return data;
+        return buffer;
     }
 
     @Override

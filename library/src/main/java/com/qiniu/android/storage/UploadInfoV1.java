@@ -1,5 +1,9 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.utils.BytesUtils;
+import com.qiniu.android.utils.Etag;
+import com.qiniu.android.utils.StringUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -14,12 +18,16 @@ class UploadInfoV1 extends UploadInfo {
     private static final String TypeValue = "UploadInfoV1";
     private static final int BlockSize = 4 * 1024 * 1024;
 
-    private int dataSize = 0;
+    private final int dataSize;
+    private List<UploadBlock> blockList;
+
     private boolean isEOF = false;
-    private List<UploadBlock> blockList = new ArrayList<>();
     private IOException readException = null;
 
-    private UploadInfoV1() {
+    private UploadInfoV1(UploadSource source, int dataSize, List<UploadBlock> blockList) {
+        super(source);
+        this.dataSize = dataSize;
+        this.blockList = blockList;
     }
 
     UploadInfoV1(UploadSource source, Configuration configuration) {
@@ -29,24 +37,19 @@ class UploadInfoV1 extends UploadInfo {
         } else {
             this.dataSize = configuration.chunkSize;
         }
-
-        blockList = createBlockList(BlockSize, this.dataSize);
+        this.blockList = new ArrayList<>();
     }
 
     static UploadInfoV1 infoFromJson(UploadSource source, JSONObject jsonObject) {
         if (jsonObject == null) {
             return null;
         }
-        long sourceSize = 0;
         int dataSize = 0;
         String type = null;
-        String sourceId = null;
-        List<UploadBlock> blockList = new ArrayList<UploadBlock>();
+        List<UploadBlock> blockList = new ArrayList<>();
         try {
             type = jsonObject.optString(TypeKey);
-            sourceSize = jsonObject.getLong("sourceSize");
             dataSize = jsonObject.getInt("dataSize");
-            sourceId = jsonObject.optString("sourceId");
             JSONArray blockJsonArray = jsonObject.getJSONArray("blockList");
             for (int i = 0; i < blockJsonArray.length(); i++) {
                 JSONObject blockJson = blockJsonArray.getJSONObject(i);
@@ -58,16 +61,12 @@ class UploadInfoV1 extends UploadInfo {
         } catch (JSONException ignored) {
         }
 
-        if (!TypeValue.equals(type)) {
+        UploadInfoV1 info = new UploadInfoV1(source, dataSize, blockList);
+        info.setInfoFromJson(jsonObject);
+        if (!TypeValue.equals(type) || !source.getId().equals(info.getSourceId())) {
             return null;
         }
 
-        UploadInfoV1 info = new UploadInfoV1();
-        info.sourceSize = sourceSize;
-        info.dataSize = dataSize;
-        info.sourceId = sourceId;
-        info.blockList = blockList;
-        info.setSource(source);
         return info;
     }
 
@@ -88,7 +87,7 @@ class UploadInfoV1 extends UploadInfo {
             return false;
         }
 
-        UploadInfoV1 infoV1 = (UploadInfoV1)info;
+        UploadInfoV1 infoV1 = (UploadInfoV1) info;
         return dataSize == infoV1.dataSize;
     }
 
@@ -114,14 +113,10 @@ class UploadInfoV1 extends UploadInfo {
         return uploadSize;
     }
 
-    @Override
-    boolean isAllUploadingOrUploaded() {
-        return false;
-    }
-
+    // 文件已经读取结束 & 所有块均上传
     @Override
     boolean isAllUploaded() {
-        if (getSourceSize() <= 0) {
+        if (!isEOF) {
             return false;
         }
 
@@ -140,11 +135,12 @@ class UploadInfoV1 extends UploadInfo {
 
     @Override
     JSONObject toJsonObject() {
-        JSONObject jsonObject = new JSONObject();
+        JSONObject jsonObject = super.toJsonObject();
+        if (jsonObject == null) {
+            jsonObject = new JSONObject();
+        }
         try {
             jsonObject.put(TypeKey, TypeValue);
-            jsonObject.put("sourceId", sourceId);
-            jsonObject.put("sourceSize", sourceSize);
             jsonObject.put("dataSize", dataSize);
             if (blockList != null && blockList.size() > 0) {
                 JSONArray blockJsonArray = new JSONArray();
@@ -162,75 +158,86 @@ class UploadInfoV1 extends UploadInfo {
     }
 
     UploadBlock nextUploadBlock() throws IOException {
-        // 1. 从内存的 blockList 中读取需要上传的 block
-        UploadBlock block = nextUploadBlockFormBlockList();
+
+        // 从 blockList 中读取需要上传的 block
+        UploadBlock block = null;
+        while (true) {
+            // 从 blockList 中读取需要上传的 block：不检测数据有效性
+            block = nextUploadBlockFormBlockList();
+            if (block == null) {
+                break;
+            }
+
+            // 加载数据信息并检测数据有效性
+            UploadBlock newBlock = loadBlockData(block);
+            // 根据 block 未加载到数据, block 数据是无效的
+            if (newBlock == null) {
+                isEOF = true;
+                // 有多余的 block 则移除，包含 block
+                if (blockList.size() > block.index) {
+                    blockList = blockList.subList(0, block.index);
+                }
+                block = null;
+                break;
+            }
+
+            // 加载到数据
+            // 加载到数据不符合预期，更换 block 信息
+            if (newBlock != block) {
+                blockList.set(newBlock.index, newBlock);
+            }
+
+            // 数据读取结束
+            if (newBlock.size < BlockSize) {
+                // 有多余的 block 则移除，不包含 newBlock
+                if (blockList.size() > newBlock.index + 1) {
+                    blockList = blockList.subList(0, newBlock.index + 1);
+                }
+                isEOF = true;
+            }
+
+            block = newBlock;
+
+            // 数据需要上传
+            if (block.nextUploadDataWithoutCheckData() != null) {
+                break;
+            }
+        }
+
         if (block != null) {
             return block;
         }
 
-        // 2. 资源读取异常，不可读取
+        // 内存的 blockList 中没有可上传的数据，则从资源中读并创建 block
+        // 资源读取异常，不可读取
         if (readException != null) {
             throw readException;
         }
 
-        // 3. 资源已经读取完毕，不能再读取
+        // 资源已经读取完毕，不能再读取
         if (isEOF) {
             return null;
         }
 
-        // 4. 从资源中读取新的 block 进行上传
+        // 从资源中读取新的 block 进行上传
         long blockOffset = 0;
-
         if (blockList.size() > 0) {
             UploadBlock lastBlock = blockList.get(blockList.size() - 1);
             blockOffset = lastBlock.offset + lastBlock.size;
         }
 
-        int dataIndex = 1; // 片在块中的 index, 从 1 开始
-        int dataOffSize = 0; // 片在块中的偏移量
-        List<UploadData> dataList = new ArrayList<>();
-        while (dataOffSize < BlockSize && !isEOF) {
-            // 获取片大小，块中所有片的总和必须为 BlockSize
-            int dataSize = Math.min(this.dataSize, BlockSize - dataOffSize);
-
-            // 读取片数据
-            byte[] dataBytes = null;
-            try {
-                dataBytes = readData(dataSize, blockOffset + dataOffSize);
-            } catch (IOException e) {
-                readException = e;
-                throw e;
-            }
-
-            // 片数据大小不符合预期说明已经读到文件结尾
-            if (dataBytes.length < dataSize) {
-                dataSize = dataBytes.length;
-                isEOF = true;
-            }
-            // 未读到数据不必构建片模型
-            if (dataSize == 0) {
-                break;
-            }
-
-            // 构造片模型
-            UploadData data = new UploadData(dataOffSize, dataSize, dataIndex);
-            data.data = dataBytes;
-            dataList.add(data);
-
-            dataIndex += 1;
-            dataOffSize += dataSize;
+        block = new UploadBlock(blockOffset, BlockSize, dataSize, blockList.size());
+        block = loadBlockData(block);
+        // 资源 EOF
+        if (block == null || block.size < BlockSize) {
+            isEOF = true;
         }
 
-        // 没有读到片数据 不必构建块模型
-        if (dataList.size() == 0) {
-            return null;
+        // 读到 block,由于是新数据，则必定为需要上传的数据
+        if (block != null) {
+            block.updateDataState(UploadData.State.WaitToUpload);
+            blockList.add(block);
         }
-
-        // 构建块模型
-        long blockSize = dataOffSize;
-        int blockIndex = blockList.size();
-        block = new UploadBlock(blockOffset, blockSize, blockIndex, dataList);
-        blockList.add(block);
 
         return block;
     }
@@ -241,7 +248,7 @@ class UploadInfoV1 extends UploadInfo {
         }
         UploadBlock block = null;
         for (UploadBlock blockP : blockList) {
-            UploadData data = blockP.nextUploadData();
+            UploadData data = blockP.nextUploadDataWithoutCheckData();
             if (data != null) {
                 block = blockP;
                 break;
@@ -250,21 +257,72 @@ class UploadInfoV1 extends UploadInfo {
         return block;
     }
 
-    UploadData nextUploadData(UploadBlock block) throws IOException {
+
+    // 加载块中的数据
+    // 1. 数据块已加载，直接返回
+    // 2. 数据块未加载，读块数据
+    // 2.1 如果未读到数据，则已 EOF，返回 null
+    // 2.2 如果读到数据
+    // 2.2.1 如果块数据符合预期，则当片未上传，则加载片数据
+    // 2.2.2 如果块数据不符合预期，创建新块，加载片信息
+    private UploadBlock loadBlockData(UploadBlock block) throws IOException {
         if (block == null) {
             return null;
         }
 
-        UploadData data = block.nextUploadData();
-        // 当知道 size 提前创建块信息 和 从本地恢复数据时存在 没有 data 数据的情况
-        if (data.data == null) {
-            // 资源读取异常，不可读取
-            if (readException != null) {
-                throw readException;
-            }
-            data.data = readData(data.size, block.offset + data.offset);
+        // 已经加载过 block 数据
+        // 没有需要上传的片 或者 有需要上传片但是已加载过片数据
+        UploadData nextUploadData = block.nextUploadDataWithoutCheckData();
+        if (nextUploadData.getState() == UploadData.State.WaitToUpload) {
+            return block;
         }
-        return data;
+
+        // 未加载过 block 数据
+        // 根据 block 信息加载 blockBytes
+        byte[] blockBytes = null;
+        try {
+            blockBytes = readData(block.size, block.offset);
+        } catch (IOException e) {
+            readException = e;
+            throw e;
+        }
+
+        // 没有数据不需要上传
+        if (blockBytes == null || blockBytes.length == 0) {
+            return null;
+        }
+
+        String etag = Etag.data(blockBytes);
+        // 判断当前 block 的数据是否和实际数据吻合，不吻合则之前 block 被抛弃，重新创建 block
+        if (blockBytes.length != block.size || block.md5 == null || !block.md5.equals(etag)) {
+            block = new UploadBlock(block.offset, blockBytes.length, dataSize, block.index);
+            block.md5 = etag;
+        }
+
+        for (UploadData data : block.uploadDataList) {
+            if (StringUtils.isNullOrEmpty(data.ctx)) {
+                // 还未上传的
+                try {
+                    data.data = BytesUtils.subBytes(blockBytes, (int) data.offset, data.size);
+                    data.updateState(UploadData.State.WaitToUpload);
+                } catch (IOException e) {
+                    readException = e;
+                    throw e;
+                }
+            } else {
+                // 已经上传的
+                data.updateState(UploadData.State.Complete);
+            }
+        }
+
+        return block;
+    }
+
+    UploadData nextUploadData(UploadBlock block) throws IOException {
+        if (block == null) {
+            return null;
+        }
+        return block.nextUploadDataWithoutCheckData();
     }
 
     ArrayList<String> allBlocksContexts() {
@@ -273,29 +331,11 @@ class UploadInfoV1 extends UploadInfo {
         }
         ArrayList<String> contexts = new ArrayList<String>();
         for (UploadBlock block : blockList) {
-            if (block.context != null) {
-                contexts.add(block.context);
+            String ctx = block.getUploadContext();
+            if (!StringUtils.isNullOrEmpty(ctx)) {
+                contexts.add(ctx);
             }
         }
         return contexts;
-    }
-
-    private List<UploadBlock> createBlockList(int blockSize, int dataSize) {
-        List<UploadBlock> blockList = new ArrayList<>();
-        if (sourceSize <= UploadSource.UnknownSourceSize) {
-            return blockList;
-        }
-
-        long offset = 0;
-        int blockIndex = 0;
-        while (offset < sourceSize) {
-            long lastSize = sourceSize - offset;
-            int blockSizeP = Math.min((int) lastSize, blockSize);
-            UploadBlock block = new UploadBlock(offset, blockSizeP, dataSize, blockIndex);
-            blockList.add(block);
-            offset += blockSizeP;
-            blockIndex += 1;
-        }
-        return blockList;
     }
 }

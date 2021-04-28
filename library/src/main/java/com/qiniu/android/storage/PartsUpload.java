@@ -147,6 +147,13 @@ class PartsUpload extends BaseUpload {
                             return;
                         }
 
+                        // 只有再读取结束再能知道文件大小，需要检测
+                        if (uploadPerformer.uploadInfo.getSourceSize() == 0) {
+                            ResponseInfo response = ResponseInfo.zeroSize("file is empty");
+                            completeAction(response, null);
+                            return;
+                        }
+
                         LogUtil.i("key:" + StringUtils.toNonnullString(key) + " completeUpload");
 
                         // 3. 组装文件
@@ -161,12 +168,6 @@ class PartsUpload extends BaseUpload {
                                     return;
                                 }
 
-                                AsyncRun.runInMain(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        option.progressHandler.progress(key, 1.0);
-                                    }
-                                });
                                 completeAction(responseInfo, response);
                             }
                         });

@@ -1,14 +1,19 @@
 package com.qiniu.android.storage;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 abstract class UploadInfo {
+    long UnknownSourceSize = -1;
 
-    protected String sourceId;
+    private String sourceId;
+    private long sourceSize = UnknownSourceSize;
     protected String fileName = null;
-    protected long sourceSize = UploadSource.UnknownSourceSize;
     protected Configuration configuration;
 
     private UploadSource source;
@@ -23,12 +28,23 @@ abstract class UploadInfo {
         this.sourceId = source.getId() != null ? source.getId() : "";
     }
 
-    void setSource(UploadSource source) {
+    UploadInfo(UploadSource source) {
         this.source = source;
+        this.sourceSize = source.getSize();
+        this.sourceId = source.getId() != null ? source.getId() : "";
+    }
+
+    void setInfoFromJson(JSONObject jsonObject) {
+        try {
+            sourceSize = jsonObject.getLong("sourceSize");
+            sourceId = jsonObject.optString("sourceId");
+        } catch (JSONException ignored) {
+        }
     }
 
     /**
      * 是否可以重新加载文件信息，也即是否可以重新读取信息
+     *
      * @return return
      */
     boolean couldReloadInfo() {
@@ -64,18 +80,26 @@ abstract class UploadInfo {
     }
 
     /**
+     * 获取资源 id
+     *
+     * @return 资源 id
+     */
+    String getSourceId() {
+        return sourceId;
+    }
+
+    /**
      * 获取资源大小
+     *
      * @return
      */
     long getSourceSize() {
-        if (sourceSize < 0) {
-            sourceSize = source.getSize();
-        }
         return sourceSize;
     }
 
     /**
      * 数据源是否有效，为空则无效
+     *
      * @return 是否有效
      */
     boolean hasValidResource() {
@@ -84,6 +108,7 @@ abstract class UploadInfo {
 
     /**
      * 是否有效
+     *
      * @return 是否有效
      */
     boolean isValid() {
@@ -92,18 +117,14 @@ abstract class UploadInfo {
 
     /**
      * 获取已上传数据的大小
+     *
      * @return 已上传数据的大小
      */
     abstract long uploadSize();
 
     /**
-     * 是否已没有文件内容需要上传
-     * @return return
-     */
-    abstract boolean isAllUploadingOrUploaded();
-
-    /**
      * 文件内容是否完全上传完毕
+     *
      * @return 是否完全上传完毕
      */
     abstract boolean isAllUploaded();
@@ -115,19 +136,31 @@ abstract class UploadInfo {
 
     /**
      * 转 json
+     *
      * @return json
      */
-    abstract JSONObject toJsonObject();
+    JSONObject toJsonObject() {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("sourceId", sourceId);
+            jsonObject.put("sourceSize", sourceSize);
+        } catch (JSONException ignore) {
+        }
+        return jsonObject;
+    }
 
     void close() {
-
     }
 
     byte[] readData(int dataSize, long dataOffset) throws IOException {
         if (source == null) {
-            return null;
+            throw new IOException("file is not exist");
         }
 
-        return source.readData(dataSize, dataOffset);
+        byte[] data = source.readData(dataSize, dataOffset);
+        if (data.length != dataSize || data.length == 0) {
+            sourceSize = dataOffset + data.length;
+        }
+        return data;
     }
 }

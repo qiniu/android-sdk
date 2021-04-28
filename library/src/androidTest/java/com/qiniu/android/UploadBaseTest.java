@@ -5,6 +5,7 @@ import android.net.Uri;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
+import com.qiniu.android.storage.UpProgressBytesHandler;
 import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
@@ -22,7 +23,16 @@ import java.io.RandomAccessFile;
 
 public class UploadBaseTest extends BaseTest {
 
-    protected UploadOptions defaultOptions = new UploadOptions(null, null, true, new UpProgressHandler() {
+    protected UploadOptions defaultOptions = new UploadOptions(null, null, true, new UpProgressBytesHandler() {
+        @Override
+        public void progress(String key, long uploadBytes, long totalBytes) {
+            double percent = 0;
+            if (totalBytes > 0) {
+                percent = (double) uploadBytes / (double) totalBytes;
+            }
+            LogUtil.d("== upload key:" + (key == null ? "" : key) + " uploadBytes:" + uploadBytes + " totalBytes:" + totalBytes + " percent:" + percent);
+        }
+
         @Override
         public void progress(String key, double percent) {
             LogUtil.d("== upload key:" + (key == null ? "" : key) + " progress:" + percent);
@@ -119,7 +129,7 @@ public class UploadBaseTest extends BaseTest {
             }
         }
 
-        if (file.length() < 10 * 1024 *1024) {
+        if (file.length() < 10 * 1024 * 1024) {
             byte[] data = getDataFromFile(file);
             UploadInfo<byte[]> dataInfo = new UploadInfo<>(data);
             dataInfo.configWithFile(file);
@@ -193,7 +203,7 @@ public class UploadBaseTest extends BaseTest {
         } else if (file.info instanceof Uri) {
             manager.put((Uri) file.info, key, token, completionHandler, options);
         } else if (file.info instanceof InputStream) {
-            manager.put((InputStream) file.info, file.size, file.fileName, key, token, completionHandler, options);
+            manager.put((InputStream) file.info, null, file.size, file.fileName, key, token, completionHandler, options);
         } else if (file.info instanceof byte[]) {
             manager.put((byte[]) file.info, key, token, completionHandler, options);
         } else {

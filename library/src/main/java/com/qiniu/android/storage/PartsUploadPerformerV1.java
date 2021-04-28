@@ -55,19 +55,12 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
             try {
                 block = info.nextUploadBlock();
                 chunk = info.nextUploadData(block);
+                if (chunk != null) {
+                    chunk.updateState(UploadData.State.Uploading);
+                }
             } catch (IOException e) {
                 // 此处可能导致后面无法恢复
                 readException = e;
-            }
-
-            if (chunk != null) {
-                if (chunk.data == null) {
-                    readException = new IOException("get data error");
-                    chunk = null;
-                } else {
-                    chunk.isUploading = true;
-                    chunk.isCompleted = false;
-                }
             }
         }
 
@@ -104,25 +97,20 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 
-                String blockContext = null;
+                String ctx = null;
                 if (response != null) {
                     try {
-                        blockContext = response.getString("ctx");
+                        ctx = response.getString("ctx");
                     } catch (JSONException e) {
                     }
                 }
-                if (responseInfo.isOK() && blockContext != null) {
-                    uploadChunk.data = null;
-
-                    uploadBlock.context = blockContext;
-                    uploadChunk.isUploading = false;
-                    uploadChunk.isCompleted = true;
+                if (responseInfo.isOK() && ctx != null) {
+                    uploadChunk.ctx = ctx;
+                    uploadChunk.updateState(UploadData.State.Complete);
                     recordUploadInfo();
                     notifyProgress();
                 } else {
-                    uploadChunk.isUploading = false;
-                    uploadChunk.isCompleted = false;
-
+                    uploadChunk.updateState(UploadData.State.WaitToUpload);
                 }
                 completeHandler.complete(false, responseInfo, requestMetrics, response);
             }
@@ -153,6 +141,9 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
 
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                if (responseInfo.isHostUnavailable()) {
+                    upProgress.notifyDone(key);
+                }
                 destroyUploadRequestTransaction(transaction);
                 completeHandler.complete(responseInfo, requestMetrics, response);
             }
@@ -181,7 +172,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
                              final PartsUploadPerformerCompleteHandler completeHandler) {
 
         final RequestTransaction transaction = createUploadRequestTransaction();
-        transaction.uploadChunk(block.context, block.offset, chunk.data, chunk.offset, true, progressHandler, new RequestTransaction.RequestCompleteHandler() {
+        transaction.uploadChunk(block.getUploadContext(), block.offset, chunk.data, chunk.offset, true, progressHandler, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 

@@ -1,5 +1,7 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.utils.StringUtils;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -9,10 +11,11 @@ class UploadData {
     final int size;
     final int index;
 
+    String md5;
     String etag;
-    boolean isCompleted;
-    boolean isUploading;
+    String ctx;
 
+    private State state;
     private long uploadSize = 0;
 
     byte[] data;
@@ -21,8 +24,7 @@ class UploadData {
         this.offset = offset;
         this.size = size;
         this.index = index;
-        this.isCompleted = false;
-        this.isUploading = false;
+        this.state = State.NeedToCheck;
         this.uploadSize = 0;
     }
 
@@ -34,18 +36,21 @@ class UploadData {
         int size = 0;
         int index = 0;
         String etag = null;
-        boolean isCompleted = false;
+        String ctx = null;
+        String md5 = null;
         try {
             offset = jsonObject.getLong("offset");
             size = jsonObject.getInt("size");
             index = jsonObject.getInt("index");
-            isCompleted = jsonObject.getBoolean("isCompleted");
-            etag = jsonObject.getString("etag");
+            etag = jsonObject.optString("etag");
+            ctx = jsonObject.optString("ctx");
+            md5 = jsonObject.optString("md5");
         } catch (JSONException ignored) {
         }
         UploadData uploadData = new UploadData(offset, size, index);
-        uploadData.isCompleted = isCompleted;
+        uploadData.ctx = ctx;
         uploadData.etag = etag;
+        uploadData.md5 = md5;
         uploadData.uploadSize = 0;
         return uploadData;
     }
@@ -54,31 +59,74 @@ class UploadData {
         return index == 1;
     }
 
+    // 需要上传，但需要检测块信息是否有效
+    boolean needToUpload() {
+        switch (state) {
+            case NeedToCheck:
+            case WaitToUpload:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    // 需要上传，但是未上传
+    boolean isUploaded() {
+        return state == State.Complete;
+    }
+
+    State getState() {
+        return state;
+    }
+
+    void updateState(State state) {
+        switch (state) {
+            case NeedToCheck:
+            case WaitToUpload:
+            case Uploading:
+                uploadSize = 0;
+                etag = null;
+                ctx = null;
+                break;
+            case Complete:
+                data = null;
+        }
+        this.state = state;
+    }
+
     void setUploadSize(long uploadSize) {
         this.uploadSize = uploadSize;
     }
 
     long uploadSize() {
-        return isCompleted ? size : uploadSize;
+        return state == State.Complete ? size : uploadSize;
     }
 
     void clearUploadState() {
         etag = null;
-        isCompleted = false;
-        isUploading = false;
+        ctx = null;
+        state = State.WaitToUpload;
     }
 
     JSONObject toJsonObject() {
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("offset", offset);
-            jsonObject.put("size", size);
-            jsonObject.put("index", index);
-            jsonObject.put("isCompleted", isCompleted);
-            jsonObject.put("etag", etag);
+            jsonObject.putOpt("offset", offset);
+            jsonObject.putOpt("size", size);
+            jsonObject.putOpt("index", index);
+            jsonObject.putOpt("etag", etag);
+            jsonObject.putOpt("ctx", ctx);
+            jsonObject.putOpt("md5", md5);
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return jsonObject;
+    }
+
+    enum State {
+        NeedToCheck, // 需要检测数据
+        WaitToUpload, // 等待上传
+        Uploading, // 正在上传
+        Complete, // 上传结束
     }
 }

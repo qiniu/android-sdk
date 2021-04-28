@@ -23,6 +23,7 @@ abstract class PartsUploadPerformer {
     final String key;
     final String fileName;
     final UploadSource uploadSource;
+    final UpProgress upProgress;
 
     final UpToken token;
     final UploadOptions options;
@@ -32,7 +33,6 @@ abstract class PartsUploadPerformer {
 
     private IUploadRegion targetRegion;
     protected IUploadRegion currentRegion;
-    private double previousPercent;
 
     Long recoveredFrom;
     UploadInfo uploadInfo;
@@ -53,6 +53,7 @@ abstract class PartsUploadPerformer {
         this.config = config;
         this.recorder = config.recorder;
         this.recorderKey = recorderKey;
+        this.upProgress = new UpProgress(this.options.progressHandler);
 
         this.initData();
     }
@@ -96,42 +97,7 @@ abstract class PartsUploadPerformer {
         if (uploadInfo == null) {
             return;
         }
-        final long uploadSize = uploadInfo.uploadSize();
-        final long totalSize = uploadInfo.getSourceSize();
-
-        if (totalSize <= 0 || uploadSize < 0) {
-            return;
-        }
-        AsyncRun.runInMain(new Runnable() {
-            @Override
-            public void run() {
-                if (options != null && options.progressHandler != null && options.progressHandler instanceof UpProgressBytesHandler) {
-                    LogUtil.i("key:" + key + " progress uploadSize:" + uploadSize + " totalSize" + totalSize);
-                    ((UpProgressBytesHandler)options.progressHandler).progress(key, uploadSize, totalSize);
-                }
-            }
-        });
-
-        double percent = (double) uploadSize / (double) totalSize;
-        if (percent > 0.95) {
-            percent = 0.95;
-        }
-        if (percent > previousPercent) {
-            previousPercent = percent;
-        } else {
-            percent = previousPercent;
-        }
-
-        final double notifyPercent = percent;
-        AsyncRun.runInMain(new Runnable() {
-            @Override
-            public void run() {
-                if (options != null && options.progressHandler != null) {
-                    LogUtil.i("key:" + key + " progress:" + notifyPercent);
-                    options.progressHandler.progress(key, notifyPercent);
-                }
-            }
-        });
+        upProgress.progress(key, uploadInfo.uploadSize(), uploadInfo.getSourceSize());
     }
 
     void recordUploadInfo() {

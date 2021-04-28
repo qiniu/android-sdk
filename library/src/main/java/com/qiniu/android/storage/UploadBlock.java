@@ -1,5 +1,7 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.utils.StringUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -10,20 +12,20 @@ import java.util.List;
 class UploadBlock {
 
     final long offset;
-    final long size;
+    final int size;
     final int index;
     final List<UploadData> uploadDataList;
 
-    String context;
+    String md5 = null;
 
-    UploadBlock(long offset, long blockSize, int dataSize, int index) {
+    UploadBlock(long offset, int blockSize, int dataSize, int index) {
         this.offset = offset;
         this.size = blockSize;
         this.index = index;
         this.uploadDataList = createDataList(dataSize);
     }
 
-    UploadBlock(long offset, long blockSize, int index, List<UploadData> uploadDataList) {
+    UploadBlock(long offset, int blockSize, int index, List<UploadData> uploadDataList) {
         this.offset = offset;
         this.size = blockSize;
         this.index = index;
@@ -35,15 +37,15 @@ class UploadBlock {
             return null;
         }
         long offset = 0;
-        long size = 0;
+        int size = 0;
         int index = 0;
-        String context = null;
+        String md5 = null;
         ArrayList<UploadData> uploadDataList = new ArrayList<UploadData>();
         try {
             offset = jsonObject.getLong("offset");
-            size = jsonObject.getLong("size");
+            size = jsonObject.getInt("size");
             index = jsonObject.getInt("index");
-            context = jsonObject.getString("context");
+            md5 = jsonObject.optString("md5");
             JSONArray dataJsonArray = jsonObject.getJSONArray("uploadDataList");
             for (int i = 0; i < dataJsonArray.length(); i++) {
                 JSONObject dataJson = dataJsonArray.getJSONObject(i);
@@ -56,9 +58,7 @@ class UploadBlock {
         }
 
         UploadBlock block = new UploadBlock(offset, size, index, uploadDataList);
-        if (context != null && context.length() > 0) {
-            block.context = context;
-        }
+        block.md5 = md5;
         return block;
     }
 
@@ -68,7 +68,7 @@ class UploadBlock {
         }
         boolean isCompleted = true;
         for (UploadData data : uploadDataList) {
-            if (!data.isCompleted) {
+            if (!data.isUploaded()) {
                 isCompleted = false;
                 break;
             }
@@ -95,11 +95,9 @@ class UploadBlock {
             long lastSize = size - offset;
             int dataSizeP = Math.min((int) lastSize, dataSize);
             UploadData data = new UploadData(offset, dataSizeP, dataIndex);
-            if (data != null) {
-                datas.add(data);
-                offset += dataSizeP;
-                dataIndex += 1;
-            }
+            datas.add(data);
+            offset += dataSizeP;
+            dataIndex += 1;
         }
         return datas;
     }
@@ -107,10 +105,10 @@ class UploadBlock {
     JSONObject toJsonObject() {
         JSONObject jsonObject = new JSONObject();
         try {
-            jsonObject.put("offset", offset);
-            jsonObject.put("size", size);
-            jsonObject.put("index", index);
-            jsonObject.put("context", (context != null ? context : ""));
+            jsonObject.putOpt("offset", offset);
+            jsonObject.putOpt("size", size);
+            jsonObject.putOpt("index", index);
+            jsonObject.putOpt("md5", md5);
             if (uploadDataList != null && uploadDataList.size() > 0) {
                 JSONArray dataJsonArray = new JSONArray();
                 for (UploadData data : uploadDataList) {
@@ -126,13 +124,13 @@ class UploadBlock {
         return jsonObject;
     }
 
-    protected UploadData nextUploadData() {
+    protected UploadData nextUploadDataWithoutCheckData() {
         if (uploadDataList == null || uploadDataList.size() == 0) {
             return null;
         }
         UploadData data = null;
         for (UploadData dataP : uploadDataList) {
-            if (!dataP.isCompleted && !dataP.isUploading) {
+            if (dataP.needToUpload()) {
                 data = dataP;
                 break;
             }
@@ -140,13 +138,30 @@ class UploadBlock {
         return data;
     }
 
+    String getUploadContext() {
+        String ctx = null;
+        for (UploadData data : uploadDataList) {
+            if (data.getState() == UploadData.State.Complete && !StringUtils.isNullOrEmpty(data.ctx)) {
+                ctx = data.ctx;
+            } else {
+                break;
+            }
+        }
+        return ctx;
+    }
+
     protected void clearUploadState() {
-        context = null;
         if (uploadDataList == null || uploadDataList.size() == 0) {
             return;
         }
         for (UploadData data : uploadDataList) {
             data.clearUploadState();
+        }
+    }
+
+    void updateDataState(UploadData.State state) {
+        for (UploadData data : uploadDataList) {
+            data.updateState(state);
         }
     }
 }

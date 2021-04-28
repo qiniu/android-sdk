@@ -85,19 +85,12 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         synchronized (this) {
             try {
                 data = info.nextUploadData();
+                if (data != null) {
+                    data.updateState(UploadData.State.Uploading);
+                }
             } catch (IOException e) {
                 // 此处可能无法恢复
                 readException = e;
-            }
-
-            if (data != null) {
-                if (data.data == null) {
-                    readException = new IOException("get data error");
-                    data = null;
-                } else {
-                    data.isUploading = true;
-                    data.isCompleted = false;
-                }
             }
         }
 
@@ -149,14 +142,11 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
                 }
                 if (responseInfo.isOK() && etag != null && md5 != null) {
                     uploadData.etag = etag;
-                    uploadData.isUploading = false;
-                    uploadData.isCompleted = true;
-                    uploadData.data = null;
+                    uploadData.updateState(UploadData.State.Complete);
                     recordUploadInfo();
                     notifyProgress();
                 } else {
-                    uploadData.isUploading = false;
-                    uploadData.isCompleted = false;
+                    uploadData.updateState(UploadData.State.WaitToUpload);
                 }
                 completeHandler.complete(false, responseInfo, requestMetrics, response);
             }

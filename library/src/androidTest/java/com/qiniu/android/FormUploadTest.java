@@ -48,7 +48,7 @@ public class FormUploadTest extends UploadFlowTest {
             } catch (IOException e) {
                 Assert.assertTrue(e.getMessage(), false);
             }
-            cancelTest(cancelPercent, file, key, configuration, null);
+            cancelTest((long) (size * cancelPercent), file, key, configuration, null);
         }
     }
 
