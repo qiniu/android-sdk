@@ -77,7 +77,7 @@ public class ResumeUploadTest extends UploadFlowTest {
                 .useConcurrentResumeUpload(false)
                 .useHttps(true)
                 .build();
-        int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
+        int[] sizeArray = {500, 3000, 4000, 7000, 10000, 20000};
         for (int size : sizeArray) {
             String key = "android_resume_https_v1_" + size + "k";
             try {
@@ -262,7 +262,7 @@ public class ResumeUploadTest extends UploadFlowTest {
                 .chunkSize(4 * 1024 * 1024)
                 .useHttps(true)
                 .build();
-        int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
+        int[] sizeArray = {500, 3000, 4000, 7000, 10000, 20000};
         for (int size : sizeArray) {
             String key = "android_resume_https_v2_" + size + "k";
             try {

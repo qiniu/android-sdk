@@ -229,7 +229,7 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
                 .chunkSize(4 * 1024 * 1024)
                 .useHttps(false)
                 .build();
-        int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
+        int[] sizeArray = {500, 2000, 4000, 5000, 8000, 20000};
         long timestamp = new Date().getTime();
         for (int size : sizeArray) {
             String key = "android_concurrent_resume_http_v2_" + timestamp + "_" + size + "k";
@@ -250,7 +250,7 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
                 .useHttps(true)
                 .chunkSize(4 * 1024 * 1024)
                 .build();
-        int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
+        int[] sizeArray = {500, 2000, 4000, 5000, 8000, 20000};
         for (int size : sizeArray) {
             String key = "android_concurrent_resume_https_v2_" + size + "k";
             try {
