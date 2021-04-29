@@ -120,7 +120,7 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
                 uploadData.setUploadSize(totalBytesWritten);
-                notifyProgress();
+                notifyProgress(false);
             }
         };
 
@@ -144,7 +144,7 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
                     uploadData.etag = etag;
                     uploadData.updateState(UploadData.State.Complete);
                     recordUploadInfo();
-                    notifyProgress();
+                    notifyProgress(false);
                 } else {
                     uploadData.updateState(UploadData.State.WaitToUpload);
                 }
@@ -163,6 +163,9 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         transaction.completeParts(true, fileName, info.uploadId, partInfoArray, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                if (responseInfo.isOK()) {
+                    notifyProgress(true);
+                }
 
                 destroyUploadRequestTransaction(transaction);
                 completeHandler.complete(responseInfo, requestMetrics, response);

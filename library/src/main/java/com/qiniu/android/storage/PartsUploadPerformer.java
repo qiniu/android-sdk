@@ -23,7 +23,7 @@ abstract class PartsUploadPerformer {
     final String key;
     final String fileName;
     final UploadSource uploadSource;
-    final UpProgress upProgress;
+    private final UpProgress upProgress;
 
     final UpToken token;
     final UploadOptions options;
@@ -93,11 +93,16 @@ abstract class PartsUploadPerformer {
         }
     }
 
-    void notifyProgress() {
+    void notifyProgress(Boolean isCompeted) {
         if (uploadInfo == null) {
             return;
         }
-        upProgress.progress(key, uploadInfo.uploadSize(), uploadInfo.getSourceSize());
+
+        if (isCompeted) {
+            upProgress.notifyDone(key, uploadInfo.getSourceSize());
+        } else {
+            upProgress.progress(key, uploadInfo.uploadSize(), uploadInfo.getSourceSize());
+        }
     }
 
     void recordUploadInfo() {

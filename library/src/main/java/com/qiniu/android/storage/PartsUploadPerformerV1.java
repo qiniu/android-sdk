@@ -90,7 +90,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
                 uploadChunk.setUploadSize(totalBytesWritten);
-                notifyProgress();
+                notifyProgress(false);
             }
         };
         PartsUploadPerformerCompleteHandler completeHandlerP = new PartsUploadPerformerCompleteHandler() {
@@ -108,7 +108,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
                     uploadChunk.ctx = ctx;
                     uploadChunk.updateState(UploadData.State.Complete);
                     recordUploadInfo();
-                    notifyProgress();
+                    notifyProgress(false);
                 } else {
                     uploadChunk.updateState(UploadData.State.WaitToUpload);
                 }
@@ -141,8 +141,8 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
 
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                if (responseInfo.isHostUnavailable()) {
-                    upProgress.notifyDone(key);
+                if (responseInfo.isOK()) {
+                    notifyProgress(true);
                 }
                 destroyUploadRequestTransaction(transaction);
                 completeHandler.complete(responseInfo, requestMetrics, response);

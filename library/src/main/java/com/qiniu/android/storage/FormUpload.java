@@ -52,7 +52,7 @@ class FormUpload extends BaseUpload {
                     return;
                 }
 
-                upProgress.notifyDone(key);
+                upProgress.notifyDone(key, data.length);
                 completeAction(responseInfo, response);
             }
         });

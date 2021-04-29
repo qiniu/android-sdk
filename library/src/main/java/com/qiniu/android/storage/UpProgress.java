@@ -5,8 +5,7 @@ import com.qiniu.android.utils.LogUtil;
 
 class UpProgress {
 
-    private volatile long totalBytes = -1;
-    private volatile long maxProgressUploadBytes = 0;
+    private volatile long maxProgressUploadBytes = -1;
     private volatile long previousUploadBytes = 0;
     private final UpProgressHandler handler;
 
@@ -20,8 +19,7 @@ class UpProgress {
         }
 
         if (totalBytes > 0) {
-            if (maxProgressUploadBytes == 0) {
-                this.totalBytes = totalBytes;
+            if (this.maxProgressUploadBytes < 0) {
                 this.maxProgressUploadBytes = (long)(totalBytes * 0.95);
             }
 
@@ -63,7 +61,7 @@ class UpProgress {
         });
     }
 
-    public void notifyDone(final String key) {
+    public void notifyDone(final String key, final long totalBytes) {
         if (handler == null) {
             return;
         }
