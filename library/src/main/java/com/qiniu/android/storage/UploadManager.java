@@ -1,5 +1,6 @@
 package com.qiniu.android.storage;
 
+import android.content.ContentResolver;
 import android.net.Uri;
 
 import com.qiniu.android.collect.ReportItem;
@@ -8,6 +9,7 @@ import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.dns.DnsPrefetchTransaction;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
 import com.qiniu.android.utils.AsyncRun;
+import com.qiniu.android.utils.ContextGetter;
 import com.qiniu.android.utils.Utils;
 import com.qiniu.android.utils.Wait;
 
@@ -115,12 +117,15 @@ public class UploadManager {
      * 上传文件
      *
      * @param uri               上传的文件对象 Uri
+     * @param resolver          resolver, 在根据 Uri 构建 InputStream 时使用
+     *                          注：为 null 时，使用 {@link ContextGetter#applicationContext()} 获取 resolver
      * @param key               上传文件保存的文件名
      * @param token             上传凭证
      * @param completionHandler 上传完成的后续处理动作
      * @param options           上传数据的可选参数
      */
     public void put(final Uri uri,
+                    final ContentResolver resolver,
                     final String key,
                     final String token,
                     final UpCompletionHandler completionHandler,
@@ -128,14 +133,14 @@ public class UploadManager {
         if (checkAndNotifyError(key, token, uri, completionHandler)) {
             return;
         }
-        putSource(new UploadSourceUri(uri), key, token, options, completionHandler);
+        putSource(new UploadSourceUri(uri, resolver), key, token, options, completionHandler);
     }
 
     /**
      * 上传文件
      *
      * @param inputStream       上传的资源流
-     * @param id          资源 id, 作为构建断点续传信息保存的 key, 如果为空则使用 fileName
+     * @param id                资源 id, 作为构建断点续传信息保存的 key, 如果为空则使用 fileName
      * @param size              上传资源的大小，不知道大小，配置 -1
      * @param fileName          上传资源流的文件名
      * @param key               上传资源保存的文件名
@@ -234,18 +239,21 @@ public class UploadManager {
      * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
      * 注：切勿在主线程调用
      *
-     * @param uri     上传的文件对象 Uri
-     * @param key     上传数据保存的文件名
-     * @param token   上传凭证
-     * @param options 上传数据的可选参数
+     * @param uri      上传的文件对象 Uri
+     * @param resolver resolver, 在根据 Uri 构建 InputStream 时使用
+     *                 注：为 null 时，使用 {@link ContextGetter#applicationContext()} 获取 resolver
+     * @param key      上传数据保存的文件名
+     * @param token    上传凭证
+     * @param options  上传数据的可选参数
      * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
      */
     public ResponseInfo syncPut(Uri uri,
+                                ContentResolver resolver,
                                 String key,
                                 String token,
                                 UploadOptions options) {
 
-        return syncPut(new UploadSourceUri(uri), key, token, options);
+        return syncPut(new UploadSourceUri(uri, resolver), key, token, options);
     }
 
     /**

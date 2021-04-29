@@ -13,7 +13,6 @@ import org.json.JSONObject;
 class FormUpload extends BaseUpload {
 
     private boolean isAsync = true;
-    private double previousPercent;
     private final UpProgress upProgress;
     private RequestTransaction uploadTransaction;
 

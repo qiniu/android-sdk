@@ -1,7 +1,6 @@
 package com.qiniu.android.storage;
 
 import com.qiniu.android.utils.StringUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 

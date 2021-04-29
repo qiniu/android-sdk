@@ -5,65 +5,87 @@ import com.qiniu.android.utils.LogUtil;
 
 class UpProgress {
 
-    private double previousPercent;
+    private volatile long totalBytes = -1;
+    private volatile long maxProgressUploadBytes = 0;
+    private volatile long previousUploadBytes = 0;
     private final UpProgressHandler handler;
 
-    UpProgress(UpProgressHandler handler){
+    UpProgress(UpProgressHandler handler) {
         this.handler = handler;
-        this.previousPercent = 0;
     }
 
-    public void progress(final String key, final long uploadBytes, final long totalBytes) {
-        if (handler != null && handler instanceof UpProgressBytesHandler) {
-            AsyncRun.runInMain(new Runnable() {
-                @Override
-                public void run() {
-                    LogUtil.i("key:" + key + " progress uploadBytes:" + uploadBytes + " totalBytes:" + totalBytes);
-                    ((UpProgressBytesHandler) handler).progress(key, uploadBytes, totalBytes);
-                }
-            });
+    public void progress(final String key, long uploadBytes, final long totalBytes) {
+        if (handler == null || uploadBytes < 0 || (totalBytes > 0 && uploadBytes > totalBytes)) {
             return;
         }
 
-        if (totalBytes <= 0 || uploadBytes < 0) {
-            return;
+        if (totalBytes > 0) {
+            if (maxProgressUploadBytes == 0) {
+                this.totalBytes = totalBytes;
+                this.maxProgressUploadBytes = (long)(totalBytes * 0.95);
+            }
+
+            if (uploadBytes > maxProgressUploadBytes) {
+                return;
+            }
         }
 
-        double percent = (double) uploadBytes / (double) totalBytes;
-        if (percent > 0.95) {
-            percent = 0.95;
-        }
-        if (percent > previousPercent) {
-            previousPercent = percent;
+        if (uploadBytes > previousUploadBytes) {
+            previousUploadBytes = uploadBytes;
         } else {
-            percent = previousPercent;
+            // 不大于之前回调百分比，不再回调
+            return;
         }
 
-        if (handler != null) {
-            final double notifyPercent = percent;
+        if (handler instanceof UpProgressBytesHandler) {
+            final long uploadBytesFinal = uploadBytes;
             AsyncRun.runInMain(new Runnable() {
                 @Override
                 public void run() {
-                    LogUtil.i("key:" + key + " progress:" + notifyPercent);
-                    handler.progress(key, notifyPercent);
+                    LogUtil.i("key:" + key + " progress uploadBytes:" + uploadBytesFinal + " totalBytes:" + totalBytes);
+                    ((UpProgressBytesHandler) handler).progress(key, uploadBytesFinal, totalBytes);
                 }
             });
+            return;
         }
+
+        if (totalBytes < 0) {
+            return;
+        }
+
+        final double notifyPercent = (double) uploadBytes / (double) totalBytes;
+        AsyncRun.runInMain(new Runnable() {
+            @Override
+            public void run() {
+                LogUtil.i("key:" + key + " progress:" + notifyPercent);
+                handler.progress(key, notifyPercent);
+            }
+        });
     }
 
     public void notifyDone(final String key) {
-        if (handler != null && handler instanceof UpProgressBytesHandler) {
+        if (handler == null) {
             return;
         }
 
-        if (handler != null) {
+        // 不管什么类型 source, 在资源 EOF 时间，均可以获取到文件的大小
+        if (handler instanceof UpProgressBytesHandler) {
             AsyncRun.runInMain(new Runnable() {
                 @Override
                 public void run() {
-                    LogUtil.i("key:" + key + " progress:1");
-                    handler.progress(key, 1);
+                    LogUtil.i("key:" + key + " progress uploadBytes:" + totalBytes + " totalBytes:" + totalBytes);
+                    ((UpProgressBytesHandler) handler).progress(key, totalBytes, totalBytes);
                 }
             });
+            return;
         }
+
+        AsyncRun.runInMain(new Runnable() {
+            @Override
+            public void run() {
+                LogUtil.i("key:" + key + " progress:1");
+                handler.progress(key, 1);
+            }
+        });
     }
 }

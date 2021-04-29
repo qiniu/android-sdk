@@ -17,11 +17,13 @@ import java.io.InputStream;
 class UploadSourceUri extends UploadSourceStream {
 
     private final Uri uri;
+    private final ContentResolver resolver;
     private String modifyDate = "";
 
-    UploadSourceUri(Uri uri) {
-        super(createInputStream(uri));
+    UploadSourceUri(Uri uri, ContentResolver resolver) {
+        super(createInputStream(uri, resolver));
         this.uri = uri;
+        this.resolver = resolver;
 
         reloadInfo();
         loadFileInfo();
@@ -42,7 +44,7 @@ class UploadSourceUri extends UploadSourceStream {
         super.reloadInfo();
         close();
 
-        InputStream inputStream = createInputStream(uri);
+        InputStream inputStream = createInputStream(uri, resolver);
         setInputStream(inputStream);
         return inputStream != null;
     }
@@ -62,12 +64,15 @@ class UploadSourceUri extends UploadSourceStream {
         }
     }
 
-    private static InputStream createInputStream(Uri uri) {
+    private static InputStream createInputStream(Uri uri, ContentResolver resolver) {
         if (uri == null) {
             return null;
         }
 
-        ContentResolver resolver = getContextResolver();
+        if (resolver == null) {
+            resolver = getAppContextResolver();
+        }
+
         if (resolver == null) {
             return null;
         }
@@ -104,7 +109,7 @@ class UploadSourceUri extends UploadSourceStream {
     }
 
     private void tryLoadFileInfoByCursor() {
-        ContentResolver resolver = getContextResolver();
+        ContentResolver resolver = getAppContextResolver();
         if (resolver == null) {
             return;
         }
@@ -137,7 +142,7 @@ class UploadSourceUri extends UploadSourceStream {
         }
     }
 
-    private static ContentResolver getContextResolver() {
+    private static ContentResolver getAppContextResolver() {
         Context context = ContextGetter.applicationContext();
         if (context == null || context.getContentResolver() == null) {
             return null;
