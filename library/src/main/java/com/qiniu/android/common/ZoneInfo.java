@@ -25,6 +25,7 @@ public class ZoneInfo {
 
     public final int ttl;
     public final boolean http3Enabled;
+    public final boolean ipv6;
     public final List<String> domains;
     public final List<String> old_domains;
 
@@ -72,11 +73,13 @@ public class ZoneInfo {
 
     private ZoneInfo(int ttl,
                      boolean http3Enabled,
+                     boolean ipv6,
                      String regionId,
                      List<String> domains,
                      List<String> old_domains) {
         this.ttl = ttl;
         this.http3Enabled = http3Enabled;
+        this.ipv6 = ipv6;
         this.regionId = regionId;
         this.domains = domains;
         this.old_domains = old_domains;
@@ -95,10 +98,13 @@ public class ZoneInfo {
 
         int ttl = obj.optInt("ttl");
         boolean http3Enabled = false;
+        boolean ipv6Enabled = false;
         try {
             JSONObject features = obj.getJSONObject("features");
             JSONObject http3 = features.getJSONObject("http3");
+            JSONObject ipv6 = features.getJSONObject("ipv6");
             http3Enabled = http3.getBoolean("enabled");
+            ipv6Enabled = ipv6.getBoolean("enabled");
         } catch (Exception ignored) {
         }
 
@@ -141,7 +147,7 @@ public class ZoneInfo {
             return null;
         }
 
-        ZoneInfo zoneInfo = new ZoneInfo(ttl, http3Enabled, regionId, domains, old_domains);
+        ZoneInfo zoneInfo = new ZoneInfo(ttl, http3Enabled, ipv6Enabled, regionId, domains, old_domains);
         zoneInfo.detailInfo = obj;
 
         zoneInfo.allHosts = allHosts;

@@ -23,6 +23,8 @@ public class UploadDomainRegion implements IUploadRegion {
 
     // 是否支持http3
     private boolean http3Enabled;
+    // 是否使用ipv6
+    private boolean ipv6Enabled;
 
     // 是否冻结过Host，PS：如果没有冻结过 Host,则当前 Region 上传也就不会有错误信息，可能会返回-9，所以必须要再进行一次尝试
     private boolean hasFreezeHost;
@@ -88,6 +90,8 @@ public class UploadDomainRegion implements IUploadRegion {
         // 暂不开启
         http3Enabled = false;
 
+        ipv6Enabled = zoneInfo.ipv6;
+
         ArrayList<String> domainHostList = new ArrayList<>();
         if (zoneInfo.domains != null) {
             domainHostList.addAll(zoneInfo.domains);
@@ -139,9 +143,14 @@ public class UploadDomainRegion implements IUploadRegion {
                 IUploadServer domainServer = domain.getServer(new UploadServerDomain.GetServerCondition() {
                     @Override
                     public boolean condition(String host, UploadServer serverP, UploadServer filterServer) {
-
-                        // 1.1 剔除冻结对象
                         String filterServerIP = filterServer == null ? null : filterServer.getIp();
+
+                        // 1.1 剔除 ipv6
+                        if (!ipv6Enabled && Utils.isIpv6(filterServerIP)) {
+                            return false;
+                        }
+
+                        // 1.2 剔除冻结对象
                         String frozenType = UploadServerFreezeUtil.getFrozenType(host, filterServerIP);
                         boolean isFrozen = UploadServerFreezeUtil.isTypeFrozenByFreezeManagers(frozenType, new UploadServerFreezeManager[]{UploadServerFreezeUtil.globalHttp3Freezer()});
 
@@ -149,7 +158,7 @@ public class UploadDomainRegion implements IUploadRegion {
                             return false;
                         }
 
-                        // 1.2 挑选网络状态最优
+                        // 1.3 挑选网络状态最优
                         return UploadServerNetworkStatus.isServerNetworkBetter(filterServer, serverP);
                     }
                 });
@@ -176,8 +185,14 @@ public class UploadDomainRegion implements IUploadRegion {
             IUploadServer domainServer = domain.getServer(new UploadServerDomain.GetServerCondition() {
                 @Override
                 public boolean condition(String host, UploadServer serverP, UploadServer filterServer) {
-                    // 1.1 剔除冻结对象
                     String filterServerIP = filterServer == null ? null : filterServer.getIp();
+
+                    // 1.1 剔除 ipv6
+                    if (!ipv6Enabled && Utils.isIpv6(filterServerIP)) {
+                        return false;
+                    }
+
+                    // 1.2 剔除冻结对象
                     String frozenType = UploadServerFreezeUtil.getFrozenType(host, filterServerIP);
                     boolean isFrozen = UploadServerFreezeUtil.isTypeFrozenByFreezeManagers(frozenType, new UploadServerFreezeManager[]{partialHttp2Freezer, UploadServerFreezeUtil.globalHttp2Freezer()});
 
@@ -185,7 +200,7 @@ public class UploadDomainRegion implements IUploadRegion {
                         return false;
                     }
 
-                    // 1.2 挑选网络状态最优
+                    // 1.3 挑选网络状态最优
                     return UploadServerNetworkStatus.isServerNetworkBetter(filterServer, serverP);
                 }
             });
