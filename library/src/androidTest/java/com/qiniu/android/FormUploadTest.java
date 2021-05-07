@@ -46,7 +46,7 @@ public class FormUploadTest extends UploadFlowTest {
             try {
                 file = TempFile.createFile(size, key);
             } catch (IOException e) {
-                Assert.assertTrue(e.getMessage(), false);
+                Assert.fail(e.getMessage());
             }
             cancelTest((long) (size * cancelPercent), file, key, configuration, null);
         }
