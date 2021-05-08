@@ -2,6 +2,7 @@ package com.qiniu.android.storage;
 
 import com.qiniu.android.utils.BytesUtils;
 import com.qiniu.android.utils.Etag;
+import com.qiniu.android.utils.MD5;
 import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONArray;
@@ -292,11 +293,11 @@ class UploadInfoV1 extends UploadInfo {
             return null;
         }
 
-        String etag = Etag.data(blockBytes);
+        String md5 = MD5.encrypt(blockBytes);
         // 判断当前 block 的数据是否和实际数据吻合，不吻合则之前 block 被抛弃，重新创建 block
-        if (blockBytes.length != block.size || block.md5 == null || !block.md5.equals(etag)) {
+        if (blockBytes.length != block.size || block.md5 == null || !block.md5.equals(md5)) {
             block = new UploadBlock(block.offset, blockBytes.length, dataSize, block.index);
-            block.md5 = etag;
+            block.md5 = md5;
         }
 
         for (UploadData data : block.uploadDataList) {
