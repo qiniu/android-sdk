@@ -140,6 +140,7 @@ public class UploadManager {
      * 上传文件
      *
      * @param inputStream       上传的资源流
+     *                          注：资源流需要在上传结束后自行关闭，SDK 内部不做关闭操作
      * @param id                资源 id, 作为构建断点续传信息保存的 key, 如果为空则使用 fileName
      * @param size              上传资源的大小，不知道大小，配置 -1
      * @param fileName          上传资源流的文件名
@@ -261,6 +262,7 @@ public class UploadManager {
      * 注：切勿在主线程调用
      *
      * @param inputStream 上传的资源流
+     *                    注：资源流需要在上传结束后自行关闭，SDK 内部不做关闭操作
      * @param id          资源 id, 作为构建断点续传信息保存的 key, 如果为空则使用 fileName
      * @param size        上传资源的大小，不知道大小，配置 -1
      * @param fileName    上传资源流的文件名
