@@ -16,12 +16,14 @@ import java.io.InputStream;
 
 class UploadSourceUri extends UploadSourceStream {
 
+    private Exception readException = null;
+
     private final Uri uri;
-    private final ContentResolver resolver;
+    private ContentResolver resolver;
     private String modifyDate = "";
 
     UploadSourceUri(Uri uri, ContentResolver resolver) {
-        super(createInputStream(uri, resolver));
+        super(null);
         this.uri = uri;
         this.resolver = resolver;
 
@@ -43,10 +45,25 @@ class UploadSourceUri extends UploadSourceStream {
     public boolean reloadInfo() {
         super.reloadInfo();
         close();
+        readException = null;
 
-        InputStream inputStream = createInputStream(uri, resolver);
-        setInputStream(inputStream);
+        InputStream inputStream = null;
+        try {
+            inputStream = createInputStream();
+            setInputStream(inputStream);
+        } catch (Exception e) {
+            readException = e;
+        }
         return inputStream != null;
+    }
+
+    @Override
+    public byte[] readData(int dataSize, long dataOffset) throws IOException {
+        if (readException != null) {
+            throw new IOException(readException);
+        }
+
+        return super.readData(dataSize, dataOffset);
     }
 
     @Override
@@ -64,15 +81,12 @@ class UploadSourceUri extends UploadSourceStream {
         }
     }
 
-    private static InputStream createInputStream(Uri uri, ContentResolver resolver) {
+    private InputStream createInputStream() throws Exception {
         if (uri == null) {
             return null;
         }
 
-        if (resolver == null) {
-            resolver = getAppContextResolver();
-        }
-
+        ContentResolver resolver = getContextResolver();
         if (resolver == null) {
             return null;
         }
@@ -80,7 +94,8 @@ class UploadSourceUri extends UploadSourceStream {
         InputStream inputStream = null;
         try {
             inputStream = resolver.openInputStream(uri);
-        } catch (FileNotFoundException ignore) {
+        } catch (Exception e) {
+            throw e;
         }
         return inputStream;
     }
@@ -109,12 +124,18 @@ class UploadSourceUri extends UploadSourceStream {
     }
 
     private void tryLoadFileInfoByCursor() {
-        ContentResolver resolver = getAppContextResolver();
+        ContentResolver resolver = getContextResolver();
         if (resolver == null) {
             return;
         }
 
-        Cursor cursor = resolver.query(uri, null, null, null, null, null);
+        Cursor cursor = null;
+        try {
+            cursor = resolver.query(uri, null, null, null, null, null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         if (cursor == null) {
             return;
         }
@@ -136,17 +157,32 @@ class UploadSourceUri extends UploadSourceStream {
                 if (!cursor.isNull(modifyDateIndex)) {
                     modifyDate = cursor.getString(modifyDateIndex);
                 }
+
+                if (StringUtils.isNullOrEmpty(modifyDate)) {
+                    int dataIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+                    if (!cursor.isNull(dataIndex)) {
+                        String path = cursor.getString(dataIndex);
+                        if (path != null) {
+                            modifyDate = new File(path).lastModified() / 1000 + "";
+                        }
+                    }
+                }
             }
         } finally {
             cursor.close();
         }
     }
 
-    private static ContentResolver getAppContextResolver() {
-        Context context = ContextGetter.applicationContext();
-        if (context == null || context.getContentResolver() == null) {
-            return null;
+    private ContentResolver getContextResolver() {
+        if (resolver != null) {
+            return resolver;
         }
-        return context.getContentResolver();
+
+        Context context = ContextGetter.applicationContext();
+        if (context != null) {
+            resolver = context.getContentResolver();
+        }
+
+        return resolver;
     }
 }

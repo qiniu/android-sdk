@@ -7,6 +7,7 @@ import java.io.RandomAccessFile;
 
 class UploadSourceFile implements UploadSource {
 
+    private Exception readException = null;
     private final File file;
     private final RandomAccessFile randomAccessFile;
 
@@ -15,7 +16,8 @@ class UploadSourceFile implements UploadSource {
         RandomAccessFile randomAccessFile = null;
         try {
             randomAccessFile = new RandomAccessFile(file, "r");
-        } catch (FileNotFoundException ignored) {
+        } catch (Exception e) {
+            readException = e;
         }
         this.randomAccessFile = randomAccessFile;
     }
@@ -48,7 +50,11 @@ class UploadSourceFile implements UploadSource {
     @Override
     public byte[] readData(int dataSize, long dataOffset) throws IOException {
         if (randomAccessFile == null) {
-            throw new IOException("file is invalid");
+            if (readException != null) {
+                throw new IOException(readException);
+            } else {
+                throw new IOException("file is invalid");
+            }
         }
 
         int readSize = 0;
