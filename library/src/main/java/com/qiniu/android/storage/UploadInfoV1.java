@@ -1,7 +1,6 @@
 package com.qiniu.android.storage;
 
 import com.qiniu.android.utils.BytesUtils;
-import com.qiniu.android.utils.Etag;
 import com.qiniu.android.utils.MD5;
 import com.qiniu.android.utils.StringUtils;
 
@@ -72,10 +71,10 @@ class UploadInfoV1 extends UploadInfo {
     }
 
     @Override
-    boolean reloadInfo() {
+    boolean reloadSource() {
         isEOF = false;
         readException = null;
-        return super.reloadInfo();
+        return super.reloadSource();
     }
 
     @Override

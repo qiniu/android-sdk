@@ -242,10 +242,10 @@ class UploadInfoV2 extends UploadInfo {
     }
 
     @Override
-    boolean reloadInfo() {
+    boolean reloadSource() {
         isEOF = false;
         readException = null;
-        return super.reloadInfo();
+        return super.reloadSource();
     }
 
     @Override

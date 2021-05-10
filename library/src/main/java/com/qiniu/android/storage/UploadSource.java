@@ -52,7 +52,7 @@ interface UploadSource {
     /**
      * 读取数据
      * 1. 返回 byte[] 可能为空，但不会为 null；
-     * 2. 当 byte[] 大小和 dataSize 不同时，则源数据已经读取最后
+     * 2. 当 byte[] 大小和 dataSize 不同时，则源数据已经读取结束
      * 3. 读取异常时抛出 IOException
      * 4. 仅支持串行调用，且 dataOffset 依次递增
      *

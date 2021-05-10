@@ -32,7 +32,7 @@ abstract class UploadInfo {
      *
      * @return return
      */
-    boolean couldReloadInfo() {
+    boolean couldReloadSource() {
         return source.couldReloadSource();
     }
 
@@ -41,7 +41,7 @@ abstract class UploadInfo {
      *
      * @return 重新加载是否成功
      */
-    boolean reloadInfo() {
+    boolean reloadSource() {
         return source.reloadSource();
     }
 
@@ -135,6 +135,7 @@ abstract class UploadInfo {
     }
 
     void close() {
+        source.close();
     }
 
     byte[] readData(int dataSize, long dataOffset) throws IOException {

@@ -6,7 +6,6 @@ import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.serverRegion.UploadDomainRegion;
-import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
 
@@ -69,11 +68,11 @@ abstract class PartsUploadPerformer {
     }
 
     boolean couldReloadInfo() {
-        return uploadInfo.couldReloadInfo();
+        return uploadInfo.couldReloadSource();
     }
 
     boolean reloadInfo() {
-        return uploadInfo.reloadInfo();
+        return uploadInfo.reloadSource();
     }
 
     void closeFile() {
