@@ -23,14 +23,14 @@ interface UploadSource {
      * 是否可以重新加载文件信息，也即是否可以重新读取信息
      * @return return
      */
-    boolean couldReloadInfo();
+    boolean couldReloadSource();
 
     /**
      * 重新加载文件信息，以便于重新读取
      *
      * @return 重新加载是否成功
      */
-    boolean reloadInfo();
+    boolean reloadSource();
 
     /**
      * 获取资源文件名

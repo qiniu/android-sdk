@@ -6,10 +6,9 @@ import org.json.JSONObject;
 import java.io.IOException;
 
 abstract class UploadInfo {
-    long UnknownSourceSize = -1;
 
     private String sourceId;
-    private long sourceSize = UnknownSourceSize;
+    private long sourceSize = UploadSource.UnknownSourceSize;
     protected String fileName = null;
 
     private UploadSource source;
@@ -34,7 +33,7 @@ abstract class UploadInfo {
      * @return return
      */
     boolean couldReloadInfo() {
-        return source.couldReloadInfo();
+        return source.couldReloadSource();
     }
 
     /**
@@ -43,7 +42,7 @@ abstract class UploadInfo {
      * @return 重新加载是否成功
      */
     boolean reloadInfo() {
-        return source.reloadInfo();
+        return source.reloadSource();
     }
 
     /**

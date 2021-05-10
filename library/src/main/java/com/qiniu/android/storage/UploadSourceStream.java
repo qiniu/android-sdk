@@ -58,12 +58,12 @@ class UploadSourceStream implements UploadSource {
     }
 
     @Override
-    public boolean couldReloadInfo() {
+    public boolean couldReloadSource() {
         return false;
     }
 
     @Override
-    public boolean reloadInfo() {
+    public boolean reloadSource() {
         readOffset = 0;
         return false;
     }

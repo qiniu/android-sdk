@@ -28,12 +28,12 @@ class UploadSourceFile implements UploadSource {
     }
 
     @Override
-    public boolean couldReloadInfo() {
+    public boolean couldReloadSource() {
         return randomAccessFile != null;
     }
 
     @Override
-    public boolean reloadInfo() {
+    public boolean reloadSource() {
         return true;
     }
 

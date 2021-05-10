@@ -10,7 +10,6 @@ import com.qiniu.android.utils.ContextGetter;
 import com.qiniu.android.utils.StringUtils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -27,7 +26,7 @@ class UploadSourceUri extends UploadSourceStream {
         this.uri = uri;
         this.resolver = resolver;
 
-        reloadInfo();
+        reloadSource();
         loadFileInfo();
     }
 
@@ -37,13 +36,13 @@ class UploadSourceUri extends UploadSourceStream {
     }
 
     @Override
-    public boolean couldReloadInfo() {
+    public boolean couldReloadSource() {
         return uri != null && !StringUtils.isNullOrEmpty(uri.getScheme());
     }
 
     @Override
-    public boolean reloadInfo() {
-        super.reloadInfo();
+    public boolean reloadSource() {
+        super.reloadSource();
         close();
         readException = null;
 
