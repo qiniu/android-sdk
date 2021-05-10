@@ -1,12 +1,9 @@
 package com.qiniu.android.storage;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 abstract class UploadInfo {
     long UnknownSourceSize = -1;
@@ -14,19 +11,8 @@ abstract class UploadInfo {
     private String sourceId;
     private long sourceSize = UnknownSourceSize;
     protected String fileName = null;
-    protected Configuration configuration;
 
     private UploadSource source;
-
-    protected UploadInfo() {
-    }
-
-    UploadInfo(UploadSource source, Configuration configuration) {
-        this.source = source;
-        this.configuration = configuration;
-        this.sourceSize = source.getSize();
-        this.sourceId = source.getId() != null ? source.getId() : "";
-    }
 
     UploadInfo(UploadSource source) {
         this.source = source;

@@ -32,7 +32,7 @@ class UploadInfoV1 extends UploadInfo {
     }
 
     UploadInfoV1(UploadSource source, Configuration configuration) {
-        super(source, configuration);
+        super(source);
         if (configuration.useConcurrentResumeUpload || configuration.chunkSize > BlockSize) {
             this.dataSize = BlockSize;
         } else {

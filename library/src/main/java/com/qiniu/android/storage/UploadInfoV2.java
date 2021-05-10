@@ -36,7 +36,7 @@ class UploadInfoV2 extends UploadInfo {
     }
 
     UploadInfoV2(UploadSource source, Configuration configuration) {
-        super(source, configuration);
+        super(source);
         this.dataSize = Math.min(configuration.chunkSize, maxDataSize);
         this.dataList = new ArrayList<>();
     }
