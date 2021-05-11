@@ -92,12 +92,12 @@ abstract class PartsUploadPerformer {
         }
     }
 
-    void notifyProgress(Boolean isCompeted) {
+    void notifyProgress(Boolean isCompleted) {
         if (uploadInfo == null) {
             return;
         }
 
-        if (isCompeted) {
+        if (isCompleted) {
             upProgress.notifyDone(key, uploadInfo.getSourceSize());
         } else {
             upProgress.progress(key, uploadInfo.uploadSize(), uploadInfo.getSourceSize());

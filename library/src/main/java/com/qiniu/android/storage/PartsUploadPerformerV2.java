@@ -81,14 +81,14 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         final UploadInfoV2 info = (UploadInfoV2) uploadInfo;
 
         UploadData data = null;
-        IOException readException = null;
+        Exception readException = null;
         synchronized (this) {
             try {
                 data = info.nextUploadData();
                 if (data != null) {
                     data.updateState(UploadData.State.Uploading);
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 // 此处可能无法恢复
                 readException = e;
             }

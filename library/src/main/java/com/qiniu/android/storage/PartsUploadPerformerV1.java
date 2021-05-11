@@ -50,7 +50,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
         UploadBlock block = null;
         UploadData chunk = null;
 
-        IOException readException = null;
+        Exception readException = null;
         synchronized (this) {
             try {
                 block = info.nextUploadBlock();
@@ -58,7 +58,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
                 if (chunk != null) {
                     chunk.updateState(UploadData.State.Uploading);
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 // 此处可能导致后面无法恢复
                 readException = e;
             }

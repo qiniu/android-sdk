@@ -106,7 +106,7 @@ class UploadInfoV2 extends UploadInfo {
             // 加载到数据
             // 加载到数据不符合预期，更换 data 信息
             if (newData != data) {
-                dataList.set(newData.index - 1, newData);
+                dataList.set(newData.index, newData);
             }
 
             // 数据读取结束
@@ -146,7 +146,7 @@ class UploadInfoV2 extends UploadInfo {
             UploadData lastData = dataList.get(dataList.size() - 1);
             dataOffset = lastData.offset + lastData.size;
         }
-        int dataIndex = dataList.size() + 1; // 片的 index， 从 1 开始
+        int dataIndex = dataList.size();
         data = new UploadData(dataOffset, dataSize, dataIndex);
         data = loadData(data);
         // 资源 EOF
@@ -234,7 +234,7 @@ class UploadInfoV2 extends UploadInfo {
             if (data.getState() == UploadData.State.Complete && !StringUtils.isNullOrEmpty(data.etag)) {
                 HashMap<String, Object> info = new HashMap<>();
                 info.put("etag", data.etag);
-                info.put("partNumber", data.index);
+                info.put("partNumber", data.index + 1); // 片的 index， 从 1 开始
                 infoArray.add(info);
             }
         }
