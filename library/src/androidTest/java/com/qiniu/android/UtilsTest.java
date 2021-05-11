@@ -60,5 +60,13 @@ public class UtilsTest extends BaseTest {
         ip = "ffff::ffff:2345:6789:abcd";
         isIpv6 = Utils.isIpv6(ip);
         assertTrue(ip, isIpv6);
+
+        ip = "ff1::ffff:2345:6789:abcd";
+        isIpv6 = Utils.isIpv6(ip);
+        assertTrue(ip, isIpv6);
+
+        ip = "ffff1::ffff:2345:6789:abcd";
+        isIpv6 = Utils.isIpv6(ip);
+        assertFalse(ip, isIpv6);
     }
 }

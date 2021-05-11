@@ -1,7 +1,5 @@
 package com.qiniu.android.storage;
 
-import com.qiniu.android.utils.StringUtils;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 

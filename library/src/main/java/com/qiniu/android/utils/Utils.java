@@ -9,7 +9,6 @@ import com.qiniu.android.common.Constants;
 
 import java.util.Arrays;
 import java.util.Date;
-import java.util.regex.Pattern;
 
 public class Utils {
 
@@ -104,32 +103,7 @@ public class Utils {
             return false;
         }
 
-        String[] numbers = ip.split(":");
-        if (numbers.length < 2) {
-            return false;
-        }
-
-        boolean result = true;
-        for (String num : numbers) {
-            if (num.length() > 4) {
-                result = false;
-                break;
-            } else if (num.length() == 0) {
-                continue;
-            }
-
-            try {
-                int numValue = Integer.parseInt(num, 16);
-                if (numValue > 0xffff || numValue < 0) {
-                    result = false;
-                    break;
-                }
-            } catch (Exception ignore) {
-                result = false;
-                break;
-            }
-        }
-        return result;
+        return IPAddressUtil.isIPv6LiteralAddress(ip);
     }
 
     private static String getIPV4StringType(String ipv4String, String host) {
