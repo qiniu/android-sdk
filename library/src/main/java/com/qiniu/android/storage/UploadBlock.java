@@ -33,31 +33,24 @@ class UploadBlock {
         this.uploadDataList = uploadDataList;
     }
 
-    static UploadBlock blockFromJson(JSONObject jsonObject) {
+    static UploadBlock blockFromJson(JSONObject jsonObject) throws Exception {
         if (jsonObject == null) {
             return null;
         }
-        long offset = 0;
-        int size = 0;
-        int index = 0;
-        String md5 = null;
-        String ctx = null;
+
+        long offset = jsonObject.getLong("offset");
+        int size = jsonObject.getInt("size");
+        int index = jsonObject.getInt("index");
+        String md5 = jsonObject.optString("md5");
+        String ctx = jsonObject.optString("ctx");
         ArrayList<UploadData> uploadDataList = new ArrayList<UploadData>();
-        try {
-            offset = jsonObject.getLong("offset");
-            size = jsonObject.getInt("size");
-            index = jsonObject.getInt("index");
-            md5 = jsonObject.optString("md5");
-            ctx = jsonObject.optString("ctx");
-            JSONArray dataJsonArray = jsonObject.getJSONArray("uploadDataList");
-            for (int i = 0; i < dataJsonArray.length(); i++) {
-                JSONObject dataJson = dataJsonArray.getJSONObject(i);
-                UploadData data = UploadData.dataFromJson(dataJson);
-                if (data != null) {
-                    uploadDataList.add(data);
-                }
+        JSONArray dataJsonArray = jsonObject.getJSONArray("uploadDataList");
+        for (int i = 0; i < dataJsonArray.length(); i++) {
+            JSONObject dataJson = dataJsonArray.getJSONObject(i);
+            UploadData data = UploadData.dataFromJson(dataJson);
+            if (data != null) {
+                uploadDataList.add(data);
             }
-        } catch (JSONException e) {
         }
 
         UploadBlock block = new UploadBlock(offset, size, index, uploadDataList);
@@ -106,25 +99,22 @@ class UploadBlock {
         return datas;
     }
 
-    JSONObject toJsonObject() {
+    JSONObject toJsonObject() throws Exception {
         JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.putOpt("offset", offset);
-            jsonObject.putOpt("size", size);
-            jsonObject.putOpt("index", index);
-            jsonObject.putOpt("md5", md5);
-            jsonObject.putOpt("ctx", ctx);
-            if (uploadDataList != null && uploadDataList.size() > 0) {
-                JSONArray dataJsonArray = new JSONArray();
-                for (UploadData data : uploadDataList) {
-                    JSONObject dataJson = data.toJsonObject();
-                    if (dataJson != null) {
-                        dataJsonArray.put(dataJson);
-                    }
+        jsonObject.putOpt("offset", offset);
+        jsonObject.putOpt("size", size);
+        jsonObject.putOpt("index", index);
+        jsonObject.putOpt("md5", md5);
+        jsonObject.putOpt("ctx", ctx);
+        if (uploadDataList != null && uploadDataList.size() > 0) {
+            JSONArray dataJsonArray = new JSONArray();
+            for (UploadData data : uploadDataList) {
+                JSONObject dataJson = data.toJsonObject();
+                if (dataJson != null) {
+                    dataJsonArray.put(dataJson);
                 }
-                jsonObject.put("uploadDataList", dataJsonArray);
             }
-        } catch (JSONException e) {
+            jsonObject.put("uploadDataList", dataJsonArray);
         }
         return jsonObject;
     }

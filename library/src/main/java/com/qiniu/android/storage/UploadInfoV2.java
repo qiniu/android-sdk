@@ -64,7 +64,8 @@ class UploadInfoV2 extends UploadInfo {
                     dataList.add(data);
                 }
             }
-        } catch (JSONException e) {
+        } catch (Exception e) {
+            return null;
         }
 
         UploadInfoV2 info = new UploadInfoV2(source, dataSize, dataList);
@@ -323,7 +324,7 @@ class UploadInfoV2 extends UploadInfo {
     JSONObject toJsonObject() {
         JSONObject jsonObject = super.toJsonObject();
         if (jsonObject == null) {
-            jsonObject = new JSONObject();
+            return null;
         }
         try {
             jsonObject.put(TypeKey, TypeValue);
@@ -340,7 +341,8 @@ class UploadInfoV2 extends UploadInfo {
                 }
                 jsonObject.put("dataList", dataJsonArray);
             }
-        } catch (JSONException ignored) {
+        } catch (Exception ignored) {
+            return null;
         }
         return jsonObject;
     }

@@ -118,7 +118,7 @@ abstract class PartsUploadPerformer {
         if (uploadInfo != null) {
             fileInfoJson = uploadInfo.toJsonObject();
         }
-        if (zoneInfoJson != null && uploadInfo != null) {
+        if (zoneInfoJson != null && fileInfoJson != null) {
             JSONObject info = new JSONObject();
             try {
                 info.put(kRecordZoneInfoKey, zoneInfoJson);

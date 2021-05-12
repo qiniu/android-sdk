@@ -25,25 +25,18 @@ class UploadData {
         this.uploadSize = 0;
     }
 
-    static UploadData dataFromJson(JSONObject jsonObject) {
+    static UploadData dataFromJson(JSONObject jsonObject) throws Exception {
         if (jsonObject == null) {
             return null;
         }
-        long offset = 0;
-        int size = 0;
-        int index = 0;
-        String etag = null;
-        State state = State.NeedToCheck;
-        String md5 = null;
-        try {
-            offset = jsonObject.getLong("offset");
-            size = jsonObject.getInt("size");
-            index = jsonObject.getInt("index");
-            etag = jsonObject.optString("etag");
-            md5 = jsonObject.optString("md5");
-            state = State.state(jsonObject.getInt("state"));
-        } catch (JSONException ignored) {
-        }
+
+        long offset = jsonObject.getLong("offset");
+        int size = jsonObject.getInt("size");
+        int index = jsonObject.getInt("index");
+        String etag = jsonObject.optString("etag");
+        State state = State.state(jsonObject.getInt("state"));
+        String md5 = jsonObject.optString("md5");
+
         UploadData uploadData = new UploadData(offset, size, index);
         uploadData.etag = etag;
         uploadData.md5 = md5;
@@ -99,18 +92,14 @@ class UploadData {
         state = State.WaitToUpload;
     }
 
-    JSONObject toJsonObject() {
+    JSONObject toJsonObject() throws Exception {
         JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.putOpt("offset", offset);
-            jsonObject.putOpt("size", size);
-            jsonObject.putOpt("index", index);
-            jsonObject.putOpt("etag", etag);
-            jsonObject.putOpt("md5", md5);
-            jsonObject.putOpt("state", state.intValue());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        jsonObject.putOpt("offset", offset);
+        jsonObject.putOpt("size", size);
+        jsonObject.putOpt("index", index);
+        jsonObject.putOpt("etag", etag);
+        jsonObject.putOpt("md5", md5);
+        jsonObject.putOpt("state", state.intValue());
         return jsonObject;
     }
 

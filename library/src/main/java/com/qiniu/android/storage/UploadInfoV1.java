@@ -44,6 +44,7 @@ class UploadInfoV1 extends UploadInfo {
         if (jsonObject == null) {
             return null;
         }
+
         int dataSize = 0;
         String type = null;
         List<UploadBlock> blockList = new ArrayList<>();
@@ -53,12 +54,17 @@ class UploadInfoV1 extends UploadInfo {
             JSONArray blockJsonArray = jsonObject.getJSONArray("blockList");
             for (int i = 0; i < blockJsonArray.length(); i++) {
                 JSONObject blockJson = blockJsonArray.getJSONObject(i);
-                UploadBlock block = UploadBlock.blockFromJson(blockJson);
-                if (block != null) {
-                    blockList.add(block);
+                try {
+                    UploadBlock block = UploadBlock.blockFromJson(blockJson);
+                    if (block != null) {
+                        blockList.add(block);
+                    }
+                } catch (Exception ignore) {
+                    break;
                 }
             }
         } catch (JSONException ignored) {
+            return null;
         }
 
         UploadInfoV1 info = new UploadInfoV1(source, dataSize, blockList);
@@ -141,7 +147,7 @@ class UploadInfoV1 extends UploadInfo {
     JSONObject toJsonObject() {
         JSONObject jsonObject = super.toJsonObject();
         if (jsonObject == null) {
-            jsonObject = new JSONObject();
+            return null;
         }
         try {
             jsonObject.put(TypeKey, TypeValue);
@@ -156,7 +162,8 @@ class UploadInfoV1 extends UploadInfo {
                 }
                 jsonObject.put("blockList", blockJsonArray);
             }
-        } catch (JSONException e) {
+        } catch (Exception e) {
+            return null;
         }
         return jsonObject;
     }

@@ -101,18 +101,19 @@ public class ZoneInfo {
         boolean ipv6Enabled = false;
         try {
             JSONObject features = obj.getJSONObject("features");
-            JSONObject http3 = features.getJSONObject("http3");
-            JSONObject ipv6 = features.getJSONObject("ipv6");
-            http3Enabled = http3.getBoolean("enabled");
-            ipv6Enabled = ipv6.getBoolean("enabled");
+            JSONObject http3 = features.optJSONObject("http3");
+            if (http3 != null) {
+                http3Enabled = http3.optBoolean("enabled");
+            }
+
+            JSONObject ipv6 = features.optJSONObject("ipv6");
+            if (ipv6 != null) {
+                ipv6Enabled = ipv6.optBoolean("enabled");
+            }
         } catch (Exception ignored) {
         }
 
-        String regionId = obj.optString("region");
-        if (regionId == null) {
-            regionId = EmptyRegionId;
-        }
-
+        String regionId = obj.optString("region", EmptyRegionId);
         JSONObject up = obj.optJSONObject("up");
         if (up == null) {
             return null;
@@ -173,6 +174,7 @@ public class ZoneInfo {
         return ttl > (currentTimestamp - buildTimestamp);
     }
 
+    @Deprecated
     public static class UploadServerGroup {
         public final String info;
         public final ArrayList<String> main;
