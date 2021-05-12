@@ -17,6 +17,7 @@ class UploadBlock {
     final List<UploadData> uploadDataList;
 
     String md5 = null;
+    String ctx = null;
 
     UploadBlock(long offset, int blockSize, int dataSize, int index) {
         this.offset = offset;
@@ -40,12 +41,14 @@ class UploadBlock {
         int size = 0;
         int index = 0;
         String md5 = null;
+        String ctx = null;
         ArrayList<UploadData> uploadDataList = new ArrayList<UploadData>();
         try {
             offset = jsonObject.getLong("offset");
             size = jsonObject.getInt("size");
             index = jsonObject.getInt("index");
             md5 = jsonObject.optString("md5");
+            ctx = jsonObject.optString("ctx");
             JSONArray dataJsonArray = jsonObject.getJSONArray("uploadDataList");
             for (int i = 0; i < dataJsonArray.length(); i++) {
                 JSONObject dataJson = dataJsonArray.getJSONObject(i);
@@ -59,6 +62,7 @@ class UploadBlock {
 
         UploadBlock block = new UploadBlock(offset, size, index, uploadDataList);
         block.md5 = md5;
+        block.ctx = ctx;
         return block;
     }
 
@@ -89,7 +93,7 @@ class UploadBlock {
 
     private ArrayList<UploadData> createDataList(int dataSize) {
         long offset = 0;
-        int dataIndex = 1;
+        int dataIndex = 0;
         ArrayList<UploadData> datas = new ArrayList<UploadData>();
         while (offset < size) {
             long lastSize = size - offset;
@@ -109,6 +113,7 @@ class UploadBlock {
             jsonObject.putOpt("size", size);
             jsonObject.putOpt("index", index);
             jsonObject.putOpt("md5", md5);
+            jsonObject.putOpt("ctx", ctx);
             if (uploadDataList != null && uploadDataList.size() > 0) {
                 JSONArray dataJsonArray = new JSONArray();
                 for (UploadData data : uploadDataList) {
@@ -139,14 +144,6 @@ class UploadBlock {
     }
 
     String getUploadContext() {
-        String ctx = null;
-        for (UploadData data : uploadDataList) {
-            if (data.getState() == UploadData.State.Complete && !StringUtils.isNullOrEmpty(data.ctx)) {
-                ctx = data.ctx;
-            } else {
-                break;
-            }
-        }
         return ctx;
     }
 

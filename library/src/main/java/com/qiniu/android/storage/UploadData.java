@@ -11,7 +11,6 @@ class UploadData {
 
     String md5;
     String etag;
-    String ctx;
 
     private State state;
     private long uploadSize = 0;
@@ -34,27 +33,23 @@ class UploadData {
         int size = 0;
         int index = 0;
         String etag = null;
-        String ctx = null;
+        State state = State.NeedToCheck;
         String md5 = null;
         try {
             offset = jsonObject.getLong("offset");
             size = jsonObject.getInt("size");
             index = jsonObject.getInt("index");
             etag = jsonObject.optString("etag");
-            ctx = jsonObject.optString("ctx");
             md5 = jsonObject.optString("md5");
+            state = State.state(jsonObject.getInt("state"));
         } catch (JSONException ignored) {
         }
         UploadData uploadData = new UploadData(offset, size, index);
-        uploadData.ctx = ctx;
         uploadData.etag = etag;
         uploadData.md5 = md5;
+        uploadData.state = state;
         uploadData.uploadSize = 0;
         return uploadData;
-    }
-
-    boolean isFirstData() {
-        return index == 1;
     }
 
     // 需要上传，但需要检测块信息是否有效
@@ -84,7 +79,6 @@ class UploadData {
             case Uploading:
                 uploadSize = 0;
                 etag = null;
-                ctx = null;
                 break;
             case Complete:
                 data = null;
@@ -102,7 +96,6 @@ class UploadData {
 
     void clearUploadState() {
         etag = null;
-        ctx = null;
         state = State.WaitToUpload;
     }
 
@@ -113,8 +106,8 @@ class UploadData {
             jsonObject.putOpt("size", size);
             jsonObject.putOpt("index", index);
             jsonObject.putOpt("etag", etag);
-            jsonObject.putOpt("ctx", ctx);
             jsonObject.putOpt("md5", md5);
+            jsonObject.putOpt("state", state.intValue());
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -125,6 +118,19 @@ class UploadData {
         NeedToCheck, // 需要检测数据
         WaitToUpload, // 等待上传
         Uploading, // 正在上传
-        Complete, // 上传结束
+        Complete; // 上传结束
+
+        private int intValue() {
+            return this.ordinal();
+        }
+
+        private static State state(int value) {
+            State[] states = State.values();
+            if (value < 0 || value >= states.length) {
+                return NeedToCheck;
+            } else {
+                return states[value];
+            }
+        }
     }
 }

@@ -10,8 +10,6 @@ import com.qiniu.android.utils.StringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -125,7 +123,7 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         };
 
         final RequestTransaction transaction = createUploadRequestTransaction();
-        transaction.uploadPart(true, info.uploadId, data.index, data.data, progressHandler, new RequestTransaction.RequestCompleteHandler() {
+        transaction.uploadPart(true, info.uploadId, info.getPartIndexOfData(data), data.data, progressHandler, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 

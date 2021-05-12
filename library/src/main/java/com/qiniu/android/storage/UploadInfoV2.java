@@ -79,6 +79,10 @@ class UploadInfoV2 extends UploadInfo {
         return info;
     }
 
+    int getPartIndexOfData(UploadData data) {
+        return data.index + 1; // 片的 index， 从 1 开始
+    }
+
     UploadData nextUploadData() throws IOException {
 
         // 从 dataList 中读取需要上传的 data
@@ -234,7 +238,7 @@ class UploadInfoV2 extends UploadInfo {
             if (data.getState() == UploadData.State.Complete && !StringUtils.isNullOrEmpty(data.etag)) {
                 HashMap<String, Object> info = new HashMap<>();
                 info.put("etag", data.etag);
-                info.put("partNumber", data.index + 1); // 片的 index， 从 1 开始
+                info.put("partNumber", getPartIndexOfData(data));
                 infoArray.add(info);
             }
         }

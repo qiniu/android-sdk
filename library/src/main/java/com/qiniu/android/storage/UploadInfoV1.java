@@ -70,6 +70,10 @@ class UploadInfoV1 extends UploadInfo {
         return info;
     }
 
+    boolean isFirstData(UploadData data) {
+        return data.index == 0;
+    }
+
     @Override
     boolean reloadSource() {
         isEOF = false;
@@ -300,7 +304,7 @@ class UploadInfoV1 extends UploadInfo {
         }
 
         for (UploadData data : block.uploadDataList) {
-            if (StringUtils.isNullOrEmpty(data.ctx)) {
+            if (data.getState() != UploadData.State.Complete) {
                 // 还未上传的
                 try {
                     data.data = BytesUtils.subBytes(blockBytes, (int) data.offset, data.size);

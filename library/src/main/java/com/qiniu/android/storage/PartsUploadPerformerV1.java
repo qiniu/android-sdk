@@ -105,7 +105,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
                     }
                 }
                 if (responseInfo.isOK() && ctx != null) {
-                    uploadChunk.ctx = ctx;
+                    uploadBlock.ctx = ctx;
                     uploadChunk.updateState(UploadData.State.Complete);
                     recordUploadInfo();
                     notifyProgress(false);
@@ -116,7 +116,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
             }
         };
 
-        if (uploadChunk.isFirstData()) {
+        if (info.isFirstData(uploadChunk)) {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " makeBlock");
             makeBlock(uploadBlock, uploadChunk, progressHandler, completeHandlerP);
         } else {
