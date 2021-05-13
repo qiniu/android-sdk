@@ -246,7 +246,6 @@ class UploadInfoV1 extends UploadInfo {
 
         // 读到 block,由于是新数据，则必定为需要上传的数据
         if (block != null) {
-            block.updateDataState(UploadData.State.WaitToUpload);
             blockList.add(block);
         }
 
@@ -342,7 +341,7 @@ class UploadInfoV1 extends UploadInfo {
         }
         ArrayList<String> contexts = new ArrayList<String>();
         for (UploadBlock block : blockList) {
-            String ctx = block.getUploadContext();
+            String ctx = block.ctx;
             if (!StringUtils.isNullOrEmpty(ctx)) {
                 contexts.add(ctx);
             }

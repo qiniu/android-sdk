@@ -161,7 +161,6 @@ class UploadInfoV2 extends UploadInfo {
 
         // 读到 data,由于是新数据，则必定为需要上传的数据
         if (data != null) {
-            data.updateState(UploadData.State.WaitToUpload);
             dataList.add(data);
         }
 

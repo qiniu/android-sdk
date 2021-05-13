@@ -172,7 +172,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
                              final PartsUploadPerformerCompleteHandler completeHandler) {
 
         final RequestTransaction transaction = createUploadRequestTransaction();
-        transaction.uploadChunk(block.getUploadContext(), block.offset, chunk.data, chunk.offset, true, progressHandler, new RequestTransaction.RequestCompleteHandler() {
+        transaction.uploadChunk(block.ctx, block.offset, chunk.data, chunk.offset, true, progressHandler, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 

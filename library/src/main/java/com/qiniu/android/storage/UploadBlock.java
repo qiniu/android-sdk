@@ -1,9 +1,6 @@
 package com.qiniu.android.storage;
 
-import com.qiniu.android.utils.StringUtils;
-
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -26,7 +23,7 @@ class UploadBlock {
         this.uploadDataList = createDataList(dataSize);
     }
 
-    UploadBlock(long offset, int blockSize, int index, List<UploadData> uploadDataList) {
+    private UploadBlock(long offset, int blockSize, int index, List<UploadData> uploadDataList) {
         this.offset = offset;
         this.size = blockSize;
         this.index = index;
@@ -133,22 +130,14 @@ class UploadBlock {
         return data;
     }
 
-    String getUploadContext() {
-        return ctx;
-    }
-
     protected void clearUploadState() {
+        md5 = null;
+        ctx = null;
         if (uploadDataList == null || uploadDataList.size() == 0) {
             return;
         }
         for (UploadData data : uploadDataList) {
             data.clearUploadState();
-        }
-    }
-
-    void updateDataState(UploadData.State state) {
-        for (UploadData data : uploadDataList) {
-            data.updateState(state);
         }
     }
 }

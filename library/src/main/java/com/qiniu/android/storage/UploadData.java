@@ -1,6 +1,5 @@
 package com.qiniu.android.storage;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 class UploadData {
@@ -56,7 +55,7 @@ class UploadData {
         }
     }
 
-    // 需要上传，但是未上传
+    // 是否已经上传
     boolean isUploaded() {
         return state == State.Complete;
     }
@@ -89,6 +88,7 @@ class UploadData {
 
     void clearUploadState() {
         etag = null;
+        md5 = null;
         state = State.WaitToUpload;
     }
 
