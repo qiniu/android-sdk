@@ -382,27 +382,37 @@ public class SystemHttpClient implements IRequestClient {
         };
     }
 
-    private synchronized void handleError(Request request,
-                                          int responseCode,
-                                          String errorMsg,
-                                          RequestClientCompleteHandler complete) {
-        if (metrics == null || metrics.response != null) {
-            return;
+    private void handleError(Request request,
+                             int responseCode,
+                             String errorMsg,
+                             RequestClientCompleteHandler complete) {
+
+        UploadSingleRequestMetrics metrics = null;
+        synchronized (this) {
+            if (this.metrics == null) {
+                return;
+            }
+            metrics = this.metrics;
+            this.metrics = null;
         }
 
         ResponseInfo info = ResponseInfo.create(request, responseCode, null, null, errorMsg);
         metrics.response = info;
         metrics.request = request;
         complete.complete(info, metrics, info.response);
-
         releaseResource();
     }
 
-    private synchronized void handleResponse(Request request,
-                                             okhttp3.Response response,
-                                             RequestClientCompleteHandler complete) {
-        if (metrics == null || metrics.response != null) {
-            return;
+    private void handleResponse(Request request,
+                                okhttp3.Response response,
+                                RequestClientCompleteHandler complete) {
+        UploadSingleRequestMetrics metrics = null;
+        synchronized (this) {
+            if (this.metrics == null) {
+                return;
+            }
+            metrics = this.metrics;
+            this.metrics = null;
         }
 
         int statusCode = response.code();
