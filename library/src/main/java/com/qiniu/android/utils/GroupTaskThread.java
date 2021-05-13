@@ -17,11 +17,14 @@ public class GroupTaskThread extends Thread {
         super.run();
 
         while (!isInterrupted()){
+            boolean isAllTasksCompleted = false;
             synchronized (this) {
-                if (isAllTasksCompleted()) {
-                    completeAction();
-                    break;
-                }
+                isAllTasksCompleted = isAllTasksCompleted();
+            }
+
+            if (isAllTasksCompleted) {
+                completeAction();
+                break;
             }
 
             GroupTask task = getNextWaitingTask();

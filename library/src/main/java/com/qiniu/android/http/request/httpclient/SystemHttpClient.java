@@ -56,6 +56,7 @@ public class SystemHttpClient implements IRequestClient {
     public static final String JsonMime = "application/json";
     public static final String FormMime = "application/x-www-form-urlencoded";
 
+    private boolean hasHandleComplete = false;
     private static ConnectionPool pool;
     private Request currentRequest;
     private OkHttpClient httpClient;
@@ -386,14 +387,11 @@ public class SystemHttpClient implements IRequestClient {
                              int responseCode,
                              String errorMsg,
                              RequestClientCompleteHandler complete) {
-
-        UploadSingleRequestMetrics metrics = null;
         synchronized (this) {
-            if (this.metrics == null) {
+            if (hasHandleComplete) {
                 return;
             }
-            metrics = this.metrics;
-            this.metrics = null;
+            hasHandleComplete = true;
         }
 
         ResponseInfo info = ResponseInfo.create(request, responseCode, null, null, errorMsg);
@@ -406,13 +404,11 @@ public class SystemHttpClient implements IRequestClient {
     private void handleResponse(Request request,
                                 okhttp3.Response response,
                                 RequestClientCompleteHandler complete) {
-        UploadSingleRequestMetrics metrics = null;
         synchronized (this) {
-            if (this.metrics == null) {
+            if (hasHandleComplete) {
                 return;
             }
-            metrics = this.metrics;
-            this.metrics = null;
+            hasHandleComplete = true;
         }
 
         int statusCode = response.code();
@@ -430,7 +426,7 @@ public class SystemHttpClient implements IRequestClient {
         String errorMessage = null;
         try {
             responseBody = response.body().bytes();
-        } catch (IOException e) {
+        } catch (Exception e) {
             errorMessage = e.getMessage();
         }
 
