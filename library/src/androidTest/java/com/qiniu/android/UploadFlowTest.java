@@ -275,7 +275,7 @@ public class UploadFlowTest extends UploadBaseTest {
             public boolean shouldWait() {
                 return completeInfo.responseInfo == null;
             }
-        }, 5 * 60);
+        }, 10* 60);
         assertTrue(completeInfo.responseInfo.toString(), flags.isSuccess);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.isOK());

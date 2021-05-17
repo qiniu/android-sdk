@@ -144,6 +144,13 @@ class UploadInfoV1 extends UploadInfo {
     }
 
     @Override
+    void checkInfoStateAndUpdate() {
+        for (UploadBlock block : blockList) {
+            block.checkInfoStateAndUpdate();
+        }
+    }
+
+    @Override
     JSONObject toJsonObject() {
         JSONObject jsonObject = super.toJsonObject();
         if (jsonObject == null) {
@@ -171,81 +178,40 @@ class UploadInfoV1 extends UploadInfo {
     UploadBlock nextUploadBlock() throws IOException {
 
         // 从 blockList 中读取需要上传的 block
-        UploadBlock block = null;
-        while (true) {
-            // 从 blockList 中读取需要上传的 block：不检测数据有效性
-            block = nextUploadBlockFormBlockList();
-            if (block == null) {
-                break;
-            }
-
-            // 加载数据信息并检测数据有效性
-            UploadBlock newBlock = loadBlockData(block);
-            // 根据 block 未加载到数据, block 数据是无效的
-            if (newBlock == null) {
-                isEOF = true;
-                // 有多余的 block 则移除，包含 block
-                if (blockList.size() > block.index) {
-                    blockList = blockList.subList(0, block.index);
-                }
-                block = null;
-                break;
-            }
-
-            // 加载到数据
-            // 加载到数据不符合预期，更换 block 信息
-            if (newBlock != block) {
-                blockList.set(newBlock.index, newBlock);
-            }
-
-            // 数据读取结束
-            if (newBlock.size < BlockSize) {
-                // 有多余的 block 则移除，不包含 newBlock
-                if (blockList.size() > newBlock.index + 1) {
-                    blockList = blockList.subList(0, newBlock.index + 1);
-                }
-                isEOF = true;
-            }
-
-            block = newBlock;
-
-            // 数据需要上传
-            if (block.nextUploadDataWithoutCheckData() != null) {
-                break;
-            }
-        }
-
-        if (block != null) {
-            return block;
-        }
+        UploadBlock block = nextUploadBlockFormBlockList();
 
         // 内存的 blockList 中没有可上传的数据，则从资源中读并创建 block
-        // 资源读取异常，不可读取
-        if (readException != null) {
-            throw readException;
+        if (block == null) {
+            if (isEOF) {
+                return null;
+            } else if (readException != null) {
+                // 资源读取异常，不可读取
+                throw readException;
+            }
+
+            // 从资源中读取新的 block 进行上传
+            long blockOffset = 0;
+            if (blockList.size() > 0) {
+                UploadBlock lastBlock = blockList.get(blockList.size() - 1);
+                blockOffset = lastBlock.offset + lastBlock.size;
+            }
+            block = new UploadBlock(blockOffset, BlockSize, dataSize, blockList.size());
         }
 
-        // 资源已经读取完毕，不能再读取
-        if (isEOF) {
-            return null;
+        try {
+            block = loadBlockData(block);
+        } catch (IOException e) {
+            readException = e;
+            throw e;
         }
 
-        // 从资源中读取新的 block 进行上传
-        long blockOffset = 0;
-        if (blockList.size() > 0) {
-            UploadBlock lastBlock = blockList.get(blockList.size() - 1);
-            blockOffset = lastBlock.offset + lastBlock.size;
-        }
-
-        block = new UploadBlock(blockOffset, BlockSize, dataSize, blockList.size());
-        block = loadBlockData(block);
         // 资源 EOF
         if (block == null || block.size < BlockSize) {
             isEOF = true;
         }
 
-        // 读到 block,由于是新数据，则必定为需要上传的数据
-        if (block != null) {
+        // block index 等于 blockList size 则为新创建 block，需要加入 blockList
+        if (block != null && block.index == blockList.size()) {
             blockList.add(block);
         }
 
@@ -293,7 +259,6 @@ class UploadInfoV1 extends UploadInfo {
         try {
             blockBytes = readData(block.size, block.offset);
         } catch (IOException e) {
-            readException = e;
             throw e;
         }
 
@@ -316,7 +281,6 @@ class UploadInfoV1 extends UploadInfo {
                     data.data = BytesUtils.subBytes(blockBytes, (int) data.offset, data.size);
                     data.updateState(UploadData.State.WaitToUpload);
                 } catch (IOException e) {
-                    readException = e;
                     throw e;
                 }
             } else {

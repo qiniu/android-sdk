@@ -96,6 +96,12 @@ class UploadBlock {
         return datas;
     }
 
+    void checkInfoStateAndUpdate() {
+        for (UploadData data : uploadDataList) {
+            data.checkStateAndUpdate();
+        }
+    }
+
     JSONObject toJsonObject() throws Exception {
         JSONObject jsonObject = new JSONObject();
         jsonObject.putOpt("offset", offset);

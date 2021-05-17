@@ -4,7 +4,6 @@ import com.qiniu.android.utils.MD5;
 import com.qiniu.android.utils.StringUtils;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -87,80 +86,42 @@ class UploadInfoV2 extends UploadInfo {
     UploadData nextUploadData() throws IOException {
 
         // 从 dataList 中读取需要上传的 data
-        UploadData data = null;
-        while (true) {
-            // 从 dataList 中读取需要上传的 data: 未检测数据有效性
-            data = nextUploadDataFormDataList();
-            if (data == null) {
-                break;
+        UploadData data = nextUploadDataFormDataList();
+
+        // 内存的 blockList 中没有可上传的数据，则从资源中读并创建 block
+        if (data == null) {
+            if (isEOF) {
+                return null;
+            } else if (readException != null) {
+                // 资源读取异常，不可读取
+                throw readException;
             }
 
-            // 加载数据信息并检测数据有效性
-            UploadData newData = loadData(data);
-            // 根据 data 未加载到数据, data 及其以后的数据是无效的
-            if (newData == null) {
-                // 有多余的 data 则移除，包含 data
-                if (data.size > data.index) {
-                    dataList = dataList.subList(0, data.index);
-                }
-                isEOF = true;
-                data = null;
-                break;
+            // 从资源中读取新的 data 进行上传
+            long dataOffset = 0;
+            if (dataList.size() > 0) {
+                UploadData lastData = dataList.get(dataList.size() - 1);
+                dataOffset = lastData.offset + lastData.size;
             }
-
-            // 加载到数据
-            // 加载到数据不符合预期，更换 data 信息
-            if (newData != data) {
-                dataList.set(newData.index, newData);
-            }
-
-            // 数据读取结束
-            if (newData.size < dataSize) {
-                // 有多余的 data 则移除，不包含包含 newData
-                if (dataList.size() > newData.index + 1) {
-                    dataList = dataList.subList(0, newData.index + 1);
-                }
-                isEOF = true;
-            }
-
-            data = newData;
-
-            if (data.needToUpload()) {
-                break;
-            }
+            int dataIndex = dataList.size();
+            data = new UploadData(dataOffset, dataSize, dataIndex);
+            data = loadData(data);
         }
 
-        if (data != null) {
-            return data;
+        try {
+            data = loadData(data);
+        } catch (IOException e) {
+            readException = e;
+            throw e;
         }
 
-        // 内存的 dataList 中没有可上传的数据，则从资源中读并创建 data
-        // 资源读取异常，不可读取
-        if (readException != null) {
-            throw readException;
-        }
-
-        // 资源已经读取完毕，不能再读取
-        if (isEOF) {
-            return null;
-        }
-
-        // 从资源中读取新的 data 进行上传
-        long dataOffset = 0;
-        if (dataList.size() > 0) {
-            UploadData lastData = dataList.get(dataList.size() - 1);
-            dataOffset = lastData.offset + lastData.size;
-        }
-        int dataIndex = dataList.size();
-        data = new UploadData(dataOffset, dataSize, dataIndex);
-        data = loadData(data);
         // 资源 EOF
         if (data == null || data.size < dataSize) {
             isEOF = true;
         }
 
-        // 读到 data,由于是新数据，则必定为需要上传的数据
-        if (data != null) {
+        // data index 等于 dataList size 则为新创建 data，需要加入 dataList
+        if (data != null && data.index == dataList.size()) {
             dataList.add(data);
         }
 
@@ -317,6 +278,13 @@ class UploadInfoV2 extends UploadInfo {
             }
         }
         return isCompleted;
+    }
+
+    @Override
+    void checkInfoStateAndUpdate() {
+        for (UploadData data : dataList) {
+            data.checkStateAndUpdate();
+        }
     }
 
     @Override

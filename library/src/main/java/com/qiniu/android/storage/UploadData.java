@@ -92,6 +92,12 @@ class UploadData {
         state = State.WaitToUpload;
     }
 
+    void checkStateAndUpdate() {
+        if ((state == State.WaitToUpload || state == State.Uploading) && data == null) {
+            state = State.NeedToCheck;
+        }
+    }
+
     JSONObject toJsonObject() throws Exception {
         JSONObject jsonObject = new JSONObject();
         jsonObject.putOpt("offset", offset);

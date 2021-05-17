@@ -120,6 +120,11 @@ abstract class UploadInfo {
     abstract void clearUploadState();
 
     /**
+     * 检查文件状态, 主要处理没有 data 但处于上传状态
+     */
+    abstract void checkInfoStateAndUpdate();
+
+    /**
      * 转 json
      *
      * @return json

@@ -175,6 +175,7 @@ abstract class PartsUploadPerformer {
                         " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
                         " recoverUploadInfoFromRecord valid");
 
+                recoverUploadInfo.checkInfoStateAndUpdate();
                 uploadInfo = recoverUploadInfo;
                 UploadDomainRegion region = new UploadDomainRegion();
                 region.setupRegionData(zoneInfo);
