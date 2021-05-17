@@ -105,7 +105,6 @@ class UploadInfoV2 extends UploadInfo {
             }
             int dataIndex = dataList.size();
             data = new UploadData(dataOffset, dataSize, dataIndex);
-            data = loadData(data);
         }
 
         UploadData loadData = null;

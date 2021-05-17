@@ -158,7 +158,7 @@ public class UploadBaseTest extends BaseTest {
             public boolean shouldWait() {
                 return completeInfo.responseInfo == null;
             }
-        }, 5 * 60);
+        }, 10 * 60);
 
         LogUtil.d("=== upload file type:" + file.type() + " response key:" + (key != null ? key : "") + " response:" + completeInfo.responseInfo);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
