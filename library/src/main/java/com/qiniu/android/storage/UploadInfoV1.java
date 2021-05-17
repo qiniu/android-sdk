@@ -198,24 +198,42 @@ class UploadInfoV1 extends UploadInfo {
             block = new UploadBlock(blockOffset, BlockSize, dataSize, blockList.size());
         }
 
+        UploadBlock loadBlock = null;
         try {
-            block = loadBlockData(block);
+            loadBlock = loadBlockData(block);
         } catch (IOException e) {
             readException = e;
             throw e;
         }
 
-        // 资源 EOF
-        if (block == null || block.size < BlockSize) {
+        if (loadBlock == null) {
+            // 没有加在到 block, 也即数据源读取结束
             isEOF = true;
+            // 有多余的 block 则移除，移除中包含 block
+            if (blockList.size() > block.index) {
+                blockList = blockList.subList(0, block.index);
+            }
+        } else {
+            // 加在到 block
+            if (loadBlock.index == blockList.size()) {
+                // 新块：block index 等于 blockList size 则为新创建 block，需要加入 blockList
+                blockList.add(loadBlock);
+            } else if (loadBlock != block) {
+                // 更换块：重新加在了 block， 更换信息
+                blockList.set(loadBlock.index, loadBlock);
+            }
+
+            // 数据源读取结束，块读取大小小于预期，读取结束
+            if (loadBlock.size < BlockSize) {
+                isEOF = true;
+                // 有多余的 block 则移除，移除中不包含 block
+                if (blockList.size() > block.index + 1) {
+                    blockList = blockList.subList(0, block.index + 1);
+                }
+            }
         }
 
-        // block index 等于 blockList size 则为新创建 block，需要加入 blockList
-        if (block != null && block.index == blockList.size()) {
-            blockList.add(block);
-        }
-
-        return block;
+        return loadBlock;
     }
 
     private UploadBlock nextUploadBlockFormBlockList() {
