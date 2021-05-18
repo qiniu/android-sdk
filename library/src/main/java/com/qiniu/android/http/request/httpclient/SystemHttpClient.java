@@ -17,6 +17,8 @@ import com.qiniu.android.utils.StringUtils;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ProtocolException;
@@ -74,7 +76,7 @@ public class SystemHttpClient implements IRequestClient {
 
         metrics = new UploadSingleRequestMetrics();
         metrics.clientName = "okhttp";
-        metrics.clientVersion = Version.userAgent.replace("okhttp/", "");
+        metrics.clientVersion = getOkHttpVersion();
         metrics.setRequest(request);
         currentRequest = request;
         httpClient = createHttpClient(connectionProxy);
@@ -514,6 +516,24 @@ public class SystemHttpClient implements IRequestClient {
         return new JSONObject(str);
     }
 
+
+    private static String getOkHttpVersion() {
+        try {
+            Method get = Version.class.getMethod("userAgent");
+            Object version = get.invoke(Version.class);
+            return (version + "").replace("okhttp/", "");
+        } catch (Exception ignore) {
+        }
+
+        try {
+            Field versionField = Version.class.getField("userAgent");
+            Object version = versionField.get(Version.class);
+            return (version + "").replace("okhttp/", "");
+        } catch (Exception ignore) {
+        }
+
+        return "";
+    }
 
     private static class ResponseTag {
         public String ip = "";
