@@ -79,7 +79,6 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         final UploadInfoV2 info = (UploadInfoV2) uploadInfo;
 
         UploadData data = null;
-        Exception readException = null;
         synchronized (this) {
             try {
                 data = info.nextUploadData();
@@ -88,16 +87,12 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
                 }
             } catch (Exception e) {
                 // 此处可能无法恢复
-                readException = e;
+                LogUtil.i("key:" + StringUtils.toNonnullString(key) + " " + e.getMessage());
+
+                ResponseInfo responseInfo = ResponseInfo.localIOError(e.getMessage());
+                completeHandler.complete(true, responseInfo, null, responseInfo.response);
+                return;
             }
-        }
-
-        if (readException != null) {
-            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " " + readException.getMessage());
-
-            ResponseInfo responseInfo = ResponseInfo.localIOError(readException.getMessage());
-            completeHandler.complete(true, responseInfo, null, responseInfo.response);
-            return;
         }
 
         if (data == null) {

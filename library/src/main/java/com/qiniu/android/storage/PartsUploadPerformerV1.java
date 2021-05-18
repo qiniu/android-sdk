@@ -50,7 +50,6 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
         UploadBlock block = null;
         UploadData chunk = null;
 
-        Exception readException = null;
         synchronized (this) {
             try {
                 block = info.nextUploadBlock();
@@ -60,16 +59,12 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
                 }
             } catch (Exception e) {
                 // 此处可能导致后面无法恢复
-                readException = e;
+                LogUtil.i("key:" + StringUtils.toNonnullString(key) + e.getMessage());
+
+                ResponseInfo responseInfo = ResponseInfo.localIOError(e.getMessage());
+                completeHandler.complete(true, responseInfo, null, null);
+                return;
             }
-        }
-
-        if (readException != null) {
-            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " no chunk left");
-
-            ResponseInfo responseInfo = ResponseInfo.localIOError(readException.getMessage());
-            completeHandler.complete(true, responseInfo, null, null);
-            return;
         }
 
         if (block == null || chunk == null) {
