@@ -24,7 +24,7 @@ class FormUpload extends BaseUpload {
                          Configuration config,
                          UpTaskCompletionHandler completionHandler) {
         super(data, key, fileName, token, option, config, completionHandler);
-        this.upProgress = new UpProgress(option.progressHandler);
+        this.upProgress = new UpProgress(this.option.progressHandler);
     }
 
     @Override
