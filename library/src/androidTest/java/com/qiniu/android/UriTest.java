@@ -60,7 +60,11 @@ public class UriTest extends BaseTest {
 
         UploadManager uploadManager = new UploadManager(configuration);
 
-        String key = "uri_upload_" + fileName;
+        String key = "Uri_Upload_";
+        key += isHttps ? "https_" : "http_";
+        key += isResumableV1 ? "v1_" : "v2_";
+        key += isConcurrent ? "serial_" : "concurrent_";
+        key += fileName;
         final UploadCompleteInfo completeInfo = new UploadCompleteInfo();
         uploadManager.put(uri, null, key, TestConfig.token_na0, new UpCompletionHandler() {
             @Override
