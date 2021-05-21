@@ -19,7 +19,6 @@ jobs:
         with:
           api-level: 29
           profile: Nexus 6
-          target: google_apis_playstore
           arch: x86_64
           script: |
             ./gradlew connectedCheck
