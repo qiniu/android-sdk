@@ -17,7 +17,7 @@ jobs:
       - name: Run Cases
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 22
+          api-level: 30
           script: |
             ./gradlew connectedCheck
             ./gradlew build

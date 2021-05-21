@@ -10,8 +10,10 @@ import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.utils.ContextGetter;
+import com.qiniu.android.utils.Etag;
 import com.qiniu.android.utils.LogUtil;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -40,27 +42,36 @@ public class UriTest extends BaseTest {
         int[] sizeList = {512, MB, 4*MB, 5*MB, 8*MB, 10*MB, 20*MB};
         for (int size : sizeList) {
             String fileName = size + "KB" + ".txt";
-            Uri uri = writeFileToDownload(size, fileName);
+
+            File file = createFile(size);
+            Uri uri = writeFileToDownload(file, fileName);
+            String etag = null;
+            try {
+                etag = Etag.file(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             for (boolean[] config : testConfigList) {
-                testUpload(uri, fileName, config[0], config[1], config[2]);
+                testUpload(uri, fileName, etag, config[0], config[1], config[2]);
             }
             removeUri(uri);
         }
     }
 
-    private void testUpload(Uri uri, String fileName, boolean isHttps, boolean isResumableV1, boolean isConcurrent) {
+    private void testUpload(Uri uri, String fileName, String etag, boolean isHttps, boolean isResumableV1, boolean isConcurrent) {
 
         assertNotNull("Uri write file error", uri);
 
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(isResumableV1 ? Configuration.RESUME_UPLOAD_VERSION_V1 : Configuration.RESUME_UPLOAD_VERSION_V2)
+                .chunkSize(isResumableV1 ? 1024*1024*2 : 1024*1024*4)
                 .useConcurrentResumeUpload(isConcurrent)
                 .useHttps(isHttps)
                 .build();
 
         UploadManager uploadManager = new UploadManager(configuration);
 
-        String key = "Uri_Upload_";
+        String key = "uri_upload_";
         key += isHttps ? "https_" : "http_";
         key += isResumableV1 ? "v1_" : "v2_";
         key += isConcurrent ? "serial_" : "concurrent_";
@@ -85,16 +96,30 @@ public class UriTest extends BaseTest {
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.statusCode == ResponseInfo.RequestSuccess);
         assertTrue(completeInfo.responseInfo.toString(), key.equals(completeInfo.key));
+
+        String serverEtag = null;
+        try {
+            serverEtag = completeInfo.responseInfo.response.getString("hash");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        System.out.println("      etag:" + etag);
+        System.out.println("serverEtag:" + serverEtag);
+        assertNotNull("key:" + key, serverEtag);
+        assertEquals("key:" + key, etag, serverEtag);
     }
 
-    private Uri writeFileToDownload(int size, String fileName) {
+    private File createFile(int size) {
         File file = null;
         try {
             file = TempFile.createFile(size);
         } catch (IOException e) {
             e.printStackTrace();
-            return null;
         }
+        return file;
+    }
+
+    private Uri writeFileToDownload(File file, String fileName) {
 
         InputStream inputStream = null;
         try {
