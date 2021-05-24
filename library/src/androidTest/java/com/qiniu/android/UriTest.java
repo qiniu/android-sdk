@@ -148,6 +148,7 @@ public class UriTest extends BaseTest {
             imageUri = resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
         } catch (Exception e) {
             e.printStackTrace();
+            throw e;
         }
 
         if (imageUri != null) {
