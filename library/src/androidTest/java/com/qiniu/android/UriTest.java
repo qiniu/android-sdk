@@ -37,11 +37,11 @@ public class UriTest extends BaseTest {
             {false, false, false},
     };
 
-    public void notestUpload() {
+    public void testUpload() {
         int MB = 1024;
         int[] sizeList = {512, MB, 4*MB, 5*MB, 8*MB, 10*MB, 20*MB};
         for (int size : sizeList) {
-            String fileName = size + "KB" + ".txt";
+            String fileName = size + "KB" + ".mp4";
 
             File file = createFile(size);
             Uri uri = writeFileToDownload(file, fileName);
@@ -132,10 +132,10 @@ public class UriTest extends BaseTest {
         ContentResolver resolver = ContextGetter.applicationContext().getContentResolver();
 
         ContentValues contentValues = new ContentValues();
-        contentValues.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
+        contentValues.put(MediaStore.Video.Media.DISPLAY_NAME, fileName);
         Uri imageUri = null;
         try {
-            imageUri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues);
+            imageUri = resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, contentValues);
         } catch (Exception e) {
             e.printStackTrace();
         }
