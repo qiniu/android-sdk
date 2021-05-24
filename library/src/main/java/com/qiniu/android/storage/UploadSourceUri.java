@@ -141,6 +141,18 @@ class UploadSourceUri extends UploadSourceStream {
 
         try {
             if (cursor.moveToFirst()) {
+                int dataIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
+                if (!cursor.isNull(dataIndex)) {
+                    String path = cursor.getString(dataIndex);
+                    if (path != null) {
+                        File file = new File(path);
+                        setSize(file.length());
+                        setFileName(file.getName());
+                        modifyDate = file.lastModified() / 1000 + "";
+                        return;
+                    }
+                }
+
                 int sizeIndex = cursor.getColumnIndex(MediaStore.Images.Media.SIZE);
                 if (!cursor.isNull(sizeIndex)) {
                     long size = cursor.getLong(sizeIndex);
@@ -155,16 +167,6 @@ class UploadSourceUri extends UploadSourceStream {
                 int modifyDateIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATE_MODIFIED);
                 if (!cursor.isNull(modifyDateIndex)) {
                     modifyDate = cursor.getString(modifyDateIndex);
-                }
-
-                if (StringUtils.isNullOrEmpty(modifyDate)) {
-                    int dataIndex = cursor.getColumnIndex(MediaStore.Images.Media.DATA);
-                    if (!cursor.isNull(dataIndex)) {
-                        String path = cursor.getString(dataIndex);
-                        if (path != null) {
-                            modifyDate = new File(path).lastModified() / 1000 + "";
-                        }
-                    }
                 }
             }
         } finally {
