@@ -13,6 +13,8 @@ import com.qiniu.android.utils.ContextGetter;
 import com.qiniu.android.utils.Etag;
 import com.qiniu.android.utils.LogUtil;
 
+import junit.framework.Assert;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -37,14 +39,22 @@ public class UriTest extends BaseTest {
             {false, false, false},
     };
 
-    public void notestUpload() {
+    public void testUpload() {
         int MB = 1024;
         int[] sizeList = {512, MB, 4*MB, 5*MB, 8*MB, 10*MB, 20*MB};
         for (int size : sizeList) {
             String fileName = size + "KB" + ".mp4";
 
             File file = createFile(size);
-            Uri uri = writeFileToDownload(file, fileName);
+            Uri uri = null;
+            try {
+                uri = writeFileToDownload(file, fileName);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                Assert.fail(e.getMessage());
+                return;
+            }
+
             String etag = null;
             try {
                 etag = Etag.file(file);
@@ -119,14 +129,14 @@ public class UriTest extends BaseTest {
         return file;
     }
 
-    private Uri writeFileToDownload(File file, String fileName) {
+    private Uri writeFileToDownload(File file, String fileName) throws FileNotFoundException {
 
         InputStream inputStream = null;
         try {
             inputStream = new FileInputStream(file);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-            return null;
+            throw e;
         }
 
         ContentResolver resolver = ContextGetter.applicationContext().getContentResolver();
