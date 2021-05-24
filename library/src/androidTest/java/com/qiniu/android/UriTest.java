@@ -39,7 +39,7 @@ public class UriTest extends BaseTest {
             {false, false, false},
     };
 
-    public void testUpload() {
+    public void notestUpload() {
         int MB = 1024;
         int[] sizeList = {512, MB, 4*MB, 5*MB, 8*MB, 10*MB, 20*MB};
         for (int size : sizeList) {
