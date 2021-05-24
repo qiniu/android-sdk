@@ -37,7 +37,7 @@ public class UriTest extends BaseTest {
             {false, false, false},
     };
 
-    public void testUpload() {
+    public void notestUpload() {
         int MB = 1024;
         int[] sizeList = {512, MB, 4*MB, 5*MB, 8*MB, 10*MB, 20*MB};
         for (int size : sizeList) {
@@ -60,7 +60,7 @@ public class UriTest extends BaseTest {
 
     private void testUpload(Uri uri, String fileName, String etag, boolean isHttps, boolean isResumableV1, boolean isConcurrent) {
 
-        assertNotNull("Uri write file error", uri);
+        assertNotNull("Uri write file error:" + fileName, uri);
 
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(isResumableV1 ? Configuration.RESUME_UPLOAD_VERSION_V1 : Configuration.RESUME_UPLOAD_VERSION_V2)
