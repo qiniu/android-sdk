@@ -1,11 +1,15 @@
 package com.qiniu.android.http.request.httpclient;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okio.BufferedSink;
+import okio.Okio;
+import okio.Source;
 
 /**
  * Created by yangsen on 2020/6/10
@@ -37,23 +41,21 @@ public class ByteBody extends RequestBody {
     @Override
     public void writeTo(BufferedSink bufferedSink) throws IOException {
 
-        int byteIndex = 0;
+        int byteOffset = 0;
         int byteSize = SEGMENT_SIZE;
-        while (byteIndex < body.length){
-            byteSize = Math.min(byteSize, body.length - byteIndex);
-
-            RequestBody requestBody = getRequestBodyWithRange(byteIndex, byteSize);
+        while (byteOffset < body.length){
+            byteSize = Math.min(byteSize, body.length - byteOffset);
+            RequestBody requestBody = getRequestBodyWithRange(byteOffset, byteSize);
             requestBody.writeTo(bufferedSink);
             bufferedSink.flush();
 
-            byteIndex += byteSize;
+            byteOffset += byteSize;
         }
-
     }
 
 
     private RequestBody getRequestBodyWithRange(int location, int size){
         byte[] data = Arrays.copyOfRange(body, location, location + size);
-        return RequestBody.create(data, contentType());
+        return RequestBody.create(contentType(), data);
     }
 }

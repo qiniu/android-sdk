@@ -154,6 +154,14 @@ public final class Configuration {
                 public String gen(String key, File file) {
                     return key + "_._" + new StringBuffer(file.getAbsolutePath()).reverse();
                 }
+
+                @Override
+                public String gen(String key, String sourceId) {
+                    if (sourceId == null) {
+                        sourceId = "";
+                    }
+                    return key + "_._" + sourceId;
+                }
             };
         }
         return keyGen;

@@ -5,12 +5,13 @@ import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
 
 import java.io.File;
+import java.io.InputStream;
 
 class ConcurrentResumeUpload extends PartsUpload {
 
     private GroupTaskThread groupTaskThread;
 
-    protected ConcurrentResumeUpload(File file,
+    protected ConcurrentResumeUpload(UploadSource source,
                                      String key,
                                      UpToken token,
                                      UploadOptions option,
@@ -18,7 +19,7 @@ class ConcurrentResumeUpload extends PartsUpload {
                                      Recorder recorder,
                                      String recorderKey,
                                      UpTaskCompletionHandler completionHandler) {
-        super(file, key, token, option, config, recorder, recorderKey, completionHandler);
+        super(source, key, token, option, config, recorder, recorderKey, completionHandler);
     }
 
     @Override

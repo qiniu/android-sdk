@@ -18,7 +18,7 @@ abstract class BaseUpload implements Runnable {
     protected final String key;
     protected final String fileName;
     protected final byte[] data;
-    protected final File file;
+    protected final UploadSource uploadSource;
     protected final UpToken token;
     protected final UploadOptions option;
     protected final Configuration config;
@@ -33,7 +33,7 @@ abstract class BaseUpload implements Runnable {
     private int currentRegionIndex;
     private ArrayList<IUploadRegion> regions;
 
-    private BaseUpload(File file,
+    private BaseUpload(UploadSource source,
                        byte[] data,
                        String fileName,
                        String key,
@@ -43,7 +43,7 @@ abstract class BaseUpload implements Runnable {
                        Recorder recorder,
                        String recorderKey,
                        UpTaskCompletionHandler completionHandler) {
-        this.file = file;
+        this.uploadSource = source;
         this.data = data;
         this.fileName = fileName != null ? fileName : "?";
         this.key = key;
@@ -57,7 +57,7 @@ abstract class BaseUpload implements Runnable {
         this.initData();
     }
 
-    protected BaseUpload(File file,
+    protected BaseUpload(UploadSource source,
                          String key,
                          UpToken token,
                          UploadOptions option,
@@ -65,7 +65,7 @@ abstract class BaseUpload implements Runnable {
                          Recorder recorder,
                          String recorderKey,
                          UpTaskCompletionHandler completionHandler) {
-        this(file, null, file.getName(), key, token, option, config, recorder, recorderKey, completionHandler);
+        this(source, null, source.getFileName(), key, token, option, config, recorder, recorderKey, completionHandler);
     }
 
     protected BaseUpload(byte[] data,
@@ -181,6 +181,7 @@ abstract class BaseUpload implements Runnable {
     }
 
     protected boolean switchRegion() {
+
         if (regions == null) {
             return false;
         }

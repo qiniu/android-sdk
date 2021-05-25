@@ -13,7 +13,7 @@ import org.json.JSONObject;
 class FormUpload extends BaseUpload {
 
     private boolean isAsync = true;
-    private double previousPercent;
+    private final UpProgress upProgress;
     private RequestTransaction uploadTransaction;
 
     protected FormUpload(byte[] data,
@@ -24,6 +24,7 @@ class FormUpload extends BaseUpload {
                          Configuration config,
                          UpTaskCompletionHandler completionHandler) {
         super(data, key, fileName, token, option, config, completionHandler);
+        this.upProgress = new UpProgress(this.option.progressHandler);
     }
 
     @Override
@@ -36,18 +37,7 @@ class FormUpload extends BaseUpload {
         RequestProgressHandler progressHandler = new RequestProgressHandler() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
-                if (option.progressHandler != null){
-                    double percent = (double)totalBytesWritten / (double)totalBytesExpectedToWrite;
-                    if (percent > 0.95){
-                        percent = 0.95;
-                    }
-                    if (percent > previousPercent){
-                        previousPercent = percent;
-                    } else {
-                        percent = previousPercent;
-                    }
-                    option.progressHandler.progress(key, percent);
-                }
+                upProgress.progress(key, totalBytesWritten, totalBytesExpectedToWrite);
             }
         };
         uploadTransaction.uploadFormData(data, fileName, isAsync, progressHandler, new RequestTransaction.RequestCompleteHandler() {
@@ -62,12 +52,7 @@ class FormUpload extends BaseUpload {
                     return;
                 }
 
-                AsyncRun.runInMain(new Runnable() {
-                    @Override
-                    public void run() {
-                        option.progressHandler.progress(key, 1.0);
-                    }
-                });
+                upProgress.notifyDone(key, data.length);
                 completeAction(responseInfo, response);
             }
         });

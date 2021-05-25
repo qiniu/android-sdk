@@ -20,7 +20,7 @@ class PartsUpload extends BaseUpload {
     private ResponseInfo uploadDataErrorResponseInfo;
     private JSONObject uploadDataErrorResponse;
 
-    protected PartsUpload(File file,
+    protected PartsUpload(UploadSource source,
                           String key,
                           UpToken token,
                           UploadOptions option,
@@ -28,7 +28,7 @@ class PartsUpload extends BaseUpload {
                           Recorder recorder,
                           String recorderKey,
                           UpTaskCompletionHandler completionHandler) {
-        super(file, key, token, option, config, recorder, recorderKey, completionHandler);
+        super(source, key, token, option, config, recorder, recorderKey, completionHandler);
     }
 
     @Override
@@ -37,18 +37,18 @@ class PartsUpload extends BaseUpload {
 
         if (config != null && config.resumeUploadVersion == Configuration.RESUME_UPLOAD_VERSION_V1) {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " 分片V1");
-            uploadPerformer = new PartsUploadPerformerV1(file, fileName, key, token, option, config, recorderKey);
+            uploadPerformer = new PartsUploadPerformerV1(uploadSource, fileName, key, token, option, config, recorderKey);
         } else {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " 分片V2");
-            uploadPerformer = new PartsUploadPerformerV2(file, fileName, key, token, option, config, recorderKey);
+            uploadPerformer = new PartsUploadPerformerV2(uploadSource, fileName, key, token, option, config, recorderKey);
         }
     }
 
     boolean isAllUploaded() {
-        if (uploadPerformer.fileInfo == null) {
+        if (uploadPerformer.uploadInfo == null) {
             return false;
         } else {
-            return uploadPerformer.fileInfo.isAllUploaded();
+            return uploadPerformer.uploadInfo.isAllUploaded();
         }
     }
 
@@ -85,7 +85,7 @@ class PartsUpload extends BaseUpload {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " region:" + StringUtils.toNonnullString(uploadPerformer.currentRegion.getZoneInfo().regionId));
         }
 
-        if (file == null || !uploadPerformer.canReadFile()) {
+        if (!uploadPerformer.canReadFile()) {
             code = ResponseInfo.LocalIOError;
         }
 
@@ -94,6 +94,11 @@ class PartsUpload extends BaseUpload {
 
     @Override
     protected boolean switchRegion() {
+        // 重新加载资源，如果加载失败，不可切换 region
+        if (!uploadPerformer.couldReloadInfo() || !uploadPerformer.reloadInfo()) {
+            return false;
+        }
+
         boolean isSuccess = super.switchRegion();
         if (isSuccess) {
             uploadPerformer.switchRegion(getCurrentRegion());
@@ -142,6 +147,13 @@ class PartsUpload extends BaseUpload {
                             return;
                         }
 
+                        // 只有再读取结束再能知道文件大小，需要检测
+                        if (uploadPerformer.uploadInfo.getSourceSize() == 0) {
+                            ResponseInfo response = ResponseInfo.zeroSize("file is empty");
+                            completeAction(response, null);
+                            return;
+                        }
+
                         LogUtil.i("key:" + StringUtils.toNonnullString(key) + " completeUpload");
 
                         // 3. 组装文件
@@ -156,12 +168,6 @@ class PartsUpload extends BaseUpload {
                                     return;
                                 }
 
-                                AsyncRun.runInMain(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        option.progressHandler.progress(key, 1.0);
-                                    }
-                                });
                                 completeAction(responseInfo, response);
                             }
                         });
@@ -282,7 +288,7 @@ class PartsUpload extends BaseUpload {
         item.setReport(metrics.totalElapsedTime(), ReportItem.BlockKeyTotalElapsedTime);
         item.setReport(metrics.bytesSend(), ReportItem.BlockKeyBytesSent);
         item.setReport(uploadPerformer.recoveredFrom, ReportItem.BlockKeyRecoveredFrom);
-        item.setReport(file.length(), ReportItem.BlockKeyFileSize);
+        item.setReport(uploadSource.getSize(), ReportItem.BlockKeyFileSize);
         item.setReport(Utils.getCurrentProcessID(), ReportItem.BlockKeyPid);
         item.setReport(Utils.getCurrentThreadID(), ReportItem.BlockKeyTid);
 

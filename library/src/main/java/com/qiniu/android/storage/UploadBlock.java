@@ -1,66 +1,58 @@
 package com.qiniu.android.storage;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 class UploadBlock {
 
     final long offset;
-    final long size;
+    final int size;
     final int index;
-    final ArrayList<UploadData> uploadDataList;
+    final List<UploadData> uploadDataList;
 
-    String context;
+    String md5 = null;
+    String ctx = null;
 
-    UploadBlock(long offset, long blockSize, int dataSize, int index) {
+    UploadBlock(long offset, int blockSize, int dataSize, int index) {
         this.offset = offset;
         this.size = blockSize;
         this.index = index;
         this.uploadDataList = createDataList(dataSize);
     }
 
-    private UploadBlock(long offset,
-                        long blockSize,
-                        int index,
-                        ArrayList<UploadData> uploadDataList) {
+    private UploadBlock(long offset, int blockSize, int index, List<UploadData> uploadDataList) {
         this.offset = offset;
         this.size = blockSize;
         this.index = index;
         this.uploadDataList = uploadDataList;
     }
 
-    static UploadBlock blockFromJson(JSONObject jsonObject) {
+    static UploadBlock blockFromJson(JSONObject jsonObject) throws Exception {
         if (jsonObject == null) {
             return null;
         }
-        long offset = 0;
-        long size = 0;
-        int index = 0;
-        String context = null;
+
+        long offset = jsonObject.getLong("offset");
+        int size = jsonObject.getInt("size");
+        int index = jsonObject.getInt("index");
+        String md5 = jsonObject.optString("md5");
+        String ctx = jsonObject.optString("ctx");
         ArrayList<UploadData> uploadDataList = new ArrayList<UploadData>();
-        try {
-            offset = jsonObject.getLong("offset");
-            size = jsonObject.getLong("size");
-            index = jsonObject.getInt("index");
-            context = jsonObject.getString("context");
-            JSONArray dataJsonArray = jsonObject.getJSONArray("uploadDataList");
-            for (int i = 0; i < dataJsonArray.length(); i++) {
-                JSONObject dataJson = dataJsonArray.getJSONObject(i);
-                UploadData data = UploadData.dataFromJson(dataJson);
-                if (data != null) {
-                    uploadDataList.add(data);
-                }
+        JSONArray dataJsonArray = jsonObject.getJSONArray("uploadDataList");
+        for (int i = 0; i < dataJsonArray.length(); i++) {
+            JSONObject dataJson = dataJsonArray.getJSONObject(i);
+            UploadData data = UploadData.dataFromJson(dataJson);
+            if (data != null) {
+                uploadDataList.add(data);
             }
-        } catch (JSONException e) {
         }
-        ;
+
         UploadBlock block = new UploadBlock(offset, size, index, uploadDataList);
-        if (context != null && context.length() > 0) {
-            block.context = context;
-        }
+        block.md5 = md5;
+        block.ctx = ctx;
         return block;
     }
 
@@ -70,7 +62,7 @@ class UploadBlock {
         }
         boolean isCompleted = true;
         for (UploadData data : uploadDataList) {
-            if (!data.isCompleted) {
+            if (!data.isUploaded()) {
                 isCompleted = false;
                 break;
             }
@@ -78,63 +70,65 @@ class UploadBlock {
         return isCompleted;
     }
 
-    double progress() {
+    long uploadSize() {
         if (uploadDataList == null) {
             return 0;
         }
-        double progress = 0;
+        long uploadSize = 0;
         for (UploadData data : uploadDataList) {
-            progress += data.progress * ((double) data.size / size);
+            uploadSize += data.uploadSize();
         }
-        return progress;
+        return uploadSize;
     }
 
     private ArrayList<UploadData> createDataList(int dataSize) {
         long offset = 0;
-        int dataIndex = 1;
+        int dataIndex = 0;
         ArrayList<UploadData> datas = new ArrayList<UploadData>();
         while (offset < size) {
             long lastSize = size - offset;
             int dataSizeP = Math.min((int) lastSize, dataSize);
             UploadData data = new UploadData(offset, dataSizeP, dataIndex);
-            if (data != null) {
-                datas.add(data);
-                offset += dataSizeP;
-                dataIndex += 1;
-            }
+            datas.add(data);
+            offset += dataSizeP;
+            dataIndex += 1;
         }
         return datas;
     }
 
-    JSONObject toJsonObject() {
+    void checkInfoStateAndUpdate() {
+        for (UploadData data : uploadDataList) {
+            data.checkStateAndUpdate();
+        }
+    }
+
+    JSONObject toJsonObject() throws Exception {
         JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("offset", offset);
-            jsonObject.put("size", size);
-            jsonObject.put("index", index);
-            jsonObject.put("context", (context != null ? context : ""));
-            if (uploadDataList != null && uploadDataList.size() > 0) {
-                JSONArray dataJsonArray = new JSONArray();
-                for (UploadData data : uploadDataList) {
-                    JSONObject dataJson = data.toJsonObject();
-                    if (dataJson != null) {
-                        dataJsonArray.put(dataJson);
-                    }
+        jsonObject.putOpt("offset", offset);
+        jsonObject.putOpt("size", size);
+        jsonObject.putOpt("index", index);
+        jsonObject.putOpt("md5", md5);
+        jsonObject.putOpt("ctx", ctx);
+        if (uploadDataList != null && uploadDataList.size() > 0) {
+            JSONArray dataJsonArray = new JSONArray();
+            for (UploadData data : uploadDataList) {
+                JSONObject dataJson = data.toJsonObject();
+                if (dataJson != null) {
+                    dataJsonArray.put(dataJson);
                 }
-                jsonObject.put("uploadDataList", dataJsonArray);
             }
-        } catch (JSONException e) {
+            jsonObject.put("uploadDataList", dataJsonArray);
         }
         return jsonObject;
     }
 
-    protected UploadData nextUploadData() {
+    protected UploadData nextUploadDataWithoutCheckData() {
         if (uploadDataList == null || uploadDataList.size() == 0) {
             return null;
         }
         UploadData data = null;
         for (UploadData dataP : uploadDataList) {
-            if (!dataP.isCompleted && !dataP.isUploading) {
+            if (dataP.needToUpload()) {
                 data = dataP;
                 break;
             }
@@ -143,7 +137,8 @@ class UploadBlock {
     }
 
     protected void clearUploadState() {
-        context = null;
+        md5 = null;
+        ctx = null;
         if (uploadDataList == null || uploadDataList.size() == 0) {
             return;
         }

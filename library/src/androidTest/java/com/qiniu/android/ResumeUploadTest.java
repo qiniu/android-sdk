@@ -44,7 +44,7 @@ public class ResumeUploadTest extends UploadFlowTest {
             String key = "android_resume_cancel_v1_" + size + "k";
             try {
                 File file = TempFile.createFile(size, key);
-                cancelTest(cancelPercent, file, key, configuration, null);
+                cancelTest((long) (size * cancelPercent), file, key, configuration, null);
                 TempFile.remove(file);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -52,7 +52,7 @@ public class ResumeUploadTest extends UploadFlowTest {
         }
     }
 
-    public void testHttpV1(){
+    public void testHttpV1() {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                 .useConcurrentResumeUpload(false)
@@ -71,13 +71,13 @@ public class ResumeUploadTest extends UploadFlowTest {
         }
     }
 
-    public void testHttpsV1(){
+    public void testHttpsV1() {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                 .useConcurrentResumeUpload(false)
                 .useHttps(true)
                 .build();
-        int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
+        int[] sizeArray = {500, 3000, 4000, 7000, 10000, 20000};
         for (int size : sizeArray) {
             String key = "android_resume_https_v1_" + size + "k";
             try {
@@ -90,19 +90,19 @@ public class ResumeUploadTest extends UploadFlowTest {
         }
     }
 
-    public void testReuploadV1(){
+    public void testReuploadV1() {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                 .useConcurrentResumeUpload(false)
                 .useHttps(true)
-                .chunkSize(1024*1024)
+                .chunkSize(1024 * 1024)
                 .build();
         int[] sizeArray = {30000};
         for (int size : sizeArray) {
             String key = "android_resume_reupload_v1_" + size + "k";
             try {
                 File file = TempFile.createFile(size, key);
-                reuploadUploadTest((float)0.7, file, key, configuration, null);
+                reuploadUploadTest((long) (size * 0.7), file, key, configuration, null);
                 TempFile.remove(file);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -110,7 +110,7 @@ public class ResumeUploadTest extends UploadFlowTest {
         }
     }
 
-    public void testNoKeyV1(){
+    public void testNoKeyV1() {
         int size = 600;
         String key = "android_resume_no_key_v1_" + size + "k";
         File file = null;
@@ -137,7 +137,7 @@ public class ResumeUploadTest extends UploadFlowTest {
         TempFile.remove(file);
     }
 
-    public void test0kV1(){
+    public void test0kV1() {
         int size = 0;
         String key = "android_resume_0k_v1_" + size + "k";
         File file = null;
@@ -175,7 +175,7 @@ public class ResumeUploadTest extends UploadFlowTest {
         metaParam.put("x-qn-meta-aaa", "meta_value_1");
         metaParam.put("x-qn-meta-key-2", "meta_value_2");
 
-        UploadOptions options = new UploadOptions(userParam, metaParam, null,true, null, null, null);
+        UploadOptions options = new UploadOptions(userParam, metaParam, null, true, null, null, null);
 
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
@@ -198,7 +198,7 @@ public class ResumeUploadTest extends UploadFlowTest {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
-                .chunkSize(4*1024*1024)
+                .chunkSize(4 * 1024 * 1024)
                 .useHttps(true)
                 .build();
         int[] sizeArray = {5000, 8000, 10000, 20000};
@@ -219,7 +219,7 @@ public class ResumeUploadTest extends UploadFlowTest {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
-                .chunkSize(4*1024*1024)
+                .chunkSize(4 * 1024 * 1024)
                 .useHttps(true)
                 .build();
         int[] sizeArray = {10000, 20000};
@@ -227,7 +227,7 @@ public class ResumeUploadTest extends UploadFlowTest {
             String key = "android_resume_cancel_v2_" + size + "k";
             try {
                 File file = TempFile.createFile(size, key);
-                cancelTest(cancelPercent, file, key, configuration, null);
+                cancelTest((long) (size * cancelPercent), file, key, configuration, null);
                 TempFile.remove(file);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -235,11 +235,11 @@ public class ResumeUploadTest extends UploadFlowTest {
         }
     }
 
-    public void testHttpV2(){
+    public void testHttpV2() {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
-                .chunkSize(4*1024*1024)
+                .chunkSize(4 * 1024 * 1024)
                 .useHttps(false)
                 .build();
         int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
@@ -255,14 +255,14 @@ public class ResumeUploadTest extends UploadFlowTest {
         }
     }
 
-    public void testHttpsV2(){
+    public void testHttpsV2() {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
-                .chunkSize(4*1024*1024)
+                .chunkSize(4 * 1024 * 1024)
                 .useHttps(true)
                 .build();
-        int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
+        int[] sizeArray = {500, 3000, 4000, 7000, 10000, 20000};
         for (int size : sizeArray) {
             String key = "android_resume_https_v2_" + size + "k";
             try {
@@ -275,19 +275,19 @@ public class ResumeUploadTest extends UploadFlowTest {
         }
     }
 
-    public void testReuploadV2(){
+    public void testReuploadV2() {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
                 .useHttps(true)
-                .chunkSize(4*1024*1024)
+                .chunkSize(4 * 1024 * 1024)
                 .build();
         int[] sizeArray = {30000};
         for (int size : sizeArray) {
             String key = "android_resume_reupload_v2_" + size + "k";
             try {
                 File file = TempFile.createFile(size, key);
-                reuploadUploadTest((float)0.7, file, key, configuration, null);
+                reuploadUploadTest((long) (size * 0.7), file, key, configuration, null);
                 TempFile.remove(file);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -295,7 +295,7 @@ public class ResumeUploadTest extends UploadFlowTest {
         }
     }
 
-    public void testNoKeyV2(){
+    public void testNoKeyV2() {
         int size = 600;
         String key = "android_resume_reupload_v2_" + size + "k";
         File file = null;
@@ -322,7 +322,7 @@ public class ResumeUploadTest extends UploadFlowTest {
         TempFile.remove(file);
     }
 
-    public void test0kV2(){
+    public void test0kV2() {
         int size = 0;
         String key = "android_resume_0k_v2_" + size + "k";
         File file = null;
@@ -360,12 +360,12 @@ public class ResumeUploadTest extends UploadFlowTest {
         metaParam.put("x-qn-meta-aaa", "meta_value_1");
         metaParam.put("x-qn-meta-key-2", "meta_value_2");
 
-        UploadOptions options = new UploadOptions(userParam, metaParam, null,true, null, null, null);
+        UploadOptions options = new UploadOptions(userParam, metaParam, null, true, null, null, null);
 
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
-                .chunkSize(4*1024*1024)
+                .chunkSize(4 * 1024 * 1024)
                 .useHttps(false)
                 .build();
 

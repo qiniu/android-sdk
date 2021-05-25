@@ -98,6 +98,14 @@ public class Utils {
         return type;
     }
 
+    public static boolean isIpv6(String ip) {
+        if (StringUtils.isNullOrEmpty(ip)) {
+            return false;
+        }
+
+        return IPAddressUtil.isIPv6LiteralAddress(ip);
+    }
+
     private static String getIPV4StringType(String ipv4String, String host) {
         if (host == null) {
             host = "";

@@ -17,6 +17,8 @@ import com.qiniu.android.utils.StringUtils;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ProtocolException;
@@ -56,6 +58,7 @@ public class SystemHttpClient implements IRequestClient {
     public static final String JsonMime = "application/json";
     public static final String FormMime = "application/x-www-form-urlencoded";
 
+    private boolean hasHandleComplete = false;
     private static ConnectionPool pool;
     private Request currentRequest;
     private OkHttpClient httpClient;
@@ -73,7 +76,7 @@ public class SystemHttpClient implements IRequestClient {
 
         metrics = new UploadSingleRequestMetrics();
         metrics.clientName = "okhttp";
-        metrics.clientVersion = Version.userAgent.replace("okhttp/", "");
+        metrics.clientVersion = getOkHttpVersion();
         metrics.setRequest(request);
         currentRequest = request;
         httpClient = createHttpClient(connectionProxy);
@@ -382,27 +385,32 @@ public class SystemHttpClient implements IRequestClient {
         };
     }
 
-    private synchronized void handleError(Request request,
-                                          int responseCode,
-                                          String errorMsg,
-                                          RequestClientCompleteHandler complete) {
-        if (metrics == null || metrics.response != null) {
-            return;
+    private void handleError(Request request,
+                             int responseCode,
+                             String errorMsg,
+                             RequestClientCompleteHandler complete) {
+        synchronized (this) {
+            if (hasHandleComplete) {
+                return;
+            }
+            hasHandleComplete = true;
         }
 
         ResponseInfo info = ResponseInfo.create(request, responseCode, null, null, errorMsg);
         metrics.response = info;
         metrics.request = request;
         complete.complete(info, metrics, info.response);
-
         releaseResource();
     }
 
-    private synchronized void handleResponse(Request request,
-                                             okhttp3.Response response,
-                                             RequestClientCompleteHandler complete) {
-        if (metrics == null || metrics.response != null) {
-            return;
+    private void handleResponse(Request request,
+                                okhttp3.Response response,
+                                RequestClientCompleteHandler complete) {
+        synchronized (this) {
+            if (hasHandleComplete) {
+                return;
+            }
+            hasHandleComplete = true;
         }
 
         int statusCode = response.code();
@@ -420,7 +428,7 @@ public class SystemHttpClient implements IRequestClient {
         String errorMessage = null;
         try {
             responseBody = response.body().bytes();
-        } catch (IOException e) {
+        } catch (Exception e) {
             errorMessage = e.getMessage();
         }
 
@@ -508,6 +516,24 @@ public class SystemHttpClient implements IRequestClient {
         return new JSONObject(str);
     }
 
+
+    private static String getOkHttpVersion() {
+        try {
+            Method get = Version.class.getMethod("userAgent");
+            Object version = get.invoke(Version.class);
+            return (version + "").replace("okhttp/", "");
+        } catch (Exception ignore) {
+        }
+
+        try {
+            Field versionField = Version.class.getField("userAgent");
+            Object version = versionField.get(Version.class);
+            return (version + "").replace("okhttp/", "");
+        } catch (Exception ignore) {
+        }
+
+        return "";
+    }
 
     private static class ResponseTag {
         public String ip = "";

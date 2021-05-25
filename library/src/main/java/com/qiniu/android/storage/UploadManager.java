@@ -1,11 +1,15 @@
 package com.qiniu.android.storage;
 
+import android.content.ContentResolver;
+import android.net.Uri;
+
 import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.dns.DnsPrefetchTransaction;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
 import com.qiniu.android.utils.AsyncRun;
+import com.qiniu.android.utils.ContextGetter;
 import com.qiniu.android.utils.Utils;
 import com.qiniu.android.utils.Wait;
 
@@ -14,6 +18,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
@@ -61,7 +66,7 @@ public class UploadManager {
                     final String token,
                     final UpCompletionHandler complete,
                     final UploadOptions options) {
-        if (checkAndNotifyError(key, token, data, complete)){
+        if (checkAndNotifyError(key, token, data, complete)) {
             return;
         }
         putData(data, null, key, token, options, complete);
@@ -81,7 +86,7 @@ public class UploadManager {
                     String token,
                     UpCompletionHandler completionHandler,
                     final UploadOptions options) {
-        if (checkAndNotifyError(key, token, filePath, completionHandler)){
+        if (checkAndNotifyError(key, token, filePath, completionHandler)) {
             return;
         }
         put(new File(filePath), key, token, completionHandler, options);
@@ -91,21 +96,75 @@ public class UploadManager {
     /**
      * 上传文件
      *
-     * @param file     上传的文件对象
-     * @param key      上传文件保存的文件名
-     * @param token    上传凭证
+     * @param file              上传的文件对象
+     * @param key               上传文件保存的文件名
+     * @param token             上传凭证
      * @param completionHandler 上传完成的后续处理动作
-     * @param options  上传数据的可选参数
+     * @param options           上传数据的可选参数
      */
     public void put(final File file,
                     final String key,
                     final String token,
                     final UpCompletionHandler completionHandler,
                     final UploadOptions options) {
-        if (checkAndNotifyError(key, token, file, completionHandler)){
+        if (checkAndNotifyError(key, token, file, completionHandler)) {
             return;
         }
-        putFile(file, key, token, options, completionHandler);
+        putSource(new UploadSourceFile(file), key, token, options, completionHandler);
+    }
+
+    /**
+     * 上传文件
+     *
+     * @param uri               上传的文件对象 Uri
+     * @param resolver          resolver, 在根据 Uri 构建 InputStream 时使用
+     *                          注：为 null 时，使用 {@link ContextGetter#applicationContext()} 获取 resolver
+     * @param key               上传文件保存的文件名
+     * @param token             上传凭证
+     * @param completionHandler 上传完成的后续处理动作
+     * @param options           上传数据的可选参数
+     */
+    public void put(final Uri uri,
+                    final ContentResolver resolver,
+                    final String key,
+                    final String token,
+                    final UpCompletionHandler completionHandler,
+                    final UploadOptions options) {
+        if (checkAndNotifyError(key, token, uri, completionHandler)) {
+            return;
+        }
+        putSource(new UploadSourceUri(uri, resolver), key, token, options, completionHandler);
+    }
+
+    /**
+     * 上传文件
+     *
+     * @param inputStream       上传的资源流
+     *                          注：资源流需要在上传结束后自行关闭，SDK 内部不做关闭操作
+     * @param id                资源 id, 作为构建断点续传信息保存的 key, 如果为空则使用 fileName
+     * @param size              上传资源的大小，不知道大小，配置 -1
+     * @param fileName          上传资源流的文件名
+     * @param key               上传资源保存的文件名
+     * @param token             上传凭证
+     * @param completionHandler 上传完成的后续处理动作
+     * @param options           上传数据的可选参数
+     */
+    public void put(final InputStream inputStream,
+                    final String id,
+                    final long size,
+                    final String fileName,
+                    final String key,
+                    final String token,
+                    final UpCompletionHandler completionHandler,
+                    final UploadOptions options) {
+        if (checkAndNotifyError(key, token, inputStream, completionHandler)) {
+            return;
+        }
+        UploadSourceStream stream = new UploadSourceStream(inputStream);
+        stream.setId(id);
+        stream.setSize(size);
+        stream.setFileName(fileName);
+        putSource(stream, key, token, options, completionHandler);
     }
 
     /**
@@ -136,54 +195,13 @@ public class UploadManager {
             }
         };
 
-        if (!checkAndNotifyError(key, token, data, completionHandler)){
+        if (!checkAndNotifyError(key, token, data, completionHandler)) {
             putData(data, null, key, token, options, completionHandler);
         }
 
         wait.startWait();
 
-        if (responseInfos.size() > 0){
-            return responseInfos.get(0);
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
-     * 注：切勿在主线程调用
-     *
-     * @param file    上传的文件对象
-     * @param key     上传数据保存的文件名
-     * @param token   上传凭证
-     * @param options 上传数据的可选参数
-     * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
-     */
-    public ResponseInfo syncPut(File file,
-                                String key,
-                                String token,
-                                UploadOptions options) {
-
-        final Wait wait = new Wait();
-
-        final ArrayList<ResponseInfo> responseInfos = new ArrayList<ResponseInfo>();
-        UpCompletionHandler completionHandler = new UpCompletionHandler() {
-            @Override
-            public void complete(String key, ResponseInfo info, JSONObject response) {
-                if (info != null) {
-                    responseInfos.add(info);
-                }
-                wait.stopWait();
-            }
-        };
-
-        if (!checkAndNotifyError(key, token, file, completionHandler)){
-            putFile(file, key, token, options, completionHandler);
-        }
-
-        wait.startWait();
-
-        if (responseInfos.size() > 0){
+        if (responseInfos.size() > 0) {
             return responseInfos.get(0);
         } else {
             return null;
@@ -204,13 +222,116 @@ public class UploadManager {
         return syncPut(new File(file), key, token, options);
     }
 
+    /**
+     * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     * 注：切勿在主线程调用
+     *
+     * @param file    上传的文件对象
+     * @param key     上传数据保存的文件名
+     * @param token   上传凭证
+     * @param options 上传数据的可选参数
+     * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
+     */
+    public ResponseInfo syncPut(File file, String key, String token, UploadOptions options) {
+        return syncPut(new UploadSourceFile(file), key, token, options);
+    }
+
+    /**
+     * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     * 注：切勿在主线程调用
+     *
+     * @param uri      上传的文件对象 Uri
+     * @param resolver resolver, 在根据 Uri 构建 InputStream 时使用
+     *                 注：为 null 时，使用 {@link ContextGetter#applicationContext()} 获取 resolver
+     * @param key      上传数据保存的文件名
+     * @param token    上传凭证
+     * @param options  上传数据的可选参数
+     * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
+     */
+    public ResponseInfo syncPut(Uri uri,
+                                ContentResolver resolver,
+                                String key,
+                                String token,
+                                UploadOptions options) {
+
+        return syncPut(new UploadSourceUri(uri, resolver), key, token, options);
+    }
+
+    /**
+     * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     * 注：切勿在主线程调用
+     *
+     * @param inputStream 上传的资源流
+     *                    注：资源流需要在上传结束后自行关闭，SDK 内部不做关闭操作
+     * @param id          资源 id, 作为构建断点续传信息保存的 key, 如果为空则使用 fileName
+     * @param size        上传资源的大小，不知道大小，配置 -1
+     * @param fileName    上传资源流的文件名
+     * @param key         上传数据保存的文件名
+     * @param token       上传凭证
+     * @param options     上传数据的可选参数
+     * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
+     */
+    public ResponseInfo syncPut(InputStream inputStream,
+                                String id,
+                                long size,
+                                String fileName,
+                                String key,
+                                String token,
+                                UploadOptions options) {
+
+        UploadSourceStream stream = new UploadSourceStream(inputStream);
+        stream.setId(id);
+        stream.setSize(size);
+        stream.setFileName(fileName);
+        return syncPut(new UploadSourceStream(inputStream), key, token, options);
+    }
+
+    /**
+     * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     * 注：切勿在主线程调用
+     *
+     * @param source  上传的文件对象
+     * @param key     上传数据保存的文件名
+     * @param token   上传凭证
+     * @param options 上传数据的可选参数
+     * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
+     */
+    private ResponseInfo syncPut(UploadSource source,
+                                 String key,
+                                 String token,
+                                 UploadOptions options) {
+
+        final Wait wait = new Wait();
+        final ArrayList<ResponseInfo> responseInfos = new ArrayList<ResponseInfo>();
+        UpCompletionHandler completionHandler = new UpCompletionHandler() {
+            @Override
+            public void complete(String key, ResponseInfo info, JSONObject response) {
+                if (info != null) {
+                    responseInfos.add(info);
+                }
+                wait.stopWait();
+            }
+        };
+
+        if (!checkAndNotifyError(key, token, source, completionHandler)) {
+            putSource(source, key, token, options, completionHandler);
+        }
+
+        wait.startWait();
+
+        if (responseInfos.size() > 0) {
+            return responseInfos.get(0);
+        } else {
+            return null;
+        }
+    }
 
     private void putData(final byte[] data,
                          final String fileName,
                          final String key,
                          final String token,
                          final UploadOptions option,
-                         final UpCompletionHandler completionHandler){
+                         final UpCompletionHandler completionHandler) {
 
         final UpToken t = UpToken.parse(token);
         if (t == null || !t.isValid()) {
@@ -231,11 +352,11 @@ public class UploadManager {
         AsyncRun.runInBack(up);
     }
 
-    private void putFile(final File file,
-                         final String key,
-                         final String token,
-                         final UploadOptions option,
-                         final UpCompletionHandler completionHandler){
+    private void putSource(final UploadSource source,
+                           final String key,
+                           final String token,
+                           final UploadOptions option,
+                           final UpCompletionHandler completionHandler) {
 
         final UpToken t = UpToken.parse(token);
         if (t == null || !t.isValid()) {
@@ -246,26 +367,18 @@ public class UploadManager {
 
         DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(config.zone, t);
 
-        if (file.length() <= config.putThreshold) {
+        if (source.getSize() > 0 && source.getSize() <= config.putThreshold) {
             ResponseInfo errorInfo = null;
-            byte[] data = new byte[(int) file.length()];
-            RandomAccessFile randomAccessFile = null;
+            byte[] data = null;
             try {
-                randomAccessFile = new RandomAccessFile(file, "r");
-                randomAccessFile.read(data);
-            } catch (FileNotFoundException e) {
-                errorInfo = ResponseInfo.localIOError("get upload file data error");
+                data = source.readData((int) source.getSize(), 0);
             } catch (IOException e) {
-                errorInfo = ResponseInfo.localIOError("get upload file data error");
+                errorInfo = ResponseInfo.localIOError("get upload file data error:" + e.getMessage());
             } finally {
-                if (randomAccessFile != null){
-                    try {
-                        randomAccessFile.close();
-                    } catch (IOException ignored){}
-                }
+                source.close();
             }
-            if (errorInfo == null){
-                putData(data, file.getName(), key, token, option, completionHandler);
+            if (errorInfo == null) {
+                putData(data, source.getFileName(), key, token, option, completionHandler);
             } else {
                 completeAction(token, key, errorInfo, null, null, completionHandler);
             }
@@ -274,7 +387,7 @@ public class UploadManager {
 
         String recorderKey = key;
         if (config.recorder != null && config.keyGen != null) {
-            recorderKey = config.keyGen.gen(key, file);
+            recorderKey = config.keyGen.gen(key, source.getId());
         }
 
         BaseUpload.UpTaskCompletionHandler completionHandlerP = new BaseUpload.UpTaskCompletionHandler() {
@@ -284,10 +397,10 @@ public class UploadManager {
             }
         };
         if (config.useConcurrentResumeUpload) {
-            final ConcurrentResumeUpload up = new ConcurrentResumeUpload(file, key, t, option, config, config.recorder, recorderKey, completionHandlerP);
+            final ConcurrentResumeUpload up = new ConcurrentResumeUpload(source, key, t, option, config, config.recorder, recorderKey, completionHandlerP);
             AsyncRun.runInBack(up);
         } else {
-            final PartsUpload up = new PartsUpload(file, key, t, option, config, config.recorder, recorderKey, completionHandlerP);
+            final PartsUpload up = new PartsUpload(source, key, t, option, config, config.recorder, recorderKey, completionHandlerP);
             AsyncRun.runInBack(up);
         }
     }
@@ -295,22 +408,24 @@ public class UploadManager {
     private boolean checkAndNotifyError(String key,
                                         String token,
                                         Object input,
-                                        UpCompletionHandler completionHandler){
-        if (completionHandler == null){
+                                        UpCompletionHandler completionHandler) {
+        if (completionHandler == null) {
             throw new NullPointerException("complete handler is null");
         }
 
         ResponseInfo responseInfo = null;
-        if (input == null){
+        if (input == null) {
             responseInfo = ResponseInfo.zeroSize("no input data");
-        } else if (input instanceof byte[] && ((byte[])input).length == 0){
+        } else if (input instanceof byte[] && ((byte[]) input).length == 0) {
             responseInfo = ResponseInfo.zeroSize("no input data");
-        } else if (input instanceof File && ((File)input).length() == 0){
+        } else if (input instanceof File && ((File) input).length() == 0) {
             responseInfo = ResponseInfo.zeroSize("file is empty");
-        } else if (token == null || token.length() == 0){
+        } else if (input instanceof UploadSource && ((UploadSource) input).getSize() == 0) {
+            responseInfo = ResponseInfo.zeroSize("file is empty");
+        } else if (token == null || token.length() == 0) {
             responseInfo = ResponseInfo.invalidToken("no token");
         }
-        if (responseInfo != null){
+        if (responseInfo != null) {
             completeAction(token, key, responseInfo, responseInfo.response, null, completionHandler);
             return true;
         } else {
@@ -323,10 +438,10 @@ public class UploadManager {
                                 final ResponseInfo responseInfo,
                                 final JSONObject response,
                                 final UploadTaskMetrics taskMetrics,
-                                final UpCompletionHandler completionHandler){
+                                final UpCompletionHandler completionHandler) {
 
         reportQuality(key, responseInfo, taskMetrics, token);
-        if (completionHandler != null){
+        if (completionHandler != null) {
             final Wait wait = new Wait();
             AsyncRun.runInMain(new Runnable() {
                 @Override
@@ -342,7 +457,7 @@ public class UploadManager {
     private void reportQuality(String key,
                                ResponseInfo responseInfo,
                                UploadTaskMetrics taskMetrics,
-                               String token){
+                               String token) {
 
         UpToken upToken = UpToken.parse(token);
         if (upToken == null || !upToken.isValid()) {
@@ -353,7 +468,7 @@ public class UploadManager {
 
         ReportItem item = new ReportItem();
         item.setReport(ReportItem.LogTypeQuality, ReportItem.QualityKeyLogType);
-        item.setReport((Utils.currentTimestamp()/1000), ReportItem.QualityKeyUpTime);
+        item.setReport((Utils.currentTimestamp() / 1000), ReportItem.QualityKeyUpTime);
         item.setReport(ReportItem.qualityResult(responseInfo), ReportItem.QualityKeyResult);
         item.setReport(key, ReportItem.QualityKeyTargetKey);
         item.setReport(upToken.bucket, ReportItem.QualityKeyTargetBucket);
@@ -369,7 +484,7 @@ public class UploadManager {
 
         String errorType = ReportItem.requestReportErrorType(responseInfo);
         item.setReport(errorType, ReportItem.QualityKeyErrorType);
-        if (responseInfo != null && errorType != null){
+        if (responseInfo != null && errorType != null) {
             String errorDesc = responseInfo.error != null ? responseInfo.error : responseInfo.message;
             item.setReport(errorDesc, ReportItem.QualityKeyErrorDescription);
         }
