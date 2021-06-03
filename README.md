@@ -4,7 +4,7 @@
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE.md)
 [![Build Status](https://github.com/qiniu/android-sdk/workflows/Run%20Test%20Cases/badge.svg)](https://github.com/qiniu/android-sdk/actions)
 [![codecov](https://codecov.io/gh/qiniu/android-sdk/branch/master/graph/badge.svg)](https://codecov.io/gh/qiniu/android-sdk)
-[![Latest Stable Version](http://img.shields.io/maven-central/v/com.qiniu/qiniu-android-sdk.svg)](https://github.com/qiniu/android-sdk/releases)
+[![Latest Stable Version](http://img.shields.io/maven-central/v/com.qiniu/qiniu-android-sdk.svg)](https://search.maven.org/search?q=a:qiniu-android-sdk)
 
 ## 演示代码
 https://github.com/qiniudemo/qiniu-lab-android
