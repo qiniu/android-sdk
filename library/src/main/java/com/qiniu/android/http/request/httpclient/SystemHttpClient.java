@@ -47,7 +47,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.internal.Version;
 
 import static com.qiniu.android.http.ResponseInfo.NetworkError;
 
@@ -518,16 +517,28 @@ public class SystemHttpClient implements IRequestClient {
 
 
     private static String getOkHttpVersion() {
+
+        // 4.9.+
         try {
-            Method get = Version.class.getMethod("userAgent");
-            Object version = get.invoke(Version.class);
+            Class clazz = Class.forName("okhttp3.OkHttp");
+            Field versionField = clazz.getField("VERSION");
+            Object version = versionField.get(clazz);
+            return (version + "");
+        } catch (Exception ignore) {
+        }
+
+        try {
+            Class clazz = Class.forName("okhttp3.internal.Version");
+            Field versionField = clazz.getField("userAgent");
+            Object version = versionField.get(clazz);
             return (version + "").replace("okhttp/", "");
         } catch (Exception ignore) {
         }
 
         try {
-            Field versionField = Version.class.getField("userAgent");
-            Object version = versionField.get(Version.class);
+            Class clazz = Class.forName("okhttp3.internal.Version");
+            Method get = clazz.getMethod("userAgent");
+            Object version = get.invoke(clazz);
             return (version + "").replace("okhttp/", "");
         } catch (Exception ignore) {
         }
