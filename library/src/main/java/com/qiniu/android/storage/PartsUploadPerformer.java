@@ -30,6 +30,7 @@ abstract class PartsUploadPerformer {
     final Recorder recorder;
     final String recorderKey;
 
+    private Boolean isRecording = false;
     private IUploadRegion targetRegion;
     protected IUploadRegion currentRegion;
 
@@ -105,6 +106,13 @@ abstract class PartsUploadPerformer {
     }
 
     void recordUploadInfo() {
+        synchronized (this) {
+            if (isRecording) {
+                return;
+            }
+            isRecording = true;
+        }
+
         String key = recorderKey;
         if (recorder == null || key == null || key.length() == 0) {
             return;
@@ -131,6 +139,10 @@ abstract class PartsUploadPerformer {
         LogUtil.i("key:" + StringUtils.toNonnullString(key) +
                 " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
                 " recordUploadInfo");
+
+        synchronized (this) {
+            isRecording = false;
+        }
     }
 
     void removeUploadInfoRecord() {
