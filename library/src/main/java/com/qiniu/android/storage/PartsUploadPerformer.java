@@ -30,7 +30,6 @@ abstract class PartsUploadPerformer {
     final Recorder recorder;
     final String recorderKey;
 
-    private Boolean isRecording = false;
     private IUploadRegion targetRegion;
     protected IUploadRegion currentRegion;
 
@@ -106,43 +105,34 @@ abstract class PartsUploadPerformer {
     }
 
     void recordUploadInfo() {
-        synchronized (this) {
-            if (isRecording) {
-                return;
-            }
-            isRecording = true;
-        }
 
         String key = recorderKey;
         if (recorder == null || key == null || key.length() == 0) {
             return;
         }
 
-        JSONObject zoneInfoJson = null;
-        JSONObject fileInfoJson = null;
-        if (currentRegion != null && currentRegion.getZoneInfo() != null) {
-            zoneInfoJson = currentRegion.getZoneInfo().detailInfo;
-        }
-        if (uploadInfo != null) {
-            fileInfoJson = uploadInfo.toJsonObject();
-        }
-        if (zoneInfoJson != null && fileInfoJson != null) {
-            JSONObject info = new JSONObject();
-            try {
-                info.put(kRecordZoneInfoKey, zoneInfoJson);
-                info.put(kRecordFileInfoKey, fileInfoJson);
-            } catch (JSONException ignored) {
+        synchronized (this) {
+            JSONObject zoneInfoJson = null;
+            JSONObject fileInfoJson = null;
+            if (currentRegion != null && currentRegion.getZoneInfo() != null) {
+                zoneInfoJson = currentRegion.getZoneInfo().detailInfo;
             }
-            recorder.set(key, info.toString().getBytes());
+            if (uploadInfo != null) {
+                fileInfoJson = uploadInfo.toJsonObject();
+            }
+            if (zoneInfoJson != null && fileInfoJson != null) {
+                JSONObject info = new JSONObject();
+                try {
+                    info.put(kRecordZoneInfoKey, zoneInfoJson);
+                    info.put(kRecordFileInfoKey, fileInfoJson);
+                } catch (JSONException ignored) {
+                }
+                recorder.set(key, info.toString().getBytes());
+            }
         }
-
         LogUtil.i("key:" + StringUtils.toNonnullString(key) +
                 " recorderKey:" + StringUtils.toNonnullString(recorderKey) +
                 " recordUploadInfo");
-
-        synchronized (this) {
-            isRecording = false;
-        }
     }
 
     void removeUploadInfoRecord() {
