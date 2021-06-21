@@ -1,5 +1,6 @@
 package com.qiniu.android.storage;
 
+import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.net.Uri;
 
@@ -124,6 +125,7 @@ public class UploadManager {
      * @param completionHandler 上传完成的后续处理动作
      * @param options           上传数据的可选参数
      */
+    @TargetApi(16)
     public void put(final Uri uri,
                     final ContentResolver resolver,
                     final String key,
@@ -248,6 +250,7 @@ public class UploadManager {
      * @param options  上传数据的可选参数
      * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
      */
+    @TargetApi(16)
     public ResponseInfo syncPut(Uri uri,
                                 ContentResolver resolver,
                                 String key,

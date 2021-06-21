@@ -7,18 +7,25 @@ import android.content.Context;
  * Created by bailong on 16/9/7.
  */
 public final class ContextGetter {
+    private static Application app = getApplicationUsingReflection();
+
     public static Context applicationContext() {
-        try {
-            Application app = getApplicationUsingReflection();
-            return app.getApplicationContext();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+        if (app == null) {
+            app = getApplicationUsingReflection();
         }
+
+        return app;
     }
 
-    private static Application getApplicationUsingReflection() throws Exception {
-        return (Application) Class.forName("android.app.ActivityThread")
-                .getMethod("currentApplication").invoke(null, (Object[]) null);
+    private static Application getApplicationUsingReflection() {
+        Application app = null;
+        try {
+            Class activity = Class.forName("android.app.ActivityThread");
+            app = (Application) activity.getMethod("currentApplication").invoke(null, (Object[]) null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return app;
     }
 }

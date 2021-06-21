@@ -144,6 +144,10 @@ public final class AndroidNetwork {
      */
     public static int getMobileDbm() {
         Context context = ContextGetter.applicationContext();
+        if (context == null) {
+            return -1;
+        }
+
         int dbm = -1;
         TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         List<CellInfo> cellInfoList;

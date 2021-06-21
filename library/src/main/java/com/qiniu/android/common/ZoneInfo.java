@@ -48,10 +48,11 @@ public class ZoneInfo {
         }
 
         HashMap<String, Object> up = new HashMap<>();
-        up.put("domains", mainHosts);
+        up.put("domains", new JSONArray(mainHosts));
         if (oldHosts != null) {
-            up.put("old", oldHosts);
+            up.put("old", new JSONArray(oldHosts));
         }
+        JSONObject upJson = new JSONObject(up);
 
         if (regionId == null) {
             regionId = EmptyRegionId;
@@ -59,7 +60,7 @@ public class ZoneInfo {
         HashMap<String, Object> info = new HashMap<>();
         info.put("ttl", 86400 * 1000);
         info.put("region", regionId);
-        info.put("up", up);
+        info.put("up", upJson);
 
         JSONObject object = new JSONObject(info);
 

@@ -1,5 +1,6 @@
 package com.qiniu.android.storage;
 
+import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
@@ -13,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+@TargetApi(16)
 class UploadSourceUri extends UploadSourceStream {
 
     private Exception readException = null;
