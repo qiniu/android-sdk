@@ -3,18 +3,31 @@ package com.qiniu.android.utils;
 import android.app.Application;
 import android.content.Context;
 
+import com.qiniu.android.storage.GlobalConfiguration;
+
 /**
  * Created by bailong on 16/9/7.
  */
 public final class ContextGetter {
-    private static Application app = getApplicationUsingReflection();
+    private static Context context = applicationContext();
 
     public static Context applicationContext() {
-        if (app == null) {
-            app = getApplicationUsingReflection();
+        if (context != null) {
+            return context;
         }
 
-        return app;
+        if (GlobalConfiguration.getInstance().appContext != null) {
+            context = GlobalConfiguration.getInstance().appContext;
+        }
+
+        if (context == null) {
+            Application app = getApplicationUsingReflection();
+            if (app != null) {
+                context = app.getApplicationContext();
+            }
+        }
+
+        return context;
     }
 
     private static Application getApplicationUsingReflection() {

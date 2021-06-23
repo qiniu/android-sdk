@@ -56,6 +56,10 @@ public final class AndroidNetwork {
         String hostIp = null;
         try {
             Enumeration nis = NetworkInterface.getNetworkInterfaces();
+            if (nis == null) {
+                return null;
+            }
+
             InetAddress ia = null;
             while (nis.hasMoreElements()) {
                 NetworkInterface ni = (NetworkInterface) nis.nextElement();

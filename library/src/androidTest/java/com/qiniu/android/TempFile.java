@@ -1,5 +1,8 @@
 package com.qiniu.android;
 
+import com.qiniu.android.utils.ContextGetter;
+import com.qiniu.android.utils.Utils;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -24,7 +27,9 @@ public final class TempFile {
         FileOutputStream fos = null;
         try {
             long size = (long) (1024 * kiloSize);
-            File f = File.createTempFile(fileName, ".tmp");
+            String path = "/" + fileName + ".tmp";
+            File f = new File(path);
+//            File f = File.createTempFile(fileName, ".tmp");
             f.createNewFile();
             fos = new FileOutputStream(f);
             byte[] b = getByte(1023 * 4);
