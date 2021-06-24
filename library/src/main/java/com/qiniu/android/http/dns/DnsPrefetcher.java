@@ -51,7 +51,7 @@ public class DnsPrefetcher {
         DnsCacheFile recorder = null;
         try {
             recorder = new DnsCacheFile(GlobalConfiguration.getInstance().dnsCacheDir);
-        } catch (IOException e) {
+        } catch (Exception e) {
             return true;
         }
 

@@ -27,9 +27,7 @@ public final class TempFile {
         FileOutputStream fos = null;
         try {
             long size = (long) (1024 * kiloSize);
-            String path = "/" + fileName + ".tmp";
-            File f = new File(path);
-//            File f = File.createTempFile(fileName, ".tmp");
+            File f = File.createTempFile(fileName, ".tmp");
             f.createNewFile();
             fos = new FileOutputStream(f);
             byte[] b = getByte(1023 * 4);

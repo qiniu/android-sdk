@@ -1,5 +1,7 @@
 package com.qiniu.android;
 
+import android.test.AndroidTestCase;
+
 import com.qiniu.android.utils.LogUtil;
 
 import junit.framework.TestCase;
@@ -11,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by yangsen on 2020/5/26
  */
-public class BaseTest extends TestCase {
+public class BaseTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {

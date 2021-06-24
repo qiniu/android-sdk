@@ -201,7 +201,7 @@ public class UploadBaseTest extends BaseTest {
         if (file.info instanceof File) {
             manager.put((File) file.info, key, token, completionHandler, options);
         } else if (file.info instanceof Uri) {
-            manager.put((Uri) file.info, null, key, token, completionHandler, options);
+            manager.put((Uri) file.info, getContext().getContentResolver(), key, token, completionHandler, options);
         } else if (file.info instanceof InputStream) {
             manager.put((InputStream) file.info, null, file.size, file.fileName, key, token, completionHandler, options);
         } else if (file.info instanceof byte[]) {

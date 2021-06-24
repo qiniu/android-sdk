@@ -361,6 +361,10 @@ public class UploadManager {
                            final UploadOptions option,
                            final UpCompletionHandler completionHandler) {
 
+        if (checkAndNotifyError(key, token, source, completionHandler)) {
+            return;
+        }
+
         final UpToken t = UpToken.parse(token);
         if (t == null || !t.isValid()) {
             ResponseInfo info = ResponseInfo.invalidToken("invalid token");

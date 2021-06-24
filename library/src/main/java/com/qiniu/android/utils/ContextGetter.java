@@ -5,6 +5,8 @@ import android.content.Context;
 
 import com.qiniu.android.storage.GlobalConfiguration;
 
+import java.lang.reflect.Field;
+
 /**
  * Created by bailong on 16/9/7.
  */
@@ -16,17 +18,14 @@ public final class ContextGetter {
             return context;
         }
 
-        if (GlobalConfiguration.getInstance().appContext != null) {
-            context = GlobalConfiguration.getInstance().appContext;
+        if (GlobalConfiguration.appContext != null) {
+            return GlobalConfiguration.appContext;
         }
 
-        if (context == null) {
-            Application app = getApplicationUsingReflection();
-            if (app != null) {
-                context = app.getApplicationContext();
-            }
+        Application app = getApplicationUsingReflection();
+        if (app != null) {
+            context = app.getApplicationContext();
         }
-
         return context;
     }
 
@@ -35,6 +34,11 @@ public final class ContextGetter {
         try {
             Class activity = Class.forName("android.app.ActivityThread");
             app = (Application) activity.getMethod("currentApplication").invoke(null, (Object[]) null);
+
+            if (app == null) {
+                Object localObject = activity.getMethod("currentActivityThread", new Class[0]).invoke(null, (Object[]) null);
+                app = (Application) activity.getMethod("getApplication").invoke(localObject, (Object[]) null);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
