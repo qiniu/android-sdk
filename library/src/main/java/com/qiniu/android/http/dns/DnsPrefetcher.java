@@ -267,8 +267,8 @@ public class DnsPrefetcher {
     private String[] getLocalPreHost(){
         ArrayList<String> localHosts = new ArrayList<>();
 
-        String[] fixedHosts = getFixedZoneHosts();
-        localHosts.addAll(Arrays.asList(fixedHosts));
+//        String[] fixedHosts = getFixedZoneHosts();
+//        localHosts.addAll(Arrays.asList(fixedHosts));
 
         localHosts.add(Config.preQueryHost00);
         localHosts.add(Config.preQueryHost01);
@@ -278,23 +278,6 @@ public class DnsPrefetcher {
 
         return localHosts.toArray(new String[0]);
     }
-
-
-//    private String[] getAllPreHost(Zone currentZone, UpToken token){
-//
-//        HashSet<String> fetchHosts = new HashSet<String>();
-//
-//        String[] fixedHosts = getFixedZoneHosts();
-//        fetchHosts.addAll(Arrays.asList(fixedHosts));
-//
-//        String[] autoHosts = getCurrentZoneHosts(currentZone, token);
-//        fetchHosts.addAll(Arrays.asList(autoHosts));
-//
-//        String[] cacheHosts = getCacheHosts();
-//        fetchHosts.addAll(Arrays.asList(cacheHosts));
-//
-//        return fetchHosts.toArray(new String[0]);
-//    }
 
     private String[] getCurrentZoneHosts(Zone currentZone, UpToken token){
         if (currentZone == null || token == null){
