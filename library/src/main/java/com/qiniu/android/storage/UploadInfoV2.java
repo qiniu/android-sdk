@@ -85,34 +85,30 @@ class UploadInfoV2 extends UploadInfo {
 
     UploadData nextUploadData() throws IOException {
 
-        UploadData data = null;
-        synchronized (this) {
-            // 从 dataList 中读取需要上传的 data
-            data = nextUploadDataFormDataList();
+        UploadData data = nextUploadDataFormDataList();
 
-            // 内存的 blockList 中没有可上传的数据，则从资源中读并创建 block
-            if (data == null) {
-                if (isEOF) {
-                    return null;
-                } else if (readException != null) {
-                    // 资源读取异常，不可读取
-                    throw readException;
-                }
-
-                // 从资源中读取新的 data 进行上传
-                long dataOffset = 0;
-                if (dataList.size() > 0) {
-                    UploadData lastData = dataList.get(dataList.size() - 1);
-                    dataOffset = lastData.offset + lastData.size;
-                }
-                int dataIndex = dataList.size();
-                data = new UploadData(dataOffset, dataSize, dataIndex);
+        // 内存的 blockList 中没有可上传的数据，则从资源中读并创建 block
+        if (data == null) {
+            if (isEOF) {
+                return null;
+            } else if (readException != null) {
+                // 资源读取异常，不可读取
+                throw readException;
             }
+
+            // 从资源中读取新的 data 进行上传
+            long dataOffset = 0;
+            if (dataList.size() > 0) {
+                UploadData lastData = dataList.get(dataList.size() - 1);
+                dataOffset = lastData.offset + lastData.size;
+            }
+            int dataIndex = dataList.size();
+            data = new UploadData(dataOffset, dataSize, dataIndex);
         }
 
         UploadData loadData = null;
         try {
-            loadData =  loadData(data);
+            loadData = loadData(data);
         } catch (IOException e) {
             readException = e;
             throw e;

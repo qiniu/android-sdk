@@ -178,27 +178,24 @@ class UploadInfoV1 extends UploadInfo {
     UploadBlock nextUploadBlock() throws IOException {
 
         // 从 blockList 中读取需要上传的 block
-        UploadBlock block = null;
-        synchronized (this) {
-            block = nextUploadBlockFormBlockList();
+        UploadBlock block = nextUploadBlockFormBlockList();
 
-            // 内存的 blockList 中没有可上传的数据，则从资源中读并创建 block
-            if (block == null) {
-                if (isEOF) {
-                    return null;
-                } else if (readException != null) {
-                    // 资源读取异常，不可读取
-                    throw readException;
-                }
-
-                // 从资源中读取新的 block 进行上传
-                long blockOffset = 0;
-                if (blockList.size() > 0) {
-                    UploadBlock lastBlock = blockList.get(blockList.size() - 1);
-                    blockOffset = lastBlock.offset + lastBlock.size;
-                }
-                block = new UploadBlock(blockOffset, BlockSize, dataSize, blockList.size());
+        // 内存的 blockList 中没有可上传的数据，则从资源中读并创建 block
+        if (block == null) {
+            if (isEOF) {
+                return null;
+            } else if (readException != null) {
+                // 资源读取异常，不可读取
+                throw readException;
             }
+
+            // 从资源中读取新的 block 进行上传
+            long blockOffset = 0;
+            if (blockList.size() > 0) {
+                UploadBlock lastBlock = blockList.get(blockList.size() - 1);
+                blockOffset = lastBlock.offset + lastBlock.size;
+            }
+            block = new UploadBlock(blockOffset, BlockSize, dataSize, blockList.size());
         }
 
         UploadBlock loadBlock = null;

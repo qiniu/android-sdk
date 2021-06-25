@@ -22,7 +22,7 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
 
     private final CountDownLatch signal = new CountDownLatch(1);
 
-    public void testMutiUploadV1(){
+    public void notestMutiUploadV1(){
 
         final int maxCount = 40;
 
