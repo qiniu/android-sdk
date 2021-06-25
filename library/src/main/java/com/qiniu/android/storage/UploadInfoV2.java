@@ -85,26 +85,29 @@ class UploadInfoV2 extends UploadInfo {
 
     UploadData nextUploadData() throws IOException {
 
-        // 从 dataList 中读取需要上传的 data
-        UploadData data = nextUploadDataFormDataList();
+        UploadData data = null;
+        synchronized (this) {
+            // 从 dataList 中读取需要上传的 data
+            data = nextUploadDataFormDataList();
 
-        // 内存的 blockList 中没有可上传的数据，则从资源中读并创建 block
-        if (data == null) {
-            if (isEOF) {
-                return null;
-            } else if (readException != null) {
-                // 资源读取异常，不可读取
-                throw readException;
-            }
+            // 内存的 blockList 中没有可上传的数据，则从资源中读并创建 block
+            if (data == null) {
+                if (isEOF) {
+                    return null;
+                } else if (readException != null) {
+                    // 资源读取异常，不可读取
+                    throw readException;
+                }
 
-            // 从资源中读取新的 data 进行上传
-            long dataOffset = 0;
-            if (dataList.size() > 0) {
-                UploadData lastData = dataList.get(dataList.size() - 1);
-                dataOffset = lastData.offset + lastData.size;
+                // 从资源中读取新的 data 进行上传
+                long dataOffset = 0;
+                if (dataList.size() > 0) {
+                    UploadData lastData = dataList.get(dataList.size() - 1);
+                    dataOffset = lastData.offset + lastData.size;
+                }
+                int dataIndex = dataList.size();
+                data = new UploadData(dataOffset, dataSize, dataIndex);
             }
-            int dataIndex = dataList.size();
-            data = new UploadData(dataOffset, dataSize, dataIndex);
         }
 
         UploadData loadData = null;
@@ -115,33 +118,34 @@ class UploadInfoV2 extends UploadInfo {
             throw e;
         }
 
-        if (loadData == null) {
-            // 没有加在到 data, 也即数据源读取结束
-            isEOF = true;
-            // 有多余的 data 则移除，移除中包含 data
-            if (dataList.size() > data.index) {
-                dataList = dataList.subList(0, data.index);
-            }
-        } else {
-            // 加在到 data
-            if (loadData.index == dataList.size()) {
-                // 新块：data index 等于 dataList size 则为新创建 block，需要加入 dataList
-                dataList.add(loadData);
-            } else if (loadData != data) {
-                // 更换块：重新加在了 data， 更换信息
-                dataList.set(loadData.index, loadData);
-            }
-
-            // 数据源读取结束，块读取大小小于预期，读取结束
-            if (loadData.size < data.size) {
+        synchronized (this) {
+            if (loadData == null) {
+                // 没有加在到 data, 也即数据源读取结束
                 isEOF = true;
-                // 有多余的 block 则移除，移除中不包含 block
-                if (dataList.size() > data.index + 1) {
-                    dataList = dataList.subList(0, data.index + 1);
+                // 有多余的 data 则移除，移除中包含 data
+                if (dataList.size() > data.index) {
+                    dataList = dataList.subList(0, data.index);
+                }
+            } else {
+                // 加在到 data
+                if (loadData.index == dataList.size()) {
+                    // 新块：data index 等于 dataList size 则为新创建 block，需要加入 dataList
+                    dataList.add(loadData);
+                } else if (loadData != data) {
+                    // 更换块：重新加在了 data， 更换信息
+                    dataList.set(loadData.index, loadData);
+                }
+
+                // 数据源读取结束，块读取大小小于预期，读取结束
+                if (loadData.size < data.size) {
+                    isEOF = true;
+                    // 有多余的 block 则移除，移除中不包含 block
+                    if (dataList.size() > data.index + 1) {
+                        dataList = dataList.subList(0, data.index + 1);
+                    }
                 }
             }
         }
-
         return loadData;
     }
 
@@ -252,7 +256,7 @@ class UploadInfoV2 extends UploadInfo {
     }
 
     @Override
-    long uploadSize() {
+    synchronized long uploadSize() {
         if (dataList == null || dataList.size() == 0) {
             return 0;
         }

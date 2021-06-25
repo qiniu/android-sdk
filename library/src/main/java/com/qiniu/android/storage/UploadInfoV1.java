@@ -112,7 +112,7 @@ class UploadInfoV1 extends UploadInfo {
     }
 
     @Override
-    long uploadSize() {
+    synchronized long uploadSize() {
         if (blockList == null || blockList.size() == 0) {
             return 0;
         }
@@ -178,24 +178,27 @@ class UploadInfoV1 extends UploadInfo {
     UploadBlock nextUploadBlock() throws IOException {
 
         // 从 blockList 中读取需要上传的 block
-        UploadBlock block = nextUploadBlockFormBlockList();
+        UploadBlock block = null;
+        synchronized (this) {
+            block = nextUploadBlockFormBlockList();
 
-        // 内存的 blockList 中没有可上传的数据，则从资源中读并创建 block
-        if (block == null) {
-            if (isEOF) {
-                return null;
-            } else if (readException != null) {
-                // 资源读取异常，不可读取
-                throw readException;
-            }
+            // 内存的 blockList 中没有可上传的数据，则从资源中读并创建 block
+            if (block == null) {
+                if (isEOF) {
+                    return null;
+                } else if (readException != null) {
+                    // 资源读取异常，不可读取
+                    throw readException;
+                }
 
-            // 从资源中读取新的 block 进行上传
-            long blockOffset = 0;
-            if (blockList.size() > 0) {
-                UploadBlock lastBlock = blockList.get(blockList.size() - 1);
-                blockOffset = lastBlock.offset + lastBlock.size;
+                // 从资源中读取新的 block 进行上传
+                long blockOffset = 0;
+                if (blockList.size() > 0) {
+                    UploadBlock lastBlock = blockList.get(blockList.size() - 1);
+                    blockOffset = lastBlock.offset + lastBlock.size;
+                }
+                block = new UploadBlock(blockOffset, BlockSize, dataSize, blockList.size());
             }
-            block = new UploadBlock(blockOffset, BlockSize, dataSize, blockList.size());
         }
 
         UploadBlock loadBlock = null;
@@ -206,33 +209,34 @@ class UploadInfoV1 extends UploadInfo {
             throw e;
         }
 
-        if (loadBlock == null) {
-            // 没有加在到 block, 也即数据源读取结束
-            isEOF = true;
-            // 有多余的 block 则移除，移除中包含 block
-            if (blockList.size() > block.index) {
-                blockList = blockList.subList(0, block.index);
-            }
-        } else {
-            // 加在到 block
-            if (loadBlock.index == blockList.size()) {
-                // 新块：block index 等于 blockList size 则为新创建 block，需要加入 blockList
-                blockList.add(loadBlock);
-            } else if (loadBlock != block) {
-                // 更换块：重新加在了 block， 更换信息
-                blockList.set(loadBlock.index, loadBlock);
-            }
-
-            // 数据源读取结束，块读取大小小于预期，读取结束
-            if (loadBlock.size < BlockSize) {
+        synchronized (this) {
+            if (loadBlock == null) {
+                // 没有加在到 block, 也即数据源读取结束
                 isEOF = true;
-                // 有多余的 block 则移除，移除中不包含 block
-                if (blockList.size() > block.index + 1) {
-                    blockList = blockList.subList(0, block.index + 1);
+                // 有多余的 block 则移除，移除中包含 block
+                if (blockList.size() > block.index) {
+                    blockList = blockList.subList(0, block.index);
+                }
+            } else {
+                // 加在到 block
+                if (loadBlock.index == blockList.size()) {
+                    // 新块：block index 等于 blockList size 则为新创建 block，需要加入 blockList
+                    blockList.add(loadBlock);
+                } else if (loadBlock != block) {
+                    // 更换块：重新加在了 block， 更换信息
+                    blockList.set(loadBlock.index, loadBlock);
+                }
+
+                // 数据源读取结束，块读取大小小于预期，读取结束
+                if (loadBlock.size < BlockSize) {
+                    isEOF = true;
+                    // 有多余的 block 则移除，移除中不包含 block
+                    if (blockList.size() > block.index + 1) {
+                        blockList = blockList.subList(0, block.index + 1);
+                    }
                 }
             }
         }
-
         return loadBlock;
     }
 
