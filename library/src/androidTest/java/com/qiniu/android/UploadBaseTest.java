@@ -129,7 +129,7 @@ public class UploadBaseTest extends BaseTest {
             }
         }
 
-        if (file.length() < 10 * 1024 * 1024) {
+        if (file.length() < 4 * 1024 * 1024) {
             byte[] data = getDataFromFile(file);
             UploadInfo<byte[]> dataInfo = new UploadInfo<>(data);
             dataInfo.configWithFile(file);
