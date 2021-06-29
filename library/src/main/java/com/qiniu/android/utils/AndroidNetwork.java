@@ -80,6 +80,15 @@ public final class AndroidNetwork {
     }
 
     public static String networkType(Context context) {
+        try {
+            return networkTypeWithException(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static String networkTypeWithException(Context context) throws Exception {
         if (context == null){
             return Constants.NETWORK_CLASS_UNKNOWN;
         }
