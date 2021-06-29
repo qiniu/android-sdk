@@ -285,7 +285,6 @@ public class SystemHttpClient implements IRequestClient {
                 metrics.connectStartDate = new Date();
                 metrics.remoteAddress = inetSocketAddress.getAddress().getHostAddress();
                 metrics.remotePort = inetSocketAddress.getPort();
-                metrics.localAddress = AndroidNetwork.getHostIP();
             }
 
             @Override
