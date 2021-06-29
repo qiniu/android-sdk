@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,6 +28,7 @@ public class DnsPrefetcher {
 
     private boolean isPrefetching = false;
     private DnsCacheInfo dnsCacheInfo = null;
+    private HashSet<String> prefetchHosts = new HashSet<>();
     private ConcurrentHashMap<String, List<IDnsNetworkAddress>> addressDictionary = new ConcurrentHashMap<>();
     private final HappyDns happyDns = new HappyDns();
 
@@ -72,7 +74,12 @@ public class DnsPrefetcher {
         if (!prepareToPreFetch()){
             return;
         }
-        preFetchHosts(getLocalPreHost());
+
+        String[] hosts = getLocalPreHost();
+        synchronized (this) {
+            prefetchHosts.addAll(Arrays.asList(hosts));
+        }
+        preFetchHosts(hosts);
         recorderDnsCache();
         endPreFetch();
     }
@@ -82,7 +89,16 @@ public class DnsPrefetcher {
             return false;
         }
 
-        preFetchHosts(getCurrentZoneHosts(currentZone, token));
+        String[] hosts = getCurrentZoneHosts(currentZone, token);
+        if (hosts == null) {
+            return false;
+        }
+
+        synchronized (this) {
+            prefetchHosts.addAll(Arrays.asList(hosts));
+        }
+
+        preFetchHosts(hosts);
         recorderDnsCache();
         endPreFetch();
         return true;
@@ -122,7 +138,11 @@ public class DnsPrefetcher {
             return;
         }
 
-        preFetchHosts(addressDictionary.keySet().toArray(new String[0]));
+        String[] hosts = null;
+        synchronized (this) {
+            hosts = prefetchHosts.toArray(new String[0]);
+        }
+        preFetchHosts(hosts);
         recorderDnsCache();
         endPreFetch();
     }
