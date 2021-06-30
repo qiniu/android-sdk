@@ -287,9 +287,6 @@ public class DnsPrefetcher {
     private String[] getLocalPreHost(){
         ArrayList<String> localHosts = new ArrayList<>();
 
-//        String[] fixedHosts = getFixedZoneHosts();
-//        localHosts.addAll(Arrays.asList(fixedHosts));
-
         localHosts.add(Config.preQueryHost00);
         localHosts.add(Config.preQueryHost01);
 
