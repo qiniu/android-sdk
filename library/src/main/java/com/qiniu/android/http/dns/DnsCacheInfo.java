@@ -1,18 +1,12 @@
 package com.qiniu.android.http.dns;
 
-import com.qiniu.android.utils.Json;
-import com.qiniu.android.utils.StringUtils;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**

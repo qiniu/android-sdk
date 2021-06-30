@@ -4,19 +4,14 @@ import com.qiniu.android.bigdata.client.Client;
 import com.qiniu.android.bigdata.client.CompletionHandler;
 import com.qiniu.android.bigdata.client.PostArgs;
 import com.qiniu.android.http.ResponseInfo;
-import com.qiniu.android.http.request.httpclient.MultipartBody;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.StringMap;
 
 import org.json.JSONObject;
 
-import java.util.HashMap;
-
-import okhttp3.MediaType;
-
 public class ClientTest extends BaseTest {
 
-    public void testSyncGet(){
+    public void testSyncGet() {
 
         Client client = new Client(null, 90, 90, null, null);
         ResponseInfo responseInfo = client.syncGet("https://up.qiniup.com/crossdomain.xml", null);
@@ -24,7 +19,7 @@ public class ClientTest extends BaseTest {
         assertTrue(responseInfo.statusCode == 200);
     }
 
-    public void testAsyncGet(){
+    public void testAsyncGet() {
 
         final WaitCondition waitCondition = new WaitCondition();
         Client client = new Client();
@@ -41,7 +36,7 @@ public class ClientTest extends BaseTest {
         wait(waitCondition, 10 * 60);
     }
 
-    public void testMultipartSyncPost(){
+    public void testMultipartSyncPost() {
 
         PostArgs postArgs = new PostArgs();
         postArgs.data = "123".getBytes();
@@ -57,7 +52,7 @@ public class ClientTest extends BaseTest {
         assertTrue(responseInfo != null);
     }
 
-    public void testMultipartAsyncPost(){
+    public void testMultipartAsyncPost() {
 
         final WaitCondition waitCondition = new WaitCondition();
 

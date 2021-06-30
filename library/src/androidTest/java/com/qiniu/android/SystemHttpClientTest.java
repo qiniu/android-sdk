@@ -6,8 +6,6 @@ import com.qiniu.android.http.request.IRequestClient;
 import com.qiniu.android.http.request.httpclient.SystemHttpClient;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 
-
-
 import org.json.JSONObject;
 
 

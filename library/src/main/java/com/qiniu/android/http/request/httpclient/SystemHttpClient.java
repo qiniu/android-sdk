@@ -9,7 +9,6 @@ import com.qiniu.android.http.dns.SystemDns;
 import com.qiniu.android.http.request.Request;
 import com.qiniu.android.http.request.IRequestClient;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
-import com.qiniu.android.utils.AndroidNetwork;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringUtils;
 

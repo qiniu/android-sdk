@@ -11,7 +11,6 @@ import com.qiniu.android.storage.FileRecorder;
 import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressBytesHandler;
-import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.Utils;

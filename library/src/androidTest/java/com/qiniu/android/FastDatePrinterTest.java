@@ -3,7 +3,6 @@ package com.qiniu.android;
 import com.qiniu.android.utils.FastDatePrinter;
 import com.qiniu.android.utils.LogUtil;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;

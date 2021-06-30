@@ -11,7 +11,6 @@ import com.qiniu.android.http.serverRegion.UploadDomainRegion;
 
 import org.json.JSONObject;
 
-import java.io.File;
 import java.util.ArrayList;
 
 abstract class BaseUpload implements Runnable {

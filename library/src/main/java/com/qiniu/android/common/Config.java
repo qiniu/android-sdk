@@ -1,9 +1,6 @@
 package com.qiniu.android.common;
 
 import com.qiniu.android.utils.ContextGetter;
-import com.qiniu.android.utils.Utils;
-
-import java.io.File;
 
 /**
  * Created by Simon on 11/22/16.

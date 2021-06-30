@@ -1,11 +1,9 @@
 package com.qiniu.android.utils;
 
-
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 
 import com.qiniu.android.common.Constants;
-
 
 import java.util.Arrays;
 import java.util.Date;

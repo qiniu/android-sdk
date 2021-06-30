@@ -1,6 +1,5 @@
 package com.qiniu.android.http.request;
 
-
 import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;

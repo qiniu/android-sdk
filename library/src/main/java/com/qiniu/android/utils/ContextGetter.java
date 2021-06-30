@@ -5,8 +5,6 @@ import android.content.Context;
 
 import com.qiniu.android.storage.GlobalConfiguration;
 
-import java.lang.reflect.Field;
-
 /**
  * Created by bailong on 16/9/7.
  */

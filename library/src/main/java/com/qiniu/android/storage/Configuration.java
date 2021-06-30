@@ -2,7 +2,6 @@ package com.qiniu.android.storage;
 
 import com.qiniu.android.common.AutoZone;
 import com.qiniu.android.common.Zone;
-import com.qiniu.android.http.dns.Dns;
 import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.UrlConverter;
 

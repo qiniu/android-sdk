@@ -24,8 +24,6 @@ import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.List;
 
-import static android.content.Context.WIFI_SERVICE;
-
 /**
  * Created by bailong on 16/9/7.
  */

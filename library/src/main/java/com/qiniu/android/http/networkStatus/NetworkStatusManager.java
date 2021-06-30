@@ -8,7 +8,6 @@ import com.qiniu.android.utils.Utils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Date;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 

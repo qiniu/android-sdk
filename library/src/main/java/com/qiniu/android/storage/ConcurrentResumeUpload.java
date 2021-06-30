@@ -4,9 +4,6 @@ import com.qiniu.android.utils.GroupTaskThread;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
 
-import java.io.File;
-import java.io.InputStream;
-
 class ConcurrentResumeUpload extends PartsUpload {
 
     private GroupTaskThread groupTaskThread;

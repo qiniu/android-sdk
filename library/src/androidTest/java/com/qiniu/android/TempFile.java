@@ -1,8 +1,5 @@
 package com.qiniu.android;
 
-import com.qiniu.android.utils.ContextGetter;
-import com.qiniu.android.utils.Utils;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
