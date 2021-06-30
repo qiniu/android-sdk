@@ -15,7 +15,8 @@ https://github.com/qiniudemo/qiniu-lab-android
 
 | Qiniu SDK 版本 | 最低 Android版本   |       依赖库版本           |
 |------------ |-----------------|------------------------|
-|  8.3.x        |  Android 5.0+     |        okhttp 4+         |
+|  8.3.0        |  Android 4.0+     |        okhttp 4+         |
+|  8.3.0        |  Android 5.0+     |        okhttp 4+         |
 |  8.2.x        |  Android 5.0+     |        okhttp 4+         |
 |  8.1.x        |  Android 5.0+     |        okhttp 4+         |
 |  8.0.x        |  Android 5.0+     |        okhttp 4+         |
@@ -30,7 +31,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 |  7.0.7        |  Android 2.2+     | android-async-http 1.4.8 |
 
 ### 注意
-* 推荐使用最新版：8.3.0
+* 推荐使用最新版：8.3.1
 * AndroidNetwork.getMobileDbm()可以获取手机信号强度，需要如下权限(API>=18时生效)
 ```
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
