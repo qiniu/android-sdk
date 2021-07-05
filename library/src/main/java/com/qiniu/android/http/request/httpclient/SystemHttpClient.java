@@ -75,7 +75,9 @@ public class SystemHttpClient implements IRequestClient {
         metrics = new UploadSingleRequestMetrics();
         metrics.clientName = "okhttp";
         metrics.clientVersion = getOkHttpVersion();
-        metrics.remoteAddress = request.ip;
+        if (request != null) {
+            metrics.remoteAddress = request.ip;
+        }
         metrics.setRequest(request);
         currentRequest = request;
         httpClient = createHttpClient(connectionProxy);
