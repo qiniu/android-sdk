@@ -11,7 +11,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Vector;
 
 class UploadInfoV1 extends UploadInfo {
 
@@ -38,7 +38,7 @@ class UploadInfoV1 extends UploadInfo {
         } else {
             this.dataSize = configuration.chunkSize;
         }
-        this.blockList = new CopyOnWriteArrayList<>();
+        this.blockList = new Vector<>(2, 2);
     }
 
     static UploadInfoV1 infoFromJson(UploadSource source, JSONObject jsonObject) {
@@ -48,11 +48,12 @@ class UploadInfoV1 extends UploadInfo {
 
         int dataSize = 0;
         String type = null;
-        List<UploadBlock> blockList = new CopyOnWriteArrayList<>();
+        List<UploadBlock> blockList = null;
         try {
             type = jsonObject.optString(TypeKey);
             dataSize = jsonObject.getInt("dataSize");
             JSONArray blockJsonArray = jsonObject.getJSONArray("blockList");
+            blockList = new Vector<>(blockJsonArray.length(), 2);
             for (int i = 0; i < blockJsonArray.length(); i++) {
                 JSONObject blockJson = blockJsonArray.getJSONObject(i);
                 try {

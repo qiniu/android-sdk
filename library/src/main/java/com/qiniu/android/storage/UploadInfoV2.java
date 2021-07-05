@@ -12,7 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Vector;
 
 class UploadInfoV2 extends UploadInfo {
     private final static String TypeKey = "infoType";
@@ -38,7 +38,7 @@ class UploadInfoV2 extends UploadInfo {
     UploadInfoV2(UploadSource source, Configuration configuration) {
         super(source);
         this.dataSize = Math.min(configuration.chunkSize, maxDataSize);
-        this.dataList = new CopyOnWriteArrayList<>();
+        this.dataList = new Vector<>(2, 2);
     }
 
     static UploadInfoV2 infoFromJson(UploadSource source, JSONObject jsonObject) {
@@ -50,13 +50,14 @@ class UploadInfoV2 extends UploadInfo {
         String type = null;
         Long expireAt = null;
         String uploadId = null;
-        List<UploadData> dataList = new CopyOnWriteArrayList<>();
+        List<UploadData> dataList = null;
         try {
             type = jsonObject.optString(TypeKey);
             dataSize = jsonObject.getInt("dataSize");
             expireAt = jsonObject.getLong("expireAt");
             uploadId = jsonObject.optString("uploadId");
             JSONArray dataJsonArray = jsonObject.getJSONArray("dataList");
+            dataList = new Vector<>(dataJsonArray.length(), 2);
             for (int i = 0; i < dataJsonArray.length(); i++) {
                 JSONObject dataJson = dataJsonArray.getJSONObject(i);
                 UploadData data = UploadData.dataFromJson(dataJson);
