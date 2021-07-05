@@ -75,6 +75,7 @@ public class SystemHttpClient implements IRequestClient {
         metrics = new UploadSingleRequestMetrics();
         metrics.clientName = "okhttp";
         metrics.clientVersion = getOkHttpVersion();
+        metrics.remoteAddress = request.ip;
         metrics.setRequest(request);
         currentRequest = request;
         httpClient = createHttpClient(connectionProxy);
@@ -282,8 +283,10 @@ public class SystemHttpClient implements IRequestClient {
                                      InetSocketAddress inetSocketAddress,
                                      Proxy proxy) {
                 metrics.connectStartDate = new Date();
-                metrics.remoteAddress = inetSocketAddress.getAddress().getHostAddress();
-                metrics.remotePort = inetSocketAddress.getPort();
+                if (inetSocketAddress != null && inetSocketAddress.getAddress() != null) {
+                    metrics.remoteAddress = inetSocketAddress.getAddress().getHostAddress();
+                    metrics.remotePort = inetSocketAddress.getPort();
+                }
             }
 
             @Override
