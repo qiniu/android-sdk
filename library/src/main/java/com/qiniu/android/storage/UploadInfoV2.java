@@ -15,9 +15,10 @@ import java.util.Map;
 import java.util.Vector;
 
 class UploadInfoV2 extends UploadInfo {
-    private final static String TypeKey = "infoType";
-    private final static String TypeValue = "UploadInfoV2";
-    private final static int maxDataSize = 1024 * 1024 * 1024;
+    private static final String TypeKey = "infoType";
+    private static final String TypeValue = "UploadInfoV2";
+    private static final int maxDataSize = 1024 * 1024 * 1024;
+    private static final int DataListCapacityIncrement = 2;
 
     private final int dataSize;
     private List<UploadData> dataList;
@@ -38,7 +39,7 @@ class UploadInfoV2 extends UploadInfo {
     UploadInfoV2(UploadSource source, Configuration configuration) {
         super(source);
         this.dataSize = Math.min(configuration.chunkSize, maxDataSize);
-        this.dataList = new Vector<>(2, 2);
+        this.dataList = new Vector<>(DataListCapacityIncrement, DataListCapacityIncrement);
     }
 
     static UploadInfoV2 infoFromJson(UploadSource source, JSONObject jsonObject) {
@@ -57,7 +58,7 @@ class UploadInfoV2 extends UploadInfo {
             expireAt = jsonObject.getLong("expireAt");
             uploadId = jsonObject.optString("uploadId");
             JSONArray dataJsonArray = jsonObject.getJSONArray("dataList");
-            dataList = new Vector<>(dataJsonArray.length(), 2);
+            dataList = new Vector<>(dataJsonArray.length(), DataListCapacityIncrement);
             for (int i = 0; i < dataJsonArray.length(); i++) {
                 JSONObject dataJson = dataJsonArray.getJSONObject(i);
                 UploadData data = UploadData.dataFromJson(dataJson);

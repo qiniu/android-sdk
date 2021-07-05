@@ -18,6 +18,7 @@ class UploadInfoV1 extends UploadInfo {
     private static final String TypeKey = "infoType";
     private static final String TypeValue = "UploadInfoV1";
     private static final int BlockSize = 4 * 1024 * 1024;
+    private static final int BlockListCapacityIncrement = 2;
 
     private final int dataSize;
     private List<UploadBlock> blockList;
@@ -38,7 +39,7 @@ class UploadInfoV1 extends UploadInfo {
         } else {
             this.dataSize = configuration.chunkSize;
         }
-        this.blockList = new Vector<>(2, 2);
+        this.blockList = new Vector<>(BlockListCapacityIncrement, BlockListCapacityIncrement);
     }
 
     static UploadInfoV1 infoFromJson(UploadSource source, JSONObject jsonObject) {
@@ -53,7 +54,7 @@ class UploadInfoV1 extends UploadInfo {
             type = jsonObject.optString(TypeKey);
             dataSize = jsonObject.getInt("dataSize");
             JSONArray blockJsonArray = jsonObject.getJSONArray("blockList");
-            blockList = new Vector<>(blockJsonArray.length(), 2);
+            blockList = new Vector<>(blockJsonArray.length(), BlockListCapacityIncrement);
             for (int i = 0; i < blockJsonArray.length(); i++) {
                 JSONObject blockJson = blockJsonArray.getJSONObject(i);
                 try {
