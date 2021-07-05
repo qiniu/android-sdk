@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 class UploadInfoV2 extends UploadInfo {
     private final static String TypeKey = "infoType";
@@ -37,7 +38,7 @@ class UploadInfoV2 extends UploadInfo {
     UploadInfoV2(UploadSource source, Configuration configuration) {
         super(source);
         this.dataSize = Math.min(configuration.chunkSize, maxDataSize);
-        this.dataList = new ArrayList<>();
+        this.dataList = new CopyOnWriteArrayList<>();
     }
 
     static UploadInfoV2 infoFromJson(UploadSource source, JSONObject jsonObject) {
@@ -49,7 +50,7 @@ class UploadInfoV2 extends UploadInfo {
         String type = null;
         Long expireAt = null;
         String uploadId = null;
-        List<UploadData> dataList = new ArrayList<>();
+        List<UploadData> dataList = new CopyOnWriteArrayList<>();
         try {
             type = jsonObject.optString(TypeKey);
             dataSize = jsonObject.getInt("dataSize");
@@ -114,34 +115,33 @@ class UploadInfoV2 extends UploadInfo {
             throw e;
         }
 
-        synchronized (this) {
-            if (loadData == null) {
-                // 没有加在到 data, 也即数据源读取结束
-                isEOF = true;
-                // 有多余的 data 则移除，移除中包含 data
-                if (dataList.size() > data.index) {
-                    dataList = dataList.subList(0, data.index);
-                }
-            } else {
-                // 加在到 data
-                if (loadData.index == dataList.size()) {
-                    // 新块：data index 等于 dataList size 则为新创建 block，需要加入 dataList
-                    dataList.add(loadData);
-                } else if (loadData != data) {
-                    // 更换块：重新加在了 data， 更换信息
-                    dataList.set(loadData.index, loadData);
-                }
+        if (loadData == null) {
+            // 没有加在到 data, 也即数据源读取结束
+            isEOF = true;
+            // 有多余的 data 则移除，移除中包含 data
+            if (dataList.size() > data.index) {
+                dataList = dataList.subList(0, data.index);
+            }
+        } else {
+            // 加在到 data
+            if (loadData.index == dataList.size()) {
+                // 新块：data index 等于 dataList size 则为新创建 block，需要加入 dataList
+                dataList.add(loadData);
+            } else if (loadData != data) {
+                // 更换块：重新加在了 data， 更换信息
+                dataList.set(loadData.index, loadData);
+            }
 
-                // 数据源读取结束，块读取大小小于预期，读取结束
-                if (loadData.size < data.size) {
-                    isEOF = true;
-                    // 有多余的 block 则移除，移除中不包含 block
-                    if (dataList.size() > data.index + 1) {
-                        dataList = dataList.subList(0, data.index + 1);
-                    }
+            // 数据源读取结束，块读取大小小于预期，读取结束
+            if (loadData.size < data.size) {
+                isEOF = true;
+                // 有多余的 block 则移除，移除中不包含 block
+                if (dataList.size() > data.index + 1) {
+                    dataList = dataList.subList(0, data.index + 1);
                 }
             }
         }
+
         return loadData;
     }
 
@@ -252,7 +252,7 @@ class UploadInfoV2 extends UploadInfo {
     }
 
     @Override
-    synchronized long uploadSize() {
+    long uploadSize() {
         if (dataList == null || dataList.size() == 0) {
             return 0;
         }

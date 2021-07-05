@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 class UploadInfoV1 extends UploadInfo {
 
@@ -37,7 +38,7 @@ class UploadInfoV1 extends UploadInfo {
         } else {
             this.dataSize = configuration.chunkSize;
         }
-        this.blockList = new ArrayList<>();
+        this.blockList = new CopyOnWriteArrayList<>();
     }
 
     static UploadInfoV1 infoFromJson(UploadSource source, JSONObject jsonObject) {
@@ -47,7 +48,7 @@ class UploadInfoV1 extends UploadInfo {
 
         int dataSize = 0;
         String type = null;
-        List<UploadBlock> blockList = new ArrayList<>();
+        List<UploadBlock> blockList = new CopyOnWriteArrayList<>();
         try {
             type = jsonObject.optString(TypeKey);
             dataSize = jsonObject.getInt("dataSize");
@@ -112,7 +113,7 @@ class UploadInfoV1 extends UploadInfo {
     }
 
     @Override
-    synchronized long uploadSize() {
+    long uploadSize() {
         if (blockList == null || blockList.size() == 0) {
             return 0;
         }
@@ -206,34 +207,33 @@ class UploadInfoV1 extends UploadInfo {
             throw e;
         }
 
-        synchronized (this) {
-            if (loadBlock == null) {
-                // 没有加在到 block, 也即数据源读取结束
-                isEOF = true;
-                // 有多余的 block 则移除，移除中包含 block
-                if (blockList.size() > block.index) {
-                    blockList = blockList.subList(0, block.index);
-                }
-            } else {
-                // 加在到 block
-                if (loadBlock.index == blockList.size()) {
-                    // 新块：block index 等于 blockList size 则为新创建 block，需要加入 blockList
-                    blockList.add(loadBlock);
-                } else if (loadBlock != block) {
-                    // 更换块：重新加在了 block， 更换信息
-                    blockList.set(loadBlock.index, loadBlock);
-                }
+        if (loadBlock == null) {
+            // 没有加在到 block, 也即数据源读取结束
+            isEOF = true;
+            // 有多余的 block 则移除，移除中包含 block
+            if (blockList.size() > block.index) {
+                blockList = blockList.subList(0, block.index);
+            }
+        } else {
+            // 加在到 block
+            if (loadBlock.index == blockList.size()) {
+                // 新块：block index 等于 blockList size 则为新创建 block，需要加入 blockList
+                blockList.add(loadBlock);
+            } else if (loadBlock != block) {
+                // 更换块：重新加在了 block， 更换信息
+                blockList.set(loadBlock.index, loadBlock);
+            }
 
-                // 数据源读取结束，块读取大小小于预期，读取结束
-                if (loadBlock.size < BlockSize) {
-                    isEOF = true;
-                    // 有多余的 block 则移除，移除中不包含 block
-                    if (blockList.size() > block.index + 1) {
-                        blockList = blockList.subList(0, block.index + 1);
-                    }
+            // 数据源读取结束，块读取大小小于预期，读取结束
+            if (loadBlock.size < BlockSize) {
+                isEOF = true;
+                // 有多余的 block 则移除，移除中不包含 block
+                if (blockList.size() > block.index + 1) {
+                    blockList = blockList.subList(0, block.index + 1);
                 }
             }
         }
+
         return loadBlock;
     }
 
