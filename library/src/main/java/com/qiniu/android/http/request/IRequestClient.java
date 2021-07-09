@@ -1,6 +1,5 @@
 package com.qiniu.android.http.request;
 
-
 import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;

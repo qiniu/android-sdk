@@ -148,8 +148,11 @@ abstract class UploadInfo {
             throw new IOException("file is not exist");
         }
 
-        byte[] data = source.readData(dataSize, dataOffset);
-        if (data.length != dataSize || data.length == 0) {
+        byte[] data = null;
+        synchronized (source) {
+            data = source.readData(dataSize, dataOffset);
+        }
+        if (data != null && (data.length != dataSize || data.length == 0)) {
             sourceSize = dataOffset + data.length;
         }
         return data;

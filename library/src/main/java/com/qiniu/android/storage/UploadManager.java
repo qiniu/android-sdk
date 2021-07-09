@@ -1,7 +1,9 @@
 package com.qiniu.android.storage;
 
+import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.net.Uri;
+import android.os.Build;
 
 import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
@@ -16,10 +18,8 @@ import com.qiniu.android.utils.Wait;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
 import java.util.ArrayList;
 
 
@@ -124,6 +124,7 @@ public class UploadManager {
      * @param completionHandler 上传完成的后续处理动作
      * @param options           上传数据的可选参数
      */
+    @TargetApi(Build.VERSION_CODES.KITKAT)
     public void put(final Uri uri,
                     final ContentResolver resolver,
                     final String key,
@@ -248,6 +249,7 @@ public class UploadManager {
      * @param options  上传数据的可选参数
      * @return 响应信息 ResponseInfo#response 响应体，序列化后 json 格式
      */
+    @TargetApi(Build.VERSION_CODES.KITKAT)
     public ResponseInfo syncPut(Uri uri,
                                 ContentResolver resolver,
                                 String key,
@@ -357,6 +359,10 @@ public class UploadManager {
                            final String token,
                            final UploadOptions option,
                            final UpCompletionHandler completionHandler) {
+
+        if (checkAndNotifyError(key, token, source, completionHandler)) {
+            return;
+        }
 
         final UpToken t = UpToken.parse(token);
         if (t == null || !t.isValid()) {

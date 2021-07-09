@@ -24,8 +24,6 @@ import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.List;
 
-import static android.content.Context.WIFI_SERVICE;
-
 /**
  * Created by bailong on 16/9/7.
  */
@@ -56,6 +54,10 @@ public final class AndroidNetwork {
         String hostIp = null;
         try {
             Enumeration nis = NetworkInterface.getNetworkInterfaces();
+            if (nis == null) {
+                return null;
+            }
+
             InetAddress ia = null;
             while (nis.hasMoreElements()) {
                 NetworkInterface ni = (NetworkInterface) nis.nextElement();
@@ -76,6 +78,15 @@ public final class AndroidNetwork {
     }
 
     public static String networkType(Context context) {
+        try {
+            return networkTypeWithException(context);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static String networkTypeWithException(Context context) throws Exception {
         if (context == null){
             return Constants.NETWORK_CLASS_UNKNOWN;
         }
@@ -144,6 +155,10 @@ public final class AndroidNetwork {
      */
     public static int getMobileDbm() {
         Context context = ContextGetter.applicationContext();
+        if (context == null) {
+            return -1;
+        }
+
         int dbm = -1;
         TelephonyManager tm = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
         List<CellInfo> cellInfoList;

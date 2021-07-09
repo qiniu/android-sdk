@@ -10,7 +10,6 @@ import com.qiniu.android.utils.StringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 class PartsUploadPerformerV1 extends PartsUploadPerformer {

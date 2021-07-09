@@ -1,6 +1,5 @@
 package com.qiniu.android;
 
-//import com.qiniu.android.storage.UploadFileInfo;
 
 public class UploadFileInfoTest extends BaseTest {
 

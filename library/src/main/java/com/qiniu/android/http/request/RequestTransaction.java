@@ -17,6 +17,7 @@ import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.UrlSafeBase64;
 import com.qiniu.android.utils.Utils;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -251,7 +252,7 @@ public class RequestTransaction {
         header.put("Content-Type", "application/octet-stream");
         header.put("User-Agent", userAgent);
 
-        String action = String.format("/bput/%s/%s", blockContext, chunkOffset+"");
+        String action = String.format("/bput/%s/%s", blockContext, chunkOffset + "");
         final String chunkCrc = "" + Crc32.bytes(chunkData);
 
         RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
@@ -350,8 +351,7 @@ public class RequestTransaction {
     }
 
 
-    public void initPart(boolean isAsync,
-                         final RequestCompleteHandler completeHandler) {
+    public void initPart(boolean isAsync, final RequestCompleteHandler completeHandler) {
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeInitParts;
 
@@ -461,9 +461,12 @@ public class RequestTransaction {
         String action = buckets + objects + uploads;
 
         HashMap<String, Object> bodyMap = new HashMap<>();
-        if (partInfoArray != null) {
-            bodyMap.put("parts", partInfoArray);
+        JSONArray jsonArray = new JSONArray();
+        for (int i = 0; i < partInfoArray.size(); i++) {
+            jsonArray.put(new JSONObject(partInfoArray.get(i)));
         }
+        bodyMap.put("parts", jsonArray);
+
         if (fileName != null) {
             bodyMap.put("fname", fileName);
         }
@@ -471,10 +474,10 @@ public class RequestTransaction {
             bodyMap.put("mimeType", uploadOption.mimeType);
         }
         if (uploadOption.params != null) {
-            bodyMap.put("customVars", uploadOption.params);
+            bodyMap.put("customVars", new JSONObject(uploadOption.params));
         }
         if (uploadOption.metaDataParam != null) {
-            bodyMap.put("metaData", uploadOption.metaDataParam);
+            bodyMap.put("metaData", new JSONObject(uploadOption.metaDataParam));
         }
 
         String bodyString = new JSONObject(bodyMap).toString();

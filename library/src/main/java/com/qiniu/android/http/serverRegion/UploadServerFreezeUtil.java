@@ -2,8 +2,6 @@ package com.qiniu.android.http.serverRegion;
 
 import com.qiniu.android.utils.Utils;
 
-import java.util.List;
-
 public class UploadServerFreezeUtil {
     private final static UploadServerFreezeManager globalHttp3Freezer = new UploadServerFreezeManager();
     public static UploadServerFreezeManager globalHttp3Freezer() {

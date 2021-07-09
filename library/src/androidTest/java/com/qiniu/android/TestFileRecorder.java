@@ -8,7 +8,6 @@ import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadManager;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.storage.FileRecorder;
-import com.qiniu.android.utils.Etag;
 import com.qiniu.android.utils.LogUtil;
 
 import org.json.JSONObject;

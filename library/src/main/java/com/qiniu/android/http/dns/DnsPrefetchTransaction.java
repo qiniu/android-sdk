@@ -11,8 +11,12 @@ public class DnsPrefetchTransaction {
 
     private static boolean isDnsLoaded = false;
 
-    public static synchronized boolean addDnsLocalLoadTransaction(){
-        if (isDnsLoaded){
+    public static synchronized boolean addDnsLocalLoadTransaction() {
+        if (isDnsLoaded) {
+            return false;
+        }
+
+        if (!DnsPrefetcher.getInstance().isDnsOpen()) {
             return false;
         }
 
@@ -30,14 +34,17 @@ public class DnsPrefetchTransaction {
     }
 
 
-    public static synchronized boolean addDnsCheckAndPrefetchTransaction(final Zone currentZone,
-                                                                         final UpToken token){
-        if (token == null || token.token == null || token.token.length() == 0){
+    public static synchronized boolean addDnsCheckAndPrefetchTransaction(final Zone currentZone, final UpToken token) {
+        if (!DnsPrefetcher.getInstance().isDnsOpen()) {
+            return false;
+        }
+
+        if (token == null || token.token == null || token.token.length() == 0) {
             return false;
         }
 
         TransactionManager manager = TransactionManager.getInstance();
-        if (manager.existTransactionsForName(token.token)){
+        if (manager.existTransactionsForName(token.token)) {
             return false;
         }
 
@@ -52,14 +59,14 @@ public class DnsPrefetchTransaction {
     }
 
 
-    public static synchronized boolean setDnsCheckWhetherCachedValidTransactionAction(){
-        if (! DnsPrefetcher.getInstance().isDnsOpen()){
+    public static synchronized boolean setDnsCheckWhetherCachedValidTransactionAction() {
+        if (!DnsPrefetcher.getInstance().isDnsOpen()) {
             return false;
         }
 
         String name = "dnsCheckWhetherCachedValidTransaction";
         TransactionManager manager = TransactionManager.getInstance();
-        if (manager.existTransactionsForName(name)){
+        if (manager.existTransactionsForName(name)) {
             return false;
         }
 

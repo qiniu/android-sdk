@@ -244,11 +244,11 @@ public class LogUtil {
                     }
                 }
                 default: {
-                    return -1;
+                    return -10001;
                 }
             }
         } else {
-            return -1;
+            return -10000;
         }
     }
 

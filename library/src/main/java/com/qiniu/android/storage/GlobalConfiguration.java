@@ -1,11 +1,16 @@
 package com.qiniu.android.storage;
 
+import android.content.Context;
+
 import com.qiniu.android.http.dns.Dns;
 import com.qiniu.android.utils.Utils;
 
-import java.util.List;
-
 public class GlobalConfiguration {
+
+    /**
+     * APP Context
+     */
+    public static Context appContext;
 
     /**
      * 是否开启dns预解析 默认开启

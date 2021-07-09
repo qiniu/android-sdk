@@ -1,9 +1,11 @@
 package com.qiniu.android.storage;
 
+import android.annotation.TargetApi;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.MediaStore;
 
 import com.qiniu.android.utils.ContextGetter;
@@ -13,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+@TargetApi(Build.VERSION_CODES.KITKAT)
 class UploadSourceUri extends UploadSourceStream {
 
     private Exception readException = null;

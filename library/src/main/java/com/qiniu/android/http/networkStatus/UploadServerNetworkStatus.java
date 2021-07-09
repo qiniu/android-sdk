@@ -1,7 +1,6 @@
 package com.qiniu.android.http.networkStatus;
 
 import com.qiniu.android.http.request.IUploadServer;
-import com.qiniu.android.utils.Utils;
 
 public class UploadServerNetworkStatus {
 

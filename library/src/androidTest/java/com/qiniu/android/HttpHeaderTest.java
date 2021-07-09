@@ -1,4 +1,5 @@
 package com.qiniu.android;
+
 import android.test.AndroidTestCase;
 
 import com.qiniu.android.http.Headers;
@@ -23,18 +24,18 @@ public class HttpHeaderTest extends AndroidTestCase {
         LogUtil.i(headers.names().toString());
     }
 
-    public void testValue(){
+    public void testValue() {
 
         assertTrue(headers.values("date") != null);
         assertTrue(headers.values("host") != null);
     }
 
-    public void testCount(){
+    public void testCount() {
 
         assertTrue(headers.byteCount() > 0);
     }
 
-    public void testBuilder(){
+    public void testBuilder() {
         String dateKey = "date";
         String dateValue = HttpDate.format(new Date());
         String hostKey = "host";
@@ -78,32 +79,32 @@ public class HttpHeaderTest extends AndroidTestCase {
     }
 
 
-    public void testBuilderError(){
+    public void testBuilderError() {
 
         Headers headers = null;
 
         String headersString = null;
         try {
             headers = Headers.of(headersString);
-        } catch (Exception e){
+        } catch (Exception e) {
             assertTrue(true);
         }
 
         try {
             headers = Headers.of("key");
-        } catch (Exception e){
+        } catch (Exception e) {
             assertTrue(true);
         }
 
         try {
             headers = Headers.of("key", null);
-        } catch (Exception e){
+        } catch (Exception e) {
             assertTrue(true);
         }
 
         try {
             headers = Headers.of("key", "");
-        } catch (Exception e){
+        } catch (Exception e) {
             assertTrue(true);
         }
 

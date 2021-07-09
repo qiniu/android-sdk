@@ -1,6 +1,5 @@
 package com.qiniu.android.utils;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import com.qiniu.android.dns.util.Hex;
 
 public class MD5 {

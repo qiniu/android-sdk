@@ -1,6 +1,7 @@
 package com.qiniu.android.storage;
 
 import com.qiniu.android.utils.BytesUtils;
+import com.qiniu.android.utils.ListVector;
 import com.qiniu.android.utils.MD5;
 import com.qiniu.android.utils.StringUtils;
 
@@ -17,14 +18,15 @@ class UploadInfoV1 extends UploadInfo {
     private static final String TypeKey = "infoType";
     private static final String TypeValue = "UploadInfoV1";
     private static final int BlockSize = 4 * 1024 * 1024;
+    private static final int BlockListCapacityIncrement = 2;
 
     private final int dataSize;
-    private List<UploadBlock> blockList;
+    private ListVector<UploadBlock> blockList;
 
     private boolean isEOF = false;
     private IOException readException = null;
 
-    private UploadInfoV1(UploadSource source, int dataSize, List<UploadBlock> blockList) {
+    private UploadInfoV1(UploadSource source, int dataSize, ListVector<UploadBlock> blockList) {
         super(source);
         this.dataSize = dataSize;
         this.blockList = blockList;
@@ -37,7 +39,7 @@ class UploadInfoV1 extends UploadInfo {
         } else {
             this.dataSize = configuration.chunkSize;
         }
-        this.blockList = new ArrayList<>();
+        this.blockList = new ListVector<>(BlockListCapacityIncrement, BlockListCapacityIncrement);
     }
 
     static UploadInfoV1 infoFromJson(UploadSource source, JSONObject jsonObject) {
@@ -47,11 +49,12 @@ class UploadInfoV1 extends UploadInfo {
 
         int dataSize = 0;
         String type = null;
-        List<UploadBlock> blockList = new ArrayList<>();
+        ListVector<UploadBlock> blockList = null;
         try {
             type = jsonObject.optString(TypeKey);
             dataSize = jsonObject.getInt("dataSize");
             JSONArray blockJsonArray = jsonObject.getJSONArray("blockList");
+            blockList = new ListVector<>(blockJsonArray.length(), BlockListCapacityIncrement);
             for (int i = 0; i < blockJsonArray.length(); i++) {
                 JSONObject blockJson = blockJsonArray.getJSONObject(i);
                 try {
@@ -106,9 +109,14 @@ class UploadInfoV1 extends UploadInfo {
         if (blockList == null || blockList.size() == 0) {
             return;
         }
-        for (UploadBlock block : blockList) {
-            block.clearUploadState();
-        }
+
+        blockList.enumerateObjects(new ListVector.EnumeratorHandler<UploadBlock>() {
+            @Override
+            public boolean enumerate(UploadBlock block) {
+                block.clearUploadState();
+                return false;
+            }
+        });
     }
 
     @Override
@@ -116,11 +124,15 @@ class UploadInfoV1 extends UploadInfo {
         if (blockList == null || blockList.size() == 0) {
             return 0;
         }
-        long uploadSize = 0;
-        for (UploadBlock block : blockList) {
-            uploadSize += block.uploadSize();
-        }
-        return uploadSize;
+        final long[] uploadSize = {0};
+        blockList.enumerateObjects(new ListVector.EnumeratorHandler<UploadBlock>() {
+            @Override
+            public boolean enumerate(UploadBlock block) {
+                uploadSize[0] += block.uploadSize();
+                return false;
+            }
+        });
+        return uploadSize[0];
     }
 
     // 文件已经读取结束 & 所有块均上传
@@ -133,21 +145,30 @@ class UploadInfoV1 extends UploadInfo {
         if (blockList == null || blockList.size() == 0) {
             return true;
         }
-        boolean isAllUploaded = true;
-        for (UploadBlock block : blockList) {
-            if (!block.isCompleted()) {
-                isAllUploaded = false;
-                break;
+        final boolean[] isAllUploaded = {true};
+        blockList.enumerateObjects(new ListVector.EnumeratorHandler<UploadBlock>() {
+            @Override
+            public boolean enumerate(UploadBlock block) {
+                if (!block.isCompleted()) {
+                    isAllUploaded[0] = false;
+                    return true;
+                } else {
+                    return false;
+                }
             }
-        }
-        return isAllUploaded;
+        });
+        return isAllUploaded[0];
     }
 
     @Override
     void checkInfoStateAndUpdate() {
-        for (UploadBlock block : blockList) {
-            block.checkInfoStateAndUpdate();
-        }
+        blockList.enumerateObjects(new ListVector.EnumeratorHandler<UploadBlock>() {
+            @Override
+            public boolean enumerate(UploadBlock block) {
+                block.checkInfoStateAndUpdate();
+                return false;
+            }
+        });
     }
 
     @Override
@@ -160,12 +181,24 @@ class UploadInfoV1 extends UploadInfo {
             jsonObject.put(TypeKey, TypeValue);
             jsonObject.put("dataSize", dataSize);
             if (blockList != null && blockList.size() > 0) {
-                JSONArray blockJsonArray = new JSONArray();
-                for (UploadBlock block : blockList) {
-                    JSONObject blockJson = block.toJsonObject();
-                    if (blockJson != null) {
-                        blockJsonArray.put(blockJson);
+                final JSONArray blockJsonArray = new JSONArray();
+                blockList.enumerateObjects(new ListVector.EnumeratorHandler<UploadBlock>() {
+                    @Override
+                    public boolean enumerate(UploadBlock block) {
+                        try {
+                            JSONObject blockJson = block.toJsonObject();
+                            if (blockJson != null) {
+                                blockJsonArray.put(blockJson);
+                            }
+                        } catch (Exception e) {
+                            return true;
+                        }
+                        return false;
                     }
+                });
+
+                if (blockJsonArray.length() != blockList.size()) {
+                    return null;
                 }
                 jsonObject.put("blockList", blockJsonArray);
             }
@@ -240,15 +273,20 @@ class UploadInfoV1 extends UploadInfo {
         if (blockList == null || blockList.size() == 0) {
             return null;
         }
-        UploadBlock block = null;
-        for (UploadBlock blockP : blockList) {
-            UploadData data = blockP.nextUploadDataWithoutCheckData();
-            if (data != null) {
-                block = blockP;
-                break;
+        final UploadBlock[] blocks = {null};
+        blockList.enumerateObjects(new ListVector.EnumeratorHandler<UploadBlock>() {
+            @Override
+            public boolean enumerate(UploadBlock block) {
+                UploadData data = block.nextUploadDataWithoutCheckData();
+                if (data != null) {
+                    blocks[0] = block;
+                    return true;
+                } else {
+                    return false;
+                }
             }
-        }
-        return block;
+        });
+        return blocks[0];
     }
 
 
@@ -321,13 +359,17 @@ class UploadInfoV1 extends UploadInfo {
         if (blockList == null || blockList.size() == 0) {
             return null;
         }
-        ArrayList<String> contexts = new ArrayList<String>();
-        for (UploadBlock block : blockList) {
-            String ctx = block.ctx;
-            if (!StringUtils.isNullOrEmpty(ctx)) {
-                contexts.add(ctx);
+        final ArrayList<String> contexts = new ArrayList<String>();
+        blockList.enumerateObjects(new ListVector.EnumeratorHandler<UploadBlock>() {
+            @Override
+            public boolean enumerate(UploadBlock block) {
+                String ctx = block.ctx;
+                if (!StringUtils.isNullOrEmpty(ctx)) {
+                    contexts.add(ctx);
+                }
+                return false;
             }
-        }
+        });
         return contexts;
     }
 }

@@ -1,11 +1,9 @@
 package com.qiniu.android.utils;
 
-
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 
 import com.qiniu.android.common.Constants;
-
 
 import java.util.Arrays;
 import java.util.Date;
@@ -62,7 +60,11 @@ public class Utils {
     }
 
     public static String getCurrentNetworkType() {
-        return AndroidNetwork.networkType(ContextGetter.applicationContext());
+        Context context = ContextGetter.applicationContext();
+        if (context == null) {
+            return "";
+        }
+        return AndroidNetwork.networkType(context);
     }
 
     /// 单位：毫秒
@@ -71,7 +73,11 @@ public class Utils {
     }
 
     public static String sdkDirectory() {
-        String directory = ContextGetter.applicationContext().getCacheDir().getAbsolutePath() + "/qiniu";
+        Context context = ContextGetter.applicationContext();
+        if (context == null) {
+            return null;
+        }
+        String directory = context.getCacheDir().getAbsolutePath() + "/qiniu";
         return directory;
     }
 

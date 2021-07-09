@@ -125,7 +125,7 @@ public class SyncFormUploadTest extends BaseTest {
     @MediumTest
     public void testFile() throws Throwable {
         final String expectKey = "世/界-testFile";
-        final File f = TempFile.createFile(1);
+        final File f = TempFile.createFile(5*1024);
         Map<String, String> params = new HashMap<String, String>();
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);

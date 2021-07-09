@@ -43,13 +43,17 @@ public class ReportConfig {
     private static ReportConfig instance = new ReportConfig();
 
     private ReportConfig(){
-        this.isReportEnable = true;
+        this.isReportEnable = Config.isRecord;
         this.interval = 10;
         this.serverURL = Config.upLogURL;
-        this.recordDirectory = Utils.sdkDirectory() + "/report";
-        this.maxRecordFileSize = 2 * 1024 * 1024;
-        this.uploadThreshold = 4 * 1024;
-        this.timeoutInterval = 10;
+        if (Config.recordDir != null) {
+            this.recordDirectory = Config.recordDir;
+        } else {
+            this.recordDirectory = Utils.sdkDirectory() + "/report";
+        }
+        this.maxRecordFileSize = Config.maxRecordFileSize;
+        this.uploadThreshold = Config.uploadThreshold;
+        this.timeoutInterval = Config.interval;
     }
 
     public static ReportConfig getInstance(){

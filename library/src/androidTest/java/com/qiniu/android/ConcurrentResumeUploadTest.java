@@ -1,28 +1,12 @@
 package com.qiniu.android;
 
-import android.test.suitebuilder.annotation.LargeTest;
-
-import com.qiniu.android.common.AutoZone;
-import com.qiniu.android.common.FixedZone;
-import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
-import com.qiniu.android.storage.UpCompletionHandler;
-import com.qiniu.android.storage.UpProgressHandler;
-import com.qiniu.android.storage.UploadManager;
-import com.qiniu.android.storage.UploadOptions;
-import com.qiniu.android.utils.AsyncRun;
-import com.qiniu.android.utils.Etag;
-import com.qiniu.android.utils.LogUtil;
-
-import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Queue;
+
 
 /**
  * Created by yangsen on 2020/5/27

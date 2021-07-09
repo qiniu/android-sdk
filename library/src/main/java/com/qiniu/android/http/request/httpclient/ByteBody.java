@@ -1,15 +1,11 @@
 package com.qiniu.android.http.request.httpclient;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import okio.BufferedSink;
-import okio.Okio;
-import okio.Source;
 
 /**
  * Created by yangsen on 2020/6/10

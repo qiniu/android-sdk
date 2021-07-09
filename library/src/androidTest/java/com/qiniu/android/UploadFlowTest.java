@@ -11,7 +11,6 @@ import com.qiniu.android.storage.FileRecorder;
 import com.qiniu.android.storage.UpCancellationSignal;
 import com.qiniu.android.storage.UpCompletionHandler;
 import com.qiniu.android.storage.UpProgressBytesHandler;
-import com.qiniu.android.storage.UpProgressHandler;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.Utils;
@@ -66,7 +65,7 @@ public class UploadFlowTest extends UploadBaseTest {
         cancelTest(cancelPosition, streamInfo, key, configuration, options);
 
         LogUtil.d("======== progress data cancel =============================================");
-        if (file.length() < 10 * 1024 * 1024) {
+        if (file.length() < 4 * 1024 * 1024) {
             byte[] data = getDataFromFile(file);
             UploadInfo<byte[]> dataInfo = new UploadInfo<>(data);
             dataInfo.configWithFile(file);
@@ -296,10 +295,12 @@ public class UploadFlowTest extends UploadBaseTest {
         uriInfo.configWithFile(file);
         switchRegionTestWithFile(uriInfo, key, configuration, options);
 
-        byte[] data = getDataFromFile(file);
-        UploadInfo<byte[]> dataInfo = new UploadInfo<>(data);
-        dataInfo.configWithFile(file);
-        switchRegionTestWithFile(dataInfo, key, configuration, options);
+        if (file.length() < 4 * 1024 * 1024) {
+            byte[] data = getDataFromFile(file);
+            UploadInfo<byte[]> dataInfo = new UploadInfo<>(data);
+            dataInfo.configWithFile(file);
+            switchRegionTestWithFile(dataInfo, key, configuration, options);
+        }
     }
 
     private void switchRegionTestWithFile(UploadInfo file,

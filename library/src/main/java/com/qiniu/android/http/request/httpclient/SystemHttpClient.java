@@ -9,7 +9,6 @@ import com.qiniu.android.http.dns.SystemDns;
 import com.qiniu.android.http.request.Request;
 import com.qiniu.android.http.request.IRequestClient;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
-import com.qiniu.android.utils.AndroidNetwork;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringUtils;
 
@@ -47,7 +46,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.internal.Version;
 
 import static com.qiniu.android.http.ResponseInfo.NetworkError;
 
@@ -77,6 +75,9 @@ public class SystemHttpClient implements IRequestClient {
         metrics = new UploadSingleRequestMetrics();
         metrics.clientName = "okhttp";
         metrics.clientVersion = getOkHttpVersion();
+        if (request != null) {
+            metrics.remoteAddress = request.ip;
+        }
         metrics.setRequest(request);
         currentRequest = request;
         httpClient = createHttpClient(connectionProxy);
@@ -284,9 +285,10 @@ public class SystemHttpClient implements IRequestClient {
                                      InetSocketAddress inetSocketAddress,
                                      Proxy proxy) {
                 metrics.connectStartDate = new Date();
-                metrics.remoteAddress = inetSocketAddress.getAddress().getHostAddress();
-                metrics.remotePort = inetSocketAddress.getPort();
-                metrics.localAddress = AndroidNetwork.getHostIP();
+                if (inetSocketAddress != null && inetSocketAddress.getAddress() != null) {
+                    metrics.remoteAddress = inetSocketAddress.getAddress().getHostAddress();
+                    metrics.remotePort = inetSocketAddress.getPort();
+                }
             }
 
             @Override
@@ -518,16 +520,28 @@ public class SystemHttpClient implements IRequestClient {
 
 
     private static String getOkHttpVersion() {
+
+        // 4.9.+
         try {
-            Method get = Version.class.getMethod("userAgent");
-            Object version = get.invoke(Version.class);
+            Class clazz = Class.forName("okhttp3.OkHttp");
+            Field versionField = clazz.getField("VERSION");
+            Object version = versionField.get(clazz);
+            return (version + "");
+        } catch (Exception ignore) {
+        }
+
+        try {
+            Class clazz = Class.forName("okhttp3.internal.Version");
+            Field versionField = clazz.getField("userAgent");
+            Object version = versionField.get(clazz);
             return (version + "").replace("okhttp/", "");
         } catch (Exception ignore) {
         }
 
         try {
-            Field versionField = Version.class.getField("userAgent");
-            Object version = versionField.get(Version.class);
+            Class clazz = Class.forName("okhttp3.internal.Version");
+            Method get = clazz.getMethod("userAgent");
+            Object version = get.invoke(clazz);
             return (version + "").replace("okhttp/", "");
         } catch (Exception ignore) {
         }

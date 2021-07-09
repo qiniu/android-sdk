@@ -1,6 +1,5 @@
 package com.qiniu.android.http;
 
-
 import com.qiniu.android.common.Constants;
 import com.qiniu.android.http.request.Request;
 

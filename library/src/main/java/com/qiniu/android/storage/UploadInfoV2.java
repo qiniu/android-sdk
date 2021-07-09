@@ -1,5 +1,6 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.utils.ListVector;
 import com.qiniu.android.utils.MD5;
 import com.qiniu.android.utils.StringUtils;
 
@@ -12,14 +13,16 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 class UploadInfoV2 extends UploadInfo {
-    private final static String TypeKey = "infoType";
-    private final static String TypeValue = "UploadInfoV2";
-    private final static int maxDataSize = 1024 * 1024 * 1024;
+    private static final String TypeKey = "infoType";
+    private static final String TypeValue = "UploadInfoV2";
+    private static final int maxDataSize = 1024 * 1024 * 1024;
+    private static final int DataListCapacityIncrement = 2;
 
     private final int dataSize;
-    private List<UploadData> dataList;
+    private ListVector<UploadData> dataList;
 
     private boolean isEOF = false;
     private IOException readException = null;
@@ -28,7 +31,7 @@ class UploadInfoV2 extends UploadInfo {
     // 单位：秒
     Long expireAt;
 
-    private UploadInfoV2(UploadSource source, int dataSize, List<UploadData> dataList) {
+    private UploadInfoV2(UploadSource source, int dataSize, ListVector<UploadData> dataList) {
         super(source);
         this.dataSize = dataSize;
         this.dataList = dataList;
@@ -37,7 +40,7 @@ class UploadInfoV2 extends UploadInfo {
     UploadInfoV2(UploadSource source, Configuration configuration) {
         super(source);
         this.dataSize = Math.min(configuration.chunkSize, maxDataSize);
-        this.dataList = new ArrayList<>();
+        this.dataList = new ListVector<>(DataListCapacityIncrement, DataListCapacityIncrement);
     }
 
     static UploadInfoV2 infoFromJson(UploadSource source, JSONObject jsonObject) {
@@ -49,13 +52,14 @@ class UploadInfoV2 extends UploadInfo {
         String type = null;
         Long expireAt = null;
         String uploadId = null;
-        List<UploadData> dataList = new ArrayList<>();
+        ListVector<UploadData> dataList = null;
         try {
             type = jsonObject.optString(TypeKey);
             dataSize = jsonObject.getInt("dataSize");
             expireAt = jsonObject.getLong("expireAt");
             uploadId = jsonObject.optString("uploadId");
             JSONArray dataJsonArray = jsonObject.getJSONArray("dataList");
+            dataList = new ListVector<>(dataJsonArray.length(), DataListCapacityIncrement);
             for (int i = 0; i < dataJsonArray.length(); i++) {
                 JSONObject dataJson = dataJsonArray.getJSONObject(i);
                 UploadData data = UploadData.dataFromJson(dataJson);
@@ -85,7 +89,6 @@ class UploadInfoV2 extends UploadInfo {
 
     UploadData nextUploadData() throws IOException {
 
-        // 从 dataList 中读取需要上传的 data
         UploadData data = nextUploadDataFormDataList();
 
         // 内存的 blockList 中没有可上传的数据，则从资源中读并创建 block
@@ -109,7 +112,7 @@ class UploadInfoV2 extends UploadInfo {
 
         UploadData loadData = null;
         try {
-            loadData =  loadData(data);
+            loadData = loadData(data);
         } catch (IOException e) {
             readException = e;
             throw e;
@@ -149,14 +152,19 @@ class UploadInfoV2 extends UploadInfo {
         if (dataList == null || dataList.size() == 0) {
             return null;
         }
-        UploadData data = null;
-        for (UploadData dataP : dataList) {
-            if (dataP.needToUpload()) {
-                data = dataP;
-                break;
+        final UploadData[] dataRet = {null};
+        dataList.enumerateObjects(new ListVector.EnumeratorHandler<UploadData>() {
+            @Override
+            public boolean enumerate(UploadData data) {
+                if (data.needToUpload()) {
+                    dataRet[0] = data;
+                    return true;
+                } else {
+                    return false;
+                }
             }
-        }
-        return data;
+        });
+        return dataRet[0];
     }
 
     // 加载片中的数据
@@ -211,15 +219,19 @@ class UploadInfoV2 extends UploadInfo {
         if (uploadId == null || uploadId.length() == 0) {
             return null;
         }
-        ArrayList<Map<String, Object>> infoArray = new ArrayList<>();
-        for (UploadData data : dataList) {
-            if (data.getState() == UploadData.State.Complete && !StringUtils.isNullOrEmpty(data.etag)) {
-                HashMap<String, Object> info = new HashMap<>();
-                info.put("etag", data.etag);
-                info.put("partNumber", getPartIndexOfData(data));
-                infoArray.add(info);
+        final ArrayList<Map<String, Object>> infoArray = new ArrayList<>();
+        dataList.enumerateObjects(new ListVector.EnumeratorHandler<UploadData>() {
+            @Override
+            public boolean enumerate(UploadData data) {
+                if (data.getState() == UploadData.State.Complete && !StringUtils.isNullOrEmpty(data.etag)) {
+                    HashMap<String, Object> info = new HashMap<>();
+                    info.put("etag", data.etag);
+                    info.put("partNumber", getPartIndexOfData(data));
+                    infoArray.add(info);
+                }
+                return false;
             }
-        }
+        });
         return infoArray;
     }
 
@@ -246,9 +258,13 @@ class UploadInfoV2 extends UploadInfo {
 
     @Override
     void clearUploadState() {
-        for (UploadData data : dataList) {
-            data.clearUploadState();
-        }
+        dataList.enumerateObjects(new ListVector.EnumeratorHandler<UploadData>() {
+            @Override
+            public boolean enumerate(UploadData data) {
+                data.clearUploadState();
+                return false;
+            }
+        });
     }
 
     @Override
@@ -256,11 +272,15 @@ class UploadInfoV2 extends UploadInfo {
         if (dataList == null || dataList.size() == 0) {
             return 0;
         }
-        long uploadSize = 0;
-        for (UploadData data : dataList) {
-            uploadSize += data.uploadSize();
-        }
-        return uploadSize;
+        final long[] uploadSize = {0};
+        dataList.enumerateObjects(new ListVector.EnumeratorHandler<UploadData>() {
+            @Override
+            public boolean enumerate(UploadData data) {
+                uploadSize[0] += data.uploadSize();
+                return false;
+            }
+        });
+        return uploadSize[0];
     }
 
     @Override
@@ -287,21 +307,30 @@ class UploadInfoV2 extends UploadInfo {
         if (dataList == null || dataList.size() == 0) {
             return true;
         }
-        boolean isCompleted = true;
-        for (UploadData data : dataList) {
-            if (!data.isUploaded()) {
-                isCompleted = false;
-                break;
+        final boolean[] isCompleted = {true};
+        dataList.enumerateObjects(new ListVector.EnumeratorHandler<UploadData>() {
+            @Override
+            public boolean enumerate(UploadData data) {
+                if (!data.isUploaded()) {
+                    isCompleted[0] = false;
+                    return true;
+                } else {
+                    return false;
+                }
             }
-        }
-        return isCompleted;
+        });
+        return isCompleted[0];
     }
 
     @Override
     void checkInfoStateAndUpdate() {
-        for (UploadData data : dataList) {
-            data.checkStateAndUpdate();
-        }
+        dataList.enumerateObjects(new ListVector.EnumeratorHandler<UploadData>() {
+            @Override
+            public boolean enumerate(UploadData data) {
+                data.checkStateAndUpdate();
+                return false;
+            }
+        });
     }
 
     @Override
@@ -316,12 +345,23 @@ class UploadInfoV2 extends UploadInfo {
             jsonObject.put("expireAt", expireAt);
             jsonObject.put("uploadId", uploadId);
             if (dataList != null && dataList.size() > 0) {
-                JSONArray dataJsonArray = new JSONArray();
-                for (UploadData data : dataList) {
-                    JSONObject dataJson = data.toJsonObject();
-                    if (dataJson != null) {
-                        dataJsonArray.put(dataJson);
+                final JSONArray dataJsonArray = new JSONArray();
+                dataList.enumerateObjects(new ListVector.EnumeratorHandler<UploadData>() {
+                    @Override
+                    public boolean enumerate(UploadData data) {
+                        try {
+                            JSONObject dataJson = data.toJsonObject();
+                            if (dataJson != null) {
+                                dataJsonArray.put(dataJson);
+                            }
+                        } catch (Exception e) {
+                            return true;
+                        }
+                        return false;
                     }
+                });
+                if (dataJsonArray.length() != dataList.size()) {
+                    return null;
                 }
                 jsonObject.put("dataList", dataJsonArray);
             }

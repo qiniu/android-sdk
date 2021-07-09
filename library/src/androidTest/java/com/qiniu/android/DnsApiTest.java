@@ -7,13 +7,6 @@ import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.dns.IDnsNetworkAddress;
 import com.qiniu.android.storage.UpToken;
 
-import android.util.Log;
-import com.qiniu.android.storage.Recorder;
-import com.qiniu.android.utils.StringUtils;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-
 import java.util.List;
 
 /**
@@ -28,7 +21,7 @@ public class DnsApiTest extends BaseTest {
 
     public void testLocalLoad() {
 
-        final String host = "upload.qiniup.com";
+        final String host = "uc.qbox.me";
         final DnsPrefetcher dnsPrefetcher = DnsPrefetcher.getInstance();
         dnsPrefetcher.localFetch();
 

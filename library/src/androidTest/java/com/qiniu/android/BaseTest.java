@@ -1,8 +1,8 @@
 package com.qiniu.android;
 
-import com.qiniu.android.utils.LogUtil;
+import android.test.AndroidTestCase;
 
-import junit.framework.TestCase;
+import com.qiniu.android.utils.LogUtil;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by yangsen on 2020/5/26
  */
-public class BaseTest extends TestCase {
+public class BaseTest extends AndroidTestCase {
 
     @Override
     protected void setUp() throws Exception {
@@ -20,18 +20,19 @@ public class BaseTest extends TestCase {
     }
 
     private long maxWaitTimestamp = 0;
+
     /**
      * waitCondition: 等待条件
      * maxWaitTime: 等待最大时长 单位-秒
      */
-    public void wait(WaitConditional waitConditional, float maxWaitTime){
+    public void wait(WaitConditional waitConditional, float maxWaitTime) {
 
         WaitConditional waitConditionalP = waitConditional;
-        if (waitConditionalP == null){
+        if (waitConditionalP == null) {
             waitConditionalP = new WaitCondition();
         }
 
-        this.maxWaitTimestamp = new Date().getTime() + (long)(maxWaitTime * 1000);
+        this.maxWaitTimestamp = new Date().getTime() + (long) (maxWaitTime * 1000);
         while (waitConditionalP.shouldWait()) {
             long currentTimestamp = new Date().getTime();
             if (currentTimestamp > maxWaitTimestamp) {
@@ -53,13 +54,16 @@ public class BaseTest extends TestCase {
 
     public static class WaitCondition implements WaitConditional {
         public boolean shouldWait = true;
-        public boolean shouldWait(){
+
+        public boolean shouldWait() {
             return shouldWait;
-        };
+        }
+
+        ;
     }
 
 
-    private void notestWait(){
+    private void notestWait() {
 
         long waitTime = 5;
 
@@ -71,6 +75,6 @@ public class BaseTest extends TestCase {
 
         long endTimestamp = new Date().getTime();
 
-        assertTrue(((startTimestamp + waitTime*1000) < endTimestamp));
+        assertTrue(((startTimestamp + waitTime * 1000) < endTimestamp));
     }
 }

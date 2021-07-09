@@ -24,7 +24,7 @@ android {
     buildToolsVersion '29.0.2'
     defaultConfig {
         //applicationId "com.qiniu.android"
-        minSdkVersion 19
+        minSdkVersion 14
         targetSdkVersion 26
         versionCode code
         versionName version
@@ -52,7 +52,8 @@ android {
 
 dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.2.2'
-//    implementation 'com.squareup.okhttp3:okhttp:3.12.1'
+
+//    implementation 'com.squareup.okhttp3:okhttp:3.12.+'
     implementation 'com.qiniu:happy-dns:0.2.18'
     // for javax.annotation.Nullable use in custom MultipartBody and Headers implements.
 //    implementation 'com.google.code.findbugs:jsr305:3.0.2'
