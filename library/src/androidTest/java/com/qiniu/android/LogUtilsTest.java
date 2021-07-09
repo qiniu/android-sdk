@@ -42,6 +42,6 @@ public class LogUtilsTest extends BaseTest {
     }
 
     private boolean validLogCode(int code) {
-        return code > 0 || code == -10000 || code == -10001;
+        return !(code == -10000 || code == -10001);
     }
 }
