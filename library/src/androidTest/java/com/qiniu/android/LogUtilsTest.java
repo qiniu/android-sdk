@@ -1,5 +1,7 @@
 package com.qiniu.android;
 
+import android.util.Log;
+
 import com.qiniu.android.utils.LogUtil;
 
 public class LogUtilsTest extends BaseTest {
@@ -7,6 +9,7 @@ public class LogUtilsTest extends BaseTest {
     public void testLog(){
 
         LogUtil.enableLog(true);
+        LogUtil.setLogLevel(Log.VERBOSE);
 
         Throwable throwable = new Throwable();
 
