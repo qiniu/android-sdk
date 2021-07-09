@@ -13,7 +13,8 @@ public class LogUtilsTest extends BaseTest {
 
         Throwable throwable = new Throwable();
 
-        assertTrue(LogUtil.v("log") > 0);
+        int ret = LogUtil.v("log");
+        assertTrue("log ret:" + ret, ret > 0);
         assertTrue(LogUtil.v("v","log") > 0);
         assertTrue(LogUtil.v("v","log", null) > 0);
         assertTrue(LogUtil.v("v","log", throwable) > 0);
