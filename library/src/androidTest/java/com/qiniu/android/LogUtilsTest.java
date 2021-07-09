@@ -38,5 +38,6 @@ public class LogUtilsTest extends BaseTest {
         assertTrue(LogUtil.e("v","log", null) > 0);
         assertTrue(LogUtil.e("v","log", throwable) > 0);
 
+        LogUtil.enableLog(false);
     }
 }
