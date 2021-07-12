@@ -1,5 +1,5 @@
 #Changelog
-## 8.3.1(2021-06-30)
+## 8.3.1(2021-07-12)
 * 兼容支持 Android 4.x  ( API level 14+ )，使用 Android4.x 对应 okhttp 版本请调整至 3.12.+
 * 支持 okhttp 4.9
 * 解决偶现并发异常
