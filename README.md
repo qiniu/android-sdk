@@ -39,7 +39,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 ```
 * 从7.5.0开始增加了DNS预取和缓存策略，减少dns解析错误
 * 如果可以明确 区域 的话，最好指定固定区域，这样可以少一步网络请求，少一步出错的可能。
-* 如果使用 Android4.x ，对应 okhttp 版本请调整至 3.12.+
+* 如果使用 Android 4.x ，对应 okhttp 版本请调整至 3.12.+
 
 ### 直接安装
 将sdk jar文件 复制到项目中去，[jar包下载地址](http://search.maven.org/#search%7Cga%7C1%7Ccom%2Fqiniu%2Fqiniu-android-sdk) , 下载对应的jar包，以及搜索下载对应的依赖库
