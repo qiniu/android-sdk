@@ -6,6 +6,7 @@ import com.qiniu.android.dns.IResolver;
 import com.qiniu.android.dns.NetworkInfo;
 import com.qiniu.android.dns.Record;
 import com.qiniu.android.dns.http.DnspodFree;
+import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.utils.Utils;
 
 import java.io.IOException;
@@ -23,9 +24,11 @@ public class HappyDns implements Dns {
 
 
     public HappyDns(){
-        IResolver[] resolvers = new IResolver[2];
-        resolvers[0] = new SystemResolver();
-        resolvers[1] = new DnspodFree();
+        int dnsTimeout = GlobalConfiguration.getInstance().dnsServerResolveTimeout;
+        IResolver[] resolvers = new IResolver[3];
+        resolvers[0] = new SystemResolver(dnsTimeout);
+        resolvers[1] = new DnsCustomServersResolver(GlobalConfiguration.getInstance().dnsServers, dnsTimeout);
+        resolvers[2] = new DnspodFree("119.29.29.29", dnsTimeout);
 
         dnsManager = new DnsManager(NetworkInfo.normal, resolvers);
     }
@@ -66,13 +69,18 @@ public class HappyDns implements Dns {
 
     private static class SystemResolver implements IResolver{
 
+        private int timeout;
+        SystemResolver(int timeout) {
+            this.timeout = timeout;
+        }
+
         @Override
         public Record[] resolve(Domain domain, NetworkInfo info) throws IOException {
 
             long timestamp = Utils.currentTimestamp();
             int ttl = 120;
             ArrayList<Record> records = new ArrayList<>();
-            List<InetAddress> inetAddresses = new SystemDns().lookupInetAddress(domain.domain);
+            List<InetAddress> inetAddresses = new SystemDns(timeout).lookupInetAddress(domain.domain);
             for(InetAddress inetAddress : inetAddresses){
                 Record record = new Record(inetAddress.getHostAddress(), Record.TYPE_A, ttl, timestamp, Record.Source.System);
                 records.add(record);
