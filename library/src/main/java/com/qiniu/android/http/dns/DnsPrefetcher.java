@@ -71,37 +71,35 @@ public class DnsPrefetcher {
     }
 
     public void localFetch(){
-        if (!prepareToPreFetch()){
-            return;
-        }
-
-        String[] hosts = getLocalPreHost();
-        synchronized (this) {
-            prefetchHosts.addAll(Arrays.asList(hosts));
-        }
-        preFetchHosts(hosts);
-        recorderDnsCache();
-        endPreFetch();
+        addPreFetchHosts(getLocalPreHost());
     }
 
     public boolean checkAndPrefetchDnsIfNeed(Zone currentZone, UpToken token){
-        if (!prepareToPreFetch()){
-            return false;
-        }
+        return addPreFetchHosts(getCurrentZoneHosts(currentZone, token));
+    }
 
-        String[] hosts = getCurrentZoneHosts(currentZone, token);
+    public boolean addPreFetchHosts(String[] hosts) {
         if (hosts == null) {
             return false;
         }
 
+        // 已经添加则不再触发预取
+        boolean prefetchHostsContainHosts = false;
         synchronized (this) {
+            int countBeforeAdd = prefetchHosts.size();
             prefetchHosts.addAll(Arrays.asList(hosts));
+            int countAfterAdd = prefetchHosts.size();
+            if (countAfterAdd > countBeforeAdd) {
+                prefetchHostsContainHosts = true;
+            }
         }
 
-        preFetchHosts(hosts);
-        recorderDnsCache();
-        endPreFetch();
-        return true;
+        if (prefetchHostsContainHosts) {
+            checkWhetherCachedDnsValid();
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public void invalidNetworkAddress(IDnsNetworkAddress address){
@@ -285,15 +283,7 @@ public class DnsPrefetcher {
 
 
     private String[] getLocalPreHost(){
-        ArrayList<String> localHosts = new ArrayList<>();
-
-        localHosts.add(Config.preQueryHost00);
-        localHosts.add(Config.preQueryHost01);
-
-        String logReport = Config.upLogURL;
-        localHosts.add(logReport);
-
-        return localHosts.toArray(new String[0]);
+        return new String[]{Config.upLogURL};
     }
 
     private String[] getCurrentZoneHosts(Zone currentZone, UpToken token){
