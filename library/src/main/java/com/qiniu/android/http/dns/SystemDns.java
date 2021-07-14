@@ -24,7 +24,7 @@ public class SystemDns implements Dns {
         this.timeout = timeout;
     }
 
-    List<InetAddress> lookupInetAddress(final String hostname) throws UnknownHostException {
+    public List<InetAddress> lookupInetAddress(final String hostname) throws UnknownHostException {
         if (hostname == null) {
             throw new UnknownHostException("hostname is null");
         } else {

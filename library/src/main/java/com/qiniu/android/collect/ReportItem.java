@@ -82,6 +82,7 @@ public class ReportItem {
     public static final String RequestKeyPrefetchedBefore = "prefetched_before";
     public static final String RequestKeyPrefetchedErrorMessage = "prefetched_error_message";
     public static final String RequestKeyNetworkMeasuring = "network_measuring";
+    public static final String RequestKeyPerceptiveSpeed = "perceptive_speed";
 
     // 分块上传统计⽇志
     public static final String BlockKeyLogType = "log_type";
@@ -102,6 +103,7 @@ public class ReportItem {
     public static final String BlockKeyOsVersion = "os_version";
     public static final String BlockKeySDKName = "sdk_name";
     public static final String BlockKeySDKVersion = "sdk_version";
+    public static final String BlockKeyPerceptiveSpeed = "perceptive_speed";
 
 
     // 上传质量统计
@@ -121,6 +123,7 @@ public class ReportItem {
     public static final String QualityKeyOsVersion = "os_version";
     public static final String QualityKeySDKName = "sdk_name";
     public static final String QualityKeySDKVersion = "sdk_version";
+    public static final String QualityKeyPerceptiveSpeed = "perceptive_speed";
 
     public static String requestReportStatusCode(ResponseInfo responseInfo){
         if (responseInfo == null){

@@ -2,12 +2,13 @@ package com.qiniu.android.http.metrics;
 
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.request.Request;
+import com.qiniu.android.utils.Utils;
 
 import org.json.JSONObject;
 
 import java.util.Date;
 
-public class UploadSingleRequestMetrics {
+public class UploadSingleRequestMetrics extends UploadMetrics {
 
     // 请求的 httpVersion
     public String httpVersion;
@@ -20,9 +21,6 @@ public class UploadSingleRequestMetrics {
 
     public String clientName;
     public String clientVersion;
-
-    public Date startDate;
-    public Date endDate;
 
     public Date domainLookupStartDate;
     public Date domainLookupEndDate;
@@ -50,10 +48,6 @@ public class UploadSingleRequestMetrics {
     public String remoteAddress;
     public Integer remotePort;
 
-
-    public long totalElapsedTime(){
-        return time(startDate, endDate);
-    }
     public long totalDnsTime(){
         return time(domainLookupStartDate, domainLookupEndDate);
     }
@@ -95,6 +89,7 @@ public class UploadSingleRequestMetrics {
         }
         return (headerLength + bodyLength);
     }
+
     public Long bytesSend(){
         long totalBytes = totalBytes();
         long bytesSend = countOfRequestHeaderBytesSent + countOfRequestBodyBytesSent;
@@ -104,12 +99,19 @@ public class UploadSingleRequestMetrics {
         return bytesSend;
     }
 
+    public Long bytesReceive(){
+        long bytesReceive = countOfResponseHeaderBytesReceived + countOfResponseBodyBytesReceived;
+        if (bytesReceive < 0){
+            bytesReceive = 0;
+        }
+        return bytesReceive;
+    }
+
+    public Long perceptiveSpeed() {
+        return Utils.calculateSpeed(bytesSend() + bytesReceive(), totalElapsedTime());
+    }
 
     private long time(Date startDate, Date endDate){
-        if (startDate != null && endDate != null){
-            return (endDate.getTime() - startDate.getTime());
-        } else {
-            return 0l;
-        }
+        return Utils.dateDuration(startDate, endDate);
     }
 }

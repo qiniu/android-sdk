@@ -51,6 +51,7 @@ class HttpRegionRequest {
              RequestShouldRetryHandler shouldRetryHandler,
              RequestCompleteHandler completeHandler){
         requestMetrics = new UploadRegionRequestMetrics(region);
+        requestMetrics.start();
         performRequest(getNextServer(null), action, isAsync, null, header, "GET", shouldRetryHandler, null, completeHandler);
     }
 
@@ -62,6 +63,7 @@ class HttpRegionRequest {
               RequestProgressHandler progressHandler,
               RequestCompleteHandler completeHandler){
         requestMetrics = new UploadRegionRequestMetrics(region);
+        requestMetrics.start();
         performRequest(getNextServer(null), action, isAsync, data, header, "POST", shouldRetryHandler, progressHandler, completeHandler);
     }
 
@@ -145,6 +147,7 @@ class HttpRegionRequest {
                                 JSONObject response,
                                 RequestCompleteHandler completeHandler){
 
+        requestMetrics.end();
         singleRequest = null;
         if (completeHandler != null){
             completeHandler.complete(responseInfo, requestMetrics, response);
