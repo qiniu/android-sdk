@@ -24,7 +24,7 @@ public class SystemDns implements Dns {
         this.timeout = timeout;
     }
 
-    public List<InetAddress> lookupInetAddress(final String hostname) throws UnknownHostException {
+    List<InetAddress> lookupInetAddress(final String hostname) throws UnknownHostException {
         if (hostname == null) {
             throw new UnknownHostException("hostname is null");
         } else {
@@ -40,7 +40,7 @@ public class SystemDns implements Dns {
                 return task.get(timeout, TimeUnit.SECONDS);
             } catch (Exception var4) {
                 UnknownHostException unknownHostException =
-                        new UnknownHostException("Broken system behaviour for dns lookup of " + hostname);
+                        new UnknownHostException("dns broken when lookup of " + hostname);
                 unknownHostException.initCause(var4);
                 throw unknownHostException;
             }
@@ -52,7 +52,7 @@ public class SystemDns implements Dns {
         ArrayList<IDnsNetworkAddress> addressList = new ArrayList<>();
         List<InetAddress> inetAddressList = lookupInetAddress(hostname);
         for (InetAddress inetAddress : inetAddressList) {
-            DnsNetworkAddress address = new DnsNetworkAddress(inetAddress.getHostName(), inetAddress.getHostAddress(), 120L, null, (new Date()).getTime());
+            DnsNetworkAddress address = new DnsNetworkAddress(inetAddress.getHostName(), inetAddress.getHostAddress(), 120L, "system", (new Date()).getTime());
             addressList.add(address);
         }
         return addressList;
