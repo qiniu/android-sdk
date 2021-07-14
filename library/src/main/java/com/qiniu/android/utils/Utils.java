@@ -72,6 +72,28 @@ public class Utils {
         return new Date().getTime();
     }
 
+    /// 两个时间的时间段 单位：毫秒
+    public static long dateDuration(Date startDate, Date endDate){
+        if (startDate != null && endDate != null){
+            return (endDate.getTime() - startDate.getTime());
+        } else {
+            return 0l;
+        }
+    }
+
+    /**
+     * 计算 上传 或 下载 速度 单位：B/s
+     * @param bytes 单位： B
+     * @param totalTime  单位：ms
+     * @return 速度
+     */
+    public static Long calculateSpeed(Long bytes, Long totalTime){
+        if (bytes == null || bytes < 0 || totalTime == null || totalTime == 0) {
+            return null;
+        }
+        return bytes * 1000 / totalTime;
+    }
+
     public static String sdkDirectory() {
         Context context = ContextGetter.applicationContext();
         if (context == null) {

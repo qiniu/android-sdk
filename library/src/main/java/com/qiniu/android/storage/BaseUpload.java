@@ -84,6 +84,8 @@ abstract class BaseUpload implements Runnable {
 
     @Override
     public void run() {
+        metrics.start();
+
         config.zone.preQuery(token, new Zone.QueryHandler() {
             @Override
             public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics) {
@@ -126,11 +128,13 @@ abstract class BaseUpload implements Runnable {
         return isSwitched;
     }
 
-    protected void completeAction(ResponseInfo responseInfo,
-                                  JSONObject response) {
+    protected void completeAction(ResponseInfo responseInfo, JSONObject response) {
+
         if (currentRegionRequestMetrics != null && metrics != null) {
+            metrics.end();
             metrics.addMetrics(currentRegionRequestMetrics);
         }
+
         if (completionHandler != null) {
             completionHandler.complete(responseInfo, key, metrics, response);
         }

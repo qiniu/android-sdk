@@ -9,6 +9,7 @@ import com.qiniu.android.http.dns.SystemDns;
 import com.qiniu.android.http.request.Request;
 import com.qiniu.android.http.request.IRequestClient;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
+import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringUtils;
 
@@ -264,7 +265,7 @@ public class SystemHttpClient implements IRequestClient {
         return new EventListener() {
             @Override
             public void callStart(Call call) {
-                metrics.startDate = new Date();
+                metrics.start();
             }
 
             @Override
@@ -359,7 +360,10 @@ public class SystemHttpClient implements IRequestClient {
 
             @Override
             public void responseHeadersEnd(Call call, Response response) {
-
+                Headers headers = response.headers();
+                if (headers != null && headers.byteCount() > 0) {
+                    metrics.countOfResponseHeaderBytesReceived = headers.byteCount();
+                }
             }
 
             @Override
@@ -369,6 +373,7 @@ public class SystemHttpClient implements IRequestClient {
             @Override
             public void responseBodyEnd(Call call, long byteCount) {
                 metrics.responseEndDate = new Date();
+                metrics.countOfResponseBodyBytesReceived = byteCount;
             }
 
             public void responseFailed(Call call, IOException ioe) {
@@ -377,12 +382,12 @@ public class SystemHttpClient implements IRequestClient {
 
             @Override
             public void callEnd(Call call) {
-                metrics.endDate = new Date();
+                metrics.end();
             }
 
             @Override
             public void callFailed(Call call, IOException ioe) {
-                metrics.endDate = new Date();
+                metrics.end();
             }
         };
     }

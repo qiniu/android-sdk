@@ -1,6 +1,7 @@
 package com.qiniu.android.common;
 
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.dns.DnsPrefetchTransaction;
 import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.storage.UpToken;
@@ -44,6 +45,14 @@ public final class AutoZone extends Zone {
         }
     }
 
+    private String[] getUcServerArray() {
+        if (ucServer != null) {
+            return new String[]{ucServer};
+        } else {
+            return new String[]{Config.preQueryHost00, Config.preQueryHost01};
+        }
+    }
+
     @Override
     public ZonesInfo getZonesInfo(UpToken token) {
         if (token == null) {
@@ -75,6 +84,7 @@ public final class AutoZone extends Zone {
             return;
         }
 
+        DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(getUcServerArray());
 
         try {
             SingleFlight.perform(cacheKey, new SingleFlight.ActionHandler() {

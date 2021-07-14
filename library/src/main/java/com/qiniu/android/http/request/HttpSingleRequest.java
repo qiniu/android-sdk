@@ -253,6 +253,11 @@ class HttpSingleRequest {
             item.setReport(networkMeasuring, ReportItem.RequestKeyNetworkMeasuring);
         }
 
+        // 统计当前请求上传速度   / 总耗时
+        if (responseInfo.isOK()) {
+            item.setReport(requestMetrics.perceptiveSpeed(), ReportItem.RequestKeyPerceptiveSpeed);
+        }
+
         item.setReport(requestMetrics.httpVersion, ReportItem.RequestKeyHttpVersion);
 
         UploadInfoReporter.getInstance().report(item, token.token);
