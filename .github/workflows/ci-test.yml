@@ -22,7 +22,7 @@ jobs:
           arch: x86_64
           script: |
             ./gradlew connectedCheck
-            ./gradlew build
+            ./gradlew build.   
             ./gradlew :library:createDebugAndroidTestCoverageReport --info --stacktrace
             ./gradlew connectedAndroidTest  --info --stacktrace
       - name: Upload coverage.txt
