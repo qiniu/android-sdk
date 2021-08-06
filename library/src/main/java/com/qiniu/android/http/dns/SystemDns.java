@@ -52,7 +52,7 @@ public class SystemDns implements Dns {
         ArrayList<IDnsNetworkAddress> addressList = new ArrayList<>();
         List<InetAddress> inetAddressList = lookupInetAddress(hostname);
         for (InetAddress inetAddress : inetAddressList) {
-            DnsNetworkAddress address = new DnsNetworkAddress(inetAddress.getHostName(), inetAddress.getHostAddress(), 120L, "system", (new Date()).getTime());
+            DnsNetworkAddress address = new DnsNetworkAddress(inetAddress.getHostName(), inetAddress.getHostAddress(), 120L, "system", (new Date()).getTime()/1000);
             addressList.add(address);
         }
         return addressList;
