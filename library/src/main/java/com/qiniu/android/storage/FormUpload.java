@@ -28,6 +28,7 @@ class FormUpload extends BaseUpload {
 
     @Override
     protected void startToUpload() {
+        super.startToUpload();
 
         LogUtil.i("key:" + StringUtils.toNonnullString(key) + " form上传");
 

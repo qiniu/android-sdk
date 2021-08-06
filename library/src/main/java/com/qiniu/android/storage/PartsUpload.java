@@ -115,6 +115,8 @@ class PartsUpload extends BaseUpload {
 
     @Override
     protected void startToUpload() {
+        super.startToUpload();
+
         uploadDataErrorResponse = null;
         uploadDataErrorResponseInfo = null;
 

@@ -235,7 +235,7 @@ class HttpSingleRequest {
 
         item.setReport(server.getSource(), ReportItem.RequestKeyPrefetchedDnsSource);
         if (server.getIpPrefetchedTime() != null) {
-            Long prefetchTime = server.getIpPrefetchedTime() - currentTimestamp;
+            Long prefetchTime = (long)(currentTimestamp*0.0001) - server.getIpPrefetchedTime();
             item.setReport(prefetchTime, ReportItem.RequestKeyPrefetchedBefore);
         }
         item.setReport(DnsPrefetcher.getInstance().lastPrefetchErrorMessage, ReportItem.RequestKeyPrefetchedErrorMessage);

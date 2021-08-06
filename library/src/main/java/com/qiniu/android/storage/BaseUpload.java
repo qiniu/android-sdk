@@ -114,13 +114,18 @@ abstract class BaseUpload implements Runnable {
         return ret;
     }
 
-    protected abstract void startToUpload();
+    protected void startToUpload() {
+        currentRegionRequestMetrics = new UploadRegionRequestMetrics(getCurrentRegion());
+        currentRegionRequestMetrics.start();
+    }
 
     protected boolean switchRegionAndUpload() {
         if (currentRegionRequestMetrics != null) {
+            currentRegionRequestMetrics.end();
             metrics.addMetrics(currentRegionRequestMetrics);
             currentRegionRequestMetrics = null;
         }
+
         boolean isSwitched = switchRegion();
         if (isSwitched) {
             startToUpload();
@@ -129,9 +134,14 @@ abstract class BaseUpload implements Runnable {
     }
 
     protected void completeAction(ResponseInfo responseInfo, JSONObject response) {
+        if (metrics != null) {
+            metrics.end();
+        }
+        if (currentRegionRequestMetrics != null) {
+            currentRegionRequestMetrics.end();
+        }
 
         if (currentRegionRequestMetrics != null && metrics != null) {
-            metrics.end();
             metrics.addMetrics(currentRegionRequestMetrics);
         }
 
