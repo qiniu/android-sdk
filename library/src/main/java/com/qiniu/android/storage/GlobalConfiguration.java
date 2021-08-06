@@ -81,6 +81,11 @@ public class GlobalConfiguration {
      */
     public int connectCheckTimeout = 3;
 
+    /**
+     *  是否开启网络连接状态检测，默认：开启
+     */
+    public boolean connectCheckEnable = true;
+
     private static GlobalConfiguration configuration = new GlobalConfiguration();
 
     private GlobalConfiguration() {

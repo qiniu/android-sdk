@@ -12,8 +12,14 @@ import com.qiniu.android.utils.Wait;
 
 import org.json.JSONObject;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 public class ConnectChecker {
 
+    private static ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private static SingleFlight<UploadSingleRequestMetrics> singleFlight = new SingleFlight<>();
 
     public static boolean isConnected(UploadSingleRequestMetrics metrics) {
@@ -106,13 +112,40 @@ public class ConnectChecker {
 
     private static void checkHost(final String host, final CheckCompleteHandler completeHandler) {
 
-        Request request = new Request(host, Request.HttpMethodHEAD, null, null, GlobalConfiguration.getInstance().connectCheckTimeout);
+        final boolean[] hasCallback = {false};
+        int timeout = GlobalConfiguration.getInstance().connectCheckTimeout;
+
+        final UploadSingleRequestMetrics timeoutMetrics = new UploadSingleRequestMetrics();
+        timeoutMetrics.start();
+        executorService.schedule(new Callable<Object>() {
+            @Override
+            public Object call() throws Exception {
+                synchronized (this) {
+                    if (hasCallback[0]) {
+                        return null;
+                    }
+                    hasCallback[0] = true;
+                }
+                timeoutMetrics.end();
+                completeHandler.complete(timeoutMetrics);
+                return null;
+            }
+        }, timeout, TimeUnit.SECONDS);
+
+        Request request = new Request(host, Request.HttpMethodHEAD, null, null, timeout);
         SystemHttpClient client = new SystemHttpClient();
 
         LogUtil.i("== checkHost:" + host);
         client.request(request, true, null, null, new IRequestClient.RequestClientCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
+                synchronized (this) {
+                    if (hasCallback[0]) {
+                        return;
+                    }
+                    hasCallback[0] = true;
+                }
+
                 LogUtil.i("== checkHost:" + host + " responseInfo:" + responseInfo);
                 completeHandler.complete(metrics);
             }

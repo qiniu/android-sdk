@@ -12,6 +12,7 @@ import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.request.handler.RequestShouldRetryHandler;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 import com.qiniu.android.storage.Configuration;
+import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.LogUtil;
@@ -141,6 +142,10 @@ class HttpSingleRequest {
     }
 
     private boolean shouldCheckConnect(ResponseInfo responseInfo) {
+        if (!GlobalConfiguration.getInstance().connectCheckEnable) {
+            return false;
+        }
+
         return responseInfo != null &&
                 (responseInfo.statusCode == ResponseInfo.NetworkError || /* network error */
                         responseInfo.statusCode == -1001 || /* timeout */
