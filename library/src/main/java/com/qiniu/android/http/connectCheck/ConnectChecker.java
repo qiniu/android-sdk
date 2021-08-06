@@ -87,9 +87,6 @@ public class ConnectChecker {
                     synchronized (checkStatus) {
                         checkStatus.completeCount += 1;
                     }
-                    if (isHostConnected) {
-                        checkStatus.isConnected = true;
-                    }
                     if (isHostConnected || checkStatus.completeCount == checkStatus.totalCount) {
                         synchronized (checkStatus) {
                             if (checkStatus.isCompleted) {
@@ -161,7 +158,6 @@ public class ConnectChecker {
         private int totalCount = 0;
         private int completeCount = 0;
         private boolean isCompleted = false;
-        private boolean isConnected = false;
     }
 
     private static class CheckResult {
