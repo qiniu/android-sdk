@@ -59,15 +59,10 @@ public class GlobalConfiguration {
     public int partialHostFrozenTime = 5 * 60;
 
     /**
-     * 额外指定的 dns 预解析 server，当使用系统 dns 预解析失败时会使用 dnsServers 的顺序逐个进行预解析
-     */
-    public String[] dnsServers = new String[]{"114.114.114.114", "8.8.8.8", "119.29.29.29", "208.67.222.222", "223.5.5.5", "1.1.1.1"};
-
-    /**
-     * 额外指定的 {@link GlobalConfiguration#dnsServers} 在 dns 预取时的超时时间
+     * 在 dns 预取时的超时时间
      * 单位：秒
      */
-    public int dnsServerResolveTimeout = 2;
+    public int dnsResolveTimeout = 2;
 
     /**
      * 网络连接状态检测使用的connectCheckURLStrings，网络链接状态检测可能会影响重试机制，启动网络连接状态检测有助于提高上传可用性。

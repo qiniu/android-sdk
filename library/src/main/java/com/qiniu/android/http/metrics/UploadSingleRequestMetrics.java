@@ -48,6 +48,8 @@ public class UploadSingleRequestMetrics extends UploadMetrics {
     public String remoteAddress;
     public Integer remotePort;
 
+    private long totalBytes = 0;
+
     public long totalDnsTime(){
         return time(domainLookupStartDate, domainLookupEndDate);
     }
@@ -72,22 +74,21 @@ public class UploadSingleRequestMetrics extends UploadMetrics {
     public void setRequest(Request request){
         if (request != null){
             this.request = new Request(request.urlString, request.httpMethod, request.allHeaders, null, request.timeout);
+
+            long headerLength = 0;
+            long bodyLength = 0 ;
+            if (request.allHeaders != null){
+                headerLength = (new JSONObject(request.allHeaders)).toString().length();
+            }
+            if (request.httpBody != null){
+                bodyLength = request.httpBody.length;
+            }
+            totalBytes = headerLength + bodyLength;
         }
     }
 
     public long totalBytes(){
-        if (request == null){
-            return 0;
-        }
-        long headerLength = 0;
-        long bodyLength = 0 ;
-        if (request.allHeaders != null){
-            headerLength = (new JSONObject(request.allHeaders)).toString().length();
-        }
-        if (request.httpBody != null){
-            bodyLength = request.httpBody.length;
-        }
-        return (headerLength + bodyLength);
+        return totalBytes;
     }
 
     public Long bytesSend(){

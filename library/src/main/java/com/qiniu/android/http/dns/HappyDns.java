@@ -1,18 +1,10 @@
 package com.qiniu.android.http.dns;
 
 import com.qiniu.android.dns.DnsManager;
-import com.qiniu.android.dns.Domain;
-import com.qiniu.android.dns.IResolver;
-import com.qiniu.android.dns.NetworkInfo;
-import com.qiniu.android.dns.Record;
-import com.qiniu.android.dns.http.DnspodFree;
 import com.qiniu.android.storage.GlobalConfiguration;
-import com.qiniu.android.utils.Utils;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,15 +13,13 @@ import java.util.List;
 public class HappyDns implements Dns {
 
     private SystemDns systemDns;
-    private ServersDns serversDns;
     private HttpDns httpDns;
 
     private DnsQueryErrorHandler errorHandler;
 
     public HappyDns(){
-        int dnsTimeout = GlobalConfiguration.getInstance().dnsServerResolveTimeout;
+        int dnsTimeout = GlobalConfiguration.getInstance().dnsResolveTimeout;
         systemDns = new SystemDns(dnsTimeout);
-        serversDns = new ServersDns(GlobalConfiguration.getInstance().dnsServers, dnsTimeout);
         httpDns = new HttpDns(dnsTimeout);
     }
 
@@ -44,16 +34,6 @@ public class HappyDns implements Dns {
         // 系统 dns
         try {
             addressList = systemDns.lookup(hostname);
-        } catch (IOException e) {
-            handleDnsError(e, hostname);
-        }
-        if (addressList != null && addressList.size() > 0) {
-            return addressList;
-        }
-
-        // 指定 server ip dns
-        try {
-            addressList = serversDns.lookup(hostname);
         } catch (IOException e) {
             handleDnsError(e, hostname);
         }

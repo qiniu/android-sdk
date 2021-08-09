@@ -148,9 +148,6 @@ abstract class BaseUpload implements Runnable {
         if (completionHandler != null) {
             completionHandler.complete(responseInfo, key, metrics, response);
         }
-
-        metrics = null;
-        currentRegionRequestMetrics = null;
     }
 
     private boolean setupRegions() {
