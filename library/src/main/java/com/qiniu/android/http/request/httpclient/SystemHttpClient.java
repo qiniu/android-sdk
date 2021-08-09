@@ -74,6 +74,7 @@ public class SystemHttpClient implements IRequestClient {
                         RequestClientCompleteHandler complete) {
 
         metrics = new UploadSingleRequestMetrics();
+        metrics.start();
         metrics.clientName = "okhttp";
         metrics.clientVersion = getOkHttpVersion();
         if (request != null) {
@@ -265,7 +266,6 @@ public class SystemHttpClient implements IRequestClient {
         return new EventListener() {
             @Override
             public void callStart(Call call) {
-                metrics.start();
             }
 
             @Override
@@ -344,12 +344,10 @@ public class SystemHttpClient implements IRequestClient {
 
             @Override
             public void requestBodyEnd(Call call, long byteCount) {
-                metrics.requestEndDate = new Date();
                 metrics.countOfRequestBodyBytesSent = byteCount;
             }
 
             public void requestFailed(Call call, IOException ioe) {
-                metrics.requestEndDate = new Date();
                 metrics.countOfRequestBodyBytesSent = 0;
             }
 
@@ -406,6 +404,7 @@ public class SystemHttpClient implements IRequestClient {
         ResponseInfo info = ResponseInfo.create(request, responseCode, null, null, errorMsg);
         metrics.response = info;
         metrics.request = request;
+        metrics.end();
         complete.complete(info, metrics, info.response);
         releaseResource();
     }
@@ -469,6 +468,7 @@ public class SystemHttpClient implements IRequestClient {
         } else if (response.protocol() == Protocol.HTTP_2) {
             metrics.httpVersion = "2";
         }
+        metrics.end();
         complete.complete(info, metrics, info.response);
 
         releaseResource();

@@ -15,7 +15,9 @@ import java.util.concurrent.Executors;
 public final class AsyncRun {
 
     private static final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(3);
+
+    private static int threadPoolSize = 6;
+    private static ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
 
     public static void runInMain(Runnable r) {
         if (Looper.getMainLooper() == Looper.myLooper()){

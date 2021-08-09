@@ -75,6 +75,7 @@ class HttpRegionRequest {
              RequestProgressHandler progressHandler,
              RequestCompleteHandler completeHandler){
         requestMetrics = new UploadRegionRequestMetrics(region);
+        requestMetrics.start();
         performRequest(getNextServer(null), action, isAsync, data, header, "PUT", shouldRetryHandler, progressHandler, completeHandler);
     }
 
