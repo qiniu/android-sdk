@@ -248,7 +248,9 @@ class HttpSingleRequest {
         item.setReport(requestMetrics.clientName, ReportItem.RequestKeyHttpClient);
         item.setReport(requestMetrics.clientVersion, ReportItem.RequestKeyHttpClientVersion);
 
-        if (requestMetrics.connectCheckMetrics != null) {
+        if (GlobalConfiguration.getInstance().connectCheckEnable) {
+            item.setReport("not enable", ReportItem.RequestKeyNetworkMeasuring);
+        } else if (requestMetrics.connectCheckMetrics != null) {
             String connectCheckDuration = String.format(Locale.ENGLISH,"%d", requestMetrics.connectCheckMetrics.totalElapsedTime());
             String connectCheckStatusCode = "";
             if (requestMetrics.connectCheckMetrics.response != null) {

@@ -82,9 +82,9 @@ public class SystemHttpClient implements IRequestClient {
         }
         metrics.setRequest(request);
         currentRequest = request;
-        httpClient = createHttpClient(connectionProxy);
         requestProgress = progress;
         completeHandler = complete;
+        httpClient = createHttpClient(connectionProxy);
 
         okhttp3.Request.Builder requestBuilder = createRequestBuilder(requestProgress);
         if (requestBuilder == null) {
@@ -93,8 +93,7 @@ public class SystemHttpClient implements IRequestClient {
             return;
         }
 
-        ResponseTag tag = new ResponseTag();
-        call = httpClient.newCall(requestBuilder.tag(tag).build());
+        call = httpClient.newCall(requestBuilder.build());
 
         if (isAsync) {
             call.enqueue(new Callback() {
@@ -135,7 +134,6 @@ public class SystemHttpClient implements IRequestClient {
                 }
                 handleError(request, status, msg, complete);
             }
-
         }
     }
 
@@ -152,6 +150,7 @@ public class SystemHttpClient implements IRequestClient {
         }
 
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+
         if (connectionProxy != null) {
             clientBuilder.proxy(connectionProxy.proxy());
             if (connectionProxy.user != null && connectionProxy.password != null) {
@@ -159,44 +158,24 @@ public class SystemHttpClient implements IRequestClient {
             }
         }
 
-
         clientBuilder.eventListener(createEventLister());
 
-        clientBuilder.dns(new Dns() {
-            @Override
-            public List<InetAddress> lookup(String s) throws UnknownHostException {
-                if (currentRequest.getInetAddress() != null && s.equals(currentRequest.host)) {
-                    List<InetAddress> inetAddressList = new ArrayList<>();
-                    inetAddressList.add(currentRequest.getInetAddress());
-                    return inetAddressList;
-                } else {
-                    return new SystemDns().lookupInetAddress(s);
+        if (GlobalConfiguration.getInstance().isDnsOpen) {
+            clientBuilder.dns(new Dns() {
+                @Override
+                public List<InetAddress> lookup(String s) throws UnknownHostException {
+                    if (currentRequest.getInetAddress() != null && s.equals(currentRequest.host)) {
+                        List<InetAddress> inetAddressList = new ArrayList<>();
+                        inetAddressList.add(currentRequest.getInetAddress());
+                        return inetAddressList;
+                    } else {
+                        return new SystemDns().lookupInetAddress(s);
+                    }
                 }
-            }
-        });
+            });
+        }
 
         clientBuilder.connectionPool(SystemHttpClient.getConnectPool());
-
-        clientBuilder.networkInterceptors().add(new Interceptor() {
-            @Override
-            public okhttp3.Response intercept(Chain chain) throws IOException {
-                okhttp3.Request request = chain.request();
-                final long before = System.currentTimeMillis();
-                okhttp3.Response response = chain.proceed(request);
-                final long after = System.currentTimeMillis();
-
-                ResponseTag tag = (ResponseTag) request.tag();
-                String ip = "";
-                try {
-                    ip = chain.connection().socket().getRemoteSocketAddress().toString();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                tag.ip = ip;
-                tag.duration = after - before;
-                return response;
-            }
-        });
 
         clientBuilder.connectTimeout(currentRequest.timeout, TimeUnit.SECONDS);
         clientBuilder.readTimeout(currentRequest.timeout, TimeUnit.SECONDS);
@@ -207,7 +186,7 @@ public class SystemHttpClient implements IRequestClient {
 
     private synchronized static ConnectionPool getConnectPool() {
         if (pool == null) {
-            pool = new ConnectionPool(5, 10, TimeUnit.MINUTES);
+            pool = new ConnectionPool(10, 10, TimeUnit.MINUTES);
         }
         return pool;
     }
@@ -344,6 +323,7 @@ public class SystemHttpClient implements IRequestClient {
 
             @Override
             public void requestBodyEnd(Call call, long byteCount) {
+                metrics.requestEndDate = new Date();
                 metrics.countOfRequestBodyBytesSent = byteCount;
             }
 
