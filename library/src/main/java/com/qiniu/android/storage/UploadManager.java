@@ -497,14 +497,16 @@ public class UploadManager {
             item.setReport(errorDesc, ReportItem.QualityKeyErrorDescription);
         }
 
+        long fileSize = 0;
+        if (source instanceof UploadSource) {
+            fileSize = ((UploadSource) source).getSize();
+        } else if (source instanceof byte[]) {
+            fileSize = ((byte[]) source).length;
+        }
+        item.setReport((Long)fileSize, ReportItem.QualityKeyFileSize);
+
         // 统计当前文件上传速度，也即用户感知速度： 总文件大小 / 总耗时
         if (source != null && responseInfo.isOK() && taskMetrics.totalElapsedTime() > 0) {
-            long fileSize = 0;
-            if (source instanceof UploadSource) {
-                fileSize = ((UploadSource) source).getSize();
-            } else if (source instanceof byte[]) {
-                fileSize = ((byte[]) source).length;
-            }
             if (fileSize > 0) {
                 item.setReport(Utils.calculateSpeed(fileSize, taskMetrics.totalElapsedTime()), ReportItem.QualityKeyPerceptiveSpeed);
             }

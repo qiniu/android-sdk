@@ -115,6 +115,7 @@ public class ReportItem {
     public static final String QualityKeyTotalElapsedTime = "total_elapsed_time";
     public static final String QualityKeyRequestsCount = "requests_count";
     public static final String QualityKeyRegionsCount = "regions_count";
+    public static final String QualityKeyFileSize = "file_size";
     public static final String QualityKeyBytesSent = "bytes_sent";
     public static final String QualityKeyCloudType = "cloud_type";
     public static final String QualityKeyErrorType = "error_type";
