@@ -148,23 +148,37 @@ public class TestFileRecorder extends BaseTest {
         TempFile.remove(tempFile);
     }
 
-    public void test_600k() throws Throwable {
-        template(600, 0.7);
-    }
-
-    public void test700k() throws Throwable {
-        template(700, 0.1);
-    }
-
-    public void test1M() throws Throwable {
-        template(1024, 0.51);
-    }
-
     public void test_4M1K() throws Throwable {
         template(4 * 1024 + 1, 0.5);
 
     }
 
+    public void test5M() throws Throwable {
+        template(5 * 1024, 0.51);
+    }
+
+    public void test_5M1K() throws Throwable {
+        template(5 * 1024 + 1, 0.5);
+
+    }
+
+    public void test8M() throws Throwable {
+        template(8 * 1024, 0.51);
+    }
+
+    public void test_8M1K() throws Throwable {
+        template(8 * 1024 + 1, 0.5);
+
+    }
+
+    public void test10M() throws Throwable {
+        template(10 * 1024, 0.51);
+    }
+
+    public void test_10M1K() throws Throwable {
+        template(10 * 1024 + 1, 0.5);
+
+    }
 
     public void testLastModify() throws IOException {
         File f = File.createTempFile("qiniutest", "b");

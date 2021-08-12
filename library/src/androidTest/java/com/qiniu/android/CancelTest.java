@@ -48,7 +48,7 @@ public class CancelTest extends BaseTest {
     }
 
     public void testMultiFile() throws Throwable {
-        Temp[] ts = new Temp[]{templateFile(400, 0.2), templateFile(700, 0.2), templateFile(1024, 0.51), templateFile(4 * 1024, 0.5), templateFile(8 * 1024 + 1, 0.6)};
+        Temp[] ts = new Temp[]{templateFile(400, 0.01), templateFile(700, 0.02), templateFile(1024, 0.02), templateFile(4 * 1024, 0.02), templateFile(8 * 1024 + 1, 0.2)};
         checkTemp(ts, "testFile");
     }
 

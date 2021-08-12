@@ -100,16 +100,16 @@ public class UploadSingleRequestMetrics extends UploadMetrics {
         return bytesSend;
     }
 
-    public Long bytesReceive(){
-        long bytesReceive = countOfResponseHeaderBytesReceived + countOfResponseBodyBytesReceived;
-        if (bytesReceive < 0){
-            bytesReceive = 0;
+    public Long bytesReceived(){
+        long bytesReceived = countOfResponseHeaderBytesReceived + countOfResponseBodyBytesReceived;
+        if (bytesReceived < 0){
+            bytesReceived = 0;
         }
-        return bytesReceive;
+        return bytesReceived;
     }
 
     public Long perceptiveSpeed() {
-        return Utils.calculateSpeed(bytesSend() + bytesReceive(), totalElapsedTime());
+        return Utils.calculateSpeed(bytesSend() + bytesReceived(), totalElapsedTime());
     }
 
     private long time(Date startDate, Date endDate){

@@ -102,7 +102,7 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
             String key = "android_concurrent_resume_reupload_v1_" + size + "k";
             try {
                 File file = TempFile.createFile(size, key);
-                reuploadUploadTest((long) (size * 0.7), file, key, configuration, null);
+                reuploadUploadTest((long) (size * 0.5), file, key, configuration, null);
                 TempFile.remove(file);
             } catch (IOException e) {
                 e.printStackTrace();
