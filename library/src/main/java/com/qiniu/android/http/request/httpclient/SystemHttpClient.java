@@ -60,6 +60,7 @@ public class SystemHttpClient implements IRequestClient {
     private boolean hasHandleComplete = false;
     private static ConnectionPool pool;
     private Request currentRequest;
+    private static final OkHttpClient baseClient = new OkHttpClient();
     private OkHttpClient httpClient;
     private Call call;
     private UploadSingleRequestMetrics metrics;
@@ -84,6 +85,7 @@ public class SystemHttpClient implements IRequestClient {
         currentRequest = request;
         requestProgress = progress;
         completeHandler = complete;
+
         httpClient = createHttpClient(connectionProxy);
 
         okhttp3.Request.Builder requestBuilder = createRequestBuilder(requestProgress);
@@ -149,7 +151,7 @@ public class SystemHttpClient implements IRequestClient {
             return null;
         }
 
-        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+        OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
 
         if (connectionProxy != null) {
             clientBuilder.proxy(connectionProxy.proxy());

@@ -17,6 +17,10 @@ public class UploadMetrics {
         endDate = new Date();
     }
 
+    public Date getStartDate() {
+        return startDate;
+    }
+
     public long totalElapsedTime(){
         if (startDate == null || endDate == null) {
             return 0;
