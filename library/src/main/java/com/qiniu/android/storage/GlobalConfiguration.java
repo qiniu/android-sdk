@@ -29,10 +29,10 @@ public class GlobalConfiguration {
     public int dnsCacheTime = 120;
 
     /**
-     * dns预取缓存最大有效时间  单位：秒 默认 1800
+     * dns预取缓存最大有效时间  单位：秒 默认 600
      * 当 dns 缓存 ip 过期并未刷新时，只要在 dnsCacheMaxTTL 时间内仍有效。
      */
-    public int dnsCacheMaxTTL = 1800;
+    public int dnsCacheMaxTTL = 600;
 
     /**
      * 自定义DNS解析客户端host

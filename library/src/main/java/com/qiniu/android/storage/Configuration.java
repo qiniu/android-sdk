@@ -39,7 +39,7 @@ public final class Configuration {
     public final int putThreshold;
 
     /**
-     * 上传失败重试次数 默认1次
+     * 上传失败重试次数 默认 0 次
      */
     public final int retryMax;
 
@@ -177,7 +177,7 @@ public final class Configuration {
         private int putThreshold = 4 * 1024 * 1024;
         private int connectTimeout = 90;
         private int responseTimeout = 60;
-        private int retryMax = 1;
+        private int retryMax = 0;
         private int retryInterval = 500;
         private boolean allowBackupHost = true;
         private UrlConverter urlConverter = null;
