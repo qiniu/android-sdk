@@ -23,9 +23,16 @@ public class GlobalConfiguration {
     public int dnsRepreHostNum = 2;
 
     /**
-     * dns预取缓存时间  单位：秒
+     * dns 预取, ip 默认有效时间  单位：秒 默认：120
+     * 只有在 dns 预取未返回 ttl 时使用
      */
     public int dnsCacheTime = 120;
+
+    /**
+     * dns预取缓存最大有效时间  单位：秒 默认 600
+     * 当 dns 缓存 ip 过期并未刷新时，只要在 dnsCacheMaxTTL 时间内仍有效。
+     */
+    public int dnsCacheMaxTTL = 600;
 
     /**
      * 自定义DNS解析客户端host
@@ -51,6 +58,11 @@ public class GlobalConfiguration {
      */
     public int partialHostFrozenTime = 5 * 60;
 
+    /**
+     * 在 dns 预取时的超时时间
+     * 单位：秒
+     */
+    public int dnsResolveTimeout = 2;
 
     /**
      * 网络连接状态检测使用的connectCheckURLStrings，网络链接状态检测可能会影响重试机制，启动网络连接状态检测有助于提高上传可用性。
@@ -63,6 +75,11 @@ public class GlobalConfiguration {
      * 网络连接状态检测HEAD请求超时，默认：3s
      */
     public int connectCheckTimeout = 3;
+
+    /**
+     *  是否开启网络连接状态检测，默认：开启
+     */
+    public boolean connectCheckEnable = true;
 
     private static GlobalConfiguration configuration = new GlobalConfiguration();
 

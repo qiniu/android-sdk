@@ -39,7 +39,7 @@ public final class Configuration {
     public final int putThreshold;
 
     /**
-     * 上传失败重试次数 默认1次
+     * 上传失败重试次数 默认 1 次
      */
     public final int retryMax;
 

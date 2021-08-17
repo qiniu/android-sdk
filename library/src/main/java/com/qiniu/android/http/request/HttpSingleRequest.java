@@ -12,6 +12,7 @@ import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.request.handler.RequestShouldRetryHandler;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 import com.qiniu.android.storage.Configuration;
+import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.LogUtil;
@@ -141,6 +142,10 @@ class HttpSingleRequest {
     }
 
     private boolean shouldCheckConnect(ResponseInfo responseInfo) {
+        if (!GlobalConfiguration.getInstance().connectCheckEnable) {
+            return false;
+        }
+
         return responseInfo != null &&
                 (responseInfo.statusCode == ResponseInfo.NetworkError || /* network error */
                         responseInfo.statusCode == -1001 || /* timeout */
@@ -194,7 +199,7 @@ class HttpSingleRequest {
         long currentTimestamp = Utils.currentTimestamp();
         ReportItem item = new ReportItem();
         item.setReport(ReportItem.LogTypeRequest, ReportItem.RequestKeyLogType);
-        item.setReport((currentTimestamp / 1000), ReportItem.RequestKeyUpTime);
+        item.setReport((requestMetrics.getStartDate().getTime() / 1000), ReportItem.RequestKeyUpTime);
         item.setReport(ReportItem.requestReportStatusCode(responseInfo), ReportItem.RequestKeyStatusCode);
         item.setReport(responseInfo != null ? responseInfo.reqId : null, ReportItem.RequestKeyRequestId);
         item.setReport(requestMetrics.request != null ? requestMetrics.request.host : null, ReportItem.RequestKeyHost);
@@ -235,7 +240,7 @@ class HttpSingleRequest {
 
         item.setReport(server.getSource(), ReportItem.RequestKeyPrefetchedDnsSource);
         if (server.getIpPrefetchedTime() != null) {
-            Long prefetchTime = server.getIpPrefetchedTime() - currentTimestamp;
+            Long prefetchTime = currentTimestamp/1000 - server.getIpPrefetchedTime();
             item.setReport(prefetchTime, ReportItem.RequestKeyPrefetchedBefore);
         }
         item.setReport(DnsPrefetcher.getInstance().lastPrefetchErrorMessage, ReportItem.RequestKeyPrefetchedErrorMessage);
@@ -243,7 +248,9 @@ class HttpSingleRequest {
         item.setReport(requestMetrics.clientName, ReportItem.RequestKeyHttpClient);
         item.setReport(requestMetrics.clientVersion, ReportItem.RequestKeyHttpClientVersion);
 
-        if (requestMetrics.connectCheckMetrics != null) {
+        if (GlobalConfiguration.getInstance().connectCheckEnable) {
+            item.setReport("disable", ReportItem.RequestKeyNetworkMeasuring);
+        } else if (requestMetrics.connectCheckMetrics != null) {
             String connectCheckDuration = String.format(Locale.ENGLISH,"%d", requestMetrics.connectCheckMetrics.totalElapsedTime());
             String connectCheckStatusCode = "";
             if (requestMetrics.connectCheckMetrics.response != null) {
@@ -251,6 +258,11 @@ class HttpSingleRequest {
             }
             String networkMeasuring = String.format("duration:%s status_code:%s", connectCheckDuration, connectCheckStatusCode);
             item.setReport(networkMeasuring, ReportItem.RequestKeyNetworkMeasuring);
+        }
+
+        // 统计当前请求上传速度   / 总耗时
+        if (responseInfo.isOK()) {
+            item.setReport(requestMetrics.perceptiveSpeed(), ReportItem.RequestKeyPerceptiveSpeed);
         }
 
         item.setReport(requestMetrics.httpVersion, ReportItem.RequestKeyHttpVersion);

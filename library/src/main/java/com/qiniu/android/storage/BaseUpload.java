@@ -84,6 +84,8 @@ abstract class BaseUpload implements Runnable {
 
     @Override
     public void run() {
+        metrics.start();
+
         config.zone.preQuery(token, new Zone.QueryHandler() {
             @Override
             public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics) {
@@ -112,13 +114,18 @@ abstract class BaseUpload implements Runnable {
         return ret;
     }
 
-    protected abstract void startToUpload();
+    protected void startToUpload() {
+        currentRegionRequestMetrics = new UploadRegionRequestMetrics(getCurrentRegion());
+        currentRegionRequestMetrics.start();
+    }
 
     protected boolean switchRegionAndUpload() {
         if (currentRegionRequestMetrics != null) {
+            currentRegionRequestMetrics.end();
             metrics.addMetrics(currentRegionRequestMetrics);
             currentRegionRequestMetrics = null;
         }
+
         boolean isSwitched = switchRegion();
         if (isSwitched) {
             startToUpload();
@@ -126,17 +133,21 @@ abstract class BaseUpload implements Runnable {
         return isSwitched;
     }
 
-    protected void completeAction(ResponseInfo responseInfo,
-                                  JSONObject response) {
+    protected void completeAction(ResponseInfo responseInfo, JSONObject response) {
+        if (metrics != null) {
+            metrics.end();
+        }
+        if (currentRegionRequestMetrics != null) {
+            currentRegionRequestMetrics.end();
+        }
+
         if (currentRegionRequestMetrics != null && metrics != null) {
             metrics.addMetrics(currentRegionRequestMetrics);
         }
+
         if (completionHandler != null) {
             completionHandler.complete(responseInfo, key, metrics, response);
         }
-
-        metrics = null;
-        currentRegionRequestMetrics = null;
     }
 
     private boolean setupRegions() {

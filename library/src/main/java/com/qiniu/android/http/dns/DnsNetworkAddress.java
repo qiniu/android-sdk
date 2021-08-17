@@ -1,5 +1,8 @@
 package com.qiniu.android.http.dns;
 
+import com.qiniu.android.storage.GlobalConfiguration;
+import com.qiniu.android.utils.Utils;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -92,5 +95,21 @@ class DnsNetworkAddress implements IDnsNetworkAddress, java.io.Serializable {
     @Override
     public Long getTimestampValue() {
         return timestampValue;
+    }
+
+    boolean isValid() {
+        if (timestampValue == null || ipValue == null || ipValue.length() == 0) {
+            return false;
+        }
+        int maxTTL = GlobalConfiguration.getInstance().dnsCacheMaxTTL;
+        return (Utils.currentTimestamp() / 1000) < timestampValue + maxTTL;
+    }
+
+    boolean needRefresh() {
+        if (timestampValue == null || ttlValue == null || ipValue == null || ipValue.length() == 0) {
+            return false;
+        }
+        int ttl = ttlValue.intValue();
+        return (Utils.currentTimestamp() / 1000)  > timestampValue + ttl;
     }
 }

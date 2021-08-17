@@ -338,7 +338,7 @@ public class UploadManager {
         final UpToken t = UpToken.parse(token);
         if (t == null || !t.isValid()) {
             ResponseInfo info = ResponseInfo.invalidToken("invalid token");
-            completeAction(token, key, info, null, null, completionHandler);
+            completeAction(token, key, data, info, null, null, completionHandler);
             return;
         }
 
@@ -347,7 +347,7 @@ public class UploadManager {
         BaseUpload.UpTaskCompletionHandler completionHandlerP = new BaseUpload.UpTaskCompletionHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, String key, UploadTaskMetrics requestMetrics, JSONObject response) {
-                completeAction(token, key, responseInfo, response, requestMetrics, completionHandler);
+                completeAction(token, key, data, responseInfo, response, requestMetrics, completionHandler);
             }
         };
         final FormUpload up = new FormUpload(data, key, fileName, t, option, config, completionHandlerP);
@@ -367,7 +367,7 @@ public class UploadManager {
         final UpToken t = UpToken.parse(token);
         if (t == null || !t.isValid()) {
             ResponseInfo info = ResponseInfo.invalidToken("invalid token");
-            completeAction(token, key, info, null, null, completionHandler);
+            completeAction(token, key, source, info, null, null, completionHandler);
             return;
         }
 
@@ -386,7 +386,7 @@ public class UploadManager {
             if (errorInfo == null) {
                 putData(data, source.getFileName(), key, token, option, completionHandler);
             } else {
-                completeAction(token, key, errorInfo, null, null, completionHandler);
+                completeAction(token, key, source, errorInfo, null, null, completionHandler);
             }
             return;
         }
@@ -399,7 +399,7 @@ public class UploadManager {
         BaseUpload.UpTaskCompletionHandler completionHandlerP = new BaseUpload.UpTaskCompletionHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, String key, UploadTaskMetrics requestMetrics, JSONObject response) {
-                completeAction(token, key, responseInfo, response, requestMetrics, completionHandler);
+                completeAction(token, key, source, responseInfo, response, requestMetrics, completionHandler);
             }
         };
         if (config.useConcurrentResumeUpload) {
@@ -432,7 +432,7 @@ public class UploadManager {
             responseInfo = ResponseInfo.invalidToken("no token");
         }
         if (responseInfo != null) {
-            completeAction(token, key, responseInfo, responseInfo.response, null, completionHandler);
+            completeAction(token, key, null, responseInfo, responseInfo.response, null, completionHandler);
             return true;
         } else {
             return false;
@@ -441,12 +441,13 @@ public class UploadManager {
 
     private void completeAction(final String token,
                                 final String key,
+                                final Object source,
                                 final ResponseInfo responseInfo,
                                 final JSONObject response,
                                 final UploadTaskMetrics taskMetrics,
                                 final UpCompletionHandler completionHandler) {
 
-        reportQuality(key, responseInfo, taskMetrics, token);
+        reportQuality(key, source, responseInfo, taskMetrics, token);
         if (completionHandler != null) {
             final Wait wait = new Wait();
             AsyncRun.runInMain(new Runnable() {
@@ -461,6 +462,7 @@ public class UploadManager {
     }
 
     private void reportQuality(String key,
+                               Object source,
                                ResponseInfo responseInfo,
                                UploadTaskMetrics taskMetrics,
                                String token) {
@@ -493,6 +495,21 @@ public class UploadManager {
         if (responseInfo != null && errorType != null) {
             String errorDesc = responseInfo.error != null ? responseInfo.error : responseInfo.message;
             item.setReport(errorDesc, ReportItem.QualityKeyErrorDescription);
+        }
+
+        long fileSize = 0;
+        if (source instanceof UploadSource) {
+            fileSize = ((UploadSource) source).getSize();
+        } else if (source instanceof byte[]) {
+            fileSize = ((byte[]) source).length;
+        }
+        item.setReport((Long)fileSize, ReportItem.QualityKeyFileSize);
+
+        // 统计当前文件上传速度，也即用户感知速度： 总文件大小 / 总耗时
+        if (source != null && responseInfo.isOK() && taskMetrics.totalElapsedTime() > 0) {
+            if (fileSize > 0) {
+                item.setReport(Utils.calculateSpeed(fileSize, taskMetrics.totalElapsedTime()), ReportItem.QualityKeyPerceptiveSpeed);
+            }
         }
 
         UploadInfoReporter.getInstance().report(item, token);

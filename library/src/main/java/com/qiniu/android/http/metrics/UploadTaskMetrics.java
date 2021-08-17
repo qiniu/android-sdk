@@ -4,10 +4,11 @@ import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.request.IUploadRegion;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class UploadTaskMetrics {
+public class UploadTaskMetrics extends UploadMetrics {
 
     public ArrayList<IUploadRegion> regions;
     private Map<String, UploadRegionRequestMetrics> metricsInfo;
@@ -15,18 +16,6 @@ public class UploadTaskMetrics {
     public UploadTaskMetrics(ArrayList<IUploadRegion> regions) {
         this.regions = regions;
         this.metricsInfo = new ConcurrentHashMap<>();
-    }
-
-
-    public long totalElapsedTime(){
-        long time = 0;
-        for (String key : metricsInfo.keySet()){
-            UploadRegionRequestMetrics metrics = metricsInfo.get(key);
-            if (metrics != null){
-                time += metrics.totalElapsedTime();
-            }
-        }
-        return time;
     }
 
     public Long requestCount(){

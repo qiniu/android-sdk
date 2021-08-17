@@ -1,17 +1,10 @@
 package com.qiniu.android.http.dns;
 
 import com.qiniu.android.dns.DnsManager;
-import com.qiniu.android.dns.Domain;
-import com.qiniu.android.dns.IResolver;
-import com.qiniu.android.dns.NetworkInfo;
-import com.qiniu.android.dns.Record;
-import com.qiniu.android.dns.http.DnspodFree;
-import com.qiniu.android.utils.Utils;
+import com.qiniu.android.storage.GlobalConfiguration;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,68 +12,50 @@ import java.util.List;
  */
 public class HappyDns implements Dns {
 
-    private DnsManager dnsManager;
+    private SystemDns systemDns;
+    private HttpDns httpDns;
 
+    private DnsQueryErrorHandler errorHandler;
 
     public HappyDns(){
-        IResolver[] resolvers = new IResolver[2];
-        resolvers[0] = new SystemResolver();
-        resolvers[1] = new DnspodFree();
-
-        dnsManager = new DnsManager(NetworkInfo.normal, resolvers);
+        int dnsTimeout = GlobalConfiguration.getInstance().dnsResolveTimeout;
+        systemDns = new SystemDns(dnsTimeout);
+        httpDns = new HttpDns(dnsTimeout);
     }
 
     void setQueryErrorHandler(DnsQueryErrorHandler handler){
-        dnsManager.queryErrorHandler = handler;
+        errorHandler = handler;
     }
 
     @Override
     public List<IDnsNetworkAddress> lookup(String hostname) throws UnknownHostException {
-        Domain domain = new Domain(hostname);
         List<IDnsNetworkAddress> addressList = null;
+
+        // 系统 dns
         try {
-            Record[] records = dnsManager.queryRecords(domain);
-            if (records != null && records.length > 0){
-                addressList = new ArrayList<>();
-                for (Record record : records) {
-                    String source = "";
-                    if (record.source == Record.Source.System) {
-                        source = "system";
-                    } else if (record.source == Record.Source.DnspodFree ||
-                            record.source == Record.Source.DnspodEnterprise) {
-                        source = "httpdns";
-                    } else if (record.source == Record.Source.Unknown) {
-                        source = "none";
-                    } else {
-                        source = "customized";
-                    }
-                    DnsNetworkAddress address = new DnsNetworkAddress(hostname, record.value, (long)record.ttl, source, record.timeStamp);
-                    addressList.add(address);
-                }
-            }
-        } catch (IOException ignored) {
+            addressList = systemDns.lookup(hostname);
+        } catch (IOException e) {
+            handleDnsError(e, hostname);
         }
+        if (addressList != null && addressList.size() > 0) {
+            return addressList;
+        }
+
+        // http dns
+        try {
+            addressList = httpDns.lookup(hostname);
+        } catch (IOException e) {
+            handleDnsError(e, hostname);
+        }
+
         return addressList;
     }
 
-
-    private static class SystemResolver implements IResolver{
-
-        @Override
-        public Record[] resolve(Domain domain, NetworkInfo info) throws IOException {
-
-            long timestamp = Utils.currentTimestamp();
-            int ttl = 120;
-            ArrayList<Record> records = new ArrayList<>();
-            List<InetAddress> inetAddresses = new SystemDns().lookupInetAddress(domain.domain);
-            for(InetAddress inetAddress : inetAddresses){
-                Record record = new Record(inetAddress.getHostAddress(), Record.TYPE_A, ttl, timestamp, Record.Source.System);
-                records.add(record);
-            }
-            return records.toArray(new Record[0]);
+    private void handleDnsError(IOException e, String host) {
+        if (errorHandler != null) {
+            errorHandler.queryError(e, host);
         }
     }
-
 
     interface DnsQueryErrorHandler extends DnsManager.QueryErrorHandler {
     }

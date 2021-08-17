@@ -58,6 +58,26 @@ public class DnsPrefetchTransaction {
         return true;
     }
 
+    public static synchronized boolean addDnsCheckAndPrefetchTransaction(final String[] hosts) {
+        if (!DnsPrefetcher.getInstance().isDnsOpen()) {
+            return false;
+        }
+
+        if (hosts == null || hosts.length == 0) {
+            return false;
+        }
+
+        TransactionManager manager = TransactionManager.getInstance();
+        TransactionManager.Transaction loadDns = new TransactionManager.Transaction(null, 0, new Runnable() {
+            @Override
+            public void run() {
+                DnsPrefetcher.getInstance().addPreFetchHosts(hosts);
+            }
+        });
+        manager.addTransaction(loadDns);
+        return true;
+    }
+
 
     public static synchronized boolean setDnsCheckWhetherCachedValidTransactionAction() {
         if (!DnsPrefetcher.getInstance().isDnsOpen()) {

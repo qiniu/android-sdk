@@ -9,6 +9,7 @@ import com.qiniu.android.http.dns.SystemDns;
 import com.qiniu.android.http.request.Request;
 import com.qiniu.android.http.request.IRequestClient;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
+import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringUtils;
 
@@ -59,6 +60,7 @@ public class SystemHttpClient implements IRequestClient {
     private boolean hasHandleComplete = false;
     private static ConnectionPool pool;
     private Request currentRequest;
+    private static final OkHttpClient baseClient = new OkHttpClient();
     private OkHttpClient httpClient;
     private Call call;
     private UploadSingleRequestMetrics metrics;
@@ -73,6 +75,7 @@ public class SystemHttpClient implements IRequestClient {
                         RequestClientCompleteHandler complete) {
 
         metrics = new UploadSingleRequestMetrics();
+        metrics.start();
         metrics.clientName = "okhttp";
         metrics.clientVersion = getOkHttpVersion();
         if (request != null) {
@@ -80,9 +83,10 @@ public class SystemHttpClient implements IRequestClient {
         }
         metrics.setRequest(request);
         currentRequest = request;
-        httpClient = createHttpClient(connectionProxy);
         requestProgress = progress;
         completeHandler = complete;
+
+        httpClient = createHttpClient(connectionProxy);
 
         okhttp3.Request.Builder requestBuilder = createRequestBuilder(requestProgress);
         if (requestBuilder == null) {
@@ -91,8 +95,7 @@ public class SystemHttpClient implements IRequestClient {
             return;
         }
 
-        ResponseTag tag = new ResponseTag();
-        call = httpClient.newCall(requestBuilder.tag(tag).build());
+        call = httpClient.newCall(requestBuilder.build());
 
         if (isAsync) {
             call.enqueue(new Callback() {
@@ -133,7 +136,6 @@ public class SystemHttpClient implements IRequestClient {
                 }
                 handleError(request, status, msg, complete);
             }
-
         }
     }
 
@@ -149,7 +151,8 @@ public class SystemHttpClient implements IRequestClient {
             return null;
         }
 
-        OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
+        OkHttpClient.Builder clientBuilder = baseClient.newBuilder();
+
         if (connectionProxy != null) {
             clientBuilder.proxy(connectionProxy.proxy());
             if (connectionProxy.user != null && connectionProxy.password != null) {
@@ -157,44 +160,24 @@ public class SystemHttpClient implements IRequestClient {
             }
         }
 
-
         clientBuilder.eventListener(createEventLister());
 
-        clientBuilder.dns(new Dns() {
-            @Override
-            public List<InetAddress> lookup(String s) throws UnknownHostException {
-                if (currentRequest.getInetAddress() != null && s.equals(currentRequest.host)) {
-                    List<InetAddress> inetAddressList = new ArrayList<>();
-                    inetAddressList.add(currentRequest.getInetAddress());
-                    return inetAddressList;
-                } else {
-                    return new SystemDns().lookupInetAddress(s);
+        if (GlobalConfiguration.getInstance().isDnsOpen) {
+            clientBuilder.dns(new Dns() {
+                @Override
+                public List<InetAddress> lookup(String s) throws UnknownHostException {
+                    if (currentRequest.getInetAddress() != null && s.equals(currentRequest.host)) {
+                        List<InetAddress> inetAddressList = new ArrayList<>();
+                        inetAddressList.add(currentRequest.getInetAddress());
+                        return inetAddressList;
+                    } else {
+                        return new SystemDns().lookupInetAddress(s);
+                    }
                 }
-            }
-        });
+            });
+        }
 
         clientBuilder.connectionPool(SystemHttpClient.getConnectPool());
-
-        clientBuilder.networkInterceptors().add(new Interceptor() {
-            @Override
-            public okhttp3.Response intercept(Chain chain) throws IOException {
-                okhttp3.Request request = chain.request();
-                final long before = System.currentTimeMillis();
-                okhttp3.Response response = chain.proceed(request);
-                final long after = System.currentTimeMillis();
-
-                ResponseTag tag = (ResponseTag) request.tag();
-                String ip = "";
-                try {
-                    ip = chain.connection().socket().getRemoteSocketAddress().toString();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                tag.ip = ip;
-                tag.duration = after - before;
-                return response;
-            }
-        });
 
         clientBuilder.connectTimeout(currentRequest.timeout, TimeUnit.SECONDS);
         clientBuilder.readTimeout(currentRequest.timeout, TimeUnit.SECONDS);
@@ -205,7 +188,7 @@ public class SystemHttpClient implements IRequestClient {
 
     private synchronized static ConnectionPool getConnectPool() {
         if (pool == null) {
-            pool = new ConnectionPool(5, 10, TimeUnit.MINUTES);
+            pool = new ConnectionPool(10, 10, TimeUnit.MINUTES);
         }
         return pool;
     }
@@ -264,7 +247,6 @@ public class SystemHttpClient implements IRequestClient {
         return new EventListener() {
             @Override
             public void callStart(Call call) {
-                metrics.startDate = new Date();
             }
 
             @Override
@@ -348,7 +330,6 @@ public class SystemHttpClient implements IRequestClient {
             }
 
             public void requestFailed(Call call, IOException ioe) {
-                metrics.requestEndDate = new Date();
                 metrics.countOfRequestBodyBytesSent = 0;
             }
 
@@ -359,7 +340,10 @@ public class SystemHttpClient implements IRequestClient {
 
             @Override
             public void responseHeadersEnd(Call call, Response response) {
-
+                Headers headers = response.headers();
+                if (headers != null && headers.byteCount() > 0) {
+                    metrics.countOfResponseHeaderBytesReceived = headers.byteCount();
+                }
             }
 
             @Override
@@ -369,6 +353,7 @@ public class SystemHttpClient implements IRequestClient {
             @Override
             public void responseBodyEnd(Call call, long byteCount) {
                 metrics.responseEndDate = new Date();
+                metrics.countOfResponseBodyBytesReceived = byteCount;
             }
 
             public void responseFailed(Call call, IOException ioe) {
@@ -377,12 +362,12 @@ public class SystemHttpClient implements IRequestClient {
 
             @Override
             public void callEnd(Call call) {
-                metrics.endDate = new Date();
+                metrics.end();
             }
 
             @Override
             public void callFailed(Call call, IOException ioe) {
-                metrics.endDate = new Date();
+                metrics.end();
             }
         };
     }
@@ -401,6 +386,7 @@ public class SystemHttpClient implements IRequestClient {
         ResponseInfo info = ResponseInfo.create(request, responseCode, null, null, errorMsg);
         metrics.response = info;
         metrics.request = request;
+        metrics.end();
         complete.complete(info, metrics, info.response);
         releaseResource();
     }
@@ -464,6 +450,7 @@ public class SystemHttpClient implements IRequestClient {
         } else if (response.protocol() == Protocol.HTTP_2) {
             metrics.httpVersion = "2";
         }
+        metrics.end();
         complete.complete(info, metrics, info.response);
 
         releaseResource();

@@ -115,6 +115,8 @@ class PartsUpload extends BaseUpload {
 
     @Override
     protected void startToUpload() {
+        super.startToUpload();
+
         uploadDataErrorResponse = null;
         uploadDataErrorResponseInfo = null;
 
@@ -244,12 +246,14 @@ class PartsUpload extends BaseUpload {
 
     @Override
     protected void completeAction(ResponseInfo responseInfo, JSONObject response) {
-        reportBlock();
         uploadPerformer.closeFile();
         if (shouldRemoveUploadInfoRecord(responseInfo)) {
             uploadPerformer.removeUploadInfoRecord();
         }
+
         super.completeAction(responseInfo, response);
+
+        reportBlock();
     }
 
     private boolean shouldRemoveUploadInfoRecord(ResponseInfo responseInfo) {
@@ -287,6 +291,12 @@ class PartsUpload extends BaseUpload {
         item.setReport(metrics.bytesSend(), ReportItem.BlockKeyBytesSent);
         item.setReport(uploadPerformer.recoveredFrom, ReportItem.BlockKeyRecoveredFrom);
         item.setReport(uploadSource.getSize(), ReportItem.BlockKeyFileSize);
+
+        // 统计当前 region 上传速度 文件大小 / 总耗时
+        if (uploadDataErrorResponseInfo == null && uploadSource.getSize() > 0 && metrics.totalElapsedTime() > 0) {
+            item.setReport(Utils.calculateSpeed(uploadSource.getSize(), metrics.totalElapsedTime()), ReportItem.BlockKeyPerceptiveSpeed);
+        }
+
         item.setReport(Utils.getCurrentProcessID(), ReportItem.BlockKeyPid);
         item.setReport(Utils.getCurrentThreadID(), ReportItem.BlockKeyTid);
 

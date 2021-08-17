@@ -12,7 +12,7 @@ import okio.BufferedSink;
  */
 public class ByteBody extends RequestBody {
 
-    private static final int SEGMENT_SIZE = 1024*100; // okio.Segment.SIZE
+    private static final int SEGMENT_SIZE = 1024*16; // okio.Segment.SIZE
 
     private final MediaType mediaType;
     private final byte[] body;

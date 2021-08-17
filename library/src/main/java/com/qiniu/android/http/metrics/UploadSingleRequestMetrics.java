@@ -2,12 +2,13 @@ package com.qiniu.android.http.metrics;
 
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.request.Request;
+import com.qiniu.android.utils.Utils;
 
 import org.json.JSONObject;
 
 import java.util.Date;
 
-public class UploadSingleRequestMetrics {
+public class UploadSingleRequestMetrics extends UploadMetrics {
 
     // 请求的 httpVersion
     public String httpVersion;
@@ -20,9 +21,6 @@ public class UploadSingleRequestMetrics {
 
     public String clientName;
     public String clientVersion;
-
-    public Date startDate;
-    public Date endDate;
 
     public Date domainLookupStartDate;
     public Date domainLookupEndDate;
@@ -50,10 +48,8 @@ public class UploadSingleRequestMetrics {
     public String remoteAddress;
     public Integer remotePort;
 
+    private long totalBytes = 0;
 
-    public long totalElapsedTime(){
-        return time(startDate, endDate);
-    }
     public long totalDnsTime(){
         return time(domainLookupStartDate, domainLookupEndDate);
     }
@@ -78,23 +74,23 @@ public class UploadSingleRequestMetrics {
     public void setRequest(Request request){
         if (request != null){
             this.request = new Request(request.urlString, request.httpMethod, request.allHeaders, null, request.timeout);
+
+            long headerLength = 0;
+            long bodyLength = 0 ;
+            if (request.allHeaders != null){
+                headerLength = (new JSONObject(request.allHeaders)).toString().length();
+            }
+            if (request.httpBody != null){
+                bodyLength = request.httpBody.length;
+            }
+            totalBytes = headerLength + bodyLength;
         }
     }
 
     public long totalBytes(){
-        if (request == null){
-            return 0;
-        }
-        long headerLength = 0;
-        long bodyLength = 0 ;
-        if (request.allHeaders != null){
-            headerLength = (new JSONObject(request.allHeaders)).toString().length();
-        }
-        if (request.httpBody != null){
-            bodyLength = request.httpBody.length;
-        }
-        return (headerLength + bodyLength);
+        return totalBytes;
     }
+
     public Long bytesSend(){
         long totalBytes = totalBytes();
         long bytesSend = countOfRequestHeaderBytesSent + countOfRequestBodyBytesSent;
@@ -104,12 +100,19 @@ public class UploadSingleRequestMetrics {
         return bytesSend;
     }
 
+    public Long bytesReceived(){
+        long bytesReceived = countOfResponseHeaderBytesReceived + countOfResponseBodyBytesReceived;
+        if (bytesReceived < 0){
+            bytesReceived = 0;
+        }
+        return bytesReceived;
+    }
+
+    public Long perceptiveSpeed() {
+        return Utils.calculateSpeed(bytesSend() + bytesReceived(), totalElapsedTime());
+    }
 
     private long time(Date startDate, Date endDate){
-        if (startDate != null && endDate != null){
-            return (endDate.getTime() - startDate.getTime());
-        } else {
-            return 0l;
-        }
+        return Utils.dateDuration(startDate, endDate);
     }
 }

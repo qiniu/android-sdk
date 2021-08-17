@@ -33,7 +33,7 @@ public class GroupTaskThread extends Thread {
                 task.run(task);
             } else {
                 try {
-                    sleep(100);
+                    sleep(10);
                 } catch (InterruptedException e) {}
             }
         }

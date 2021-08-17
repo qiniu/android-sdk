@@ -381,6 +381,7 @@ public class UploadDomainRegion implements IUploadRegion {
     }
 
     private static class UploadIpGroup {
+        private int addressIndex = -1;
         private final String groupType;
         private final ArrayList<IDnsNetworkAddress> addressList;
 
@@ -394,11 +395,12 @@ public class UploadDomainRegion implements IUploadRegion {
             if (addressList == null || addressList.size() == 0) {
                 return null;
             } else {
-                int index = (int) (Math.random() * addressList.size());
-                return addressList.get(index);
+                if (addressIndex < 0 || addressIndex > (addressList.size() - 1)) {
+                    addressIndex = (int) (Math.random() * addressList.size());
+                }
+                return addressList.get(addressIndex);
             }
         }
-
     }
 
 }
