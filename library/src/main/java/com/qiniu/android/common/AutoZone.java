@@ -10,6 +10,7 @@ import com.qiniu.android.utils.SingleFlight;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,7 +22,7 @@ public final class AutoZone extends Zone {
     /**
      * 自动判断机房
      */
-    private String ucServer;
+    private String[] ucServers;
     private Map<String, ZonesInfo> zonesInfoMap = new ConcurrentHashMap<>();
     private ArrayList<RequestTransaction> transactions = new ArrayList<>();
 
@@ -29,13 +30,21 @@ public final class AutoZone extends Zone {
 
     //私有云可能改变ucServer
     public void setUcServer(String ucServer) {
-        this.ucServer = ucServer;
+        if (ucServer != null) {
+            this.ucServers = new String[]{ucServer};
+        }
+    }
+
+    public void setUcServers(String[] ucServers) {
+        if (ucServers != null && ucServers.length > 0) {
+            this.ucServers = ucServers;
+        }
     }
 
     public List<String> getUcServerList() {
-        if (ucServer != null) {
+        if (ucServers != null && ucServers.length > 0) {
             ArrayList<String> serverList = new ArrayList<>();
-            serverList.add(ucServer);
+            Collections.addAll(serverList, ucServers);
             return serverList;
         } else {
             ArrayList<String> serverList = new ArrayList<>();
@@ -46,8 +55,8 @@ public final class AutoZone extends Zone {
     }
 
     private String[] getUcServerArray() {
-        if (ucServer != null) {
-            return new String[]{ucServer};
+        if (ucServers != null || ucServers.length > 0) {
+            return ucServers;
         } else {
             return new String[]{Config.preQueryHost00, Config.preQueryHost01};
         }
