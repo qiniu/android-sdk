@@ -40,7 +40,7 @@ public class ZonesInfo {
     }
 
     public boolean isValid() {
-        return zonesInfo != null && zonesInfo.size() > 0;
+        return zonesInfo != null && zonesInfo.size() > 0 && zonesInfo.get(0).isValid();
     }
 
     // 是否为临时 zone, 临时 zone，不建议长期使用
