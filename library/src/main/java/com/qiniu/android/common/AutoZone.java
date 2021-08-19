@@ -88,7 +88,7 @@ public final class AutoZone extends Zone {
             }
         }
 
-        if (zonesInfo != null && zonesInfo.isValid()) {
+        if (zonesInfo != null && zonesInfo.isValid() && !zonesInfo.isTemporary()) {
             completeHandler.complete(0, ResponseInfo.successResponse(), null);
             return;
         }
