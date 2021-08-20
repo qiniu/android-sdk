@@ -56,6 +56,10 @@ class FormUpload extends BaseUpload {
                 completeAction(responseInfo, response);
             }
         });
+    }
 
+    @Override
+    String getUpType() {
+        return UploadUpTypeForm;
     }
 }

@@ -55,7 +55,7 @@ public final class AutoZone extends Zone {
     }
 
     private String[] getUcServerArray() {
-        if (ucServers != null || ucServers.length > 0) {
+        if (ucServers != null && ucServers.length > 0) {
             return ucServers;
         } else {
             return new String[]{Config.preQueryHost00, Config.preQueryHost01};
@@ -78,6 +78,9 @@ public final class AutoZone extends Zone {
             return;
         }
 
+        UploadRegionRequestMetrics localMetrics = new UploadRegionRequestMetrics(null);
+        localMetrics.start();
+
         final String cacheKey = token.index();
         ZonesInfo zonesInfo = getZonesInfo(token);
 
@@ -89,7 +92,8 @@ public final class AutoZone extends Zone {
         }
 
         if (zonesInfo != null && zonesInfo.isValid() && !zonesInfo.isTemporary()) {
-            completeHandler.complete(0, ResponseInfo.successResponse(), null);
+            localMetrics.end();
+            completeHandler.complete(0, ResponseInfo.successResponse(), localMetrics);
             return;
         }
 

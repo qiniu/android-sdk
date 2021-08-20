@@ -31,7 +31,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 |  7.0.7        |  Android 2.2+     | android-async-http 1.4.8 |
 
 ### 注意
-* 推荐使用最新版：8.3.2
+* 推荐使用最新版：8.3.3
 * AndroidNetwork.getMobileDbm()可以获取手机信号强度，需要如下权限(API>=18时生效)
 ```
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
