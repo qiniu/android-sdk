@@ -48,11 +48,13 @@ public class Utils {
     }
 
     public static String systemName() {
-        return System.getProperty("os.name");
+        String model = android.os.Build.MODEL != null ? android.os.Build.MODEL : "";
+        String sdkVersion = android.os.Build.VERSION.SDK != null ? android.os.Build.VERSION.SDK : "";
+        return model + "/" + sdkVersion;
     }
 
     public static String systemVersion() {
-        return System.getProperty("os.version");
+        return android.os.Build.VERSION.RELEASE;
     }
 
     public static Integer getCurrentSignalStrength() {
