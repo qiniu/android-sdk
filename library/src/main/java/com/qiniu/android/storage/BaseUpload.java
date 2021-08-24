@@ -255,9 +255,9 @@ abstract class BaseUpload implements Runnable {
         }
     }
 
-    protected static String UploadUpTypeForm = "form";
-    protected static String UploadUpTypeResumableV1 = "resumable_v1";
-    protected static String UploadUpTypeResumableV2 = "resumable_v2";
+    protected static final String UploadUpTypeForm = "form";
+    protected static final String UploadUpTypeResumableV1 = "resumable_v1";
+    protected static final String UploadUpTypeResumableV2 = "resumable_v2";
 
     abstract String getUpType();
 
