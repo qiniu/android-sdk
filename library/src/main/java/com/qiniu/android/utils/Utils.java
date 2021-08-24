@@ -145,13 +145,8 @@ public class Utils {
         String[] ipNumberStrings = ipv4String.split("\\.");
         if (ipNumberStrings.length == 4) {
             int firstNumber = Integer.parseInt(ipNumberStrings[0]);
-            if (firstNumber > 0 && firstNumber < 127) {
-                type = "ipv4-A-" + firstNumber;
-            } else if (firstNumber > 127 && firstNumber <= 191) {
-                type = "ipv4-B-" + firstNumber + ipNumberStrings[1];
-            } else if (firstNumber > 191 && firstNumber <= 223) {
-                type = "ipv4-C-" + firstNumber + ipNumberStrings[1] + ipNumberStrings[2];
-            }
+            int secondNumber = Integer.parseInt(ipNumberStrings[1]);
+            type = firstNumber + "." + secondNumber;
         }
         type = host + "-" + type;
         return type;
