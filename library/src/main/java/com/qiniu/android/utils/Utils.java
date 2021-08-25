@@ -146,7 +146,7 @@ public class Utils {
         if (ipNumberStrings.length == 4) {
             int firstNumber = Integer.parseInt(ipNumberStrings[0]);
             int secondNumber = Integer.parseInt(ipNumberStrings[1]);
-            type = firstNumber + "." + secondNumber;
+            type = firstNumber + "-" + secondNumber;
         }
         type = host + "-" + type;
         return type;
