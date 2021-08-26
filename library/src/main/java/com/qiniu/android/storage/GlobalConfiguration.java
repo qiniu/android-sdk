@@ -72,9 +72,9 @@ public class GlobalConfiguration {
     public String[] connectCheckURLStrings = new String[]{"https://www.qiniu.com", "https://www.baidu.com", "https://www.google.com"};
 
     /**
-     * 网络连接状态检测HEAD请求超时，默认：3s
+     * 网络连接状态检测HEAD请求超时，默认：2s
      */
-    public int connectCheckTimeout = 3;
+    public int connectCheckTimeout = 2;
 
     /**
      *  是否开启网络连接状态检测，默认：开启

@@ -108,11 +108,13 @@ public class ReportItem {
 
     // 上传质量统计
     public static final String QualityKeyLogType = "log_type";
+    public static final String QualityKeyUpType = "up_type";
     public static final String QualityKeyUpTime = "up_time";
     public static final String QualityKeyResult = "result";
     public static final String QualityKeyTargetBucket = "target_bucket";
     public static final String QualityKeyTargetKey = "target_key";
     public static final String QualityKeyTotalElapsedTime = "total_elapsed_time";
+    public static final String QualityKeyUcQueryElapsedTime = "uc_query_elapsed_time";
     public static final String QualityKeyRequestsCount = "requests_count";
     public static final String QualityKeyRegionsCount = "regions_count";
     public static final String QualityKeyFileSize = "file_size";

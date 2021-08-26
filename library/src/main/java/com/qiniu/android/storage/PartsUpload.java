@@ -316,6 +316,19 @@ class PartsUpload extends BaseUpload {
         UploadInfoReporter.getInstance().report(item, token.token);
     }
 
+    @Override
+    String getUpType() {
+        if (config == null) {
+            return null;
+        }
+
+        if (config.resumeUploadVersion == Configuration.RESUME_UPLOAD_VERSION_V1) {
+            return UploadUpTypeResumableV1;
+        } else {
+            return UploadUpTypeResumableV2;
+        }
+    }
+
     protected interface UploadFileRestDataCompleteHandler {
         void complete();
     }

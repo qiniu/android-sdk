@@ -1,4 +1,9 @@
 #Changelog
+## 8.3.3(2021-08-20)
+* dns 预取支持 Doh
+* 优化 dns 劫持处理
+* 优化 dns 预取结果分组
+
 ## 8.3.2(2021-08-17)
 * 对 DNS 域名预解析缓存增加缓存有效期，默认 10 分钟，支持手动修改有效期 GlobalConfiguration.getInstance().dnsCacheMaxTTL 时长，单位为 s
 * 优化网络检测，支持关闭

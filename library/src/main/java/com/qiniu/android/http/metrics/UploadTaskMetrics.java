@@ -11,11 +11,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class UploadTaskMetrics extends UploadMetrics {
 
     public ArrayList<IUploadRegion> regions;
-    private Map<String, UploadRegionRequestMetrics> metricsInfo;
 
-    public UploadTaskMetrics(ArrayList<IUploadRegion> regions) {
-        this.regions = regions;
-        this.metricsInfo = new ConcurrentHashMap<>();
+    private String upType;
+    private UploadRegionRequestMetrics ucQueryMetrics;
+    private Map<String, UploadRegionRequestMetrics> metricsInfo = new ConcurrentHashMap<>();
+
+    public UploadTaskMetrics(String upType) {
+        this.upType = upType;
     }
 
     public Long requestCount(){
@@ -65,5 +67,18 @@ public class UploadTaskMetrics extends UploadMetrics {
         } else {
             metricsInfo.put(regionId, metrics);
         }
+    }
+
+    public String getUpType() {
+        return upType;
+    }
+
+    public UploadRegionRequestMetrics getUcQueryMetrics() {
+        return ucQueryMetrics;
+    }
+
+    public void setUcQueryMetrics(UploadRegionRequestMetrics ucQueryMetrics) {
+        this.ucQueryMetrics = ucQueryMetrics;
+        addMetrics(ucQueryMetrics);
     }
 }

@@ -9,6 +9,7 @@ import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.dns.DnsPrefetchTransaction;
+import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.ContextGetter;
@@ -476,11 +477,15 @@ public class UploadManager {
 
         ReportItem item = new ReportItem();
         item.setReport(ReportItem.LogTypeQuality, ReportItem.QualityKeyLogType);
+        item.setReport(taskMetricsP.getUpType(), ReportItem.QualityKeyUpType);
         item.setReport((Utils.currentTimestamp() / 1000), ReportItem.QualityKeyUpTime);
         item.setReport(ReportItem.qualityResult(responseInfo), ReportItem.QualityKeyResult);
         item.setReport(key, ReportItem.QualityKeyTargetKey);
         item.setReport(upToken.bucket, ReportItem.QualityKeyTargetBucket);
         item.setReport(taskMetricsP.totalElapsedTime(), ReportItem.QualityKeyTotalElapsedTime);
+        if (taskMetricsP.getUcQueryMetrics() != null) {
+            item.setReport(taskMetricsP.getUcQueryMetrics().totalElapsedTime(), ReportItem.QualityKeyUcQueryElapsedTime);
+        }
         item.setReport(taskMetricsP.requestCount(), ReportItem.QualityKeyRequestsCount);
         item.setReport(taskMetricsP.regionCount(), ReportItem.QualityKeyRegionsCount);
         item.setReport(taskMetricsP.bytesSend(), ReportItem.QualityKeyBytesSent);

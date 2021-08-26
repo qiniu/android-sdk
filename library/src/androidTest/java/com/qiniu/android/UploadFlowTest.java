@@ -316,14 +316,21 @@ public class UploadFlowTest extends UploadBaseTest {
         hostArray0.add("mock1.up.qiniup.com");
         hostArray0.add("mock2.up.qiniup.com");
         ZoneInfo zoneInfo0 = ZoneInfo.buildInfo(hostArray0, null, null);
+
         ArrayList<String> hostArray1 = new ArrayList<>();
-        hostArray1.add("upload-na0.qiniup.com");
-        hostArray1.add("up-na0.qiniup.com");
+        hostArray1.add("upload.qiniup.com");
+        hostArray1.add("up.qiniup.com");
         ZoneInfo zoneInfo1 = ZoneInfo.buildInfo(hostArray1, null, null);
+
+        ArrayList<String> hostArray2 = new ArrayList<>();
+        hostArray2.add("upload-na0.qiniup.com");
+        hostArray2.add("up-na0.qiniup.com");
+        ZoneInfo zoneInfo2 = ZoneInfo.buildInfo(hostArray2, null, null);
 
         ArrayList<ZoneInfo> zoneInfoArray = new ArrayList<>();
         zoneInfoArray.add(zoneInfo0);
         zoneInfoArray.add(zoneInfo1);
+        zoneInfoArray.add(zoneInfo2);
         ZonesInfo zonesInfo = new ZonesInfo(zoneInfoArray);
         FixedZone zone = new FixedZone(zonesInfo);
 

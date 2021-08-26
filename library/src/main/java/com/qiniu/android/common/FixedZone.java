@@ -79,7 +79,7 @@ public final class FixedZone extends Zone {
             }
         }
 
-        ZonesInfo zonesInfo = new ZonesInfo(zoneInfoArray);
+        ZonesInfo zonesInfo = new ZonesInfo(zoneInfoArray, true);
         return new FixedZone(zonesInfo);
     }
 
