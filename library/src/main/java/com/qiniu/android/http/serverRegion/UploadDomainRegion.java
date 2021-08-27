@@ -233,6 +233,26 @@ public class UploadDomainRegion implements IUploadRegion {
         return server;
     }
 
+    @Override
+    public void updateIpListFormHost(String host) {
+        if (host == null) {
+            return;
+        }
+
+        if (domainHashMap != null && domainHashMap.get(host) != null) {
+            UploadServerDomain domain = domainHashMap.get(host);
+            if (domain != null) {
+                domain.clearIpGroupList();
+            }
+        }
+
+        if (oldDomainHashMap != null && oldDomainHashMap.get(host) != null) {
+            UploadServerDomain domain = oldDomainHashMap.get(host);
+            if (domain != null) {
+                domain.clearIpGroupList();
+            }
+        }
+    }
 
     private void freezeServerIfNeed(ResponseInfo responseInfo, IUploadServer freezeServer) {
         if (responseInfo == null || freezeServer == null || freezeServer.getServerId() == null) {
@@ -289,17 +309,18 @@ public class UploadDomainRegion implements IUploadRegion {
                 return null;
             }
 
+            List<UploadIpGroup> ipGroups = null;
             synchronized (this) {
                 if (ipGroupList == null || ipGroupList.size() == 0) {
                     createIpGroupList();
                 }
+                ipGroups = ipGroupList;
             }
 
             UploadServer server = null;
-
             // 解析到IP:
-            if (ipGroupList != null && ipGroupList.size() > 0) {
-                for (UploadIpGroup ipGroup : ipGroupList) {
+            if (ipGroups != null && ipGroups.size() > 0) {
+                for (UploadIpGroup ipGroup : ipGroups) {
                     IDnsNetworkAddress networkAddress = ipGroup.getNetworkAddress();
                     UploadServer filterServer = new UploadServer(host, host, networkAddress.getIpValue(), networkAddress.getSourceValue(), networkAddress.getTimestampValue());
 
@@ -328,15 +349,25 @@ public class UploadDomainRegion implements IUploadRegion {
             if (host == null || host.length() == 0) {
                 return null;
             }
-            if (ipGroupList != null && ipGroupList.size() > 0) {
-                int index = (int) (Math.random() * ipGroupList.size());
-                UploadIpGroup ipGroup = ipGroupList.get(index);
+
+            List<UploadIpGroup> ipGroups = null;
+            synchronized (this) {
+                ipGroups = ipGroupList;
+            }
+
+            if (ipGroups != null && ipGroups.size() > 0) {
+                int index = (int) (Math.random() * ipGroups.size());
+                UploadIpGroup ipGroup = ipGroups.get(index);
                 IDnsNetworkAddress inetAddress = ipGroup.getNetworkAddress();
                 UploadServer server = new UploadServer(host, host, inetAddress.getIpValue(), inetAddress.getSourceValue(), inetAddress.getTimestampValue());
                 return server;
             } else {
                 return new UploadServer(host, host, null, null, null);
             }
+        }
+
+        synchronized void clearIpGroupList() {
+            ipGroupList = null;
         }
 
         private void createIpGroupList() {

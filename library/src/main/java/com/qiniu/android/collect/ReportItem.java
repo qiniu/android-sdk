@@ -79,6 +79,9 @@ public class ReportItem {
     public static final String RequestKeyNetworkType = "network_type";
     public static final String RequestKeySignalStrength = "signal_strength";
     public static final String RequestKeyPrefetchedDnsSource = "prefetched_dns_source";
+    public static final String RequestKeyDnsSource = "dns_source";
+    public static final String RequestKeyDnsErrorMessage = "dns_error_message";
+    public static final String RequestKeyHijacking = "hijacking";
     public static final String RequestKeyPrefetchedBefore = "prefetched_before";
     public static final String RequestKeyPrefetchedErrorMessage = "prefetched_error_message";
     public static final String RequestKeyNetworkMeasuring = "network_measuring";
@@ -104,6 +107,7 @@ public class ReportItem {
     public static final String BlockKeySDKName = "sdk_name";
     public static final String BlockKeySDKVersion = "sdk_version";
     public static final String BlockKeyPerceptiveSpeed = "perceptive_speed";
+    public static final String BlockKeyHijacking = "hijacking";
 
 
     // 上传质量统计
@@ -127,6 +131,7 @@ public class ReportItem {
     public static final String QualityKeySDKName = "sdk_name";
     public static final String QualityKeySDKVersion = "sdk_version";
     public static final String QualityKeyPerceptiveSpeed = "perceptive_speed";
+    public static final String QualityKeyHijacking = "hijacking";
 
     public static String requestReportStatusCode(ResponseInfo responseInfo){
         if (responseInfo == null){

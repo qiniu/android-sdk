@@ -4,6 +4,7 @@ import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.connectCheck.ConnectChecker;
+import com.qiniu.android.http.dns.DnsSource;
 import com.qiniu.android.http.dns.DnsPrefetcher;
 import com.qiniu.android.http.networkStatus.NetworkStatusManager;
 import com.qiniu.android.http.request.httpclient.SystemHttpClient;
@@ -110,22 +111,48 @@ class HttpSingleRequest {
                     requestMetricsList.add(metrics);
                 }
 
-                if (shouldCheckConnect(responseInfo)) {
+                if (checkCancelHandler.checkCancel()) {
+                    responseInfo = ResponseInfo.cancelled();
+                    reportRequest(responseInfo, server, metrics);
+                    completeAction(server, responseInfo, responseInfo.response, metrics, completeHandler);
+                    return;
+                }
+
+                boolean hijacked = responseInfo != null && responseInfo.isNotQiniu();
+                if (hijacked && metrics != null) {
+                    metrics.hijacked = UploadSingleRequestMetrics.RequestHijacked;
+                    try {
+                        metrics.syncDnsSource = DnsPrefetcher.getInstance().lookupBySafeDns(server.getHost());
+                    } catch (Exception e) {
+                        metrics.syncDnsError = e.toString();
+                    }
+                }
+
+                if (!hijacked && shouldCheckConnect(responseInfo)) {
                     UploadSingleRequestMetrics checkMetrics = ConnectChecker.check();
                     if (metrics != null) {
                         metrics.connectCheckMetrics = checkMetrics;
                     }
                     if (!ConnectChecker.isConnected(checkMetrics)) {
-                        String message = "check origin statusCode:" + responseInfo.statusCode + " error:" + responseInfo.error;
+                        String message = responseInfo == null ? "" : ("check origin statusCode:" + responseInfo.statusCode + " error:" + responseInfo.error);
                         responseInfo = ResponseInfo.errorInfo(ResponseInfo.NetworkSlow, message);
+                    } else if (metrics != null && !DnsSource.isCustom(server.getSource()) && !DnsSource.isDoh(server.getSource()) && !DnsSource.isDnspod(server.getSource())) {
+                        metrics.hijacked = UploadSingleRequestMetrics.RequestMaybeHijacked;
+                        try {
+                            metrics.syncDnsSource = DnsPrefetcher.getInstance().lookupBySafeDns(server.getHost());
+                        } catch (Exception e) {
+                            metrics.syncDnsError = e.toString();
+                        }
                     }
                 }
+
+                reportRequest(responseInfo, server, metrics);
 
                 LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
                         " response:" + StringUtils.toNonnullString(responseInfo));
                 if (shouldRetryHandler != null && shouldRetryHandler.shouldRetry(responseInfo, response)
                         && currentRetryTime < config.retryMax
-                        && responseInfo.couldHostRetry()) {
+                        && (responseInfo != null && responseInfo.couldHostRetry())) {
                     currentRetryTime += 1;
 
                     try {
@@ -168,7 +195,6 @@ class HttpSingleRequest {
         client = null;
 
         updateHostNetworkStatus(responseInfo, server, requestMetrics);
-        reportRequest(responseInfo, server, requestMetrics);
 
         if (completeHandler != null) {
             completeHandler.complete(responseInfo, requestMetricsList, response);
@@ -240,7 +266,7 @@ class HttpSingleRequest {
 
         item.setReport(server.getSource(), ReportItem.RequestKeyPrefetchedDnsSource);
         if (server.getIpPrefetchedTime() != null) {
-            Long prefetchTime = currentTimestamp/1000 - server.getIpPrefetchedTime();
+            Long prefetchTime = currentTimestamp / 1000 - server.getIpPrefetchedTime();
             item.setReport(prefetchTime, ReportItem.RequestKeyPrefetchedBefore);
         }
         item.setReport(DnsPrefetcher.getInstance().lastPrefetchErrorMessage, ReportItem.RequestKeyPrefetchedErrorMessage);
@@ -248,19 +274,24 @@ class HttpSingleRequest {
         item.setReport(requestMetrics.clientName, ReportItem.RequestKeyHttpClient);
         item.setReport(requestMetrics.clientVersion, ReportItem.RequestKeyHttpClientVersion);
 
-        if (GlobalConfiguration.getInstance().connectCheckEnable) {
+        if (!GlobalConfiguration.getInstance().connectCheckEnable) {
             item.setReport("disable", ReportItem.RequestKeyNetworkMeasuring);
         } else if (requestMetrics.connectCheckMetrics != null) {
-            String connectCheckDuration = String.format(Locale.ENGLISH,"%d", requestMetrics.connectCheckMetrics.totalElapsedTime());
+            String connectCheckDuration = String.format(Locale.ENGLISH, "%d", requestMetrics.connectCheckMetrics.totalElapsedTime());
             String connectCheckStatusCode = "";
             if (requestMetrics.connectCheckMetrics.response != null) {
-                connectCheckStatusCode = String.format(Locale.ENGLISH,"%d", requestMetrics.connectCheckMetrics.response.statusCode);
+                connectCheckStatusCode = String.format(Locale.ENGLISH, "%d", requestMetrics.connectCheckMetrics.response.statusCode);
             }
             String networkMeasuring = String.format("duration:%s status_code:%s", connectCheckDuration, connectCheckStatusCode);
             item.setReport(networkMeasuring, ReportItem.RequestKeyNetworkMeasuring);
         }
 
-        // 统计当前请求上传速度   / 总耗时
+        // 劫持标记
+        item.setReport(requestMetrics.hijacked, ReportItem.RequestKeyHijacking);
+        item.setReport(requestMetrics.syncDnsSource, ReportItem.RequestKeyDnsSource);
+        item.setReport(requestMetrics.syncDnsError, ReportItem.RequestKeyDnsErrorMessage);
+
+        // 统计当前请求上传速度 / 总耗时
         if (responseInfo.isOK()) {
             item.setReport(requestMetrics.perceptiveSpeed(), ReportItem.RequestKeyPerceptiveSpeed);
         }

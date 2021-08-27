@@ -303,7 +303,7 @@ public final class ResponseInfo {
     }
 
     public boolean isNotQiniu() {
-        return statusCode < 500 && statusCode >= 200 && (!hasReqId() && response == null);
+        return (statusCode == MaliciousResponseError) || (statusCode > 0 && (!hasReqId() && xlog == null));
     }
 
     public String toString() {

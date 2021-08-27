@@ -42,7 +42,7 @@ public class DnsCacheFile implements Recorder {
      * @param data 缓存数据
      */
     @Override
-    public void set(String key, byte[] data) {
+    public synchronized void set(String key, byte[] data) {
         File[] fs = f.listFiles();
         if (fs == null) return;
         if (fs.length > 0) {
@@ -74,7 +74,7 @@ public class DnsCacheFile implements Recorder {
      * @param key 缓存文件名
      */
     @Override
-    public byte[] get(String key) {
+    public synchronized byte[] get(String key) {
         File f = new File(directory, key);
         FileInputStream fi = null;
         byte[] data = null;
@@ -105,10 +105,29 @@ public class DnsCacheFile implements Recorder {
     }
 
     @Override
-    public void del(String key) {
+    public synchronized void del(String key) {
         if (key != null) {
             File f = new File(directory, key);
             f.delete();
+        }
+    }
+
+    synchronized void clearCache() throws IOException {
+        if (f == null) {
+            throw new IOException("directory invalid");
+        }
+
+        if (f.exists()) {
+            if (!f.delete()) {
+                throw new IOException("delete cache failed");
+            }
+            if (!f.mkdirs()) {
+                throw new IOException("mkdir failed");
+            }
+        }
+
+        if (!f.isDirectory()) {
+            throw new IOException("does not mkdir");
         }
     }
 }

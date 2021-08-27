@@ -116,7 +116,7 @@ public class DnsCacheInfo implements java.io.Serializable {
         } catch (JSONException ignored) {
         }
         try {
-            cacheInfoJSONObject.putOpt("localIp", currentTime);
+            cacheInfoJSONObject.putOpt("localIp", localIp);
         } catch (JSONException ignored) {
         }
 
@@ -129,8 +129,8 @@ public class DnsCacheInfo implements java.io.Serializable {
                 for (IDnsNetworkAddress address : addressList) {
                     if (address instanceof DnsNetworkAddress) {
                         try {
-                            infoMapJSONObject.put(key, ((DnsNetworkAddress) address).toJson());
-                        } catch (JSONException ignored) {
+                            addressJSONArray.put(((DnsNetworkAddress) address).toJson());
+                        } catch (Exception ignored) {
                         }
                     }
                 }
