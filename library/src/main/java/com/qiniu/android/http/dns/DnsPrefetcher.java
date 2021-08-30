@@ -202,15 +202,6 @@ public class DnsPrefetcher {
     }
 
     private void preFetchHosts(String[] fetchHosts) {
-        try {
-            preFetchHostsWithException(fetchHosts);
-            recorderDnsCache();
-        } catch (UnknownHostException e) {
-            lastPrefetchErrorMessage = e.toString();
-        }
-    }
-
-    private void preFetchHostsWithException(String[] fetchHosts) throws UnknownHostException {
 
         String[] nextFetchHosts = fetchHosts;
         int dnsTimeout = GlobalConfiguration.getInstance().dnsResolveTimeout;
@@ -237,9 +228,11 @@ public class DnsPrefetcher {
         // udp dns
         UdpDns udpDns = new UdpDns(dnsTimeout);
         nextFetchHosts = preFetchHosts(nextFetchHosts, udpDns);
+
+        recorderDnsCache();
     }
 
-    private String[] preFetchHosts(String[] preHosts, Dns dns) throws UnknownHostException {
+    private String[] preFetchHosts(String[] preHosts, Dns dns) {
         if (preHosts == null || preHosts.length == 0) {
             return null;
         }
@@ -247,14 +240,19 @@ public class DnsPrefetcher {
             return preHosts;
         }
 
+        UnknownHostException exception = null;
         ArrayList<String> failHosts = new ArrayList<>();
         for (String host : preHosts) {
             int rePreNum = 0;
             boolean isSuccess = false;
 
             while (rePreNum < GlobalConfiguration.getInstance().dnsRepreHostNum) {
-                if (preFetchHost(host, dns)) {
-                    isSuccess = true;
+                try {
+                    isSuccess = preFetchHost(host, dns);
+                } catch (UnknownHostException e) {
+                    lastPrefetchErrorMessage = e.toString();
+                }
+                if (isSuccess) {
                     break;
                 }
                 rePreNum += 1;
@@ -347,11 +345,11 @@ public class DnsPrefetcher {
         return true;
     }
 
-    private void clearMemoryCache() {
+    public void clearMemoryCache() {
         addressDictionary.clear();
     }
 
-    private void clearDiskCache() throws IOException {
+    public void clearDiskCache() throws IOException {
         DnsCacheFile recorder = getDiskCache();
         if (recorder == null) {
             return;
@@ -412,7 +410,7 @@ public class DnsPrefetcher {
         return dnsCacheInfo;
     }
 
-    private DnsCacheFile getDiskCache() {
+    private synchronized DnsCacheFile getDiskCache() {
         if (diskCache == null) {
             try {
                 diskCache = new DnsCacheFile(GlobalConfiguration.getInstance().dnsCacheDir);
@@ -423,7 +421,7 @@ public class DnsPrefetcher {
         return diskCache;
     }
 
-    private Dns getCustomDns() {
+    private synchronized Dns getCustomDns() {
         if (customDns == null) {
             customDns = GlobalConfiguration.getInstance().dns;
         }

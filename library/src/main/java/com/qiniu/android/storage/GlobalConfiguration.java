@@ -64,7 +64,7 @@ public class GlobalConfiguration {
     /**
      * 是否使用 doh 预取，默认开启
      */
-    public boolean dohEnable;
+    public boolean dohEnable = true;
 
     /**
      * 使用 doh 预取时的 server 数组；当对某个 Host 使用 Doh 预取时，会使用 dohServers 进行并发预取

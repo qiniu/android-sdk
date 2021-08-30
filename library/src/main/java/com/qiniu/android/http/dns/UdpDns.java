@@ -23,7 +23,7 @@ public class UdpDns implements Dns {
 
     @Override
     public List<IDnsNetworkAddress> lookup(String hostname) throws UnknownHostException {
-        if (GlobalConfiguration.getInstance().udpDnsEnable) {
+        if (!GlobalConfiguration.getInstance().udpDnsEnable) {
             return null;
         }
 

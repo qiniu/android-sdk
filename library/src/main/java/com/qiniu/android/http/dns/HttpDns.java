@@ -24,7 +24,7 @@ public class HttpDns implements Dns {
 
     @Override
     public List<IDnsNetworkAddress> lookup(String hostname) throws UnknownHostException {
-        if (GlobalConfiguration.getInstance().dohEnable) {
+        if (!GlobalConfiguration.getInstance().dohEnable) {
             return null;
         }
 

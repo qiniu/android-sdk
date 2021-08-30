@@ -43,15 +43,11 @@ public class DnsCacheFile implements Recorder {
      */
     @Override
     public synchronized void set(String key, byte[] data) {
-        File[] fs = f.listFiles();
-        if (fs == null) return;
-        if (fs.length > 0) {
-            for (int i = 0; i < fs.length; i++) {
-                del(fs[i].getName());
-            }
+        File f = new File(directory, key);
+        if (f.exists()) {
+            f.delete();
         }
 
-        File f = new File(directory, key);
         FileOutputStream fo = null;
         try {
             fo = new FileOutputStream(f);
@@ -76,6 +72,10 @@ public class DnsCacheFile implements Recorder {
     @Override
     public synchronized byte[] get(String key) {
         File f = new File(directory, key);
+        if (!f.exists()) {
+            return null;
+        }
+
         FileInputStream fi = null;
         byte[] data = null;
         int read = 0;
@@ -117,17 +117,11 @@ public class DnsCacheFile implements Recorder {
             throw new IOException("directory invalid");
         }
 
-        if (f.exists()) {
-            if (!f.delete()) {
-                throw new IOException("delete cache failed");
+        File[] subFiles = f.listFiles();
+        if (subFiles != null && subFiles.length > 0) {
+            for (File f : subFiles) {
+                f.delete();
             }
-            if (!f.mkdirs()) {
-                throw new IOException("mkdir failed");
-            }
-        }
-
-        if (!f.isDirectory()) {
-            throw new IOException("does not mkdir");
         }
     }
 }
