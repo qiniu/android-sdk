@@ -4,6 +4,7 @@ import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.Utils;
@@ -291,6 +292,11 @@ class PartsUpload extends BaseUpload {
         item.setReport(metrics.bytesSend(), ReportItem.BlockKeyBytesSent);
         item.setReport(uploadPerformer.recoveredFrom, ReportItem.BlockKeyRecoveredFrom);
         item.setReport(uploadSource.getSize(), ReportItem.BlockKeyFileSize);
+
+        UploadSingleRequestMetrics lastRequestMetrics = metrics.lastRequestMetrics();
+        if (lastRequestMetrics != null) {
+            item.setReport(lastRequestMetrics.hijacked, ReportItem.BlockKeyHijacking);
+        }
 
         // 统计当前 region 上传速度 文件大小 / 总耗时
         if (uploadDataErrorResponseInfo == null && uploadSource.getSize() > 0 && metrics.totalElapsedTime() > 0) {

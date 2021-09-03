@@ -10,6 +10,7 @@ import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.dns.DnsPrefetchTransaction;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.ContextGetter;
@@ -494,6 +495,14 @@ public class UploadManager {
         item.setReport(Utils.systemVersion(), ReportItem.QualityKeyOsVersion);
         item.setReport(Utils.sdkLanguage(), ReportItem.QualityKeySDKName);
         item.setReport(Utils.sdkVerion(), ReportItem.QualityKeySDKVersion);
+
+        UploadRegionRequestMetrics lastRegionRequestMetrics = taskMetricsP.lastRequestMetrics();
+        if (lastRegionRequestMetrics != null) {
+            UploadSingleRequestMetrics lastSingleRequestMetrics = lastRegionRequestMetrics.lastRequestMetrics();
+            if (lastSingleRequestMetrics != null) {
+                item.setReport(lastSingleRequestMetrics.hijacked, ReportItem.BlockKeyHijacking);
+            }
+        }
 
         String errorType = ReportItem.requestReportErrorType(responseInfo);
         item.setReport(errorType, ReportItem.QualityKeyErrorType);
