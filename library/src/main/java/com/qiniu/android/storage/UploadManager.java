@@ -287,7 +287,7 @@ public class UploadManager {
         stream.setId(id);
         stream.setSize(size);
         stream.setFileName(fileName);
-        return syncPut(new UploadSourceStream(inputStream), key, token, options);
+        return syncPut(stream, key, token, options);
     }
 
     /**

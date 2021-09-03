@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-class UploadSourceFile implements UploadSource {
+class UploadSourceFile extends UploadSource {
 
     private Exception readException = null;
     private final File file;
@@ -91,5 +91,10 @@ class UploadSourceFile implements UploadSource {
                 }
             }
         }
+    }
+
+    @Override
+    String getSourceType() {
+        return "File";
     }
 }

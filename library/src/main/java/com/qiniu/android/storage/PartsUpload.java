@@ -329,9 +329,9 @@ class PartsUpload extends BaseUpload {
         }
 
         if (config.resumeUploadVersion == Configuration.RESUME_UPLOAD_VERSION_V1) {
-            return UploadUpTypeResumableV1;
+            return UploadUpTypeResumableV1 + "<" + uploadSource.getSourceType() + ">";
         } else {
-            return UploadUpTypeResumableV2;
+            return UploadUpTypeResumableV2 + "<" + uploadSource.getSourceType() + ">";
         }
     }
 

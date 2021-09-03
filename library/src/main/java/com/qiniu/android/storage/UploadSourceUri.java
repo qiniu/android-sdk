@@ -189,4 +189,9 @@ class UploadSourceUri extends UploadSourceStream {
 
         return resolver;
     }
+
+    @Override
+    String getSourceType() {
+        return "Uri";
+    }
 }
