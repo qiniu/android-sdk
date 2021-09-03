@@ -58,7 +58,7 @@ public class UploadTaskMetrics extends UploadMetrics {
         return count;
     }
 
-    public UploadRegionRequestMetrics lastRequestMetrics() {
+    public UploadRegionRequestMetrics lastMetrics() {
         int size = metricsKeys.size();
         if (size < 1) {
             return null;

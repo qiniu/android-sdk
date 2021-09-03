@@ -496,11 +496,11 @@ public class UploadManager {
         item.setReport(Utils.sdkLanguage(), ReportItem.QualityKeySDKName);
         item.setReport(Utils.sdkVerion(), ReportItem.QualityKeySDKVersion);
 
-        UploadRegionRequestMetrics lastRegionRequestMetrics = taskMetricsP.lastRequestMetrics();
-        if (lastRegionRequestMetrics != null) {
-            UploadSingleRequestMetrics lastSingleRequestMetrics = lastRegionRequestMetrics.lastRequestMetrics();
-            if (lastSingleRequestMetrics != null) {
-                item.setReport(lastSingleRequestMetrics.hijacked, ReportItem.BlockKeyHijacking);
+        UploadRegionRequestMetrics lastRegionMetrics = taskMetricsP.lastMetrics();
+        if (lastRegionMetrics != null) {
+            UploadSingleRequestMetrics lastSingleMetrics = lastRegionMetrics.lastMetrics();
+            if (lastSingleMetrics != null) {
+                item.setReport(lastSingleMetrics.hijacked, ReportItem.BlockKeyHijacking);
             }
         }
 

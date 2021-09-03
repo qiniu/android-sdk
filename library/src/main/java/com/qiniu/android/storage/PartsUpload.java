@@ -293,7 +293,7 @@ class PartsUpload extends BaseUpload {
         item.setReport(uploadPerformer.recoveredFrom, ReportItem.BlockKeyRecoveredFrom);
         item.setReport(uploadSource.getSize(), ReportItem.BlockKeyFileSize);
 
-        UploadSingleRequestMetrics lastRequestMetrics = metrics.lastRequestMetrics();
+        UploadSingleRequestMetrics lastRequestMetrics = metrics.lastMetrics();
         if (lastRequestMetrics != null) {
             item.setReport(lastRequestMetrics.hijacked, ReportItem.BlockKeyHijacking);
         }

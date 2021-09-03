@@ -34,7 +34,7 @@ public class UploadRegionRequestMetrics extends UploadMetrics {
         return bytes;
     }
 
-    public UploadSingleRequestMetrics lastRequestMetrics() {
+    public UploadSingleRequestMetrics lastMetrics() {
         int size = metricsList.size();
         return size < 1 ? null : metricsList.get(size - 1);
     }
