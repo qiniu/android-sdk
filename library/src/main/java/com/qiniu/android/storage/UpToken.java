@@ -113,6 +113,9 @@ public final class UpToken {
     }
 
     private boolean isValidBeforeTimestamp(long timestamp) {
+        if (deadline < 0) {
+            return false;
+        }
         return timestamp < deadline;
     }
 }
