@@ -68,6 +68,12 @@ public class UriTest extends BaseTest {
         }
     }
 
+    public void testUpload() {
+        String uriString = "content://media/external/images/media/12045";
+        Uri uri = Uri.parse(uriString);
+        testUpload(uri, "uri_test", "AAAA", true, false, false);
+    }
+
     private void testUpload(Uri uri, String fileName, String etag, boolean isHttps, boolean isResumableV1, boolean isConcurrent) {
 
         assertNotNull("Uri write file error:" + fileName, uri);
