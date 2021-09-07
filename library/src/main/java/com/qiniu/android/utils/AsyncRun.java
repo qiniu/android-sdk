@@ -19,8 +19,8 @@ public final class AsyncRun {
 
     private static final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
 
-    private static int threadPoolSize = 6;
-    private static int maxThreadPoolSize = 20;
+    private static int threadPoolSize = 3;
+    private static int maxThreadPoolSize = 6;
     private static ExecutorService executorService = new ThreadPoolExecutor(threadPoolSize, maxThreadPoolSize,
             1000L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>());
