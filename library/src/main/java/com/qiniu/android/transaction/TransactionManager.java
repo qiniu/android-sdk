@@ -146,6 +146,7 @@ public class TransactionManager {
 
         // 已执行次数
         private long executedTime = 0;
+        private boolean isExecuting = false;
 
 
         public Transaction(String name,
@@ -201,8 +202,14 @@ public class TransactionManager {
             }
             if (actionHandler != null) {
                 executedTime += 1;
+                isExecuting = true;
                 actionHandler.run();
+                isExecuting = false;
             }
+        }
+
+        public boolean isExecuting() {
+            return isExecuting;
         }
     }
 

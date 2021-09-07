@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class UploadInfoReporter {
     private static final String DelayReportTransactionName = "com.qiniu.uplog";
@@ -141,34 +142,45 @@ public class UploadInfoReporter {
     }
 
     private void reportToServerIfNeeded(final String tokenString) {
-        if (isReporting) {
-            return;
-        }
         boolean needToReport = false;
         long currentTime = Utils.currentSecondTimestamp();
-        final long interval = config.interval * 60;
+        final long interval = (long)(config.interval * 60);
         if (recorderTempFile.exists()) {
             needToReport = true;
-        } else if (lastReportTime == 0 || (currentTime - lastReportTime) >= interval) {
-            if ((recorderFile.length() > config.uploadThreshold) && recorderFile.renameTo(recorderTempFile)) {
-                needToReport = true;
-            }
+        } else if ((lastReportTime == 0 || (currentTime - lastReportTime) >= interval) &&
+                (recorderFile.length() > config.uploadThreshold) &&
+                recorderFile.renameTo(recorderTempFile)) {
+            needToReport = true;
         }
 
         if (needToReport && !this.isReporting) {
             reportToServer(tokenString);
         } else {
             // 有未上传日志存在，则 interval 时间后再次重试一次
-            boolean needRetry = recorderFile.exists() && recorderFile.length() > 0;
-            if (needRetry && !TransactionManager.getInstance().existTransactionsForName(DelayReportTransactionName)) {
-                TransactionManager.Transaction transaction = new TransactionManager.Transaction(DelayReportTransactionName, (int) interval, new Runnable() {
-                    @Override
-                    public void run() {
-                        reportToServerIfNeeded(tokenString);
-                    }
-                });
-                TransactionManager.getInstance().addTransaction(transaction);
+            if (!recorderFile.exists() || recorderFile.length() == 0) {
+                return;
             }
+
+            TransactionManager manager = TransactionManager.getInstance();
+            List<TransactionManager.Transaction> transactionList = manager.transactionsForName(DelayReportTransactionName);
+            if (transactionList != null && transactionList.size() > 1) {
+                return;
+            }
+
+            if (transactionList != null && transactionList.size() == 1) {
+                TransactionManager.Transaction transaction = transactionList.get(0);
+                if (transaction != null && !transaction.isExecuting()) {
+                    return;
+                }
+            }
+
+            TransactionManager.Transaction transaction = new TransactionManager.Transaction(DelayReportTransactionName, (int) interval, new Runnable() {
+                @Override
+                public void run() {
+                    reportToServerIfNeeded(tokenString);
+                }
+            });
+            TransactionManager.getInstance().addTransaction(transaction);
         }
     }
 
