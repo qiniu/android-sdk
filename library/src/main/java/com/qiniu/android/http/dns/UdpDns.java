@@ -44,9 +44,11 @@ public class UdpDns implements Dns {
 
         ArrayList<IDnsNetworkAddress> addressList = new ArrayList<>();
         for (Record record : records) {
-            String source = DnsSource.Udp + ":<" + record.server + ">";
-            DnsNetworkAddress address = new DnsNetworkAddress(hostname, record.value, record.timeStamp, source, record.timeStamp);
-            addressList.add(address);
+            if (record.isA() || record.isAAAA()) {
+                String source = DnsSource.Udp + ":<" + record.server + ">";
+                DnsNetworkAddress address = new DnsNetworkAddress(hostname, record.value, record.timeStamp, source, record.timeStamp);
+                addressList.add(address);
+            }
         }
 
         return addressList;

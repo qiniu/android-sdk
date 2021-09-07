@@ -38,46 +38,7 @@ public final class UserAgent {
     static String getUserAgent(String id) {
         String addition = Utils.isDebug() ? "_Debug" : "";
         return format("QiniuAndroid%s/%s (%s; %s; %s",addition, Constants.VERSION,
-                osVersion(), device(), id);
-    }
-
-    public static String osVersion() {
-        try {
-            String v = android.os.Build.VERSION.RELEASE;
-            if (v == null) {
-                return "-";
-            }
-            return StringUtils.strip(v.trim());
-        } catch (Throwable t) {
-            return "-";
-        }
-    }
-
-    public static String device() {
-        try {
-            String model = Build.MODEL.trim();
-            String device = deviceName(Build.MANUFACTURER.trim(), model);
-            if (TextUtils.isEmpty(device)) {
-                device = deviceName(Build.BRAND.trim(), model);
-            }
-            return StringUtils.strip((device == null ? "-" : device) + "-" + model);
-        } catch (Throwable t) {
-            return "-";
-        }
-    }
-
-    private static String deviceName(String manufacturer, String model) {
-        String str = manufacturer.toLowerCase(Locale.getDefault());
-        if ((str.startsWith("unknown")) || (str.startsWith("alps")) ||
-                (str.startsWith("android")) || (str.startsWith("sprd")) ||
-                (str.startsWith("spreadtrum")) || (str.startsWith("rockchip")) ||
-                (str.startsWith("wondermedia")) || (str.startsWith("mtk")) ||
-                (str.startsWith("mt65")) || (str.startsWith("nvidia")) ||
-                (str.startsWith("brcm")) || (str.startsWith("marvell")) ||
-                (model.toLowerCase(Locale.getDefault()).contains(str))) {
-            return null;
-        }
-        return manufacturer;
+                Utils.systemVersion(), Utils.systemName(), id);
     }
 
     public String getUa(String part) {

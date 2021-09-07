@@ -2,11 +2,14 @@ package com.qiniu.android.utils;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
+import android.os.Build;
+import android.text.TextUtils;
 
 import com.qiniu.android.common.Constants;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Locale;
 
 public class Utils {
 
@@ -48,13 +51,43 @@ public class Utils {
     }
 
     public static String systemName() {
-        String model = android.os.Build.MODEL != null ? android.os.Build.MODEL : "";
-        String sdkVersion = android.os.Build.VERSION.SDK != null ? android.os.Build.VERSION.SDK : "";
-        return model + "/" + sdkVersion;
+        try {
+            String model = android.os.Build.MODEL != null ? android.os.Build.MODEL.trim() : "";
+            String device = deviceName(Build.MANUFACTURER.trim(), model);
+            if (TextUtils.isEmpty(device)) {
+                device = deviceName(Build.BRAND.trim(), model);
+            }
+            String sdkVersion = android.os.Build.VERSION.SDK != null ? android.os.Build.VERSION.SDK : "";
+            return device + "/" + model + "/" + sdkVersion;
+        } catch (Throwable t) {
+            return "-";
+        }
+    }
+
+    private static String deviceName(String manufacturer, String model) {
+        String str = manufacturer.toLowerCase(Locale.getDefault());
+        if ((str.startsWith("unknown")) || (str.startsWith("alps")) ||
+                (str.startsWith("android")) || (str.startsWith("sprd")) ||
+                (str.startsWith("spreadtrum")) || (str.startsWith("rockchip")) ||
+                (str.startsWith("wondermedia")) || (str.startsWith("mtk")) ||
+                (str.startsWith("mt65")) || (str.startsWith("nvidia")) ||
+                (str.startsWith("brcm")) || (str.startsWith("marvell")) ||
+                (model.toLowerCase(Locale.getDefault()).contains(str))) {
+            return null;
+        }
+        return manufacturer;
     }
 
     public static String systemVersion() {
-        return android.os.Build.VERSION.RELEASE;
+        try {
+            String v = android.os.Build.VERSION.RELEASE;
+            if (v == null) {
+                return "-";
+            }
+            return StringUtils.strip(v.trim());
+        } catch (Throwable t) {
+            return "-";
+        }
     }
 
     public static Integer getCurrentSignalStrength() {
@@ -72,6 +105,11 @@ public class Utils {
     /// 单位：毫秒
     public static long currentTimestamp() {
         return new Date().getTime();
+    }
+
+    // 单位：秒
+    public static long currentSecondTimestamp() {
+        return new Date().getTime() / 1000;
     }
 
     /// 两个时间的时间段 单位：毫秒

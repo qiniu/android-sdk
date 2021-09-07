@@ -7,6 +7,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -17,7 +20,10 @@ public final class AsyncRun {
     private static final Handler mainThreadHandler = new Handler(Looper.getMainLooper());
 
     private static int threadPoolSize = 6;
-    private static ExecutorService executorService = Executors.newFixedThreadPool(threadPoolSize);
+    private static int maxThreadPoolSize = 20;
+    private static ExecutorService executorService = new ThreadPoolExecutor(threadPoolSize, maxThreadPoolSize,
+            1000L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>());
 
     public static void runInMain(Runnable r) {
         if (Looper.getMainLooper() == Looper.myLooper()){

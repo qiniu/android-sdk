@@ -41,7 +41,7 @@ public class TransactionManagerTest extends BaseTest {
         });
 
         String timeName = "timeTransaction";
-        TransactionManager.Transaction time = new TransactionManager.Transaction(timeName, 0, 1, new Runnable() {
+        TransactionManager.Transaction time = new TransactionManager.Transaction(timeName, 3, 2, new Runnable() {
             @Override
             public void run() {
                 LogUtil.d("2: thread:" + Thread.currentThread().getId() + new Date().toString());

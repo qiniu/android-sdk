@@ -70,7 +70,7 @@ public final class Config {
     /**
      * 每次上传最小时间间隔.单位:分钟
      */
-    public static int interval = 10;
+    public static int interval = 1;
 
     /**
      * preQuery host

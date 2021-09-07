@@ -6,9 +6,11 @@ import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.storage.UpToken;
+import com.qiniu.android.transaction.TransactionManager;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
+import com.qiniu.android.utils.Utils;
 
 import org.json.JSONObject;
 
@@ -22,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class UploadInfoReporter {
-
+    private static final String DelayReportTransactionName = "com.qiniu.uplog";
     private ReportConfig config = ReportConfig.getInstance();
     private long lastReportTime = 0;
     private File recordDirectory = new File(config.recordDirectory);
@@ -138,24 +140,35 @@ public class UploadInfoReporter {
         }
     }
 
-    private void reportToServerIfNeeded(String tokenString) {
+    private void reportToServerIfNeeded(final String tokenString) {
         if (isReporting) {
             return;
         }
         boolean needToReport = false;
-        long currentTime = new Date().getTime();
-
+        long currentTime = Utils.currentSecondTimestamp();
+        final long interval = config.interval * 60;
         if (recorderTempFile.exists()) {
             needToReport = true;
-        } else if ((recorderFile.length() > config.uploadThreshold)
-                || (lastReportTime == 0 || (currentTime - lastReportTime) > config.interval * 60)) {
-            boolean isSuccess = recorderFile.renameTo(recorderTempFile);
-            if (isSuccess) {
+        } else if (lastReportTime == 0 || (currentTime - lastReportTime) >= interval) {
+            if ((recorderFile.length() > config.uploadThreshold) && recorderFile.renameTo(recorderTempFile)) {
                 needToReport = true;
             }
         }
+
         if (needToReport && !this.isReporting) {
             reportToServer(tokenString);
+        } else {
+            // 有未上传日志存在，则 interval 时间后再次重试一次
+            boolean needRetry = recorderFile.exists() && recorderFile.length() > 0;
+            if (needRetry && !TransactionManager.getInstance().existTransactionsForName(DelayReportTransactionName)) {
+                TransactionManager.Transaction transaction = new TransactionManager.Transaction(DelayReportTransactionName, (int) interval, new Runnable() {
+                    @Override
+                    public void run() {
+                        reportToServerIfNeeded(tokenString);
+                    }
+                });
+                TransactionManager.getInstance().addTransaction(transaction);
+            }
         }
     }
 
