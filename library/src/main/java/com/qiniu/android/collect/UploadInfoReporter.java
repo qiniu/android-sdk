@@ -23,6 +23,11 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class UploadInfoReporter {
     private static final String DelayReportTransactionName = "com.qiniu.uplog";
@@ -34,6 +39,9 @@ public class UploadInfoReporter {
     private String X_Log_Client_Id;
     private RequestTransaction transaction;
 
+    private final ExecutorService executorService = new ThreadPoolExecutor(1, 2,
+            1000L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>());
     // 是否正在向服务上报中
     private boolean isReporting = false;
 
@@ -57,7 +65,7 @@ public class UploadInfoReporter {
             return;
         }
 
-        AsyncRun.runInBack(new Runnable() {
+        executorService.submit(new Runnable() {
             @Override
             public void run() {
                 LogUtil.i("up log:" + StringUtils.toNonnullString(jsonString));
