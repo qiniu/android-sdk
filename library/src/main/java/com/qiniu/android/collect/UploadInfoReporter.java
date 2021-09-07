@@ -194,8 +194,6 @@ public class UploadInfoReporter {
 
     private void reportToServer(String tokenString) {
 
-        isReporting = true;
-
         RequestTransaction transaction = createUploadRequestTransaction(tokenString);
         if (transaction == null) {
             return;
@@ -206,6 +204,7 @@ public class UploadInfoReporter {
             return;
         }
 
+        isReporting = true;
         transaction.reportLog(logData, X_Log_Client_Id, true, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
@@ -218,8 +217,8 @@ public class UploadInfoReporter {
                     }
                     cleanTempLogFile();
                 }
+                
                 isReporting = false;
-
                 destroyTransactionResource();
             }
         });
