@@ -40,7 +40,7 @@ public class UploadInfoReporter {
     private RequestTransaction transaction;
 
     private final ExecutorService executorService = new ThreadPoolExecutor(1, 2,
-            1000L, TimeUnit.MILLISECONDS,
+            120L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>());
     // 是否正在向服务上报中
     private boolean isReporting = false;
