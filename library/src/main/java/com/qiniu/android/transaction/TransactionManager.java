@@ -3,7 +3,6 @@ package com.qiniu.android.transaction;
 import com.qiniu.android.utils.Utils;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -78,6 +77,7 @@ public class TransactionManager {
         if (!transactionList.contains(transaction)) {
             transactionList.add(transaction);
         }
+        transaction.createTime = Utils.currentSecondTimestamp() - transaction.interval;
     }
 
     /// 销毁资源 清空事务链表 销毁常驻线程
@@ -142,10 +142,11 @@ public class TransactionManager {
 
         // 事务延后时间 单位：秒
         private final int interval;
-        private final long createTime;
+        // 创建时间
+        private long createTime;
 
         // 已执行次数
-        private long executedTime = 0;
+        private long executedCount = 0;
         private boolean isExecuting = false;
 
 
@@ -178,9 +179,9 @@ public class TransactionManager {
         private boolean shouldAction() {
             long currentTime = Utils.currentSecondTimestamp();
             if (this.type == TransactionTypeNormal) {
-                return executedTime < 1 && (currentTime - createTime) >= after;
+                return executedCount < 1 && (currentTime - createTime) >= after;
             } else if (this.type == TransactionTypeTime) {
-                return (currentTime - createTime) >= ((executedTime + 1) * interval + after);
+                return (currentTime - createTime) >= (executedCount * interval + after);
             } else {
                 return false;
             }
@@ -188,7 +189,7 @@ public class TransactionManager {
 
         private boolean maybeCompleted() {
             if (this.type == TransactionTypeNormal) {
-                return executedTime > 0;
+                return executedCount > 0;
             } else if (this.type == TransactionTypeTime) {
                 return false;
             } else {
@@ -201,7 +202,7 @@ public class TransactionManager {
                 return;
             }
             if (actionHandler != null) {
-                executedTime += 1;
+                executedCount += 1;
                 isExecuting = true;
                 actionHandler.run();
                 isExecuting = false;

@@ -155,8 +155,7 @@ public class UploadInfoReporter {
         final long interval = (long)(config.interval * 60);
         if (recorderTempFile.exists()) {
             needToReport = true;
-        } else if ((lastReportTime == 0 || (currentTime - lastReportTime) >= interval) &&
-                (recorderFile.length() > config.uploadThreshold) &&
+        } else if ((lastReportTime == 0 || (currentTime - lastReportTime) >= interval || recorderFile.length() > config.uploadThreshold) &&
                 recorderFile.renameTo(recorderTempFile)) {
             needToReport = true;
         }
@@ -217,7 +216,7 @@ public class UploadInfoReporter {
                     }
                     cleanTempLogFile();
                 }
-                
+
                 isReporting = false;
                 destroyTransactionResource();
             }
