@@ -14,7 +14,7 @@ import java.util.Map;
  * Created by jemy on 17/04/2017.
  */
 
-public class ZoneInfo {
+public class ZoneInfo implements Cloneable {
 
     // 只允许内部使用
     public final static String SDKDefaultIOHost = "sdkDefaultIOHost";
@@ -172,6 +172,11 @@ public class ZoneInfo {
         int currentTimestamp = (int) (new Date().getTime() * 0.001);
         int buildTimestamp = (int) (buildDate.getTime() * 0.001);
         return ttl > (currentTimestamp - buildTimestamp);
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return new ZoneInfo(ttl, http3Enabled, ipv6, regionId, domains, old_domains);
     }
 
     @Deprecated

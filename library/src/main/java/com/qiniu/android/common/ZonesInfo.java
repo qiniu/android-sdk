@@ -5,10 +5,10 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class ZonesInfo {
+public class ZonesInfo implements Cloneable {
 
     // 临时 zone，不建议长期使用
-    private final boolean isTemporary;
+    private boolean isTemporary;
 
     public final ArrayList<ZoneInfo> zonesInfo;
 
@@ -46,5 +46,20 @@ public class ZonesInfo {
     // 是否为临时 zone, 临时 zone，不建议长期使用
     public boolean isTemporary() {
         return isTemporary;
+    }
+
+    public void toTemporary() {
+        isTemporary = true;
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        ArrayList<ZoneInfo> infos = new ArrayList<>();
+        if (zonesInfo != null && zonesInfo.size() > 0) {
+            for (ZoneInfo zoneInfo : zonesInfo) {
+                infos.add((ZoneInfo)zoneInfo.clone());
+            }
+        }
+        return new ZonesInfo(infos);
     }
 }
