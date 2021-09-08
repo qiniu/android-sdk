@@ -204,7 +204,7 @@ public final class ResponseInfo {
             }
         }
 
-        if (response != null && (reqId == null || xlog == null)){
+        if (responseCode == 200 && (reqId == null && xlog == null)){
             responseCode = MaliciousResponseError;
             errorMessage = "this is a malicious response";
             response = null;
@@ -225,7 +225,7 @@ public final class ResponseInfo {
     }
 
     public boolean isOK() {
-        return statusCode == RequestSuccess && error == null && (hasReqId() || response != null);
+        return statusCode == RequestSuccess && error == null && (hasReqId() || xlog != null);
     }
 
     public boolean couldRetry(){
