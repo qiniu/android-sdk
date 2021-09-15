@@ -12,12 +12,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UdpDns implements Dns {
-    private IResolver udpResolver;
+    private IResolver udpIpv4Resolver;
+    private IResolver udpIpv6Resolver;
 
     public UdpDns(int timeout) {
-        String[] udpServers = GlobalConfiguration.getInstance().udpDnsServers;
-        if (udpServers != null && udpServers.length > 0) {
-            udpResolver = new DnsUdpResolver(udpServers, Record.TYPE_A, timeout);
+        String[] udpIpv4Servers = GlobalConfiguration.getInstance().udpDnsIpv4Servers;
+        if (udpIpv4Servers != null && udpIpv4Servers.length > 0) {
+            udpIpv4Resolver = new DnsUdpResolver(udpIpv4Servers, Record.TYPE_A, timeout);
+        }
+
+        String[] udpIpv6Servers = GlobalConfiguration.getInstance().udpDnsIpv6Servers;
+        if (udpIpv6Servers != null && udpIpv6Servers.length > 0) {
+            udpIpv6Resolver = new DnsUdpResolver(udpIpv6Servers, Record.TYPE_A, timeout);
         }
     }
 
@@ -27,15 +33,23 @@ public class UdpDns implements Dns {
             return null;
         }
 
-        if (udpResolver == null) {
+        if (udpIpv4Resolver == null && udpIpv6Resolver == null) {
             throw new UnknownHostException("resolver server is invalid");
         }
 
         Record[] records = null;
-        try {
-            records = udpResolver.resolve(new Domain(hostname), null);
-        } catch (IOException ignore) {
-            throw new UnknownHostException(ignore.toString());
+        if (udpIpv4Resolver != null) {
+            try {
+                records = udpIpv4Resolver.resolve(new Domain(hostname), null);
+            } catch (IOException ignore) {
+            }
+        }
+
+        if ((records == null || records.length == 0) && udpIpv6Resolver != null) {
+            try {
+                records = udpIpv6Resolver.resolve(new Domain(hostname), null);
+            } catch (IOException ignore) {
+            }
         }
 
         if (records == null || records.length == 0) {

@@ -70,6 +70,12 @@ public final class UpToken {
         return upToken;
     }
 
+    public static UpToken getInvalidToken() {
+        UpToken token = new UpToken("", "", "", "");
+        token.deadline = -1;
+        return token;
+    }
+
     public static boolean isInvalid(UpToken token) {
         return token == null || !token.isValid();
     }

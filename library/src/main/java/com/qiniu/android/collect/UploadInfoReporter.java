@@ -256,7 +256,11 @@ public class UploadInfoReporter {
         return data;
     }
 
-    private RequestTransaction createUploadRequestTransaction(String tokenString) {
+    private synchronized RequestTransaction createUploadRequestTransaction(String tokenString) {
+        if (transaction != null) {
+            return null;
+        }
+
         if (config == null) {
             return null;
         }
@@ -271,7 +275,7 @@ public class UploadInfoReporter {
         return transaction;
     }
 
-    private void destroyTransactionResource() {
+    private synchronized void destroyTransactionResource() {
         transaction = null;
     }
 }

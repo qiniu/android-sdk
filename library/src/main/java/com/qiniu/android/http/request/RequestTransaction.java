@@ -81,7 +81,11 @@ public class RequestTransaction {
         this.uploadOption = uploadOption;
         this.key = key;
         this.token = token;
-        this.userAgent = UserAgent.instance().getUa((token.accessKey != null ? token.accessKey : ""));
+        String accessKey = "";
+        if (token != null && token.accessKey != null) {
+            accessKey = token.accessKey;
+        }
+        this.userAgent = UserAgent.instance().getUa(accessKey);
     }
 
     private void initData(IUploadRegion targetRegion,
@@ -91,7 +95,7 @@ public class RequestTransaction {
         this.requestInfo = new UploadRequestInfo();
         this.requestInfo.targetRegionId = targetRegion.getZoneInfo().getRegionId();
         this.requestInfo.currentRegionId = currentRegion.getZoneInfo().getRegionId();
-        this.requestInfo.bucket = token.bucket;
+        this.requestInfo.bucket = token != null ? token.bucket : "";
         this.requestInfo.key = this.key;
         this.regionRequest = new HttpRegionRequest(config, uploadOption, token, currentRegion, this.requestInfo, this.requestState);
     }
@@ -522,6 +526,52 @@ public class RequestTransaction {
         };
 
         regionRequest.post("/log/4?compressed=gzip", isAsync, GZipUtil.gZip(logData), header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
+            @Override
+            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                completeAction(responseInfo, requestMetrics, response, completeHandler);
+            }
+        });
+    }
+
+    public void serverConfig(boolean isAsync, final RequestCompleteHandler completeHandler) {
+
+        requestInfo.requestType = UploadRequestInfo.RequestTypeServerConfig;
+
+        HashMap<String, String> header = new HashMap<String, String>();
+        header.put("User-Agent", userAgent);
+
+        RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
+            @Override
+            public boolean shouldRetry(ResponseInfo responseInfo, JSONObject response) {
+                return !responseInfo.isOK();
+            }
+        };
+
+        String action = String.format("/v1/sdk/config?sdk_name=%s&sdk_verison=%s", Utils.sdkLanguage(), Utils.sdkVerion());
+        regionRequest.post(action, isAsync, null, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
+            @Override
+            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
+                completeAction(responseInfo, requestMetrics, response, completeHandler);
+            }
+        });
+    }
+
+    public void serverUserConfig(boolean isAsync, final RequestCompleteHandler completeHandler) {
+
+        requestInfo.requestType = UploadRequestInfo.RequestTypeServerConfig;
+
+        HashMap<String, String> header = new HashMap<String, String>();
+        header.put("User-Agent", userAgent);
+
+        RequestShouldRetryHandler shouldRetryHandler = new RequestShouldRetryHandler() {
+            @Override
+            public boolean shouldRetry(ResponseInfo responseInfo, JSONObject response) {
+                return !responseInfo.isOK();
+            }
+        };
+
+        String action = String.format("/v1/sdk/config/user?ak=%s&sdk_name=%s&sdk_verison=%s", token.accessKey, Utils.sdkLanguage(), Utils.sdkVerion());
+        regionRequest.post(action, isAsync, null, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 completeAction(responseInfo, requestMetrics, response, completeHandler);

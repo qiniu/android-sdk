@@ -56,10 +56,16 @@ public class GlobalConfiguration {
     public boolean udpDnsEnable = true;
 
     /**
-     * 使用 udp 进行 Dns 预取时的 server ip 数组；当对某个 Host 使用 udp 进行 Dns 预取时，会使用 udpDnsIps 进行并发预取
+     * 使用 udp 进行 Dns 预取时的 server ipv4 数组；当对某个 Host 使用 udp 进行 Dns 预取时，会使用 server 数组进行并发预取
      * 当 udpDnsEnable 开启时，使用 udp 进行 Dns 预取方式才会生效
      */
-    public String[] udpDnsServers = new String[]{"223.5.5.5", "114.114.114.114", "1.1.1.1", "208.67.222.222"};
+    public String[] udpDnsIpv4Servers = new String[]{"223.5.5.5", "114.114.114.114", "1.1.1.1", "208.67.222.222"};
+
+    /**
+     * 使用 udp 进行 Dns 预取时的 server ipv6 数组；当对某个 Host 使用 udp 进行 Dns 预取时，会使用 server 数组进行并发预取
+     * 当 udpDnsEnable 开启时，使用 udp 进行 Dns 预取方式才会生效
+     */
+    public String[] udpDnsIpv6Servers = null;
 
     /**
      * 是否使用 doh 预取，默认开启
@@ -67,11 +73,18 @@ public class GlobalConfiguration {
     public boolean dohEnable = true;
 
     /**
-     * 使用 doh 预取时的 server 数组；当对某个 Host 使用 Doh 预取时，会使用 dohServers 进行并发预取
+     * 使用 doh 预取时的 server 数组；当对某个 Host 使用 Doh 预取时，会使用 server 数组进行并发预取
      * 当 dohEnable 开启时，doh 预取才会生效
      * 注意：如果使用 ip，需保证服务证书与 IP 绑定，避免 sni 问题
      */
-    public String[] dohServers = new String[]{"https://223.6.6.6/dns-query", "https://8.8.8.8/dns-query"};
+    public String[] dohIpv4Servers = new String[]{"https://223.6.6.6/dns-query", "https://8.8.8.8/dns-query"};
+
+    /**
+     * 使用 doh 预取时的 server 数组；当对某个 Host 使用 Doh 预取时，会使用 server 数组进行并发预取
+     * 当 dohEnable 开启时，doh 预取才会生效
+     * 注意：如果使用 ip，需保证服务证书与 IP 绑定，避免 sni 问题
+     */
+    public String[] dohIpv6Servers = null;
 
     /**
      * Host全局冻结时间  单位：秒   默认：30  推荐范围：[10 ~ 60]

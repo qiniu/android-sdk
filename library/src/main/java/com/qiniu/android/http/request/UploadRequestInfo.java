@@ -11,6 +11,8 @@ class UploadRequestInfo {
     static final String RequestTypeUploadPart = "upload_part";
     static final String RequestTypeCompletePart = "complete_part";
     static final String RequestTypeUpLog = "uplog";
+    static final String RequestTypeServerConfig = "server_config";
+    static final String RequestTypeServerUserConfig = "server_user_config";
 
     String requestType;
     String bucket;

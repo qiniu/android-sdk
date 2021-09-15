@@ -54,7 +54,7 @@ public final class AutoZone extends Zone {
         }
     }
 
-    public void clearCache() {
+    public static void clearCache() {
         GlobalCache.getInstance().clearCache();
     }
 
