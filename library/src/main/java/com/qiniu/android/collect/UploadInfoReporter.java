@@ -54,14 +54,13 @@ public class UploadInfoReporter {
         return instance;
     }
 
-    public synchronized void report(final ReportItem reportItem,
-                                    final String tokenString) {
-        if (reportItem == null) {
+    public synchronized void report(final ReportItem reportItem, final String tokenString) {
+        if (!checkReportAvailable() || reportItem == null || tokenString == null || tokenString.length() == 0) {
             return;
         }
 
         final String jsonString = reportItem.toJson();
-        if (!checkReportAvailable() || jsonString == null) {
+        if (jsonString == null) {
             return;
         }
 
