@@ -20,20 +20,25 @@ class ServerConfigSynchronizer {
         Token = token;
     }
 
-    static synchronized void getServerConfigFromServer(final ServerConfigHandler handler) {
+    static void getServerConfigFromServer(final ServerConfigHandler handler) {
         if (handler == null) {
             return;
         }
 
         RequestTransaction transaction = createServerConfigTransaction();
         if (transaction == null) {
+            handler.handle(null);
             return;
         }
 
         transaction.serverConfig(true, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                handler.handle(new ServerConfig(response));
+                if (responseInfo.isOK() && response != null) {
+                    handler.handle(new ServerConfig(response));
+                } else {
+                    handler.handle(null);
+                }
                 destroyServerConfigTransaction();
             }
         });
@@ -44,10 +49,15 @@ class ServerConfigSynchronizer {
             return null;
         }
 
+        UpToken token = UpToken.parse(Token);
+        if (token == null) {
+            token = UpToken.getInvalidToken();
+        }
+
         List<String> servers = new ArrayList<>();
         servers.add(Config.preQueryHost00);
         servers.add(Config.preQueryHost01);
-        serverConfigTransaction = new RequestTransaction(servers, UpToken.getInvalidToken());
+        serverConfigTransaction = new RequestTransaction(servers, token);
         return serverConfigTransaction;
     }
 
@@ -63,13 +73,18 @@ class ServerConfigSynchronizer {
 
         RequestTransaction transaction = createServerUserConfigTransaction();
         if (transaction == null) {
+            handler.handle(null);
             return;
         }
 
-        transaction.serverConfig(true, new RequestTransaction.RequestCompleteHandler() {
+        transaction.serverUserConfig(true, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                handler.handle(new ServerUserConfig(response));
+                if (responseInfo.isOK() && response != null) {
+                    handler.handle(new ServerUserConfig(response));
+                } else {
+                    handler.handle(null);
+                }
                 destroyServerUserConfigTransaction();
             }
         });

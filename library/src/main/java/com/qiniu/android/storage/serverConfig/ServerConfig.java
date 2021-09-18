@@ -125,10 +125,49 @@ class ServerConfig {
         }
     }
 
+    static class DnsServer {
+        private Boolean enable;
+        private String[] servers;
+
+        DnsServer(JSONObject info) {
+            if (info == null) {
+                return;
+            }
+
+            if (info.opt("enable") != null) {
+                this.enable = info.optBoolean("enable");
+            }
+
+            List<String> servers = new ArrayList<>();
+            JSONArray serverJsonArray = info.optJSONArray("ip");
+            if (serverJsonArray == null) {
+                serverJsonArray = info.optJSONArray("url");
+            }
+            if (serverJsonArray != null) {
+                int length = serverJsonArray.length();
+                for (int i = 0; i < length; i++) {
+                    String server = serverJsonArray.optString(i, null);
+                    if (server != null) {
+                        servers.add(server);
+                    }
+                }
+            }
+            this.servers = servers.toArray(new String[0]);
+        }
+
+        Boolean getEnable() {
+            return enable;
+        }
+
+        String[] getServers() {
+            return servers;
+        }
+    }
+
     static class UdpDnsConfig {
         private Boolean enable;
-        private String[] ipv4Server;
-        private String[] ipv6Server;
+        private DnsServer ipv4Server;
+        private DnsServer ipv6Server;
 
         UdpDnsConfig(JSONObject info) {
             if (info == null) {
@@ -139,67 +178,46 @@ class ServerConfig {
                 this.enable = info.optBoolean("enable");
             }
 
-            List<String> ipv4Server = new ArrayList<>();
-            JSONArray ipv4JsonArray = info.optJSONArray("ipv4");
-            if (ipv4JsonArray != null) {
-                int length = ipv4JsonArray.length();
-                for (int i = 0; i < length; i++) {
-                    String server = ipv4JsonArray.optString(i, null);
-                    if (server != null) {
-                        ipv4Server.add(server);
-                    }
-                }
-            }
-            this.ipv4Server = ipv4Server.toArray(new String[0]);
-
-            List<String> ipv6Server = new ArrayList<>();
-            JSONArray ipv6JsonArray = info.optJSONArray("ipv6");
-            if (ipv6JsonArray != null) {
-                int length = ipv6JsonArray.length();
-                for (int i = 0; i < length; i++) {
-                    String server = ipv6JsonArray.optString(i, null);
-                    if (server != null) {
-                        ipv6Server.add(server);
-                    }
-                }
-            }
-            this.ipv6Server = ipv6Server.toArray(new String[0]);
+            this.ipv4Server = new DnsServer(info.optJSONObject("ipv4"));
+            this.ipv6Server = new DnsServer(info.optJSONObject("ipv6"));
         }
 
         Boolean getEnable() {
             return enable;
         }
 
-        String[] getIpv4Server() {
+        DnsServer getIpv4Server() {
             return ipv4Server;
         }
 
-        String[] getIpv6Server() {
+        DnsServer getIpv6Server() {
             return ipv6Server;
         }
     }
 
     static class DohDnsConfig {
         private Boolean enable;
-        private String[] ipv4Server;
-        private String[] ipv6Server;
+        private DnsServer ipv4Server;
+        private DnsServer ipv6Server;
 
         DohDnsConfig(JSONObject info) {
-            if (info == null) {
-                return;
+            if (info.opt("enable") != null) {
+                this.enable = info.optBoolean("enable");
             }
 
+            this.ipv4Server = new DnsServer(info.optJSONObject("ipv4"));
+            this.ipv6Server = new DnsServer(info.optJSONObject("ipv6"));
         }
 
         Boolean getEnable() {
             return enable;
         }
 
-        String[] getIpv4Server() {
+        DnsServer getIpv4Server() {
             return ipv4Server;
         }
 
-        String[] getIpv6Server() {
+        DnsServer getIpv6Server() {
             return ipv6Server;
         }
     }

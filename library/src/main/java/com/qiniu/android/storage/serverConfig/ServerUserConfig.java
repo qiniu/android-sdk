@@ -9,7 +9,6 @@ class ServerUserConfig {
     private long timestamp;
     private long ttl = 10;
     private Boolean http3Enable;
-    private Long retryMax;
     private Boolean networkCheckEnable;
 
     private JSONObject info;
@@ -27,29 +26,21 @@ class ServerUserConfig {
             this.http3Enable = http3.optBoolean("enabled");
         }
 
-        if (info.opt("retryMax") != null) {
-            this.retryMax = info.optLong("retryMax", 1);
-        }
-
         JSONObject networkCheck = info.optJSONObject("network_check");
         if (networkCheck != null && networkCheck.opt("enabled") != null) {
             this.networkCheckEnable = networkCheck.optBoolean("enabled");
         }
     }
 
-    public Boolean getHttp3Enable() {
+    Boolean getHttp3Enable() {
         return http3Enable;
     }
 
-    public Long getRetryMax() {
-        return retryMax;
-    }
-
-    public Boolean getNetworkCheckEnable() {
+    Boolean getNetworkCheckEnable() {
         return networkCheckEnable;
     }
 
-    public JSONObject getInfo() {
+    JSONObject getInfo() {
         return info;
     }
 

@@ -547,7 +547,7 @@ public class RequestTransaction {
             }
         };
 
-        String action = String.format("/v1/sdk/config?sdk_name=%s&sdk_verison=%s", Utils.sdkLanguage(), Utils.sdkVerion());
+        String action = String.format("/v1/sdk/config?sdk_name=%s&sdk_version=%s", Utils.sdkLanguage(), Utils.sdkVerion());
         regionRequest.post(action, isAsync, null, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
@@ -558,7 +558,7 @@ public class RequestTransaction {
 
     public void serverUserConfig(boolean isAsync, final RequestCompleteHandler completeHandler) {
 
-        requestInfo.requestType = UploadRequestInfo.RequestTypeServerConfig;
+        requestInfo.requestType = UploadRequestInfo.RequestTypeServerUserConfig;
 
         HashMap<String, String> header = new HashMap<String, String>();
         header.put("User-Agent", userAgent);
@@ -570,7 +570,7 @@ public class RequestTransaction {
             }
         };
 
-        String action = String.format("/v1/sdk/config/user?ak=%s&sdk_name=%s&sdk_verison=%s", token.accessKey, Utils.sdkLanguage(), Utils.sdkVerion());
+        String action = String.format("/v1/sdk/config/user?ak=%s&sdk_name=%s&sdk_version=%s", token.accessKey, Utils.sdkLanguage(), Utils.sdkVerion());
         regionRequest.post(action, isAsync, null, header, shouldRetryHandler, null, new HttpRegionRequest.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {

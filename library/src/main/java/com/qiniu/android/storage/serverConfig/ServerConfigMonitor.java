@@ -94,40 +94,52 @@ public class ServerConfigMonitor {
                         // udp 配置
                         ServerConfig.UdpDnsConfig udpDnsConfig = dnsConfig.getUdpDnsConfig();
                         if (udpDnsConfig != null) {
-                            boolean enable = false;
                             if (udpDnsConfig.getEnable() != null) {
-                                enable = udpDnsConfig.getEnable();
-                                GlobalConfiguration.getInstance().udpDnsEnable = enable;
+                                GlobalConfiguration.getInstance().udpDnsEnable = udpDnsConfig.getEnable();;
                             }
 
-                            String[] ipv4Servers = udpDnsConfig.getIpv4Server();
-                            if (enable && ipv4Servers != null && ipv4Servers.length > 0) {
-                                GlobalConfiguration.getInstance().udpDnsIpv4Servers = ipv4Servers;
+                            ServerConfig.DnsServer ipv4Servers = udpDnsConfig.getIpv4Server();
+                            if (ipv4Servers != null && ipv4Servers.getEnable() != null) {
+                                if (ipv4Servers.getEnable()) {
+                                    GlobalConfiguration.getInstance().udpDnsIpv4Servers = ipv4Servers.getServers();
+                                } else {
+                                    GlobalConfiguration.getInstance().udpDnsIpv4Servers = new String[]{};
+                                }
                             }
 
-                            String[] ipv6Servers = udpDnsConfig.getIpv6Server();
-                            if (enable && ipv6Servers != null && ipv6Servers.length > 0) {
-                                GlobalConfiguration.getInstance().udpDnsIpv6Servers = ipv6Servers;
+                            ServerConfig.DnsServer ipv6Servers = udpDnsConfig.getIpv6Server();
+                            if (ipv6Servers != null && ipv6Servers.getEnable() != null) {
+                                if (ipv6Servers.getEnable()) {
+                                    GlobalConfiguration.getInstance().udpDnsIpv6Servers = ipv6Servers.getServers();
+                                } else {
+                                    GlobalConfiguration.getInstance().udpDnsIpv6Servers = new String[]{};
+                                }
                             }
                         }
 
                         // doh 配置
                         ServerConfig.DohDnsConfig dohConfig = dnsConfig.getDohDnsConfig();
                         if (dohConfig != null) {
-                            boolean enable = false;
                             if (dohConfig.getEnable() != null) {
-                                enable = dohConfig.getEnable();
-                                GlobalConfiguration.getInstance().dohEnable = enable;
+                                GlobalConfiguration.getInstance().dohEnable = dohConfig.getEnable();
                             }
 
-                            String[] ipv4Servers = dohConfig.getIpv4Server();
-                            if (enable && ipv4Servers != null && ipv4Servers.length > 0) {
-                                GlobalConfiguration.getInstance().dohIpv4Servers = ipv4Servers;
+                            ServerConfig.DnsServer ipv4Servers = dohConfig.getIpv4Server();
+                            if (ipv4Servers != null && ipv4Servers.getEnable() != null) {
+                                if (ipv4Servers.getEnable()) {
+                                    GlobalConfiguration.getInstance().dohIpv4Servers = ipv4Servers.getServers();
+                                } else {
+                                    GlobalConfiguration.getInstance().dohIpv4Servers = new String[]{};
+                                }
                             }
 
-                            String[] ipv6Servers = dohConfig.getIpv6Server();
-                            if (enable && ipv6Servers != null && ipv6Servers.length > 0) {
-                                GlobalConfiguration.getInstance().dohIpv6Servers = ipv6Servers;
+                            ServerConfig.DnsServer ipv6Servers = dohConfig.getIpv6Server();
+                            if (ipv6Servers != null && ipv6Servers.getEnable() != null) {
+                                if (ipv6Servers.getEnable()) {
+                                    GlobalConfiguration.getInstance().dohIpv6Servers = ipv6Servers.getServers();
+                                } else {
+                                    GlobalConfiguration.getInstance().dohIpv6Servers = new String[]{};
+                                }
                             }
                         }
                     }
