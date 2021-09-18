@@ -10,19 +10,24 @@ import java.util.List;
 public class ServerConfigMonitor {
     private static final String TransactionKey = "ServerConfig";
 
-    private String token;
+    private boolean enable = true;
     private ServerConfigCache cache = new ServerConfigCache();
-
-    private int monitorTaskCount = 0;
     private static ServerConfigMonitor configMonitor = new ServerConfigMonitor();
 
-    public static ServerConfigMonitor getInstance() {
-        return configMonitor;
+    public static void setEnable(boolean enable) {
+        configMonitor.enable = enable;
     }
 
+    public static void setToken(String token) {
+        ServerConfigSynchronizer.setToken(token);
+    }
 
     // 开始监控
-    public synchronized void startMonitor() {
+    public synchronized static void startMonitor() {
+        if (!configMonitor.enable) {
+            return;
+        }
+
         TransactionManager transactionManager = TransactionManager.getInstance();
         boolean isExist = transactionManager.existTransactionsForName(TransactionKey);
         if (isExist) {
@@ -32,14 +37,14 @@ public class ServerConfigMonitor {
         TransactionManager.Transaction transaction = new TransactionManager.Transaction(TransactionKey, 0, 10, new Runnable() {
             @Override
             public void run() {
-                monitor();
+                configMonitor.monitor();
             }
         });
         transactionManager.addTransaction(transaction);
     }
 
     // 停止监控
-    public synchronized void endMonitor() {
+    public synchronized static void endMonitor() {
         TransactionManager transactionManager = TransactionManager.getInstance();
         List<TransactionManager.Transaction> transactions = transactionManager.transactionsForName(TransactionKey);
         if (transactions != null) {
@@ -50,11 +55,8 @@ public class ServerConfigMonitor {
     }
 
     private void monitor() {
-        synchronized (this) {
-            if (monitorTaskCount > 0) {
-                return;
-            }
-            monitorTaskCount = 2;
+        if (!enable) {
+            return;
         }
 
         final ServerConfig serverConfig = cache.getConfig();
@@ -95,7 +97,8 @@ public class ServerConfigMonitor {
                         ServerConfig.UdpDnsConfig udpDnsConfig = dnsConfig.getUdpDnsConfig();
                         if (udpDnsConfig != null) {
                             if (udpDnsConfig.getEnable() != null) {
-                                GlobalConfiguration.getInstance().udpDnsEnable = udpDnsConfig.getEnable();;
+                                GlobalConfiguration.getInstance().udpDnsEnable = udpDnsConfig.getEnable();
+                                ;
                             }
 
                             ServerConfig.DnsServer ipv4Servers = udpDnsConfig.getIpv4Server();
@@ -145,9 +148,6 @@ public class ServerConfigMonitor {
                     }
 
                     cache.setConfig(config);
-                    synchronized (ServerConfigMonitor.this) {
-                        monitorTaskCount--;
-                    }
                 }
             });
         }
@@ -162,9 +162,6 @@ public class ServerConfigMonitor {
                         GlobalConfiguration.getInstance().connectCheckEnable = config.getNetworkCheckEnable();
                     }
                     cache.setUserConfig(config);
-                    synchronized (ServerConfigMonitor.this) {
-                        monitorTaskCount--;
-                    }
                 }
             });
         }
