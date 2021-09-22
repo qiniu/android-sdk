@@ -17,12 +17,12 @@ public class HttpDns implements Dns {
     private IResolver httpIpv6Resolver;
 
     public HttpDns(int timeout) {
-        String[] dohIpv4Servers = GlobalConfiguration.getInstance().dohIpv4Servers;
+        String[] dohIpv4Servers = GlobalConfiguration.getInstance().getDohIpv4Servers();
         if (dohIpv4Servers != null && dohIpv4Servers.length > 0) {
             httpIpv4Resolver = new DohResolver(dohIpv4Servers, Record.TYPE_A, timeout);
         }
 
-        String[] dohIpv6Servers = GlobalConfiguration.getInstance().dohIpv6Servers;
+        String[] dohIpv6Servers = GlobalConfiguration.getInstance().getDohIpv6Servers();
         if (dohIpv6Servers != null && dohIpv6Servers.length > 0) {
             httpIpv6Resolver = new DohResolver(dohIpv6Servers, Record.TYPE_A, timeout);
         }

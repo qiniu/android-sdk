@@ -98,7 +98,6 @@ public class ServerConfigMonitor {
                         if (udpDnsConfig != null) {
                             if (udpDnsConfig.getEnable() != null) {
                                 GlobalConfiguration.getInstance().udpDnsEnable = udpDnsConfig.getEnable();
-                                ;
                             }
 
                             ServerConfig.DnsServer ipv4Servers = udpDnsConfig.getIpv4Server();
@@ -130,18 +129,18 @@ public class ServerConfigMonitor {
                             ServerConfig.DnsServer ipv4Servers = dohConfig.getIpv4Server();
                             if (ipv4Servers != null && ipv4Servers.getEnable() != null) {
                                 if (ipv4Servers.getEnable()) {
-                                    GlobalConfiguration.getInstance().dohIpv4Servers = ipv4Servers.getServers();
+                                    GlobalConfiguration.DefaultUdpDnsIpv4Servers = ipv4Servers.getServers();
                                 } else {
-                                    GlobalConfiguration.getInstance().dohIpv4Servers = new String[]{};
+                                    GlobalConfiguration.DefaultUdpDnsIpv6Servers = new String[]{};
                                 }
                             }
 
                             ServerConfig.DnsServer ipv6Servers = dohConfig.getIpv6Server();
                             if (ipv6Servers != null && ipv6Servers.getEnable() != null) {
                                 if (ipv6Servers.getEnable()) {
-                                    GlobalConfiguration.getInstance().dohIpv6Servers = ipv6Servers.getServers();
+                                    GlobalConfiguration.DefaultDohIpv4Servers = ipv6Servers.getServers();
                                 } else {
-                                    GlobalConfiguration.getInstance().dohIpv6Servers = new String[]{};
+                                    GlobalConfiguration.DefaultDohIpv6Servers = new String[]{};
                                 }
                             }
                         }

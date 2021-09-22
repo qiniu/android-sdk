@@ -63,13 +63,10 @@ class ServerConfig {
                 return;
             }
 
-            if (info.opt("enable") != null) {
-                this.enable = info.optBoolean("enable");
-            }
             this.clearId = info.optLong("clear_id");
             this.clearCache = info.optBoolean("clear_cache", false);
         }
-
+        
         Boolean getEnable() {
             return enable;
         }

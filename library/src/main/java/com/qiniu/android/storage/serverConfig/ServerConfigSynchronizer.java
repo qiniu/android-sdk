@@ -9,15 +9,21 @@ import com.qiniu.android.storage.UpToken;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 class ServerConfigSynchronizer {
     private static String Token;
+    private static String[] Servers;
     private static RequestTransaction serverConfigTransaction;
     private static RequestTransaction serverUserConfigTransaction;
 
     static void setToken(String token) {
         Token = token;
+    }
+
+    static void setServers(String[] servers) {
+        Servers = servers;
     }
 
     static void getServerConfigFromServer(final ServerConfigHandler handler) {
@@ -101,8 +107,12 @@ class ServerConfigSynchronizer {
         }
 
         List<String> servers = new ArrayList<>();
-        servers.add(Config.preQueryHost00);
-        servers.add(Config.preQueryHost01);
+        if (Servers != null && Servers.length > 0) {
+            servers.addAll(Arrays.asList(Servers));
+        } else {
+            servers.add(Config.preQueryHost00);
+            servers.add(Config.preQueryHost01);
+        }
         serverUserConfigTransaction = new RequestTransaction(servers, token);
         return serverUserConfigTransaction;
     }

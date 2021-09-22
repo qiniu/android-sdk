@@ -56,14 +56,28 @@ public class GlobalConfiguration {
     public boolean udpDnsEnable = true;
 
     /**
+     * 设置 udp ipv4 server，请直接设置 {@link GlobalConfiguration#udpDnsIpv4Servers}
+     * 此值不可修改
+     */
+    public static String[] DefaultUdpDnsIpv4Servers = new String[]{"223.5.5.5", "114.114.114.114", "1.1.1.1", "208.67.222.222"};
+
+    /**
      * 使用 udp 进行 Dns 预取时的 server ipv4 数组；当对某个 Host 使用 udp 进行 Dns 预取时，会使用 server 数组进行并发预取
      * 当 udpDnsEnable 开启时，使用 udp 进行 Dns 预取方式才会生效
+     * 默认 {@link GlobalConfiguration#DefaultUdpDnsIpv4Servers}
      */
-    public String[] udpDnsIpv4Servers = new String[]{"223.5.5.5", "114.114.114.114", "1.1.1.1", "208.67.222.222"};
+    public String[] udpDnsIpv4Servers = null;
+
+    /**
+     * 设置 udp ipv6 server，请直接设置 {@link GlobalConfiguration#udpDnsIpv6Servers}
+     * 此值不可修改
+     */
+    public static String[] DefaultUdpDnsIpv6Servers = null;
 
     /**
      * 使用 udp 进行 Dns 预取时的 server ipv6 数组；当对某个 Host 使用 udp 进行 Dns 预取时，会使用 server 数组进行并发预取
      * 当 udpDnsEnable 开启时，使用 udp 进行 Dns 预取方式才会生效
+     * 默认 {@link GlobalConfiguration#DefaultUdpDnsIpv6Servers}
      */
     public String[] udpDnsIpv6Servers = null;
 
@@ -73,15 +87,29 @@ public class GlobalConfiguration {
     public boolean dohEnable = true;
 
     /**
-     * 使用 doh 预取时的 server 数组；当对某个 Host 使用 Doh 预取时，会使用 server 数组进行并发预取
-     * 当 dohEnable 开启时，doh 预取才会生效
-     * 注意：如果使用 ip，需保证服务证书与 IP 绑定，避免 sni 问题
+     * 设置 doh ipv4 server，请直接设置 {@link GlobalConfiguration#dohIpv4Servers}
+     * 此值不可修改
      */
-    public String[] dohIpv4Servers = new String[]{"https://223.6.6.6/dns-query", "https://8.8.8.8/dns-query"};
+    public static String[] DefaultDohIpv4Servers = new String[]{"https://223.6.6.6/dns-query", "https://8.8.8.8/dns-query"};
 
     /**
      * 使用 doh 预取时的 server 数组；当对某个 Host 使用 Doh 预取时，会使用 server 数组进行并发预取
      * 当 dohEnable 开启时，doh 预取才会生效
+     * 默认 {@link GlobalConfiguration#DefaultDohIpv4Servers}
+     * 注意：如果使用 ip，需保证服务证书与 IP 绑定，避免 sni 问题
+     */
+    public String[] dohIpv4Servers = null;
+
+    /**
+     * 设置 doh ipv6 server，请直接设置 {@link GlobalConfiguration#dohIpv6Servers}
+     * 此值不可修改
+     */
+    public static String[] DefaultDohIpv6Servers = null;
+
+    /**
+     * 使用 doh 预取时的 server 数组；当对某个 Host 使用 Doh 预取时，会使用 server 数组进行并发预取
+     * 当 dohEnable 开启时，doh 预取才会生效
+     * 默认 {@link GlobalConfiguration#DefaultDohIpv6Servers}
      * 注意：如果使用 ip，需保证服务证书与 IP 绑定，避免 sni 问题
      */
     public String[] dohIpv6Servers = null;
@@ -124,5 +152,37 @@ public class GlobalConfiguration {
 
     public static GlobalConfiguration getInstance() {
         return configuration;
+    }
+
+    public String[] getUdpDnsIpv4Servers() {
+        if (udpDnsIpv4Servers != null) {
+            return udpDnsIpv4Servers;
+        } else {
+            return DefaultUdpDnsIpv4Servers;
+        }
+    }
+
+    public String[] getUdpDnsIpv6Servers() {
+        if (udpDnsIpv6Servers != null) {
+            return udpDnsIpv6Servers;
+        } else {
+            return DefaultUdpDnsIpv6Servers;
+        }
+    }
+
+    public String[] getDohIpv4Servers() {
+        if (dohIpv4Servers != null) {
+            return dohIpv4Servers;
+        } else {
+            return DefaultDohIpv4Servers;
+        }
+    }
+
+    public String[] getDohIpv6Servers() {
+        if (dohIpv6Servers != null) {
+            return dohIpv6Servers;
+        } else {
+            return DefaultDohIpv6Servers;
+        }
     }
 }
