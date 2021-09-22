@@ -101,21 +101,13 @@ public class ServerConfigMonitor {
                             }
 
                             ServerConfig.DnsServer ipv4Servers = udpDnsConfig.getIpv4Server();
-                            if (ipv4Servers != null && ipv4Servers.getEnable() != null) {
-                                if (ipv4Servers.getEnable()) {
-                                    GlobalConfiguration.DefaultUdpDnsIpv4Servers = ipv4Servers.getServers();
-                                } else {
-                                    GlobalConfiguration.DefaultUdpDnsIpv4Servers = new String[]{};
-                                }
+                            if (ipv4Servers != null && ipv4Servers.getIsOverride()) {
+                                GlobalConfiguration.DefaultUdpDnsIpv4Servers = ipv4Servers.getServers();
                             }
 
                             ServerConfig.DnsServer ipv6Servers = udpDnsConfig.getIpv6Server();
-                            if (ipv6Servers != null && ipv6Servers.getEnable() != null) {
-                                if (ipv6Servers.getEnable()) {
-                                    GlobalConfiguration.DefaultUdpDnsIpv6Servers = ipv6Servers.getServers();
-                                } else {
-                                    GlobalConfiguration.DefaultUdpDnsIpv6Servers = new String[]{};
-                                }
+                            if (ipv6Servers != null && ipv6Servers.getIsOverride()) {
+                                GlobalConfiguration.DefaultUdpDnsIpv6Servers = ipv6Servers.getServers();
                             }
                         }
 
@@ -127,21 +119,13 @@ public class ServerConfigMonitor {
                             }
 
                             ServerConfig.DnsServer ipv4Servers = dohConfig.getIpv4Server();
-                            if (ipv4Servers != null && ipv4Servers.getEnable() != null) {
-                                if (ipv4Servers.getEnable()) {
-                                    GlobalConfiguration.DefaultUdpDnsIpv4Servers = ipv4Servers.getServers();
-                                } else {
-                                    GlobalConfiguration.DefaultUdpDnsIpv6Servers = new String[]{};
-                                }
+                            if (ipv4Servers != null && ipv4Servers.getIsOverride()) {
+                                GlobalConfiguration.DefaultUdpDnsIpv4Servers = ipv4Servers.getServers();
                             }
 
                             ServerConfig.DnsServer ipv6Servers = dohConfig.getIpv6Server();
-                            if (ipv6Servers != null && ipv6Servers.getEnable() != null) {
-                                if (ipv6Servers.getEnable()) {
-                                    GlobalConfiguration.DefaultDohIpv4Servers = ipv6Servers.getServers();
-                                } else {
-                                    GlobalConfiguration.DefaultDohIpv6Servers = new String[]{};
-                                }
+                            if (ipv6Servers != null && ipv6Servers.getIsOverride()) {
+                                GlobalConfiguration.DefaultDohIpv4Servers = ipv6Servers.getServers();
                             }
                         }
                     }

@@ -54,7 +54,6 @@ class ServerConfig {
     }
 
     static class RegionConfig {
-        private Boolean enable;
         private long clearId;
         private boolean clearCache;
 
@@ -65,10 +64,6 @@ class ServerConfig {
 
             this.clearId = info.optLong("clear_id");
             this.clearCache = info.optBoolean("clear_cache", false);
-        }
-        
-        Boolean getEnable() {
-            return enable;
         }
 
         long getClearId() {
@@ -123,7 +118,7 @@ class ServerConfig {
     }
 
     static class DnsServer {
-        private Boolean enable;
+        private Boolean isOverride;
         private String[] servers;
 
         DnsServer(JSONObject info) {
@@ -131,14 +126,12 @@ class ServerConfig {
                 return;
             }
 
-            if (info.opt("enable") != null) {
-                this.enable = info.optBoolean("enable");
-            }
+            this.isOverride = info.optBoolean("override_default");
 
             List<String> servers = new ArrayList<>();
-            JSONArray serverJsonArray = info.optJSONArray("ip");
+            JSONArray serverJsonArray = info.optJSONArray("ips");
             if (serverJsonArray == null) {
-                serverJsonArray = info.optJSONArray("url");
+                serverJsonArray = info.optJSONArray("urls");
             }
             if (serverJsonArray != null) {
                 int length = serverJsonArray.length();
@@ -152,8 +145,8 @@ class ServerConfig {
             this.servers = servers.toArray(new String[0]);
         }
 
-        Boolean getEnable() {
-            return enable;
+        Boolean getIsOverride() {
+            return isOverride;
         }
 
         String[] getServers() {
@@ -198,6 +191,10 @@ class ServerConfig {
         private DnsServer ipv6Server;
 
         DohDnsConfig(JSONObject info) {
+            if (info == null) {
+                return;
+            }
+
             if (info.opt("enable") != null) {
                 this.enable = info.optBoolean("enable");
             }
