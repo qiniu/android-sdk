@@ -16,12 +16,12 @@ public class UdpDns implements Dns {
     private IResolver udpIpv6Resolver;
 
     public UdpDns(int timeout) {
-        String[] udpIpv4Servers = GlobalConfiguration.getInstance().udpDnsIpv4Servers;
+        String[] udpIpv4Servers = GlobalConfiguration.getInstance().getUdpDnsIpv4Servers();
         if (udpIpv4Servers != null && udpIpv4Servers.length > 0) {
             udpIpv4Resolver = new DnsUdpResolver(udpIpv4Servers, Record.TYPE_A, timeout);
         }
 
-        String[] udpIpv6Servers = GlobalConfiguration.getInstance().udpDnsIpv6Servers;
+        String[] udpIpv6Servers = GlobalConfiguration.getInstance().getUdpDnsIpv6Servers();
         if (udpIpv6Servers != null && udpIpv6Servers.length > 0) {
             udpIpv6Resolver = new DnsUdpResolver(udpIpv6Servers, Record.TYPE_A, timeout);
         }

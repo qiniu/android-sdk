@@ -103,18 +103,18 @@ public class ServerConfigMonitor {
                             ServerConfig.DnsServer ipv4Servers = udpDnsConfig.getIpv4Server();
                             if (ipv4Servers != null && ipv4Servers.getEnable() != null) {
                                 if (ipv4Servers.getEnable()) {
-                                    GlobalConfiguration.getInstance().udpDnsIpv4Servers = ipv4Servers.getServers();
+                                    GlobalConfiguration.DefaultUdpDnsIpv4Servers = ipv4Servers.getServers();
                                 } else {
-                                    GlobalConfiguration.getInstance().udpDnsIpv4Servers = new String[]{};
+                                    GlobalConfiguration.DefaultUdpDnsIpv4Servers = new String[]{};
                                 }
                             }
 
                             ServerConfig.DnsServer ipv6Servers = udpDnsConfig.getIpv6Server();
                             if (ipv6Servers != null && ipv6Servers.getEnable() != null) {
                                 if (ipv6Servers.getEnable()) {
-                                    GlobalConfiguration.getInstance().udpDnsIpv6Servers = ipv6Servers.getServers();
+                                    GlobalConfiguration.DefaultUdpDnsIpv6Servers = ipv6Servers.getServers();
                                 } else {
-                                    GlobalConfiguration.getInstance().udpDnsIpv6Servers = new String[]{};
+                                    GlobalConfiguration.DefaultUdpDnsIpv6Servers = new String[]{};
                                 }
                             }
                         }
