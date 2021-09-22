@@ -2,9 +2,10 @@ package com.qiniu.android.storage.serverConfig;
 
 import com.qiniu.android.utils.Utils;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
-class ServerUserConfig {
+public class ServerUserConfig {
 
     private long timestamp;
     private long ttl = 10;
@@ -13,13 +14,24 @@ class ServerUserConfig {
 
     private JSONObject info;
 
-    ServerUserConfig(JSONObject info) {
-        this.timestamp = Utils.currentSecondTimestamp();
-
+    public ServerUserConfig(JSONObject info) {
         if (info == null) {
             return;
         }
         this.info = info;
+
+        this.ttl = info.optLong("ttl", 5 * 60);
+
+        if (info.opt("timestamp") != null) {
+            this.timestamp = info.optLong("timestamp");
+        }
+        if (this.timestamp == 0) {
+            this.timestamp = Utils.currentSecondTimestamp();
+            try {
+                info.putOpt("timestamp", this.timestamp);
+            } catch (JSONException ignored) {
+            }
+        }
 
         JSONObject http3 = info.optJSONObject("http3");
         if (http3 != null && http3.opt("enabled") != null) {
@@ -32,19 +44,19 @@ class ServerUserConfig {
         }
     }
 
-    Boolean getHttp3Enable() {
+    public Boolean getHttp3Enable() {
         return http3Enable;
     }
 
-    Boolean getNetworkCheckEnable() {
+    public Boolean getNetworkCheckEnable() {
         return networkCheckEnable;
     }
 
-    JSONObject getInfo() {
+    public JSONObject getInfo() {
         return info;
     }
 
-    boolean isValid() {
+    public boolean isValid() {
         return Utils.currentSecondTimestamp() < (this.timestamp + this.ttl);
     }
 }

@@ -3,12 +3,13 @@ package com.qiniu.android.storage.serverConfig;
 import com.qiniu.android.utils.Utils;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-class ServerConfig {
+public class ServerConfig {
 
     private long timestamp;
     private long ttl = 10;
@@ -16,15 +17,25 @@ class ServerConfig {
     private RegionConfig regionConfig;
     private DnsConfig dnsConfig;
 
-    ServerConfig(JSONObject info) {
-        this.timestamp = Utils.currentSecondTimestamp();
-
+    public ServerConfig(JSONObject info) {
         if (info == null) {
             return;
         }
         this.info = info;
 
         this.ttl = info.optLong("ttl", 5 * 60);
+
+        if (info.opt("timestamp") != null) {
+            this.timestamp = info.optLong("timestamp");
+        }
+        if (this.timestamp == 0) {
+            this.timestamp = Utils.currentSecondTimestamp();
+            try {
+                info.putOpt("timestamp", this.timestamp);
+            } catch (JSONException ignored) {
+            }
+        }
+
         this.dnsConfig = new DnsConfig(info.optJSONObject("dns"));
         this.regionConfig = new RegionConfig(info.optJSONObject("region"));
 
@@ -33,27 +44,23 @@ class ServerConfig {
         }
     }
 
-    long getTtl() {
-        return ttl;
-    }
-
-    JSONObject getInfo() {
+    public JSONObject getInfo() {
         return info;
     }
 
-    RegionConfig getRegionConfig() {
+    public RegionConfig getRegionConfig() {
         return regionConfig;
     }
 
-    DnsConfig getDnsConfig() {
+    public DnsConfig getDnsConfig() {
         return dnsConfig;
     }
 
-    boolean isValid() {
+    public boolean isValid() {
         return Utils.currentSecondTimestamp() < (this.timestamp + this.ttl);
     }
 
-    static class RegionConfig {
+    public static class RegionConfig {
         private long clearId;
         private boolean clearCache;
 
@@ -66,16 +73,16 @@ class ServerConfig {
             this.clearCache = info.optBoolean("clear_cache", false);
         }
 
-        long getClearId() {
+        public long getClearId() {
             return clearId;
         }
 
-        boolean getClearCache() {
+        public boolean getClearCache() {
             return clearCache;
         }
     }
 
-    static class DnsConfig {
+    public static class DnsConfig {
         private Boolean enable;
         private long clearId;
         private boolean clearCache = false;
@@ -92,19 +99,19 @@ class ServerConfig {
             }
             this.clearId = info.optLong("clear_id");
             this.clearCache = info.optBoolean("clear_cache", false);
-            this.udpDnsConfig = new UdpDnsConfig(info.optJSONObject("dns"));
+            this.udpDnsConfig = new UdpDnsConfig(info.optJSONObject("udp"));
             this.dohDnsConfig = new DohDnsConfig(info.optJSONObject("doh"));
         }
 
-        Boolean getEnable() {
+        public Boolean getEnable() {
             return enable;
         }
 
-        long getClearId() {
+        public long getClearId() {
             return clearId;
         }
 
-        boolean getClearCache() {
+        public boolean getClearCache() {
             return clearCache;
         }
 
@@ -117,8 +124,8 @@ class ServerConfig {
         }
     }
 
-    static class DnsServer {
-        private Boolean isOverride;
+    public static class DnsServer {
+        private boolean isOverride;
         private String[] servers;
 
         DnsServer(JSONObject info) {
@@ -145,16 +152,16 @@ class ServerConfig {
             this.servers = servers.toArray(new String[0]);
         }
 
-        Boolean getIsOverride() {
+        public boolean getIsOverride() {
             return isOverride;
         }
 
-        String[] getServers() {
+        public String[] getServers() {
             return servers;
         }
     }
 
-    static class UdpDnsConfig {
+    public static class UdpDnsConfig {
         private Boolean enable;
         private DnsServer ipv4Server;
         private DnsServer ipv6Server;
@@ -172,20 +179,20 @@ class ServerConfig {
             this.ipv6Server = new DnsServer(info.optJSONObject("ipv6"));
         }
 
-        Boolean getEnable() {
+        public Boolean getEnable() {
             return enable;
         }
 
-        DnsServer getIpv4Server() {
+        public DnsServer getIpv4Server() {
             return ipv4Server;
         }
 
-        DnsServer getIpv6Server() {
+        public DnsServer getIpv6Server() {
             return ipv6Server;
         }
     }
 
-    static class DohDnsConfig {
+    public static class DohDnsConfig {
         private Boolean enable;
         private DnsServer ipv4Server;
         private DnsServer ipv6Server;
@@ -203,15 +210,15 @@ class ServerConfig {
             this.ipv6Server = new DnsServer(info.optJSONObject("ipv6"));
         }
 
-        Boolean getEnable() {
+        public Boolean getEnable() {
             return enable;
         }
 
-        DnsServer getIpv4Server() {
+        public DnsServer getIpv4Server() {
             return ipv4Server;
         }
 
-        DnsServer getIpv6Server() {
+        public DnsServer getIpv6Server() {
             return ipv6Server;
         }
     }
