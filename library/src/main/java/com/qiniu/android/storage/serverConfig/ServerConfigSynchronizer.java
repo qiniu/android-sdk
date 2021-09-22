@@ -14,7 +14,7 @@ import java.util.List;
 
 class ServerConfigSynchronizer {
     private static String Token;
-    private static String[] Servers;
+    private static String[] Hosts;
     private static RequestTransaction serverConfigTransaction;
     private static RequestTransaction serverUserConfigTransaction;
 
@@ -22,8 +22,8 @@ class ServerConfigSynchronizer {
         Token = token;
     }
 
-    static void setServers(String[] servers) {
-        Servers = servers;
+    static void setHosts(String[] hosts) {
+        Hosts = hosts;
     }
 
     static void getServerConfigFromServer(final ServerConfigHandler handler) {
@@ -61,8 +61,12 @@ class ServerConfigSynchronizer {
         }
 
         List<String> servers = new ArrayList<>();
-        servers.add(Config.preQueryHost00);
-        servers.add(Config.preQueryHost01);
+        if (Hosts != null && Hosts.length > 0) {
+            servers.addAll(Arrays.asList(Hosts));
+        } else {
+            servers.add(Config.preQueryHost00);
+            servers.add(Config.preQueryHost01);
+        }
         serverConfigTransaction = new RequestTransaction(servers, token);
         return serverConfigTransaction;
     }
@@ -107,8 +111,8 @@ class ServerConfigSynchronizer {
         }
 
         List<String> servers = new ArrayList<>();
-        if (Servers != null && Servers.length > 0) {
-            servers.addAll(Arrays.asList(Servers));
+        if (Hosts != null && Hosts.length > 0) {
+            servers.addAll(Arrays.asList(Hosts));
         } else {
             servers.add(Config.preQueryHost00);
             servers.add(Config.preQueryHost01);

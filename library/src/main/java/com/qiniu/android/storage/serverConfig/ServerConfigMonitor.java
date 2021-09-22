@@ -22,6 +22,10 @@ public class ServerConfigMonitor {
         ServerConfigSynchronizer.setToken(token);
     }
 
+    public static void setServerHosts(String[] hosts) {
+        ServerConfigSynchronizer.setHosts(hosts);
+    }
+
     // 开始监控
     public synchronized static void startMonitor() {
         if (!configMonitor.enable) {
