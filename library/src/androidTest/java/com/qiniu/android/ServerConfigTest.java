@@ -10,6 +10,7 @@ import org.json.JSONObject;
 public class ServerConfigTest extends BaseTest {
 
     public void testMonitor() {
+        ServerConfigMonitor.removeConfigCache();
         ServerConfigMonitor.startMonitor();
         ServerConfigMonitor.setToken(TestConfig.token_na0);
 

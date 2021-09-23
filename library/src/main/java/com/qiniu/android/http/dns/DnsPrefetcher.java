@@ -103,8 +103,13 @@ public class DnsPrefetcher {
         if (address == null || address.getHostValue() == null) {
             return;
         }
+
         String host = address.getHostValue();
         List<IDnsNetworkAddress> addressList = addressDictionary.get(host);
+        if (addressList == null || addressList.size() == 0) {
+            return;
+        }
+
         ArrayList<IDnsNetworkAddress> addressListNew = new ArrayList<>();
         for (IDnsNetworkAddress addressP : addressList) {
             if (!addressP.getIpValue().equals(addressP.getIpValue())) {

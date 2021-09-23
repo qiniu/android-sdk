@@ -90,7 +90,7 @@ class ServerConfigCache {
         return new ServerUserConfig(configJson);
     }
 
-    void setUserConfigToDisk(ServerUserConfig userConfig) {
+    void saveUserConfigToDisk(ServerUserConfig userConfig) {
         if (userConfig == null || userConfig.getInfo() == null) {
             return;
         }
@@ -98,6 +98,14 @@ class ServerConfigCache {
         setupRecorder();
         synchronized (this) {
             recorder.set(kServerUserConfigDiskKey, userConfig.getInfo().toString().getBytes());
+        }
+    }
+
+    public void removeConfigCache() {
+        setupRecorder();
+        synchronized (this) {
+            recorder.del(kServerConfigDiskKey);
+            recorder.del(kServerUserConfigDiskKey);
         }
     }
 

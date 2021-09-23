@@ -26,6 +26,10 @@ public class ServerConfigMonitor {
         ServerConfigSynchronizer.setHosts(hosts);
     }
 
+    public static void removeConfigCache() {
+        configMonitor.cache.removeConfigCache();
+    }
+
     // 开始监控
     public synchronized static void startMonitor() {
         if (!configMonitor.enable) {
@@ -102,7 +106,7 @@ public class ServerConfigMonitor {
 
                     handleServerUserConfig(config);
                     cache.setUserConfig(config);
-                    cache.setUserConfigToDisk(config);
+                    cache.saveUserConfigToDisk(config);
                 }
             });
         }

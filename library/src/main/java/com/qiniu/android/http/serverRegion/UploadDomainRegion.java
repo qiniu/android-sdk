@@ -31,6 +31,7 @@ public class UploadDomainRegion implements IUploadRegion {
     private boolean isAllFrozen;
     // 局部冻结管理对象
     private UploadServerFreezeManager partialHttp2Freezer = new UploadServerFreezeManager();
+    private UploadServerFreezeManager partialHttp3Freezer = new UploadServerFreezeManager();
 
     private ArrayList<String> domainHostList;
     private HashMap<String, UploadServerDomain> domainHashMap;
@@ -152,7 +153,7 @@ public class UploadDomainRegion implements IUploadRegion {
 
                         // 1.2 剔除冻结对象
                         String frozenType = UploadServerFreezeUtil.getFrozenType(host, filterServerIP);
-                        boolean isFrozen = UploadServerFreezeUtil.isTypeFrozenByFreezeManagers(frozenType, new UploadServerFreezeManager[]{UploadServerFreezeUtil.globalHttp3Freezer()});
+                        boolean isFrozen = UploadServerFreezeUtil.isTypeFrozenByFreezeManagers(frozenType, new UploadServerFreezeManager[]{partialHttp3Freezer, UploadServerFreezeUtil.globalHttp3Freezer()});
 
                         if (isFrozen) {
                             return false;
@@ -262,6 +263,11 @@ public class UploadDomainRegion implements IUploadRegion {
         String frozenType = UploadServerFreezeUtil.getFrozenType(freezeServer.getHost(), freezeServer.getIp());
         // 1. http3 冻结
         if (freezeServer.isHttp3()) {
+            if (responseInfo.isNotQiniu()) {
+                hasFreezeHost = true;
+                partialHttp3Freezer.freezeType(frozenType, GlobalConfiguration.getInstance().partialHostFrozenTime);
+            }
+
             if (!responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
                 hasFreezeHost = true;
                 UploadServerFreezeUtil.globalHttp3Freezer().freezeType(frozenType, Http3FrozenTime);
@@ -271,7 +277,7 @@ public class UploadDomainRegion implements IUploadRegion {
 
         // 2. http2 冻结
         // 2.1 无法连接到Host || Host不可用， 局部冻结
-        if (!responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
+        if (responseInfo.isNotQiniu() || !responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
             hasFreezeHost = true;
             LogUtil.i("partial freeze server host:" + StringUtils.toNonnullString(freezeServer.getHost()) + " ip:" + StringUtils.toNonnullString(freezeServer.getIp()));
             partialHttp2Freezer.freezeType(frozenType, GlobalConfiguration.getInstance().partialHostFrozenTime);
