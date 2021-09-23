@@ -97,7 +97,7 @@ public final class ResponseInfo {
     public final JSONObject response;
 
     private ResponseInfo(JSONObject json,
-                         Map<String, String>responseHeader,
+                         Map<String, String> responseHeader,
                          int statusCode,
                          String reqId,
                          String xlog,
@@ -116,10 +116,11 @@ public final class ResponseInfo {
 
         if (error == null && !this.isOK()) {
             String errorP = null;
-            if (response != null){
+            if (response != null) {
                 try {
                     errorP = response.getString("error");
-                } catch (JSONException ignored) {}
+                } catch (JSONException ignored) {
+                }
             }
             this.error = errorP;
         } else {
@@ -182,11 +183,11 @@ public final class ResponseInfo {
         return responseInfo;
     }
 
-    public static  ResponseInfo create(Request request,
-                                       int responseCode,
-                                       Map<String, String> responseHeader,
-                                       JSONObject response,
-                                       String errorMessage) {
+    public static ResponseInfo create(Request request,
+                                      int responseCode,
+                                      Map<String, String> responseHeader,
+                                      JSONObject response,
+                                      String errorMessage) {
 
         String host = (request != null ? request.host : null);
         String reqId = null;
@@ -195,16 +196,16 @@ public final class ResponseInfo {
         if (responseHeader != null) {
             reqId = responseHeader.get("x-reqid");
             xlog = responseHeader.get("x-log");
-            if (responseHeader.get("x-via") != null){
+            if (responseHeader.get("x-via") != null) {
                 xvia = responseHeader.get("x-via");
-            } else if (responseHeader.get("x-px") != null){
+            } else if (responseHeader.get("x-px") != null) {
                 xvia = responseHeader.get("x-px");
-            } else if (responseHeader.get("fw-via") != null){
+            } else if (responseHeader.get("fw-via") != null) {
                 xvia = responseHeader.get("fw-via");
             }
         }
 
-        if (responseCode == 200 && (reqId == null && xlog == null)){
+        if (responseCode == 200 && (reqId == null && xlog == null)) {
             responseCode = MaliciousResponseError;
             errorMessage = "this is a malicious response";
             response = null;
@@ -228,32 +229,33 @@ public final class ResponseInfo {
         return statusCode == RequestSuccess && error == null && (hasReqId() || xlog != null);
     }
 
-    public boolean couldRetry(){
+    public boolean couldRetry() {
         if (isCancelled()
-            || (statusCode > 300 && statusCode < 400)
-            || (statusCode > 400 && statusCode < 500 && statusCode != 406)
-            || statusCode == 501 || statusCode == 573
-            || statusCode == 608 || statusCode == 612 || statusCode == 614 || statusCode == 616
-            || statusCode == 619 || statusCode == 630 || statusCode == 631 || statusCode == 640
-            || statusCode == 701
-            || (statusCode < -1 && statusCode > -1000)) {
+                || (statusCode > 300 && statusCode < 400)
+                || (statusCode > 400 && statusCode < 500 && statusCode != 406)
+                || statusCode == 501 || statusCode == 573
+                || statusCode == 608 || statusCode == 612 || statusCode == 614 || statusCode == 616
+                || statusCode == 619 || statusCode == 630 || statusCode == 631 || statusCode == 640
+                || statusCode == 701
+                || (statusCode < -1 && statusCode > -1000)) {
             return false;
         } else {
             return true;
         }
     }
 
-    public boolean couldRegionRetry(){
-        if (!couldRetry()  || statusCode == 400 || statusCode == 579 ) {
+    public boolean couldRegionRetry() {
+        if (!isNotQiniu() && (!couldRetry() || statusCode == 400 || statusCode == 579)) {
             return false;
         } else {
             return true;
         }
     }
 
-    public boolean couldHostRetry(){
+    public boolean couldHostRetry() {
         if (!couldRegionRetry()
-            || statusCode == 502 || statusCode == 503 || statusCode == 571 || statusCode == 599) {
+                || isNotQiniu()
+                || statusCode == 502 || statusCode == 503 || statusCode == 571 || statusCode == 599) {
             return false;
         } else {
             return true;
@@ -261,14 +263,14 @@ public final class ResponseInfo {
     }
 
     public boolean isTlsError() {
-        if (statusCode == NetworkSSLError){
+        if (statusCode == NetworkSSLError) {
             return true;
         } else {
             return false;
         }
     }
 
-    public boolean canConnectToHost(){
+    public boolean canConnectToHost() {
         if (statusCode > 99 || isCancelled()) {
             return true;
         } else {
@@ -276,7 +278,7 @@ public final class ResponseInfo {
         }
     }
 
-    public boolean isHostUnavailable(){
+    public boolean isHostUnavailable() {
         // 基本不可恢复，注：会影响下次请求，范围太大可能会造成大量的timeout
         if (statusCode == 502 || statusCode == 503 || statusCode == 504 || statusCode == 599) {
             return true;

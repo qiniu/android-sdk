@@ -343,9 +343,10 @@ public class UploadDomainRegion implements IUploadRegion {
             }
 
             // 未解析到IP:
-            if (condition == null || condition.condition(host, null, null)) {
+            UploadServer hostServer = new UploadServer(host, host, null, null, null);
+            if (condition == null || condition.condition(host, null, hostServer)) {
                 // 未解析时，没有可比性，直接返回自身，自身即为最优
-                server = new UploadServer(host, host, null, null, null);
+                server = hostServer;
             }
 
             return server;

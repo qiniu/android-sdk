@@ -118,7 +118,8 @@ class HttpSingleRequest {
                     return;
                 }
 
-                boolean hijacked = responseInfo != null && responseInfo.isNotQiniu();
+                boolean isSafeDnsSource = DnsSource.isCustom(server.getSource()) || DnsSource.isDoh(server.getSource()) || DnsSource.isDnspod(server.getSource());
+                boolean hijacked = responseInfo != null && responseInfo.isNotQiniu() && !isSafeDnsSource;
                 if (hijacked && metrics != null) {
                     metrics.hijacked = UploadSingleRequestMetrics.RequestHijacked;
                     try {
@@ -136,7 +137,7 @@ class HttpSingleRequest {
                     if (!ConnectChecker.isConnected(checkMetrics)) {
                         String message = responseInfo == null ? "" : ("check origin statusCode:" + responseInfo.statusCode + " error:" + responseInfo.error);
                         responseInfo = ResponseInfo.errorInfo(ResponseInfo.NetworkSlow, message);
-                    } else if (metrics != null && !DnsSource.isCustom(server.getSource()) && !DnsSource.isDoh(server.getSource()) && !DnsSource.isDnspod(server.getSource())) {
+                    } else if (metrics != null && !isSafeDnsSource) {
                         metrics.hijacked = UploadSingleRequestMetrics.RequestMaybeHijacked;
                         try {
                             metrics.syncDnsSource = DnsPrefetcher.getInstance().lookupBySafeDns(server.getHost());
