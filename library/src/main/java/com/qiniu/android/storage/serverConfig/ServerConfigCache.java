@@ -17,18 +17,19 @@ class ServerConfigCache {
     private Recorder recorder;
 
 
-    ServerConfig getConfig() {
+    synchronized ServerConfig getConfig() {
         return config;
     }
 
-    void setConfig(ServerConfig config) {
+    synchronized void setConfig(ServerConfig config) {
         this.config = config;
     }
 
     ServerConfig getConfigFromDisk() {
-        setupRecorder();
+
         byte[] configData = null;
         synchronized (this) {
+            setupRecorder();
             configData = recorder.get(kServerConfigDiskKey);
         }
         if (configData == null) {
@@ -52,26 +53,26 @@ class ServerConfigCache {
             return;
         }
 
-        setupRecorder();
         synchronized (this) {
+            setupRecorder();
             recorder.set(kServerConfigDiskKey, config.getInfo().toString().getBytes());
         }
     }
 
 
-    ServerUserConfig getUserConfig() {
+    synchronized ServerUserConfig getUserConfig() {
         return userConfig;
     }
 
-    void setUserConfig(ServerUserConfig userConfig) {
+    synchronized void setUserConfig(ServerUserConfig userConfig) {
         this.userConfig = userConfig;
     }
 
     ServerUserConfig getUserConfigFromDisk() {
-        setupRecorder();
 
         byte[] configData = null;
         synchronized (this) {
+            setupRecorder();
             configData = recorder.get(kServerUserConfigDiskKey);
         }
         if (configData == null) {
@@ -95,21 +96,21 @@ class ServerConfigCache {
             return;
         }
 
-        setupRecorder();
         synchronized (this) {
+            setupRecorder();
             recorder.set(kServerUserConfigDiskKey, userConfig.getInfo().toString().getBytes());
         }
     }
 
-    public void removeConfigCache() {
+    public synchronized void removeConfigCache() {
         setupRecorder();
-        synchronized (this) {
-            recorder.del(kServerConfigDiskKey);
-            recorder.del(kServerUserConfigDiskKey);
-        }
+        setConfig(null);
+        setUserConfig(null);
+        recorder.del(kServerConfigDiskKey);
+        recorder.del(kServerUserConfigDiskKey);
     }
 
-    private synchronized void setupRecorder() {
+    private void setupRecorder() {
         if (recorder == null) {
             try {
                 recorder = new FileRecorder(Utils.sdkDirectory() + "/ServerConfig");

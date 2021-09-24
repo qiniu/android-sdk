@@ -314,7 +314,7 @@ public final class ResponseInfo {
     }
 
     public boolean hasReqId() {
-        return reqId != null;
+        return reqId != null && reqId.length() > 0;
     }
 
 }

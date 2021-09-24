@@ -84,6 +84,14 @@ public class ZoneInfo implements Cloneable {
         this.domains = domains;
         this.old_domains = old_domains;
         this.buildDate = new Date();
+        List<String> allHosts = new ArrayList<>();
+        if (domains != null) {
+            allHosts.addAll(domains);
+        }
+        if (old_domains != null) {
+            allHosts.addAll(old_domains);
+        }
+        this.allHosts = allHosts;
     }
 
     /**
@@ -119,7 +127,6 @@ public class ZoneInfo implements Cloneable {
             return null;
         }
 
-        List<String> allHosts = new ArrayList<>();
         List<String> domains = new ArrayList<>();
         JSONArray domainsJson = up.optJSONArray("domains");
         if (domainsJson != null && domainsJson.length() > 0) {
@@ -127,7 +134,6 @@ public class ZoneInfo implements Cloneable {
                 String domain = domainsJson.optString(i);
                 if (domain != null && domain.length() > 0) {
                     domains.add(domain);
-                    allHosts.add(domain);
                 }
             }
         }
@@ -139,7 +145,6 @@ public class ZoneInfo implements Cloneable {
                 String domain = old_domainsJson.optString(i);
                 if (domain != null && domain.length() > 0) {
                     old_domains.add(domain);
-                    allHosts.add(domain);
                 }
             }
         }
@@ -150,8 +155,6 @@ public class ZoneInfo implements Cloneable {
 
         ZoneInfo zoneInfo = new ZoneInfo(ttl, http3Enabled, ipv6Enabled, regionId, domains, old_domains);
         zoneInfo.detailInfo = obj;
-
-        zoneInfo.allHosts = allHosts;
 
         return zoneInfo;
     }
@@ -176,7 +179,9 @@ public class ZoneInfo implements Cloneable {
 
     @Override
     protected Object clone() throws CloneNotSupportedException {
-        return new ZoneInfo(ttl, http3Enabled, ipv6, regionId, domains, old_domains);
+        ZoneInfo info = new ZoneInfo(ttl, http3Enabled, ipv6, regionId, domains, old_domains);
+        info.detailInfo = detailInfo;
+        return info;
     }
 
     @Deprecated
