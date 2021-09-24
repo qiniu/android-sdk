@@ -205,14 +205,16 @@ public final class ResponseInfo {
             }
         }
 
-        if (responseCode == 200 && (reqId == null && xlog == null)) {
-            responseCode = MaliciousResponseError;
-            errorMessage = "this is a malicious response";
-            response = null;
-        }
-
         ResponseInfo responseInfo = new ResponseInfo(response, responseHeader, responseCode, reqId, xlog, xvia, host, errorMessage);
         return responseInfo;
+    }
+
+    public ResponseInfo checkMaliciousResponse() {
+        if (statusCode == 200 && (reqId == null && xlog == null)) {
+            return new ResponseInfo(null, responseHeader, MaliciousResponseError, reqId, xlog, xvia, host, "this is a malicious response");
+        } else {
+            return this;
+        }
     }
 
     public static boolean isStatusCodeForBrokenNetwork(int code) {

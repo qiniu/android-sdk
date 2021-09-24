@@ -117,6 +117,10 @@ class HttpSingleRequest {
                     completeAction(server, responseInfo, responseInfo.response, metrics, completeHandler);
                     return;
                 }
+                
+                if (responseInfo != null) {
+                    responseInfo = responseInfo.checkMaliciousResponse();
+                }
 
                 boolean isSafeDnsSource = DnsSource.isCustom(server.getSource()) || DnsSource.isDoh(server.getSource()) || DnsSource.isDnspod(server.getSource());
                 boolean hijacked = responseInfo != null && responseInfo.isNotQiniu() && !isSafeDnsSource;

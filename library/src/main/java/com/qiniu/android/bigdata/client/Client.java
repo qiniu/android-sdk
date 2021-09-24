@@ -183,9 +183,6 @@ public final class Client {
             String value = response.headers().value(i);
             responseHeader.put(name, value);
         }
-        if (!responseHeader.containsKey("x-reqid")) {
-            responseHeader.put("x-reqid", "");
-        }
         return ResponseInfo.create(null, code, responseHeader, json, error);
     }
 
