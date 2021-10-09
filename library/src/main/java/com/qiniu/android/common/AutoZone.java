@@ -23,7 +23,7 @@ public final class AutoZone extends Zone {
      * 自动判断机房
      */
     private String[] ucServers;
-    private Map<String, ZonesInfo> zonesInfoMap = new ConcurrentHashMap<>();
+//    private Map<String, ZonesInfo> zonesInfoMap = new ConcurrentHashMap<>();
     private ArrayList<RequestTransaction> transactions = new ArrayList<>();
 
     private static final SingleFlight SingleFlight = new SingleFlight();
@@ -71,7 +71,7 @@ public final class AutoZone extends Zone {
         if (token == null) {
             return null;
         }
-        ZonesInfo zonesInfo = zonesInfoMap.get(token.index());
+        ZonesInfo zonesInfo = GlobalCache.getInstance().zonesInfoForKey(token.index());
         if (zonesInfo != null) {
             try {
                 zonesInfo = (ZonesInfo) zonesInfo.clone();
@@ -92,14 +92,15 @@ public final class AutoZone extends Zone {
         localMetrics.start();
 
         final String cacheKey = token.index();
-        ZonesInfo zonesInfo = getZonesInfo(token);
+        ZonesInfo zonesInfo = GlobalCache.getInstance().zonesInfoForKey(cacheKey);
+//        getZonesInfo(token);
 
-        if (zonesInfo == null) {
-            zonesInfo = GlobalCache.getInstance().zonesInfoForKey(cacheKey);
-            if (zonesInfo != null && zonesInfo.isValid()) {
-                zonesInfoMap.put(cacheKey, zonesInfo);
-            }
-        }
+//        if (zonesInfo == null) {
+//            zonesInfo = GlobalCache.getInstance().zonesInfoForKey(cacheKey);
+//            if (zonesInfo != null && zonesInfo.isValid()) {
+//                zonesInfoMap.put(cacheKey, zonesInfo);
+//            }
+//        }
 
         if (zonesInfo != null && zonesInfo.isValid() && !zonesInfo.isTemporary()) {
             localMetrics.end();
@@ -139,7 +140,7 @@ public final class AutoZone extends Zone {
 
                     if (responseInfo != null && responseInfo.isOK() && response != null) {
                         ZonesInfo zonesInfoP = ZonesInfo.createZonesInfo(response);
-                        zonesInfoMap.put(cacheKey, zonesInfoP);
+//                        zonesInfoMap.put(cacheKey, zonesInfoP);
                         GlobalCache.getInstance().cache(zonesInfoP, cacheKey);
                         completeHandler.complete(0, responseInfo, requestMetrics);
                     } else {
@@ -147,7 +148,8 @@ public final class AutoZone extends Zone {
                             completeHandler.complete(ResponseInfo.NetworkError, responseInfo, requestMetrics);
                         } else {
                             ZonesInfo zonesInfoP = FixedZone.localsZoneInfo().getZonesInfo(token);
-                            zonesInfoMap.put(cacheKey, zonesInfoP);
+//                            zonesInfoMap.put(cacheKey, zonesInfoP);
+                            GlobalCache.getInstance().cache(zonesInfoP, cacheKey);
                             completeHandler.complete(0, responseInfo, requestMetrics);
                         }
                     }
@@ -186,19 +188,14 @@ public final class AutoZone extends Zone {
             return globalCache;
         }
 
-        private void cache(ZonesInfo zonesInfo, String cacheKey) {
-            if (cacheKey == null || cacheKey.isEmpty()) {
+        private synchronized void cache(ZonesInfo zonesInfo, String cacheKey) {
+            if (cacheKey == null || cacheKey.isEmpty() || zonesInfo == null) {
                 return;
             }
-
-            if (zonesInfo == null) {
-                cache.remove(cacheKey);
-            } else {
-                cache.put(cacheKey, zonesInfo);
-            }
+            cache.put(cacheKey, zonesInfo);
         }
 
-        private ZonesInfo zonesInfoForKey(String cacheKey) {
+        private synchronized ZonesInfo zonesInfoForKey(String cacheKey) {
             if (cacheKey == null || cacheKey.isEmpty()) {
                 return null;
             }
