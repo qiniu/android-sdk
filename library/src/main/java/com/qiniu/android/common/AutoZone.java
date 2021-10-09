@@ -23,7 +23,6 @@ public final class AutoZone extends Zone {
      * 自动判断机房
      */
     private String[] ucServers;
-//    private Map<String, ZonesInfo> zonesInfoMap = new ConcurrentHashMap<>();
     private ArrayList<RequestTransaction> transactions = new ArrayList<>();
 
     private static final SingleFlight SingleFlight = new SingleFlight();
@@ -93,15 +92,6 @@ public final class AutoZone extends Zone {
 
         final String cacheKey = token.index();
         ZonesInfo zonesInfo = GlobalCache.getInstance().zonesInfoForKey(cacheKey);
-//        getZonesInfo(token);
-
-//        if (zonesInfo == null) {
-//            zonesInfo = GlobalCache.getInstance().zonesInfoForKey(cacheKey);
-//            if (zonesInfo != null && zonesInfo.isValid()) {
-//                zonesInfoMap.put(cacheKey, zonesInfo);
-//            }
-//        }
-
         if (zonesInfo != null && zonesInfo.isValid() && !zonesInfo.isTemporary()) {
             localMetrics.end();
             completeHandler.complete(0, ResponseInfo.successResponse(), localMetrics);
@@ -140,17 +130,23 @@ public final class AutoZone extends Zone {
 
                     if (responseInfo != null && responseInfo.isOK() && response != null) {
                         ZonesInfo zonesInfoP = ZonesInfo.createZonesInfo(response);
-//                        zonesInfoMap.put(cacheKey, zonesInfoP);
-                        GlobalCache.getInstance().cache(zonesInfoP, cacheKey);
-                        completeHandler.complete(0, responseInfo, requestMetrics);
+                        if (zonesInfoP.isValid()) {
+                            GlobalCache.getInstance().cache(zonesInfoP, cacheKey);
+                            completeHandler.complete(0, responseInfo, requestMetrics);
+                        } else {
+                            completeHandler.complete(ResponseInfo.ParseError, responseInfo, requestMetrics);
+                        }
                     } else {
                         if (responseInfo.isNetworkBroken()) {
                             completeHandler.complete(ResponseInfo.NetworkError, responseInfo, requestMetrics);
                         } else {
                             ZonesInfo zonesInfoP = FixedZone.localsZoneInfo().getZonesInfo(token);
-//                            zonesInfoMap.put(cacheKey, zonesInfoP);
-                            GlobalCache.getInstance().cache(zonesInfoP, cacheKey);
-                            completeHandler.complete(0, responseInfo, requestMetrics);
+                            if (zonesInfoP.isValid()) {
+                                GlobalCache.getInstance().cache(zonesInfoP, cacheKey);
+                                completeHandler.complete(0, responseInfo, requestMetrics);
+                            } else {
+                                completeHandler.complete(ResponseInfo.ParseError, responseInfo, requestMetrics);
+                            }
                         }
                     }
                 }

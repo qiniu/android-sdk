@@ -60,6 +60,8 @@ public class ZonesInfo implements Cloneable {
                 infos.add((ZoneInfo)zoneInfo.clone());
             }
         }
-        return new ZonesInfo(infos);
+        ZonesInfo info = new ZonesInfo(infos);
+        info.isTemporary = isTemporary;
+        return info;
     }
 }
