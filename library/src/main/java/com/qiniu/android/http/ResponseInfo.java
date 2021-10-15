@@ -232,14 +232,14 @@ public final class ResponseInfo {
     }
 
     public boolean couldRetry() {
-        if (isCancelled()
+        if (isQiniu() && (isCancelled()
                 || (statusCode > 300 && statusCode < 400)
                 || (statusCode > 400 && statusCode < 500 && statusCode != 406)
                 || statusCode == 501 || statusCode == 573
                 || statusCode == 608 || statusCode == 612 || statusCode == 614 || statusCode == 616
                 || statusCode == 619 || statusCode == 630 || statusCode == 631 || statusCode == 640
                 || statusCode == 701
-                || (statusCode < -1 && statusCode > -1000)) {
+                || (statusCode < -1 && statusCode > -1000))) {
             return false;
         } else {
             return true;
@@ -247,7 +247,7 @@ public final class ResponseInfo {
     }
 
     public boolean couldRegionRetry() {
-        if (!isNotQiniu() && (!couldRetry() || statusCode == 400 || statusCode == 579)) {
+        if (!couldRetry() || statusCode == 400 || statusCode == 579) {
             return false;
         } else {
             return true;
@@ -255,9 +255,8 @@ public final class ResponseInfo {
     }
 
     public boolean couldHostRetry() {
-        if (!couldRegionRetry()
-                || isNotQiniu()
-                || statusCode == 502 || statusCode == 503 || statusCode == 571 || statusCode == 599) {
+        if (isNotQiniu() || !couldRegionRetry() || statusCode == 502 || statusCode == 503 ||
+                statusCode == 571 || statusCode == 599) {
             return false;
         } else {
             return true;
@@ -308,6 +307,10 @@ public final class ResponseInfo {
 
     public boolean isNotQiniu() {
         return (statusCode == MaliciousResponseError) || (statusCode > 0 && (!hasReqId() && xlog == null));
+    }
+
+    private boolean isQiniu() {
+        return !isNotQiniu();
     }
 
     public String toString() {
