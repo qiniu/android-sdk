@@ -5,7 +5,7 @@ import com.qiniu.android.collect.UploadInfoReporter;
 
 public class UplogTest extends BaseTest {
 
-    public void testUplog() {
+    public void no_testUplog() {
         ReportItem item = new ReportItem();
         item.setReport(ReportItem.LogTypeRequest, ReportItem.RequestKeyLogType);
         item.setReport(1634567890, ReportItem.RequestKeyUpTime);
