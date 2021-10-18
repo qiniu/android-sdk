@@ -1,7 +1,5 @@
 package com.qiniu.android;
 
-import android.util.Log;
-
 import com.qiniu.android.utils.UrlSafeBase64;
 import java.io.UnsupportedEncodingException;
 
