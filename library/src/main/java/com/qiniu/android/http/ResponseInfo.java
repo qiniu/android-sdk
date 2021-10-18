@@ -289,7 +289,7 @@ public final class ResponseInfo {
     }
 
     public boolean isNetworkBroken() {
-        return statusCode == NetworkError;
+        return statusCode == NetworkError || statusCode == NetworkSlow;
     }
 
     public boolean isServerError() {
