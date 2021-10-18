@@ -16,10 +16,4 @@ public class AndroidNetworkTest extends BaseTest {
         assertTrue(type != null);
     }
 
-    public void testMobileDbm(){
-        int dbm = AndroidNetwork.getMobileDbm();
-        LogUtil.i(dbm + "");
-//        assertTrue(dbm != -1);
-    }
-
 }

@@ -18,7 +18,7 @@ public class ZoneInfo implements Cloneable {
 
     // 只允许内部使用
     public final static String SDKDefaultIOHost = "sdkDefaultIOHost";
-    public final static String EmptyRegionId = "sdkEmptyRegionId";
+    public final static String EmptyRegionId = "unknown";
 
     private static int DOMAIN_FROZEN_SECONDS = 10 * 60;
 
