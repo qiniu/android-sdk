@@ -56,7 +56,7 @@ public class Utils {
     }
 
     public static Integer getCurrentSignalStrength() {
-        return AndroidNetwork.getMobileDbm();
+        return -1;
     }
 
     public static String getCurrentNetworkType() {
