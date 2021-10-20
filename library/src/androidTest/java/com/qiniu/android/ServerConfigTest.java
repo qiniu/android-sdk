@@ -23,12 +23,13 @@ public class ServerConfigTest extends BaseTest {
     }
 
     public void testServerConfigModel() {
-        String serverConfigJsonString = "{\"region\":{\"clear_id\":10,\"clear_cache\":true},\"dns\":{\"clear_id\":10,\"clear_cache\":true,\"doh\":{\"enable\":true,\"ipv4\":{\"override_default\":true,\"urls\":[\"https://223.5.5.5/dns-query\"]},\"ipv6\":{\"override_default\":true,\"urls\":[\"https://FFAE::EEEE/dns-query\"]}},\"udp\":{\"enable\":true,\"ipv4\":{\"ips\":[\"223.5.5.5\",\"1.1.1.1\"],\"override_default\":true},\"ipv6\":{\"ips\":[\"FFAE::EEEE\"],\"override_default\":true}}},\"ttl\":86400}";
+        String serverConfigJsonString = "{\"region\":{\"clear_id\":10,\"clear_cache\":true},\"dns\":{\"enabled\":true,\"clear_id\":10,\"clear_cache\":true,\"doh\":{\"enabled\":true,\"ipv4\":{\"override_default\":true,\"urls\":[\"https://223.5.5.5/dns-query\"]},\"ipv6\":{\"override_default\":true,\"urls\":[\"https://FFAE::EEEE/dns-query\"]}},\"udp\":{\"enabled\":true,\"ipv4\":{\"ips\":[\"223.5.5.5\",\"1.1.1.1\"],\"override_default\":true},\"ipv6\":{\"ips\":[\"FFAE::EEEE\"],\"override_default\":true}}},\"ttl\":86400}";
         try {
             JSONObject jsonObject = new JSONObject(serverConfigJsonString);
             ServerConfig serverConfig = new ServerConfig(jsonObject);
             assertTrue("server config ttl was err", serverConfig.isValid());
             assertTrue("server config dns was null", serverConfig.getDnsConfig() != null);
+            assertTrue("server config dns enable was null", serverConfig.getDnsConfig().getEnable() != null);
             assertTrue("server config dns clear id was null", serverConfig.getDnsConfig().getClearId() > 0);
             assertTrue("server config dns udp was null", serverConfig.getDnsConfig().getUdpDnsConfig() != null);
             assertTrue("server config dns udp enable was null", serverConfig.getDnsConfig().getUdpDnsConfig().getEnable() != null);

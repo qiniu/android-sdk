@@ -94,8 +94,8 @@ public class ServerConfig {
                 return;
             }
 
-            if (info.opt("enable") != null) {
-                this.enable = info.optBoolean("enable");
+            if (info.opt("enabled") != null) {
+                this.enable = info.optBoolean("enabled");
             }
             this.clearId = info.optLong("clear_id");
             this.clearCache = info.optBoolean("clear_cache", false);
@@ -171,8 +171,8 @@ public class ServerConfig {
                 return;
             }
 
-            if (info.opt("enable") != null) {
-                this.enable = info.optBoolean("enable");
+            if (info.opt("enabled") != null) {
+                this.enable = info.optBoolean("enabled");
             }
 
             this.ipv4Server = new DnsServer(info.optJSONObject("ipv4"));
@@ -202,8 +202,8 @@ public class ServerConfig {
                 return;
             }
 
-            if (info.opt("enable") != null) {
-                this.enable = info.optBoolean("enable");
+            if (info.opt("enabled") != null) {
+                this.enable = info.optBoolean("enabled");
             }
 
             this.ipv4Server = new DnsServer(info.optJSONObject("ipv4"));
