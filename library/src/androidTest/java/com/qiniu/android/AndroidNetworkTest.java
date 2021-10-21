@@ -2,7 +2,6 @@ package com.qiniu.android;
 
 import com.qiniu.android.utils.AndroidNetwork;
 import com.qiniu.android.utils.ContextGetter;
-import com.qiniu.android.utils.LogUtil;
 
 public class AndroidNetworkTest extends BaseTest {
 

@@ -34,6 +34,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 
 ### 注意
 * 推荐使用最新版：8.4.0
+* 7.6.2 ~ 8.3.2 AndroidNetwork.getMobileDbm()可以获取手机信号强度，需要如下权限(API>=18时生效)
 ```
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -64,6 +65,8 @@ implementation 'com.squareup.okhttp3:okhttp:4.9.1'
 
 ## 使用方法
 UploadManager 可以创建一次，一直使用。
+7.6.2 ~ 8.3.2 会调用AndroidNetwork.getMobileDbm可以获取网络信号强度
+需要Manifest.permission.ACCESS_FINE_LOCATION和Manifest.permission.ACCESS_COARSE_LOCATION权限
 ```java
 import com.qiniu.android.storage.UploadManager;
 ...
