@@ -18,6 +18,7 @@ public interface IRequestClient {
     }
 
     void request(Request request,
+                 IUploadServer server,
                  boolean isAsync,
                  ProxyConfiguration connectionProxy,
                  RequestClientProgress progress,

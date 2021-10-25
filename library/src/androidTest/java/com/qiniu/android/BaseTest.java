@@ -1,8 +1,8 @@
 package com.qiniu.android;
 
-import android.test.AndroidTestCase;
-
 import com.qiniu.android.utils.LogUtil;
+
+import android.test.AndroidTestCase;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
@@ -11,13 +11,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by yangsen on 2020/5/26
  */
-public class BaseTest extends AndroidTestCase {
-
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        LogUtil.enableLog(true);
-    }
+public class BaseTest extends AndroidTestCase{
 
     private long maxWaitTimestamp = 0;
 

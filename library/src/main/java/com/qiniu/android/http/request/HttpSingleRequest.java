@@ -70,8 +70,8 @@ class HttpSingleRequest {
                               final RequestProgressHandler progressHandler,
                               final RequestCompleteHandler completeHandler) {
 
-        if (server.isHttp3()) {
-            client = new SystemHttpClient();
+        if (config.requestClient != null) {
+            client = config.requestClient;
         } else {
             client = new SystemHttpClient();
         }
@@ -92,7 +92,7 @@ class HttpSingleRequest {
                 " url:" + StringUtils.toNonnullString(request.urlString) +
                 " ip:" + StringUtils.toNonnullString(request.ip));
 
-        client.request(request, isAsync, config.proxy, new IRequestClient.RequestClientProgress() {
+        client.request(request, server, isAsync, config.proxy, new IRequestClient.RequestClientProgress() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
                 if (checkCancelHandler.checkCancel()) {

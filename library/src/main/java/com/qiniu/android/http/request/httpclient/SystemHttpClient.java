@@ -6,6 +6,7 @@ import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.dns.SystemDns;
+import com.qiniu.android.http.request.IUploadServer;
 import com.qiniu.android.http.request.Request;
 import com.qiniu.android.http.request.IRequestClient;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
@@ -67,8 +68,17 @@ public class SystemHttpClient implements IRequestClient {
     private RequestClientProgress requestProgress;
     private RequestClientCompleteHandler completeHandler;
 
+    public void request(Request request,
+                        boolean isAsync,
+                        ProxyConfiguration connectionProxy,
+                        RequestClientProgress progress,
+                        RequestClientCompleteHandler complete) {
+        request(request, null, isAsync, connectionProxy, progress, complete);
+    }
+
     @Override
     public void request(Request request,
+                        IUploadServer server,
                         boolean isAsync,
                         ProxyConfiguration connectionProxy,
                         RequestClientProgress progress,

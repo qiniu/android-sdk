@@ -4,6 +4,7 @@ import com.qiniu.android.common.AutoZone;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.UrlConverter;
+import com.qiniu.android.http.request.IRequestClient;
 
 import java.io.File;
 
@@ -107,8 +108,10 @@ public final class Configuration {
      */
     public final UrlConverter urlConverter;
 
+    public final IRequestClient requestClient;
 
     private Configuration(Builder builder) {
+        requestClient = builder.requestClient;
         useConcurrentResumeUpload = builder.useConcurrentResumeUpload;
         resumeUploadVersion = builder.resumeUploadVersion;
         concurrentTaskCount = builder.concurrentTaskCount;
@@ -167,6 +170,7 @@ public final class Configuration {
     }
 
     public static class Builder {
+        private IRequestClient requestClient = null;
         private Zone zone = null;
         private Recorder recorder = null;
         private KeyGenerator keyGen = null;
@@ -184,6 +188,11 @@ public final class Configuration {
         private boolean useConcurrentResumeUpload = false;
         private int resumeUploadVersion = RESUME_UPLOAD_VERSION_V1;
         private int concurrentTaskCount = 3;
+
+        public Builder requestClient(IRequestClient requestClient) {
+            this.requestClient = requestClient;
+            return this;
+        }
 
         public Builder zone(Zone zone) {
             this.zone = zone;
