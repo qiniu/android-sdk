@@ -19,7 +19,7 @@ import java.util.List;
 
 
 public class UploadDomainRegion implements IUploadRegion {
-    private static int Http3FrozenTime = 3600 * 24;
+    private final static int Http3FrozenTime = 3600 * 24;
 
     // 是否支持http3
     private boolean http3Enabled;
@@ -30,8 +30,8 @@ public class UploadDomainRegion implements IUploadRegion {
     private boolean hasFreezeHost;
     private boolean isAllFrozen;
     // 局部冻结管理对象
-    private UploadServerFreezeManager partialHttp2Freezer = new UploadServerFreezeManager();
-    private UploadServerFreezeManager partialHttp3Freezer = new UploadServerFreezeManager();
+    private final UploadServerFreezeManager partialHttp2Freezer = new UploadServerFreezeManager();
+    private final UploadServerFreezeManager partialHttp3Freezer = new UploadServerFreezeManager();
 
     private ArrayList<String> domainHostList;
     private HashMap<String, UploadServerDomain> domainHashMap;
@@ -140,7 +140,7 @@ public class UploadDomainRegion implements IUploadRegion {
         }
 
         // 1. 优先选择http3
-        if (http3Enabled && freezeServer != null && freezeServer.isHttp3()) {
+        if (couldUseHttp3()) {
             for (String host : hostList) {
                 UploadServerDomain domain = domainInfo.get(host);
                 if (domain == null) {
@@ -160,7 +160,7 @@ public class UploadDomainRegion implements IUploadRegion {
                         String frozenType = UploadServerFreezeUtil.getFrozenType(host, filterServerIP);
                         boolean isFrozen = UploadServerFreezeUtil.isTypeFrozenByFreezeManagers(frozenType, new UploadServerFreezeManager[]{partialHttp3Freezer, UploadServerFreezeUtil.globalHttp3Freezer()});
 
-                        if (isFrozen) {
+                        if (isFrozen && HttpServerManager.getInstance().isServerSupportHttp3(host, filterServerIP)) {
                             return false;
                         }
 
@@ -273,7 +273,7 @@ public class UploadDomainRegion implements IUploadRegion {
                 partialHttp3Freezer.freezeType(frozenType, GlobalConfiguration.getInstance().partialHostFrozenTime);
             }
 
-            if (!responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
+            if (IUploadServer.HttpVersion3.equals(responseInfo.httpVersion) || !responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
                 hasFreezeHost = true;
                 UploadServerFreezeUtil.globalHttp3Freezer().freezeType(frozenType, Http3FrozenTime);
             }
@@ -303,6 +303,10 @@ public class UploadDomainRegion implements IUploadRegion {
 
         String frozenType = UploadServerFreezeUtil.getFrozenType(freezeServer.getHost(), freezeServer.getIp());
         partialHttp2Freezer.unfreezeType(frozenType);
+    }
+
+    private boolean couldUseHttp3() {
+        return true;
     }
 
 

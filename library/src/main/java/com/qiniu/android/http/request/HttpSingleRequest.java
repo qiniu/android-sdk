@@ -12,6 +12,7 @@ import com.qiniu.android.http.request.handler.CheckCancelHandler;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.request.handler.RequestShouldRetryHandler;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
+import com.qiniu.android.http.serverRegion.HttpServerManager;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.storage.UpToken;
@@ -107,6 +108,10 @@ class HttpSingleRequest {
         }, new IRequestClient.RequestClientCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
+
+                // 更新 host/ip 状态信息
+                updateHttpServerInfo(server, responseInfo);
+
                 if (metrics != null) {
                     requestMetricsList.add(metrics);
                 }
@@ -216,6 +221,41 @@ class HttpSingleRequest {
             int speed = (int) (byteCount * 1000 / second);
             String type = NetworkStatusManager.getNetworkStatusType(server.getHost(), server.getIp());
             NetworkStatusManager.getInstance().updateNetworkStatus(type, speed);
+        }
+    }
+
+    private void updateHttpServerInfo(IUploadServer server, ResponseInfo responseInfo) {
+        if (responseInfo == null || responseInfo.responseHeader == null || server == null || server.getHost() == null) {
+            return;
+        }
+
+        String altSvc = responseInfo.responseHeader.get("x-alt-svc");
+        if (altSvc == null) {
+            return;
+        }
+
+        int live = 0;
+        String ip = null;
+        String host = server.getHost();
+        String[] items = host.split(";");
+        for (String it : items) {
+            String item = it.replace(" ", "");
+            item = item.replace("\"", "");
+            if (item.contains("ip=")) {
+                String[] ipItems = host.split("=");
+                if (ipItems.length == 2 && ipItems[0].equals("ip")) {
+                    ip = ipItems[1];
+                }
+            } else if (item.contains("ma=")) {
+                String[] maItems = host.split("=");
+                if (maItems.length == 2 && maItems[0].equals("ma")) {
+                    live = Integer.parseInt(maItems[1]);
+                }
+            }
+        }
+
+        if (host != null && ip != null && live > 0) {
+            HttpServerManager.getInstance().addHttp3Server(host, ip, live);
         }
     }
 
