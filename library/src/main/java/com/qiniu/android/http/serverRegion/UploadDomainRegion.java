@@ -160,7 +160,7 @@ public class UploadDomainRegion implements IUploadRegion {
                         String frozenType = UploadServerFreezeUtil.getFrozenType(host, filterServerIP);
                         boolean isFrozen = UploadServerFreezeUtil.isTypeFrozenByFreezeManagers(frozenType, new UploadServerFreezeManager[]{partialHttp3Freezer, UploadServerFreezeUtil.globalHttp3Freezer()});
 
-                        if (isFrozen && HttpServerManager.getInstance().isServerSupportHttp3(host, filterServerIP)) {
+                        if (isFrozen || !HttpServerManager.getInstance().isServerSupportHttp3(host, filterServerIP)) {
                             return false;
                         }
 
