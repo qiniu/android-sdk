@@ -20,12 +20,12 @@ String version = versionName()
 int code = versionNameToCode(version)
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion '29.0.2'
+    compileSdkVersion 30
+    buildToolsVersion '29.0.3'
     defaultConfig {
         //applicationId "com.qiniu.android"
         minSdkVersion 14
-        targetSdkVersion 26
+        targetSdkVersion 30
         versionCode code
         versionName version
     }

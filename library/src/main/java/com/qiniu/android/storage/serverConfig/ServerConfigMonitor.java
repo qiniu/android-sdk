@@ -170,12 +170,12 @@ public class ServerConfigMonitor {
 
                 ServerConfig.DnsServer ipv4Servers = dohConfig.getIpv4Server();
                 if (ipv4Servers != null && ipv4Servers.getIsOverride()) {
-                    GlobalConfiguration.DefaultUdpDnsIpv4Servers = ipv4Servers.getServers();
+                    GlobalConfiguration.DefaultDohIpv4Servers = ipv4Servers.getServers();
                 }
 
                 ServerConfig.DnsServer ipv6Servers = dohConfig.getIpv6Server();
                 if (ipv6Servers != null && ipv6Servers.getIsOverride()) {
-                    GlobalConfiguration.DefaultDohIpv4Servers = ipv6Servers.getServers();
+                    GlobalConfiguration.DefaultDohIpv6Servers = ipv6Servers.getServers();
                 }
             }
         }
