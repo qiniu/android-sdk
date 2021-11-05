@@ -32,7 +32,7 @@ public class TransactionManagerTest extends BaseTest {
 
     public void testTransactionManagerAddAndRemove(){
 
-        String normalName = "normalTransactio";
+        String normalName = "testNormalTransaction";
         TransactionManager.Transaction normal = new TransactionManager.Transaction(normalName, 0, new Runnable() {
             @Override
             public void run() {
@@ -40,7 +40,7 @@ public class TransactionManagerTest extends BaseTest {
             }
         });
 
-        String timeName = "timeTransaction";
+        String timeName = "testTimeTransaction";
         TransactionManager.Transaction time = new TransactionManager.Transaction(timeName, 3, 2, new Runnable() {
             @Override
             public void run() {
@@ -55,8 +55,10 @@ public class TransactionManagerTest extends BaseTest {
 
         wait(null, 10);
 
-        assertFalse(manager.existTransactionsForName(normalName));
-        assertTrue(manager.existTransactionsForName(timeName));
+        boolean exist = manager.existTransactionsForName(normalName);
+        assertFalse(exist);
+        exist = manager.existTransactionsForName(timeName);
+        assertTrue(exist);
     }
 
 }

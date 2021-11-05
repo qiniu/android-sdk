@@ -42,8 +42,7 @@ public class TransactionManager {
     public boolean existTransactionsForName(String name) {
         boolean isExist = false;
         for (Transaction transaction : transactionList) {
-            if ((name == null && transaction.name == null)
-                    || (name != null && transaction.name != null && transaction.name.equals(name))) {
+            if ((name == null && transaction.name == null) || (transaction.name != null && transaction.name.equals(name))) {
                 isExist = true;
                 break;
             }
