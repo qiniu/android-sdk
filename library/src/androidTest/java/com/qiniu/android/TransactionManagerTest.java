@@ -62,7 +62,7 @@ public class TransactionManagerTest extends BaseTest {
             }
         }, 60);
         
-        wait(null, 2);
+        wait(null, 6);
 
         boolean exist = manager.existTransactionsForName(normalName);
         assertFalse(exist);
