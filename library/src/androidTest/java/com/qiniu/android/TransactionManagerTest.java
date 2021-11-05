@@ -32,11 +32,13 @@ public class TransactionManagerTest extends BaseTest {
 
     public void testTransactionManagerAddAndRemove(){
 
+        final boolean[] executedTransaction = {false};
         String normalName = "testNormalTransaction";
         TransactionManager.Transaction normal = new TransactionManager.Transaction(normalName, 0, new Runnable() {
             @Override
             public void run() {
                 LogUtil.d("1: thread:" + Thread.currentThread().getId() + new Date().toString());
+                executedTransaction[0] = true;
             }
         });
 
@@ -53,7 +55,14 @@ public class TransactionManagerTest extends BaseTest {
         manager.addTransaction(time);
 
 
-        wait(null, 10);
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                return executedTransaction[0];
+            }
+        }, 60);
+        
+        wait(null, 2);
 
         boolean exist = manager.existTransactionsForName(normalName);
         assertFalse(exist);
