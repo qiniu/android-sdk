@@ -30,8 +30,7 @@ public class TransactionManager {
     public ArrayList<Transaction> transactionsForName(String name) {
         ArrayList<Transaction> arrayList = new ArrayList<>();
         for (Transaction transaction : transactionList) {
-            if ((name == null && transaction.name == null)
-                    || (name != null && transaction.name != null && transaction.name.equals(name))) {
+            if ((name == null && transaction.name == null) || (transaction.name != null && transaction.name.equals(name))) {
                 arrayList.add(transaction);
             }
         }
@@ -51,7 +50,7 @@ public class TransactionManager {
     }
 
     /// 添加一个事务
-    public void addTransaction(Transaction transaction) {
+    public synchronized void addTransaction(Transaction transaction) {
         if (transaction == null) {
             return;
         }
@@ -60,7 +59,7 @@ public class TransactionManager {
     }
 
     /// 移除一个事务
-    public void removeTransaction(Transaction transaction) {
+    public synchronized void removeTransaction(Transaction transaction) {
         if (transaction == null) {
             return;
         }
@@ -134,9 +133,9 @@ public class TransactionManager {
 
 
         // 普通类型事务，事务体仅会执行一次
-        private static int TransactionTypeNormal = 0;
+        private static final int TransactionTypeNormal = 0;
         // 定时事务，事务体会定时执行
-        private static int TransactionTypeTime = 1;
+        private static final int TransactionTypeTime = 1;
         private final int type;
 
         // 事务延后时间 单位：秒
@@ -196,7 +195,7 @@ public class TransactionManager {
             }
         }
 
-        private void handleAction() {
+        private synchronized void handleAction() {
             if (!shouldAction()) {
                 return;
             }
