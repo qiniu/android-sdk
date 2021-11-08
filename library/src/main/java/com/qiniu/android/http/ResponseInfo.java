@@ -210,7 +210,7 @@ public final class ResponseInfo {
     }
 
     public ResponseInfo checkMaliciousResponse() {
-        if (statusCode == 200 && (reqId == null && xlog == null)) {
+        if (statusCode == 200 && ((reqId == null || reqId.length() == 0) && xlog == null)) {
             return new ResponseInfo(null, responseHeader, MaliciousResponseError, reqId, xlog, xvia, host, "this is a malicious response");
         } else {
             return this;
