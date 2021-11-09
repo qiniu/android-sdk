@@ -3,6 +3,7 @@ package com.qiniu.android.transaction;
 import com.qiniu.android.utils.Utils;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -13,7 +14,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class TransactionManager {
 
     /// 事务链表
-    private ConcurrentLinkedQueue<Transaction> transactionList = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Transaction> transactionList = new ConcurrentLinkedQueue<>();
     /// 事务定时器
     private Timer timer;
 
@@ -27,8 +28,9 @@ public class TransactionManager {
     }
 
     /// 根据name查找事务
-    public ArrayList<Transaction> transactionsForName(String name) {
+    public synchronized ArrayList<Transaction> transactionsForName(String name) {
         ArrayList<Transaction> arrayList = new ArrayList<>();
+        Transaction[] transactionList = this.transactionList.toArray(new Transaction[0]);
         for (Transaction transaction : transactionList) {
             if ((name == null && transaction.name == null) || (transaction.name != null && transaction.name.equals(name))) {
                 arrayList.add(transaction);
@@ -38,8 +40,9 @@ public class TransactionManager {
     }
 
     /// 是否存在某个名称的事务
-    public boolean existTransactionsForName(String name) {
+    public synchronized boolean existTransactionsForName(String name) {
         boolean isExist = false;
+        Transaction[] transactionList = this.transactionList.toArray(new Transaction[0]);
         for (Transaction transaction : transactionList) {
             if ((name == null && transaction.name == null) || (transaction.name != null && transaction.name.equals(name))) {
                 isExist = true;
@@ -86,6 +89,11 @@ public class TransactionManager {
 
 
     private void handleAllTransaction() {
+        Transaction[] transactionList = null;
+        synchronized (this) {
+            transactionList = this.transactionList.toArray(new Transaction[0]);
+        }
+
         for (Transaction transaction : transactionList) {
             handleTransaction(transaction);
             if (transaction.maybeCompleted()) {
