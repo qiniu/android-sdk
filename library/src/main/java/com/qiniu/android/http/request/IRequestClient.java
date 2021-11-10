@@ -25,4 +25,8 @@ public abstract class IRequestClient {
                                  RequestClientCompleteHandler complete);
 
     public abstract void cancel();
+
+    public String getClientId() {
+        return "customized";
+    }
 }

@@ -86,7 +86,7 @@ public class SystemHttpClient extends IRequestClient {
 
         metrics = new UploadSingleRequestMetrics();
         metrics.start();
-        metrics.setClientName("okhttp");
+        metrics.setClientName(getClientId());
         metrics.setClientVersion(getOkHttpVersion());
         if (request != null) {
             metrics.setRemoteAddress(request.ip);
@@ -154,6 +154,11 @@ public class SystemHttpClient extends IRequestClient {
         if (call != null && !call.isCanceled()) {
             call.cancel();
         }
+    }
+
+    @Override
+    public String getClientId() {
+        return "okhttp";
     }
 
     private OkHttpClient createHttpClient(ProxyConfiguration connectionProxy) {

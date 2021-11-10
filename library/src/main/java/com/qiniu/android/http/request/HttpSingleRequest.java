@@ -70,8 +70,11 @@ class HttpSingleRequest {
                               final RequestShouldRetryHandler shouldRetryHandler,
                               final RequestProgressHandler progressHandler,
                               final RequestCompleteHandler completeHandler) {
-
-        if (config.requestClient != null) {
+        // 满足以下条件方可使用自定义 client
+        // 1. 自定义 client 不能为空
+        // 2. 自定义 client 如果非 qn-curl client（七牛 http3 插件），则可以直接使用；
+        //                 如果是 qn-curl client（七牛 http3 插件），仅允许 http3 请求。
+        if (config.requestClient != null && (!config.requestClient.getClientId().equals("qn-curl") || (server != null && server.isHttp3()))) {
             client = config.requestClient;
         } else {
             client = new SystemHttpClient();
