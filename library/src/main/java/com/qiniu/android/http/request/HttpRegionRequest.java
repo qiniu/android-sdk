@@ -126,7 +126,7 @@ class HttpRegionRequest {
                 boolean hijackedAndNeedRetry = false;
                 if (requestMetricsList != null && requestMetricsList.size() > 0) {
                     UploadSingleRequestMetrics metrics = requestMetricsList.get(requestMetricsList.size() - 1);
-                    boolean isSafeDnsSource = DnsSource.isCustom(metrics.syncDnsSource) || DnsSource.isDoh(metrics.syncDnsSource) || DnsSource.isDnspod(metrics.syncDnsSource);
+                    boolean isSafeDnsSource = DnsSource.isCustom(metrics.getSyncDnsSource()) || DnsSource.isDoh(metrics.getSyncDnsSource()) || DnsSource.isDnspod(metrics.getSyncDnsSource());
                     if ((metrics.isForsureHijacked() || metrics.isMaybeHijacked() && isSafeDnsSource)) {
                         hijackedAndNeedRetry = true;
                     }

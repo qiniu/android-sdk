@@ -23,7 +23,7 @@ public class ConnectChecker {
     private static SingleFlight<UploadSingleRequestMetrics> singleFlight = new SingleFlight<>();
 
     public static boolean isConnected(UploadSingleRequestMetrics metrics) {
-        return metrics != null && metrics.response != null && metrics.response.statusCode > 99;
+        return metrics != null && metrics.getResponse() != null && metrics.getResponse().statusCode > 99;
     }
 
     public static UploadSingleRequestMetrics check() {
