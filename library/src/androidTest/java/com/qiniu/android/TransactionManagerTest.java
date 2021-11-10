@@ -67,7 +67,7 @@ public class TransactionManagerTest extends BaseTest {
         wait(new WaitConditional() {
             @Override
             public boolean shouldWait() {
-                return executedTransaction[0] > 0;
+                return executedTransaction[0] == 0;
             }
         }, 60);
         
