@@ -3,6 +3,7 @@ package com.qiniu.android;
 import com.qiniu.android.transaction.TransactionManager;
 import com.qiniu.android.utils.LogUtil;
 
+import java.lang.reflect.Field;
 import java.util.Date;
 
 /**
@@ -32,15 +33,23 @@ public class TransactionManagerTest extends BaseTest {
 
     public void testTransactionManagerAddAndRemove(){
 
-        final boolean[] executedTransaction = {false};
+        final int[] executedTransaction = {0};
         String normalName = "testNormalTransaction";
         TransactionManager.Transaction normal = new TransactionManager.Transaction(normalName, 0, new Runnable() {
             @Override
             public void run() {
                 LogUtil.d("1: thread:" + Thread.currentThread().getId() + new Date().toString());
-                executedTransaction[0] = true;
+                executedTransaction[0] += 1;
             }
         });
+
+        try {
+            Field executedCountField = TransactionManager.Transaction.class.getField("executedCount");
+            long executedCount = executedCountField.getLong(normal);
+            assertEquals("Transaction executedCount was not 0", 0, executedCount);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         String timeName = "testTimeTransaction";
         TransactionManager.Transaction time = new TransactionManager.Transaction(timeName, 3, 2, new Runnable() {
@@ -58,11 +67,21 @@ public class TransactionManagerTest extends BaseTest {
         wait(new WaitConditional() {
             @Override
             public boolean shouldWait() {
-                return executedTransaction[0];
+                return executedTransaction[0] > 0;
             }
         }, 60);
         
         wait(null, 6);
+
+        try {
+            Field executedCountField = TransactionManager.Transaction.class.getField("executedCount");
+            long executedCount = executedCountField.getLong(normal);
+            assertEquals("Transaction executedCount was not 1", 1, executedCount);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        assertEquals("executed time was not 1", 1, executedTransaction[0]);
 
         boolean exist = manager.existTransactionsForName(normalName);
         assertFalse(exist);
