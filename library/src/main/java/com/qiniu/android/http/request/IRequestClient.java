@@ -18,6 +18,7 @@ public abstract class IRequestClient {
     }
 
     public abstract void request(Request request,
+                                 IUploadServer server,
                                  boolean isAsync,
                                  ProxyConfiguration connectionProxy,
                                  RequestClientProgress progress,
