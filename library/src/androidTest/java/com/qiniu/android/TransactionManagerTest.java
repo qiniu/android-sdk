@@ -44,9 +44,11 @@ public class TransactionManagerTest extends BaseTest {
         });
 
         try {
-            Field executedCountField = TransactionManager.Transaction.class.getField("executedCount");
+            Field executedCountField = TransactionManager.Transaction.class.getDeclaredField("executedCount");
+            executedCountField.setAccessible(true);
             long executedCount = executedCountField.getLong(normal);
-            assertEquals("Transaction executedCount was not 0", 0, executedCount);
+            System.out.print("A Transaction executedCount:" + executedCount);
+            assertEquals("A Transaction executedCount was not 1", 1, executedCount);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -74,13 +76,16 @@ public class TransactionManagerTest extends BaseTest {
         wait(null, 6);
 
         try {
-            Field executedCountField = TransactionManager.Transaction.class.getField("executedCount");
+            Field executedCountField = TransactionManager.Transaction.class.getDeclaredField("executedCount");
+            executedCountField.setAccessible(true);
             long executedCount = executedCountField.getLong(normal);
-            assertEquals("Transaction executedCount was not 1", 1, executedCount);
+            System.out.print("B Transaction executedCount:" + executedCount);
+            assertEquals("B Transaction executedCount was not 1", 1, executedCount);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+        System.out.print("executed time:" + executedTransaction[0]);
         assertEquals("executed time was not 1", 1, executedTransaction[0]);
 
         boolean exist = manager.existTransactionsForName(normalName);
