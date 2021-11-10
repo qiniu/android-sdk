@@ -9,9 +9,16 @@ import org.json.JSONObject;
 import java.util.Date;
 
 public class UploadSingleRequestMetrics extends UploadMetrics {
+    public static final String RequestHijacked = "forsure";
+    public static final String RequestMaybeHijacked = "maybe";
 
     // 请求的 httpVersion
     public String httpVersion;
+
+    // 请求是否劫持
+    public String hijacked;
+    public String syncDnsSource;
+    public String syncDnsError;
 
     // 只有进行网络检测才会有 connectCheckMetrics
     public UploadSingleRequestMetrics connectCheckMetrics;
@@ -110,6 +117,14 @@ public class UploadSingleRequestMetrics extends UploadMetrics {
 
     public Long perceptiveSpeed() {
         return Utils.calculateSpeed(bytesSend() + bytesReceived(), totalElapsedTime());
+    }
+
+    public boolean isForsureHijacked() {
+        return hijacked != null && hijacked.contains(RequestHijacked);
+    }
+
+    public boolean isMaybeHijacked() {
+        return hijacked != null && hijacked.contains(RequestMaybeHijacked);
     }
 
     private long time(Date startDate, Date endDate){

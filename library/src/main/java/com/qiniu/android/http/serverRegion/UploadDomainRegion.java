@@ -31,6 +31,7 @@ public class UploadDomainRegion implements IUploadRegion {
     private boolean isAllFrozen;
     // 局部冻结管理对象
     private UploadServerFreezeManager partialHttp2Freezer = new UploadServerFreezeManager();
+    private UploadServerFreezeManager partialHttp3Freezer = new UploadServerFreezeManager();
 
     private ArrayList<String> domainHostList;
     private HashMap<String, UploadServerDomain> domainHashMap;
@@ -129,9 +130,14 @@ public class UploadDomainRegion implements IUploadRegion {
         freezeServerIfNeed(responseInfo, freezeServer);
 
         UploadServer server = null;
-        boolean isUseOldServer = requestState.isUseOldServer();
-        ArrayList<String> hostList = isUseOldServer ? oldDomainHostList : domainHostList;
-        HashMap<String, UploadServerDomain> domainInfo = isUseOldServer ? oldDomainHashMap : domainHashMap;
+        ArrayList<String> hostList = domainHostList;
+        HashMap<String, UploadServerDomain> domainInfo = domainHashMap;
+        if (requestState.isUseOldServer()
+                && oldDomainHostList != null && oldDomainHostList.size() > 0
+                && oldDomainHashMap != null && oldDomainHashMap.size() > 0) {
+            hostList = oldDomainHostList;
+            domainInfo = oldDomainHashMap;
+        }
 
         // 1. 优先选择http3
         if (http3Enabled && freezeServer != null && freezeServer.isHttp3()) {
@@ -152,7 +158,7 @@ public class UploadDomainRegion implements IUploadRegion {
 
                         // 1.2 剔除冻结对象
                         String frozenType = UploadServerFreezeUtil.getFrozenType(host, filterServerIP);
-                        boolean isFrozen = UploadServerFreezeUtil.isTypeFrozenByFreezeManagers(frozenType, new UploadServerFreezeManager[]{UploadServerFreezeUtil.globalHttp3Freezer()});
+                        boolean isFrozen = UploadServerFreezeUtil.isTypeFrozenByFreezeManagers(frozenType, new UploadServerFreezeManager[]{partialHttp3Freezer, UploadServerFreezeUtil.globalHttp3Freezer()});
 
                         if (isFrozen) {
                             return false;
@@ -233,6 +239,26 @@ public class UploadDomainRegion implements IUploadRegion {
         return server;
     }
 
+    @Override
+    public void updateIpListFormHost(String host) {
+        if (host == null) {
+            return;
+        }
+
+        if (domainHashMap != null && domainHashMap.get(host) != null) {
+            UploadServerDomain domain = domainHashMap.get(host);
+            if (domain != null) {
+                domain.clearIpGroupList();
+            }
+        }
+
+        if (oldDomainHashMap != null && oldDomainHashMap.get(host) != null) {
+            UploadServerDomain domain = oldDomainHashMap.get(host);
+            if (domain != null) {
+                domain.clearIpGroupList();
+            }
+        }
+    }
 
     private void freezeServerIfNeed(ResponseInfo responseInfo, IUploadServer freezeServer) {
         if (responseInfo == null || freezeServer == null || freezeServer.getServerId() == null) {
@@ -242,6 +268,11 @@ public class UploadDomainRegion implements IUploadRegion {
         String frozenType = UploadServerFreezeUtil.getFrozenType(freezeServer.getHost(), freezeServer.getIp());
         // 1. http3 冻结
         if (freezeServer.isHttp3()) {
+            if (responseInfo.isNotQiniu()) {
+                hasFreezeHost = true;
+                partialHttp3Freezer.freezeType(frozenType, GlobalConfiguration.getInstance().partialHostFrozenTime);
+            }
+
             if (!responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
                 hasFreezeHost = true;
                 UploadServerFreezeUtil.globalHttp3Freezer().freezeType(frozenType, Http3FrozenTime);
@@ -251,7 +282,7 @@ public class UploadDomainRegion implements IUploadRegion {
 
         // 2. http2 冻结
         // 2.1 无法连接到Host || Host不可用， 局部冻结
-        if (!responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
+        if (responseInfo.isNotQiniu() || !responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
             hasFreezeHost = true;
             LogUtil.i("partial freeze server host:" + StringUtils.toNonnullString(freezeServer.getHost()) + " ip:" + StringUtils.toNonnullString(freezeServer.getIp()));
             partialHttp2Freezer.freezeType(frozenType, GlobalConfiguration.getInstance().partialHostFrozenTime);
@@ -289,17 +320,18 @@ public class UploadDomainRegion implements IUploadRegion {
                 return null;
             }
 
+            List<UploadIpGroup> ipGroups = null;
             synchronized (this) {
                 if (ipGroupList == null || ipGroupList.size() == 0) {
                     createIpGroupList();
                 }
+                ipGroups = ipGroupList;
             }
 
             UploadServer server = null;
-
             // 解析到IP:
-            if (ipGroupList != null && ipGroupList.size() > 0) {
-                for (UploadIpGroup ipGroup : ipGroupList) {
+            if (ipGroups != null && ipGroups.size() > 0) {
+                for (UploadIpGroup ipGroup : ipGroups) {
                     IDnsNetworkAddress networkAddress = ipGroup.getNetworkAddress();
                     UploadServer filterServer = new UploadServer(host, host, networkAddress.getIpValue(), networkAddress.getSourceValue(), networkAddress.getTimestampValue());
 
@@ -316,9 +348,10 @@ public class UploadDomainRegion implements IUploadRegion {
             }
 
             // 未解析到IP:
-            if (condition == null || condition.condition(host, null, null)) {
+            UploadServer hostServer = new UploadServer(host, host, null, null, null);
+            if (condition == null || condition.condition(host, null, hostServer)) {
                 // 未解析时，没有可比性，直接返回自身，自身即为最优
-                server = new UploadServer(host, host, null, null, null);
+                server = hostServer;
             }
 
             return server;
@@ -328,15 +361,25 @@ public class UploadDomainRegion implements IUploadRegion {
             if (host == null || host.length() == 0) {
                 return null;
             }
-            if (ipGroupList != null && ipGroupList.size() > 0) {
-                int index = (int) (Math.random() * ipGroupList.size());
-                UploadIpGroup ipGroup = ipGroupList.get(index);
+
+            List<UploadIpGroup> ipGroups = null;
+            synchronized (this) {
+                ipGroups = ipGroupList;
+            }
+
+            if (ipGroups != null && ipGroups.size() > 0) {
+                int index = (int) (Math.random() * ipGroups.size());
+                UploadIpGroup ipGroup = ipGroups.get(index);
                 IDnsNetworkAddress inetAddress = ipGroup.getNetworkAddress();
                 UploadServer server = new UploadServer(host, host, inetAddress.getIpValue(), inetAddress.getSourceValue(), inetAddress.getTimestampValue());
                 return server;
             } else {
                 return new UploadServer(host, host, null, null, null);
             }
+        }
+
+        synchronized void clearIpGroupList() {
+            ipGroupList = null;
         }
 
         private void createIpGroupList() {

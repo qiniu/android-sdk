@@ -17,16 +17,16 @@ public class UploadRegionRequestMetrics extends UploadMetrics {
         this.region = region;
     }
 
-    public Integer requestCount(){
+    public Integer requestCount() {
         return metricsList.size();
     }
 
-    public Long bytesSend(){
-        if (metricsList.size() == 0){
+    public Long bytesSend() {
+        if (metricsList.size() == 0) {
             return 0l;
         }
         long bytes = 0;
-        for (UploadSingleRequestMetrics metrics : metricsList){
+        for (UploadSingleRequestMetrics metrics : metricsList) {
             if (metrics != null) {
                 bytes += metrics.bytesSend();
             }
@@ -34,28 +34,33 @@ public class UploadRegionRequestMetrics extends UploadMetrics {
         return bytes;
     }
 
-    public void addMetricsList(List<UploadSingleRequestMetrics> metricsList){
-        if (metricsList == null || metricsList.size() == 0){
+    public UploadSingleRequestMetrics lastMetrics() {
+        int size = metricsList.size();
+        return size < 1 ? null : metricsList.get(size - 1);
+    }
+
+    public void addMetricsList(List<UploadSingleRequestMetrics> metricsList) {
+        if (metricsList == null || metricsList.size() == 0) {
             return;
         }
         for (UploadSingleRequestMetrics metrics : metricsList) {
-            if (metrics != null){
+            if (metrics != null) {
                 this.metricsList.add(metrics);
             }
         }
     }
 
-    public void addMetrics(UploadRegionRequestMetrics metrics){
+    public void addMetrics(UploadRegionRequestMetrics metrics) {
         if (metrics == null || metrics.region == null || metrics.region.getZoneInfo() == null
                 || metrics.region.getZoneInfo().regionId == null
                 || region == null || region.getZoneInfo() == null || region.getZoneInfo().regionId == null
-                || metrics.metricsList == null || metrics.metricsList.size() == 0){
+                || metrics.metricsList == null || metrics.metricsList.size() == 0) {
 
             return;
         }
         String thisRegionId = metrics.region.getZoneInfo().getRegionId();
         String metricsRegionId = metrics.region.getZoneInfo().getRegionId();
-        if (thisRegionId.equals(metricsRegionId)){
+        if (thisRegionId.equals(metricsRegionId)) {
             // 拼接开始和结束时间，开始时间要最老的，结束时间要最新的
             if (startDate != null && metrics.startDate != null && startDate.getTime() > metrics.startDate.getTime()) {
                 startDate = metrics.startDate;

@@ -1,6 +1,7 @@
 package com.qiniu.android.http.request;
 
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.dns.DnsSource;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.request.handler.RequestShouldRetryHandler;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
@@ -47,9 +48,9 @@ class HttpRegionRequest {
 
     void get(String action,
              boolean isAsync,
-             Map<String, String>header,
+             Map<String, String> header,
              RequestShouldRetryHandler shouldRetryHandler,
-             RequestCompleteHandler completeHandler){
+             RequestCompleteHandler completeHandler) {
         requestMetrics = new UploadRegionRequestMetrics(region);
         requestMetrics.start();
         performRequest(getNextServer(null), action, isAsync, null, header, "GET", shouldRetryHandler, null, completeHandler);
@@ -58,10 +59,10 @@ class HttpRegionRequest {
     void post(String action,
               boolean isAsync,
               byte[] data,
-              Map<String, String>header,
+              Map<String, String> header,
               RequestShouldRetryHandler shouldRetryHandler,
               RequestProgressHandler progressHandler,
-              RequestCompleteHandler completeHandler){
+              RequestCompleteHandler completeHandler) {
         requestMetrics = new UploadRegionRequestMetrics(region);
         requestMetrics.start();
         performRequest(getNextServer(null), action, isAsync, data, header, "POST", shouldRetryHandler, progressHandler, completeHandler);
@@ -70,24 +71,24 @@ class HttpRegionRequest {
     void put(String action,
              boolean isAsync,
              byte[] data,
-             Map<String, String>header,
+             Map<String, String> header,
              RequestShouldRetryHandler shouldRetryHandler,
              RequestProgressHandler progressHandler,
-             RequestCompleteHandler completeHandler){
+             RequestCompleteHandler completeHandler) {
         requestMetrics = new UploadRegionRequestMetrics(region);
         requestMetrics.start();
         performRequest(getNextServer(null), action, isAsync, data, header, "PUT", shouldRetryHandler, progressHandler, completeHandler);
     }
 
-    private void performRequest(IUploadServer server,
+    private void performRequest(final IUploadServer server,
                                 final String action,
                                 final boolean isAsync,
                                 final byte[] data,
-                                final Map<String, String>header,
+                                final Map<String, String> header,
                                 final String method,
                                 final RequestShouldRetryHandler shouldRetryHandler,
                                 final RequestProgressHandler progressHandler,
-                                final RequestCompleteHandler completeHandler){
+                                final RequestCompleteHandler completeHandler) {
 
         if (server == null || server.getHost() == null || server.getHost().length() == 0) {
             ResponseInfo responseInfo = ResponseInfo.sdkInteriorError("server error");
@@ -100,7 +101,7 @@ class HttpRegionRequest {
         String serverHost = server.getHost();
         String serverIP = server.getIp();
 
-        if (config.urlConverter != null){
+        if (config.urlConverter != null) {
             serverIP = null;
             serverHost = config.urlConverter.convert(serverHost);
         }
@@ -122,12 +123,25 @@ class HttpRegionRequest {
 
                 requestMetrics.addMetricsList(requestMetricsList);
 
-                if (shouldRetryHandler.shouldRetry(responseInfo, response)
+                boolean hijackedAndNeedRetry = false;
+                if (requestMetricsList != null && requestMetricsList.size() > 0) {
+                    UploadSingleRequestMetrics metrics = requestMetricsList.get(requestMetricsList.size() - 1);
+                    boolean isSafeDnsSource = DnsSource.isCustom(metrics.syncDnsSource) || DnsSource.isDoh(metrics.syncDnsSource) || DnsSource.isDnspod(metrics.syncDnsSource);
+                    if ((metrics.isForsureHijacked() || metrics.isMaybeHijacked() && isSafeDnsSource)) {
+                        hijackedAndNeedRetry = true;
+                    }
+                }
+
+                if (hijackedAndNeedRetry) {
+                    region.updateIpListFormHost(server.getHost());
+                }
+
+                if ((shouldRetryHandler.shouldRetry(responseInfo, response)
                         && config.allowBackupHost
-                        && responseInfo.couldRegionRetry()){
+                        && responseInfo.couldRegionRetry()) || hijackedAndNeedRetry) {
 
                     IUploadServer newServer = getNextServer(responseInfo);
-                    if (newServer != null){
+                    if (newServer != null) {
                         performRequest(newServer, action, isAsync, request.httpBody, header, method, shouldRetryHandler, progressHandler, completeHandler);
                         request.httpBody = null;
                     } else {
@@ -146,16 +160,16 @@ class HttpRegionRequest {
 
     private void completeAction(ResponseInfo responseInfo,
                                 JSONObject response,
-                                RequestCompleteHandler completeHandler){
+                                RequestCompleteHandler completeHandler) {
 
         requestMetrics.end();
         singleRequest = null;
-        if (completeHandler != null){
+        if (completeHandler != null) {
             completeHandler.complete(responseInfo, requestMetrics, response);
         }
     }
 
-    private IUploadServer getNextServer(ResponseInfo responseInfo){
+    private IUploadServer getNextServer(ResponseInfo responseInfo) {
 
         if (requestState != null && responseInfo != null && responseInfo.isTlsError()) {
             requestState.setUseOldServer(true);

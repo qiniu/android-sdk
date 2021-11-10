@@ -21,7 +21,7 @@ public class DnsApiTest extends BaseTest {
 
     public void testLocalLoad() {
 
-        final String host = "uc.qbox.me";
+        final String host = "uplog.qbox.me";
         final DnsPrefetcher dnsPrefetcher = DnsPrefetcher.getInstance();
         dnsPrefetcher.localFetch();
 
@@ -42,7 +42,7 @@ public class DnsApiTest extends BaseTest {
     }
 
     public void testRecover(){
-        final String host = "upload.qiniup.com";
+        final String host = "uplog.qbox.me";
 
         final DnsPrefetcher dnsPrefetcher = DnsPrefetcher.getInstance();
         dnsPrefetcher.recoverCache();

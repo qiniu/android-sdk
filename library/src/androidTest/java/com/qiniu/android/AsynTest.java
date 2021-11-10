@@ -13,7 +13,8 @@ public class AsynTest extends BaseTest {
         int completeCount;
         int successCount;
     }
-    public void testAsyncMainOnMainThread(){
+
+    public void testAsyncMainOnMainThread() {
 
         final TestParam testParam = new TestParam();
         testParam.maxCount = 100;
@@ -25,7 +26,7 @@ public class AsynTest extends BaseTest {
                 @Override
                 public void run() {
 
-                    if (Thread.currentThread() == Looper.getMainLooper().getThread()){
+                    if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
                         testParam.successCount += 1;
                     }
 
@@ -40,7 +41,7 @@ public class AsynTest extends BaseTest {
         WaitConditional waitConditional = new WaitConditional() {
             @Override
             public boolean shouldWait() {
-                if (testParam.completeCount == testParam.maxCount){
+                if (testParam.completeCount == testParam.maxCount) {
                     return false;
                 } else {
                     return true;
@@ -54,7 +55,7 @@ public class AsynTest extends BaseTest {
         assertTrue((testParam.successCount == testParam.maxCount));
     }
 
-    public void testAsyncMainOnOtherThread(){
+    public void testAsyncMainOnOtherThread() {
 
         final TestParam testParam = new TestParam();
         testParam.maxCount = 10;
@@ -70,7 +71,7 @@ public class AsynTest extends BaseTest {
                         @Override
                         public void run() {
 
-                            if (Thread.currentThread() == Looper.getMainLooper().getThread()){
+                            if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
                                 testParam.successCount += 1;
                             }
 
@@ -87,7 +88,7 @@ public class AsynTest extends BaseTest {
         WaitConditional waitConditional = new WaitConditional() {
             @Override
             public boolean shouldWait() {
-                if (testParam.completeCount == testParam.maxCount){
+                if (testParam.completeCount == testParam.maxCount) {
                     return false;
                 } else {
                     return true;
@@ -101,7 +102,7 @@ public class AsynTest extends BaseTest {
         assertTrue((testParam.successCount == testParam.maxCount));
     }
 
-    public void testAsyncBg(){
+    public void testAsyncBg() {
         final TestParam testParam = new TestParam();
         testParam.maxCount = 100;
         testParam.completeCount = 0;
@@ -112,12 +113,12 @@ public class AsynTest extends BaseTest {
                 @Override
                 public void run() {
                     String threadName = Thread.currentThread().getName();
-                    if (Thread.currentThread() != Looper.getMainLooper().getThread()){
-                        synchronized (this){
+                    if (Thread.currentThread() != Looper.getMainLooper().getThread()) {
+                        synchronized (this) {
                             testParam.successCount += 1;
                         }
                     }
-                    synchronized (this){
+                    synchronized (this) {
                         testParam.completeCount += 1;
                     }
                 }
@@ -127,7 +128,7 @@ public class AsynTest extends BaseTest {
         WaitConditional waitConditional = new WaitConditional() {
             @Override
             public boolean shouldWait() {
-                if (testParam.completeCount == testParam.maxCount){
+                if (testParam.completeCount == testParam.maxCount) {
                     return false;
                 } else {
                     return true;

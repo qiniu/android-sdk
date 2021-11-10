@@ -7,7 +7,7 @@ import com.qiniu.android.utils.ContextGetter;
  */
 public final class Config {
     /**
-     * 上传信息收集文件的地址 只保留域名部分 eg：https://uplog.qbox.me/log/3 => uplog.qbox.me
+     * 上传信息收集文件的地址 只保留域名部分 eg：uplog.qbox.me
      */
     public final static String upLogURL = "uplog.qbox.me";
     /**
@@ -70,7 +70,7 @@ public final class Config {
     /**
      * 每次上传最小时间间隔.单位:分钟
      */
-    public static int interval = 10;
+    public static double interval = 0.5;
 
     /**
      * preQuery host

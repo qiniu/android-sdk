@@ -1,5 +1,7 @@
 package com.qiniu.android.http.dns;
 
+import com.qiniu.android.storage.GlobalConfiguration;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -49,10 +51,12 @@ public class SystemDns implements Dns {
 
     @Override
     public List<IDnsNetworkAddress> lookup(String hostname) throws UnknownHostException {
+        long timestamp = new Date().getTime() / 1000;
+        long defaultTTL = GlobalConfiguration.getInstance().dnsCacheTime;
         ArrayList<IDnsNetworkAddress> addressList = new ArrayList<>();
         List<InetAddress> inetAddressList = lookupInetAddress(hostname);
         for (InetAddress inetAddress : inetAddressList) {
-            DnsNetworkAddress address = new DnsNetworkAddress(inetAddress.getHostName(), inetAddress.getHostAddress(), 120L, "system", (new Date()).getTime()/1000);
+            DnsNetworkAddress address = new DnsNetworkAddress(inetAddress.getHostName(), inetAddress.getHostAddress(), defaultTTL, DnsSource.System, timestamp);
             addressList.add(address);
         }
         return addressList;

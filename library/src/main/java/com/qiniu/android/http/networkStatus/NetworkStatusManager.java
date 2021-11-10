@@ -10,6 +10,10 @@ import org.json.JSONObject;
 
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class NetworkStatusManager {
 
@@ -20,6 +24,9 @@ public class NetworkStatusManager {
     private Recorder recorder;
     private ConcurrentHashMap<String, NetworkStatus> networkStatusInfo;
     private static NetworkStatusManager networkStatusManager = new NetworkStatusManager();
+    private final ExecutorService executorService = new ThreadPoolExecutor(1, 2,
+            120L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>());
 
     public static NetworkStatusManager getInstance() {
         networkStatusManager.initData();
@@ -71,7 +78,7 @@ public class NetworkStatusManager {
             }
             isHandlingNetworkInfoOfDisk = true;
         }
-        AsyncRun.runInBack(new Runnable() {
+        executorService.submit(new Runnable() {
             @Override
             public void run() {
                 recordNetworkStatusInfo();
@@ -87,7 +94,7 @@ public class NetworkStatusManager {
             }
             isHandlingNetworkInfoOfDisk = true;
         }
-        AsyncRun.runInBack(new Runnable() {
+        executorService.submit(new Runnable() {
             @Override
             public void run() {
                 recoverNetworkStatusFromDisk();

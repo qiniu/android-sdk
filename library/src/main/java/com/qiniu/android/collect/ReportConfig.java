@@ -11,9 +11,9 @@ public class ReportConfig {
     public boolean isReportEnable;
 
     /**
-     * 每次上传时间间隔  单位：分钟  默认为10分钟
+     * 每次上传时间间隔  单位：分钟  默认为0.5分钟
      */
-    public long interval;
+    public double interval;
 
     /**
      *  记录文件大于 uploadThreshold 会触发上传，单位：字节  默认为4 * 1024
@@ -38,13 +38,13 @@ public class ReportConfig {
     /**
      * 信息上报请求超时时间  单位：秒  默认为10秒
      */
-    public final int timeoutInterval;
+    public int timeoutInterval;
 
     private static ReportConfig instance = new ReportConfig();
 
     private ReportConfig(){
         this.isReportEnable = Config.isRecord;
-        this.interval = 10;
+        this.interval = Config.interval;
         this.serverURL = Config.upLogURL;
         if (Config.recordDir != null) {
             this.recordDirectory = Config.recordDir;
@@ -53,7 +53,7 @@ public class ReportConfig {
         }
         this.maxRecordFileSize = Config.maxRecordFileSize;
         this.uploadThreshold = Config.uploadThreshold;
-        this.timeoutInterval = Config.interval;
+        this.timeoutInterval = 10;
     }
 
     public static ReportConfig getInstance(){
