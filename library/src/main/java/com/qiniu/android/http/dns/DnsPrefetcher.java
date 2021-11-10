@@ -119,6 +119,13 @@ public class DnsPrefetcher {
         addressDictionary.put(host, addressListNew);
     }
 
+    private void invalidNetworkAddressOfHost(String host) {
+        if (host == null || host.length() == 0) {
+            return;
+        }
+        addressDictionary.remove(host);
+    }
+
     public List<IDnsNetworkAddress> getInetAddressByHost(String host) {
         if (!isDnsOpen()) {
             return null;
@@ -139,6 +146,8 @@ public class DnsPrefetcher {
         if (hostname == null || hostname.length() == 0) {
             return null;
         }
+
+        invalidNetworkAddressOfHost(hostname);
 
         String[] nextFetchHosts = new String[]{hostname};
         int dnsTimeout = GlobalConfiguration.getInstance().dnsResolveTimeout;

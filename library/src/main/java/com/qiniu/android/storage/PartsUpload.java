@@ -295,7 +295,7 @@ class PartsUpload extends BaseUpload {
 
         UploadSingleRequestMetrics lastRequestMetrics = metrics.lastMetrics();
         if (lastRequestMetrics != null) {
-            item.setReport(lastRequestMetrics.hijacked, ReportItem.BlockKeyHijacking);
+            item.setReport(lastRequestMetrics.getHijacked(), ReportItem.BlockKeyHijacking);
         }
 
         // 统计当前 region 上传速度 文件大小 / 总耗时

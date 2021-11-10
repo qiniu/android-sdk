@@ -1,6 +1,7 @@
 package com.qiniu.android.http.request;
 
 import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.dns.DnsSource;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.request.handler.RequestShouldRetryHandler;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
@@ -122,21 +123,22 @@ class HttpRegionRequest {
 
                 requestMetrics.addMetricsList(requestMetricsList);
 
-                boolean hijacked = false;
+                boolean hijackedAndNeedRetry = false;
                 if (requestMetricsList != null && requestMetricsList.size() > 0) {
                     UploadSingleRequestMetrics metrics = requestMetricsList.get(requestMetricsList.size() - 1);
-                    if (metrics.isForsureHijacked() || metrics.isMaybeHijacked()) {
-                        hijacked = true;
+                    boolean isSafeDnsSource = DnsSource.isCustom(metrics.getSyncDnsSource()) || DnsSource.isDoh(metrics.getSyncDnsSource()) || DnsSource.isDnspod(metrics.getSyncDnsSource());
+                    if ((metrics.isForsureHijacked() || metrics.isMaybeHijacked() && isSafeDnsSource)) {
+                        hijackedAndNeedRetry = true;
                     }
                 }
 
-                if (hijacked) {
+                if (hijackedAndNeedRetry) {
                     region.updateIpListFormHost(server.getHost());
                 }
 
                 if ((shouldRetryHandler.shouldRetry(responseInfo, response)
                         && config.allowBackupHost
-                        && responseInfo.couldRegionRetry()) || hijacked) {
+                        && responseInfo.couldRegionRetry()) || hijackedAndNeedRetry) {
 
                     IUploadServer newServer = getNextServer(responseInfo);
                     if (newServer != null) {
