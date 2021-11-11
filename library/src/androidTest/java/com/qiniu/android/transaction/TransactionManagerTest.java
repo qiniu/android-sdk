@@ -1,6 +1,6 @@
-package com.qiniu.android;
+package com.qiniu.android.transaction;
 
-import com.qiniu.android.transaction.TransactionManager;
+import com.qiniu.android.BaseTest;
 import com.qiniu.android.utils.LogUtil;
 
 import java.util.Date;

@@ -17,7 +17,7 @@ public class TransactionManager {
     /// 事务定时器
     private Timer timer;
 
-    public long actionCount = 0;
+    protected long actionCount = 0;
 
     private static final TransactionManager transactionManager = new TransactionManager();
 
@@ -149,7 +149,7 @@ public class TransactionManager {
         private long nextExecutionTime;
 
         // 已执行次数
-        public long executedCount = 0;
+        protected long executedCount = 0;
         private boolean isExecuting = false;
 
 
