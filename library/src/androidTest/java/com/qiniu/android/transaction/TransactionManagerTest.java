@@ -66,9 +66,16 @@ public class TransactionManagerTest extends BaseTest {
         wait(null, 6);
 
         long timestamp = Utils.currentSecondTimestamp();
-        assertTrue("timestamp:: manager action count:" + manager.actionCount + " normal nextExecutionTime:" + normal.nextExecutionTime + " now:" + timestamp, normal.nextExecutionTime < timestamp);
-        assertTrue("maybeCompleted:: manager action count:" + manager.actionCount + " normal nextExecutionTime:" + normal.nextExecutionTime + " now:" + timestamp, normal.maybeCompleted());
-        assertEquals("executedCount:: manager action count:" + manager.actionCount + " normal.executedCount:" + normal.executedCount, 1, normal.executedCount);
+        String assertInfo = "manager action count:" + manager.actionCount;
+        assertInfo += " normal.executedCount:" + normal.executedCount;
+        assertInfo += " normal nextExecutionTime:" + normal.nextExecutionTime;
+        assertInfo += " now:" + timestamp;
+        assertInfo += " should action:" + normal.shouldAction();
+        assertInfo += " maybeCompleted:" + normal.maybeCompleted();
+
+        assertTrue("timestamp:: " + assertInfo, normal.nextExecutionTime < timestamp);
+        assertTrue("maybeCompleted:: " + assertInfo, normal.maybeCompleted());
+        assertEquals("executedCount:: " + assertInfo, 1, normal.executedCount);
 
         boolean exist = manager.existTransactionsForName(normalName);
         assertFalse(exist);
