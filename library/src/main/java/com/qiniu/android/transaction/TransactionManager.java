@@ -146,7 +146,7 @@ public class TransactionManager {
         // 创建时间
         private long createTime;
         // 下一次需要执行的时间
-        private long nextExecutionTime;
+        protected long nextExecutionTime;
 
         // 已执行次数
         protected long executedCount = 0;
@@ -181,7 +181,7 @@ public class TransactionManager {
             this.nextExecutionTime = this.createTime + after;
         }
 
-        private boolean shouldAction() {
+        protected boolean shouldAction() {
             long currentTime = Utils.currentSecondTimestamp();
             if (this.type == TransactionTypeNormal) {
                 return executedCount < 1 && currentTime >= nextExecutionTime;
@@ -192,7 +192,7 @@ public class TransactionManager {
             }
         }
 
-        private boolean maybeCompleted() {
+        protected boolean maybeCompleted() {
             if (this.type == TransactionTypeNormal) {
                 return executedCount > 0;
             } else if (this.type == TransactionTypeTime) {

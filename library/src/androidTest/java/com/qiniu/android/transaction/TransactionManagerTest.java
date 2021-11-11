@@ -2,6 +2,7 @@ package com.qiniu.android.transaction;
 
 import com.qiniu.android.BaseTest;
 import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.Utils;
 
 import java.util.Date;
 
@@ -63,8 +64,11 @@ public class TransactionManagerTest extends BaseTest {
         }, 60);
         
         wait(null, 6);
-        assertTrue("manager action count:" + manager.actionCount, manager.actionCount > 1);
-        assertEquals("normal.executedCount:", normal.executedCount, 1);
+
+        long timestamp = Utils.currentSecondTimestamp();
+        assertTrue("timestamp:: manager action count:" + manager.actionCount + " normal nextExecutionTime:" + normal.nextExecutionTime + " now:" + timestamp, normal.nextExecutionTime < timestamp);
+        assertTrue("maybeCompleted:: manager action count:" + manager.actionCount + " normal nextExecutionTime:" + normal.nextExecutionTime + " now:" + timestamp, normal.maybeCompleted());
+        assertEquals("executedCount:: manager action count:" + manager.actionCount + " normal.executedCount:" + normal.executedCount, 1, normal.executedCount);
 
         boolean exist = manager.existTransactionsForName(normalName);
         assertFalse(exist);
