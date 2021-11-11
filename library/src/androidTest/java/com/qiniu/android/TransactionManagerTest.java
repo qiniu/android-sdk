@@ -58,11 +58,13 @@ public class TransactionManagerTest extends BaseTest {
         wait(new WaitConditional() {
             @Override
             public boolean shouldWait() {
-                return executedTransaction[0];
+                return !executedTransaction[0];
             }
         }, 60);
         
         wait(null, 6);
+        assertTrue("manager action count:" + manager.actionCount, manager.actionCount > 1);
+        assertEquals("normal.executedCount:", normal.executedCount, 1);
 
         boolean exist = manager.existTransactionsForName(normalName);
         assertFalse(exist);

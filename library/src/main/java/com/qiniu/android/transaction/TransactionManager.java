@@ -18,6 +18,8 @@ public class TransactionManager {
     /// 事务定时器
     private Timer timer;
 
+    public long actionCount = 0;
+
     private static final TransactionManager transactionManager = new TransactionManager();
 
     private TransactionManager() {
@@ -28,9 +30,8 @@ public class TransactionManager {
     }
 
     /// 根据name查找事务
-    public synchronized ArrayList<Transaction> transactionsForName(String name) {
+    public ArrayList<Transaction> transactionsForName(String name) {
         ArrayList<Transaction> arrayList = new ArrayList<>();
-        Transaction[] transactionList = this.transactionList.toArray(new Transaction[0]);
         for (Transaction transaction : transactionList) {
             if ((name == null && transaction.name == null) || (transaction.name != null && transaction.name.equals(name))) {
                 arrayList.add(transaction);
@@ -40,9 +41,8 @@ public class TransactionManager {
     }
 
     /// 是否存在某个名称的事务
-    public synchronized boolean existTransactionsForName(String name) {
+    public boolean existTransactionsForName(String name) {
         boolean isExist = false;
-        Transaction[] transactionList = this.transactionList.toArray(new Transaction[0]);
         for (Transaction transaction : transactionList) {
             if ((name == null && transaction.name == null) || (transaction.name != null && transaction.name.equals(name))) {
                 isExist = true;
@@ -53,7 +53,7 @@ public class TransactionManager {
     }
 
     /// 添加一个事务
-    public synchronized void addTransaction(Transaction transaction) {
+    public void addTransaction(Transaction transaction) {
         if (transaction == null) {
             return;
         }
@@ -62,7 +62,7 @@ public class TransactionManager {
     }
 
     /// 移除一个事务
-    public synchronized void removeTransaction(Transaction transaction) {
+    public void removeTransaction(Transaction transaction) {
         if (transaction == null) {
             return;
         }
@@ -70,7 +70,7 @@ public class TransactionManager {
     }
 
     /// 在下一次循环执行事务, 该事务如果未被添加到事务列表，会自动添加
-    public synchronized void performTransaction(Transaction transaction) {
+    public void performTransaction(Transaction transaction) {
         if (transaction == null) {
             return;
         }
@@ -89,11 +89,6 @@ public class TransactionManager {
 
 
     private void handleAllTransaction() {
-        Transaction[] transactionList = null;
-        synchronized (this) {
-            transactionList = this.transactionList.toArray(new Transaction[0]);
-        }
-
         for (Transaction transaction : transactionList) {
             handleTransaction(transaction);
             if (transaction.maybeCompleted()) {
@@ -126,6 +121,7 @@ public class TransactionManager {
     }
 
     private void timerAction() {
+        actionCount += 1;
         handleAllTransaction();
     }
 
@@ -150,9 +146,11 @@ public class TransactionManager {
         private final int interval;
         // 创建时间
         private long createTime;
+        // 下一次需要执行的时间
+        private long nextActionTime;
 
         // 已执行次数
-        private long executedCount = 0;
+        public long executedCount = 0;
         private boolean isExecuting = false;
 
 
@@ -166,6 +164,7 @@ public class TransactionManager {
             this.interval = 0;
             this.actionHandler = actionHandler;
             this.createTime = Utils.currentSecondTimestamp();
+            this.nextActionTime = this.createTime + after;
         }
 
 
@@ -180,14 +179,15 @@ public class TransactionManager {
             this.interval = interval;
             this.actionHandler = actionHandler;
             this.createTime = Utils.currentSecondTimestamp();
+            this.nextActionTime = this.createTime + after;
         }
 
         private boolean shouldAction() {
             long currentTime = Utils.currentSecondTimestamp();
             if (this.type == TransactionTypeNormal) {
-                return executedCount < 1 && (currentTime - createTime) >= after;
+                return executedCount < 1 && currentTime > nextActionTime;
             } else if (this.type == TransactionTypeTime) {
-                return (currentTime - createTime) >= (executedCount * interval + after);
+                return currentTime > nextActionTime;
             } else {
                 return false;
             }
@@ -208,9 +208,10 @@ public class TransactionManager {
                 return;
             }
             if (actionHandler != null) {
-                executedCount += 1;
                 isExecuting = true;
+                executedCount += 1;
                 actionHandler.run();
+                nextActionTime = Utils.currentSecondTimestamp() + interval;
                 isExecuting = false;
             }
         }
