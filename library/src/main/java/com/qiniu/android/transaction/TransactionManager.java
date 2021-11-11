@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class TransactionManager {
 
     /// 事务链表
-    private final ConcurrentLinkedQueue<Transaction> transactionList = new ConcurrentLinkedQueue<>();
+    protected final ConcurrentLinkedQueue<Transaction> transactionList = new ConcurrentLinkedQueue<>();
     /// 事务定时器
     private Timer timer;
 

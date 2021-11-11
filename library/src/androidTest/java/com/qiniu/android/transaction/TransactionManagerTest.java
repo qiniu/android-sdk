@@ -52,6 +52,9 @@ public class TransactionManagerTest extends BaseTest {
         });
 
         TransactionManager manager = TransactionManager.getInstance();
+
+        int transactionCountBefore = manager.transactionList.size();
+        long actionCountBefore = manager.actionCount;
         manager.addTransaction(normal);
         manager.addTransaction(time);
 
@@ -65,8 +68,18 @@ public class TransactionManagerTest extends BaseTest {
         
         wait(null, 6);
 
+        String leftTransactionName = "";
+        for (TransactionManager.Transaction t : manager.transactionList) {
+            leftTransactionName += " " + t.name + " ";
+        }
+        int transactionCountAfter = manager.transactionList.size();
+
         long timestamp = Utils.currentSecondTimestamp();
-        String assertInfo = "manager action count:" + manager.actionCount;
+        String assertInfo = "manager action count before:" + actionCountBefore;
+        assertInfo += " manager action count after:" + manager.actionCount;
+        assertInfo += " manager transaction count before:" + transactionCountBefore;
+        assertInfo += " manager transaction count after:" + transactionCountAfter;
+        assertInfo += " manager left transaction:" + leftTransactionName;
         assertInfo += " normal.executedCount:" + normal.executedCount;
         assertInfo += " normal nextExecutionTime:" + normal.nextExecutionTime;
         assertInfo += " now:" + timestamp;
