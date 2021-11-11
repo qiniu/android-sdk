@@ -3,7 +3,6 @@ package com.qiniu.android.transaction;
 import com.qiniu.android.utils.Utils;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -70,7 +69,7 @@ public class TransactionManager {
     }
 
     /// 在下一次循环执行事务, 该事务如果未被添加到事务列表，会自动添加
-    public void performTransaction(Transaction transaction) {
+    public synchronized void performTransaction(Transaction transaction) {
         if (transaction == null) {
             return;
         }
@@ -78,7 +77,7 @@ public class TransactionManager {
         if (!transactionList.contains(transaction)) {
             transactionList.add(transaction);
         }
-        transaction.createTime = Utils.currentSecondTimestamp() - transaction.interval;
+        transaction.nextExecutionTime = Utils.currentSecondTimestamp();
     }
 
     /// 销毁资源 清空事务链表 销毁常驻线程
@@ -147,7 +146,7 @@ public class TransactionManager {
         // 创建时间
         private long createTime;
         // 下一次需要执行的时间
-        private long nextActionTime;
+        private long nextExecutionTime;
 
         // 已执行次数
         public long executedCount = 0;
@@ -164,7 +163,7 @@ public class TransactionManager {
             this.interval = 0;
             this.actionHandler = actionHandler;
             this.createTime = Utils.currentSecondTimestamp();
-            this.nextActionTime = this.createTime + after;
+            this.nextExecutionTime = this.createTime + after;
         }
 
 
@@ -179,15 +178,15 @@ public class TransactionManager {
             this.interval = interval;
             this.actionHandler = actionHandler;
             this.createTime = Utils.currentSecondTimestamp();
-            this.nextActionTime = this.createTime + after;
+            this.nextExecutionTime = this.createTime + after;
         }
 
         private boolean shouldAction() {
             long currentTime = Utils.currentSecondTimestamp();
             if (this.type == TransactionTypeNormal) {
-                return executedCount < 1 && currentTime > nextActionTime;
+                return executedCount < 1 && currentTime >= nextExecutionTime;
             } else if (this.type == TransactionTypeTime) {
-                return currentTime > nextActionTime;
+                return currentTime >= nextExecutionTime;
             } else {
                 return false;
             }
@@ -211,7 +210,7 @@ public class TransactionManager {
                 isExecuting = true;
                 executedCount += 1;
                 actionHandler.run();
-                nextActionTime = Utils.currentSecondTimestamp() + interval;
+                nextExecutionTime = Utils.currentSecondTimestamp() + interval;
                 isExecuting = false;
             }
         }
