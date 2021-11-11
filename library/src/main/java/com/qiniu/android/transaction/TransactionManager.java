@@ -209,7 +209,12 @@ public class TransactionManager {
             if (actionHandler != null) {
                 isExecuting = true;
                 executedCount += 1;
-                actionHandler.run();
+
+                try {
+                    actionHandler.run();
+                } catch (Exception ignored) {
+                }
+
                 nextExecutionTime = Utils.currentSecondTimestamp() + interval;
                 isExecuting = false;
             }

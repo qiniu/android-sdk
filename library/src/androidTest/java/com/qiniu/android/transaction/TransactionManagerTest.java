@@ -59,12 +59,13 @@ public class TransactionManagerTest extends BaseTest {
         manager.addTransaction(time);
 
 
+        // 由于事务堆积，执行可能会延后
         wait(new WaitConditional() {
             @Override
             public boolean shouldWait() {
                 return !executedTransaction[0];
             }
-        }, 60);
+        }, 5 * 60);
         
         wait(null, 6);
 
