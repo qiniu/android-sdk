@@ -74,30 +74,12 @@ public class TransactionManagerTest extends BaseTest {
         wait(new WaitConditional() {
             @Override
             public boolean shouldWait() {
-<<<<<<< HEAD:library/src/androidTest/java/com/qiniu/android/TransactionManagerTest.java
                 return executedTransaction[0] == 0;
-=======
-                return !executedTransaction[0];
->>>>>>> 22b602c17a9ac582f13c5f16f63b7d39a7200f22:library/src/androidTest/java/com/qiniu/android/transaction/TransactionManagerTest.java
             }
         }, 5 * 60);
         
         wait(null, 6);
 
-<<<<<<< HEAD:library/src/androidTest/java/com/qiniu/android/TransactionManagerTest.java
-        try {
-            Field executedCountField = TransactionManager.Transaction.class.getDeclaredField("executedCount");
-            executedCountField.setAccessible(true);
-            long executedCount = executedCountField.getLong(normal);
-            System.out.print("B Transaction executedCount:" + executedCount);
-            assertEquals("B Transaction executedCount was not 1", 1, executedCount);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        System.out.print("executed time:" + executedTransaction[0]);
-        assertEquals("executed time was not 1", 1, executedTransaction[0]);
-=======
         String leftTransactionName = "";
         for (TransactionManager.Transaction t : manager.transactionList) {
             leftTransactionName += " " + t.name + " ";
@@ -119,7 +101,6 @@ public class TransactionManagerTest extends BaseTest {
         assertTrue("timestamp:: " + assertInfo, normal.nextExecutionTime < timestamp);
         assertTrue("maybeCompleted:: " + assertInfo, normal.maybeCompleted());
         assertEquals("executedCount:: " + assertInfo, 1, normal.executedCount);
->>>>>>> 22b602c17a9ac582f13c5f16f63b7d39a7200f22:library/src/androidTest/java/com/qiniu/android/transaction/TransactionManagerTest.java
 
         boolean exist = manager.existTransactionsForName(normalName);
         assertFalse(exist);
