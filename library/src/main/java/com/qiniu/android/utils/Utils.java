@@ -109,7 +109,7 @@ public class Utils {
 
     // 单位：秒
     public static long currentSecondTimestamp() {
-        return new Date().getTime() / 1000;
+        return currentTimestamp() / 1000;
     }
 
     /// 两个时间的时间段 单位：毫秒

@@ -1,7 +1,8 @@
-package com.qiniu.android;
+package com.qiniu.android.transaction;
 
-import com.qiniu.android.transaction.TransactionManager;
+import com.qiniu.android.BaseTest;
 import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.Utils;
 
 import java.lang.reflect.Field;
 import java.util.Date;
@@ -62,19 +63,28 @@ public class TransactionManagerTest extends BaseTest {
         });
 
         TransactionManager manager = TransactionManager.getInstance();
+
+        int transactionCountBefore = manager.transactionList.size();
+        long actionCountBefore = manager.actionCount;
         manager.addTransaction(normal);
         manager.addTransaction(time);
 
 
+        // 由于事务堆积，执行可能会延后
         wait(new WaitConditional() {
             @Override
             public boolean shouldWait() {
+<<<<<<< HEAD:library/src/androidTest/java/com/qiniu/android/TransactionManagerTest.java
                 return executedTransaction[0] == 0;
+=======
+                return !executedTransaction[0];
+>>>>>>> 22b602c17a9ac582f13c5f16f63b7d39a7200f22:library/src/androidTest/java/com/qiniu/android/transaction/TransactionManagerTest.java
             }
-        }, 60);
+        }, 5 * 60);
         
         wait(null, 6);
 
+<<<<<<< HEAD:library/src/androidTest/java/com/qiniu/android/TransactionManagerTest.java
         try {
             Field executedCountField = TransactionManager.Transaction.class.getDeclaredField("executedCount");
             executedCountField.setAccessible(true);
@@ -87,6 +97,29 @@ public class TransactionManagerTest extends BaseTest {
 
         System.out.print("executed time:" + executedTransaction[0]);
         assertEquals("executed time was not 1", 1, executedTransaction[0]);
+=======
+        String leftTransactionName = "";
+        for (TransactionManager.Transaction t : manager.transactionList) {
+            leftTransactionName += " " + t.name + " ";
+        }
+        int transactionCountAfter = manager.transactionList.size();
+
+        long timestamp = Utils.currentSecondTimestamp();
+        String assertInfo = "manager action count before:" + actionCountBefore;
+        assertInfo += " manager action count after:" + manager.actionCount;
+        assertInfo += " manager transaction count before:" + transactionCountBefore;
+        assertInfo += " manager transaction count after:" + transactionCountAfter;
+        assertInfo += " manager left transaction:" + leftTransactionName;
+        assertInfo += " normal.executedCount:" + normal.executedCount;
+        assertInfo += " normal nextExecutionTime:" + normal.nextExecutionTime;
+        assertInfo += " now:" + timestamp;
+        assertInfo += " should action:" + normal.shouldAction();
+        assertInfo += " maybeCompleted:" + normal.maybeCompleted();
+
+        assertTrue("timestamp:: " + assertInfo, normal.nextExecutionTime < timestamp);
+        assertTrue("maybeCompleted:: " + assertInfo, normal.maybeCompleted());
+        assertEquals("executedCount:: " + assertInfo, 1, normal.executedCount);
+>>>>>>> 22b602c17a9ac582f13c5f16f63b7d39a7200f22:library/src/androidTest/java/com/qiniu/android/transaction/TransactionManagerTest.java
 
         boolean exist = manager.existTransactionsForName(normalName);
         assertFalse(exist);
