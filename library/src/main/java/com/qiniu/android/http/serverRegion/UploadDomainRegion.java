@@ -9,6 +9,8 @@ import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.request.IUploadServer;
 import com.qiniu.android.http.request.UploadRequestState;
 import com.qiniu.android.storage.GlobalConfiguration;
+import com.qiniu.android.storage.serverConfig.ServerConfigMonitor;
+import com.qiniu.android.storage.serverConfig.ServerUserConfig;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.Utils;
@@ -306,7 +308,7 @@ public class UploadDomainRegion implements IUploadRegion {
     }
 
     private boolean couldUseHttp3() {
-        return true;
+        return GlobalConfiguration.getInstance().enableHttp3;
     }
 
 
