@@ -179,7 +179,7 @@ public final class Configuration {
         private boolean useHttps = true;
         private int chunkSize = 2 * 1024 * 1024;
         private int putThreshold = 4 * 1024 * 1024;
-        private int connectTimeout = 90;
+        private int connectTimeout = 20;
         private int responseTimeout = 60;
         private int retryMax = 1;
         private int retryInterval = 500;

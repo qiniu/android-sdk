@@ -19,14 +19,15 @@ public class HttpServerManager {
      * @param ip 支持 http3 Host 对应的 ip
      * @param liveDuration 有效时间 单位: 秒
      */
-    public void addHttp3Server(String host, String ip, int liveDuration) {
-        if (host == null || host.length() == 0 || ip == null || ip.length() == 0) {
-            return;
+    public boolean addHttp3Server(String host, String ip, int liveDuration) {
+        if (host == null || host.length() == 0 || ip == null || ip.length() == 0 || liveDuration < 0) {
+            return false;
         }
 
         String type = getServerType(host, ip);
         long deadline = Utils.currentSecondTimestamp() + liveDuration;
         serversInfo.put(type, deadline);
+        return true;
     }
 
     /**
@@ -42,7 +43,7 @@ public class HttpServerManager {
         boolean support = false;
         String type = getServerType(host, ip);
         Long deadline = serversInfo.get(type);
-        if (deadline != null && deadline > Utils.currentTimestamp()) {
+        if (deadline != null && deadline > Utils.currentSecondTimestamp()) {
             support = true;
         }
         return support;
