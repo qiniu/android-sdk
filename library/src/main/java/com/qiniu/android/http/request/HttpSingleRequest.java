@@ -240,17 +240,17 @@ class HttpSingleRequest {
         int live = 0;
         String ip = null;
         String host = server.getHost();
-        String[] items = host.split(";");
+        String[] items = altSvc.split(";");
         for (String it : items) {
             String item = it.replace(" ", "");
             item = item.replace("\"", "");
             if (item.contains("ip=")) {
-                String[] ipItems = host.split("=");
+                String[] ipItems = item.split("=");
                 if (ipItems.length == 2 && ipItems[0].equals("ip")) {
                     ip = ipItems[1];
                 }
             } else if (item.contains("ma=")) {
-                String[] maItems = host.split("=");
+                String[] maItems = item.split("=");
                 if (maItems.length == 2 && maItems[0].equals("ma")) {
                     live = Integer.parseInt(maItems[1]);
                 }
