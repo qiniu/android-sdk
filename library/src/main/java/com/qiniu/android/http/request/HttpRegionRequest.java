@@ -109,9 +109,7 @@ class HttpRegionRequest {
         String scheme = config.useHttps ? "https://" : "http://";
         String urlString = scheme + serverHost + (action != null ? action : "");
         final Request request = new Request(urlString, method, header, data, config.connectTimeout);
-        request.host = serverHost;
-        request.ip = serverIP;
-
+        request.setHost(serverHost);
         LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
                 " url:" + StringUtils.toNonnullString(request.urlString));
         LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +

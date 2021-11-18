@@ -60,6 +60,7 @@ public class SystemHttpClient extends IRequestClient {
 
     private boolean hasHandleComplete = false;
     private static ConnectionPool pool;
+    private IUploadServer currentServer;
     private Request currentRequest;
     private static final OkHttpClient baseClient = new OkHttpClient();
     private OkHttpClient httpClient;
@@ -88,10 +89,11 @@ public class SystemHttpClient extends IRequestClient {
         metrics.start();
         metrics.setClientName(getClientId());
         metrics.setClientVersion(getOkHttpVersion());
-        if (request != null) {
-            metrics.setRemoteAddress(request.ip);
+        if (server != null) {
+            metrics.setRemoteAddress(server.getIp());
         }
         metrics.setRequest(request);
+        currentServer = server;
         currentRequest = request;
         requestProgress = progress;
         completeHandler = complete;
@@ -181,10 +183,15 @@ public class SystemHttpClient extends IRequestClient {
             clientBuilder.dns(new Dns() {
                 @Override
                 public List<InetAddress> lookup(String s) throws UnknownHostException {
-                    if (currentRequest.getInetAddress() != null && s.equals(currentRequest.host)) {
-                        List<InetAddress> inetAddressList = new ArrayList<>();
-                        inetAddressList.add(currentRequest.getInetAddress());
-                        return inetAddressList;
+                    if (currentServer != null && s.equals(currentServer.getHost())) {
+                        InetAddress address = currentServer.getInetAddress();
+                        if (address != null) {
+                            List<InetAddress> inetAddressList = new ArrayList<>();
+                            inetAddressList.add(address);
+                            return inetAddressList;
+                        } else {
+                            return new SystemDns().lookupInetAddress(s);
+                        }
                     } else {
                         return new SystemDns().lookupInetAddress(s);
                     }

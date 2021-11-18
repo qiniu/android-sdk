@@ -206,7 +206,7 @@ public final class ResponseInfo {
                                       JSONObject response,
                                       String errorMessage) {
 
-        String host = (request != null ? request.host : null);
+        String host = (request != null ? request.getHost() : null);
         String reqId = null;
         String xlog = null;
         String xvia = null;

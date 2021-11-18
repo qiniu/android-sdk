@@ -17,8 +17,7 @@ public class Request {
     public final int timeout;
     public byte[] httpBody;
 
-    public String host;
-    public String ip;
+    private String host;
 
     public Request(String urlString,
                    String httpMethod,
@@ -33,17 +32,12 @@ public class Request {
         this.timeout = timeout;
     }
 
-    public InetAddress getInetAddress(){
-        if (host == null || ip == null || ip.length() == 0) {
-            return null;
-        }
+    void setHost(String host) {
+        this.host = host;
+    }
 
-        try {
-            InetAddress ipAddress = InetAddress.getByName(ip);
-            return InetAddress.getByAddress(host, ipAddress.getAddress());
-        } catch (Exception e) {
-            return null;
-        }
+    public String getHost() {
+        return host;
     }
 
     protected boolean isValid() {

@@ -94,7 +94,7 @@ class HttpSingleRequest {
         LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
                 " retry:" + currentRetryTime +
                 " url:" + StringUtils.toNonnullString(request.urlString) +
-                " ip:" + StringUtils.toNonnullString(request.ip));
+                " ip:" + StringUtils.toNonnullString(server.getIp()));
 
         client.request(request, server, isAsync, config.proxy, new IRequestClient.RequestClientProgress() {
             @Override
@@ -276,7 +276,7 @@ class HttpSingleRequest {
         item.setReport((requestMetrics.getStartDate().getTime() / 1000), ReportItem.RequestKeyUpTime);
         item.setReport(ReportItem.requestReportStatusCode(responseInfo), ReportItem.RequestKeyStatusCode);
         item.setReport(responseInfo != null ? responseInfo.reqId : null, ReportItem.RequestKeyRequestId);
-        item.setReport(requestMetrics.getRequest() != null ? requestMetrics.getRequest().host : null, ReportItem.RequestKeyHost);
+        item.setReport(requestMetrics.getRequest() != null ? requestMetrics.getRequest().getHost() : null, ReportItem.RequestKeyHost);
         item.setReport(requestMetrics.getRemoteAddress(), ReportItem.RequestKeyRemoteIp);
         item.setReport(requestMetrics.getRemotePort(), ReportItem.RequestKeyPort);
         item.setReport(requestInfo.bucket, ReportItem.RequestKeyTargetBucket);
