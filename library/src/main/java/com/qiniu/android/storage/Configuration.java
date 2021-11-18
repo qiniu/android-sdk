@@ -108,6 +108,9 @@ public final class Configuration {
      */
     public final UrlConverter urlConverter;
 
+    /**
+     * 指定 client
+     */
     public final IRequestClient requestClient;
 
     private Configuration(Builder builder) {
