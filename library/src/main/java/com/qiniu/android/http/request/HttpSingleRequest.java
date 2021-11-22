@@ -96,7 +96,7 @@ class HttpSingleRequest {
                 " url:" + StringUtils.toNonnullString(request.urlString) +
                 " ip:" + StringUtils.toNonnullString(server.getIp()));
 
-        client.request(request, server, isAsync, config.proxy, new IRequestClient.RequestClientProgress() {
+        client.request(request, new IRequestClient.Options(server, isAsync, config.proxy), new IRequestClient.RequestClientProgress() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
                 if (checkCancelHandler.checkCancel()) {

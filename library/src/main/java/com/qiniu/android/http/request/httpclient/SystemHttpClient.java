@@ -74,26 +74,32 @@ public class SystemHttpClient extends IRequestClient {
                         ProxyConfiguration connectionProxy,
                         RequestClientProgress progress,
                         RequestClientCompleteHandler complete) {
-        request(request, null, isAsync, connectionProxy, progress, complete);
+        request(request, new Options(null, isAsync, connectionProxy), progress, complete);
     }
 
     @Override
     public void request(Request request,
-                        IUploadServer server,
-                        boolean isAsync,
-                        ProxyConfiguration connectionProxy,
+                        Options options,
                         RequestClientProgress progress,
                         RequestClientCompleteHandler complete) {
+        IUploadServer server = null;
+        boolean isAsync = true;
+        ProxyConfiguration connectionProxy = null;
+        if (options != null) {
+            server = options.server;
+            isAsync = options.isAsync;
+            connectionProxy = options.connectionProxy;
+        }
 
         metrics = new UploadSingleRequestMetrics();
         metrics.start();
         metrics.setClientName(getClientId());
         metrics.setClientVersion(getOkHttpVersion());
         if (server != null) {
+            currentServer = server;
             metrics.setRemoteAddress(server.getIp());
         }
         metrics.setRequest(request);
-        currentServer = server;
         currentRequest = request;
         requestProgress = progress;
         completeHandler = complete;
