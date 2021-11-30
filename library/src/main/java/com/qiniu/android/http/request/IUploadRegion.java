@@ -14,4 +14,6 @@ public interface IUploadRegion {
     void setupRegionData(ZoneInfo zoneInfo);
 
     IUploadServer getNextServer(UploadRequestState requestState, ResponseInfo responseInfo, IUploadServer freezeServer);
+
+    void updateIpListFormHost(String host);
 }

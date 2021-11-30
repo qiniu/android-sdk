@@ -10,6 +10,7 @@ import com.qiniu.android.utils.SingleFlight;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,21 +22,28 @@ public final class AutoZone extends Zone {
     /**
      * 自动判断机房
      */
-    private String ucServer;
-    private Map<String, ZonesInfo> zonesInfoMap = new ConcurrentHashMap<>();
+    private String[] ucServers;
     private ArrayList<RequestTransaction> transactions = new ArrayList<>();
 
     private static final SingleFlight SingleFlight = new SingleFlight();
 
     //私有云可能改变ucServer
     public void setUcServer(String ucServer) {
-        this.ucServer = ucServer;
+        if (ucServer != null) {
+            this.ucServers = new String[]{ucServer};
+        }
+    }
+
+    public void setUcServers(String[] ucServers) {
+        if (ucServers != null && ucServers.length > 0) {
+            this.ucServers = ucServers;
+        }
     }
 
     public List<String> getUcServerList() {
-        if (ucServer != null) {
+        if (ucServers != null && ucServers.length > 0) {
             ArrayList<String> serverList = new ArrayList<>();
-            serverList.add(ucServer);
+            Collections.addAll(serverList, ucServers);
             return serverList;
         } else {
             ArrayList<String> serverList = new ArrayList<>();
@@ -45,9 +53,13 @@ public final class AutoZone extends Zone {
         }
     }
 
+    public static void clearCache() {
+        GlobalCache.getInstance().clearCache();
+    }
+
     private String[] getUcServerArray() {
-        if (ucServer != null) {
-            return new String[]{ucServer};
+        if (ucServers != null && ucServers.length > 0) {
+            return ucServers;
         } else {
             return new String[]{Config.preQueryHost00, Config.preQueryHost01};
         }
@@ -58,7 +70,13 @@ public final class AutoZone extends Zone {
         if (token == null) {
             return null;
         }
-        ZonesInfo zonesInfo = zonesInfoMap.get(token.index());
+        ZonesInfo zonesInfo = GlobalCache.getInstance().zonesInfoForKey(token.index());
+        if (zonesInfo != null) {
+            try {
+                zonesInfo = (ZonesInfo) zonesInfo.clone();
+            } catch (Exception ignore) {
+            }
+        }
         return zonesInfo;
     }
 
@@ -69,18 +87,14 @@ public final class AutoZone extends Zone {
             return;
         }
 
+        UploadRegionRequestMetrics localMetrics = new UploadRegionRequestMetrics(null);
+        localMetrics.start();
+
         final String cacheKey = token.index();
-        ZonesInfo zonesInfo = getZonesInfo(token);
-
-        if (zonesInfo == null) {
-            zonesInfo = GlobalCache.getInstance().zonesInfoForKey(cacheKey);
-            if (zonesInfo != null && zonesInfo.isValid()) {
-                zonesInfoMap.put(cacheKey, zonesInfo);
-            }
-        }
-
-        if (zonesInfo != null && zonesInfo.isValid()) {
-            completeHandler.complete(0, ResponseInfo.successResponse(), null);
+        ZonesInfo zonesInfo = GlobalCache.getInstance().zonesInfoForKey(cacheKey);
+        if (zonesInfo != null && zonesInfo.isValid() && !zonesInfo.isTemporary()) {
+            localMetrics.end();
+            completeHandler.complete(0, ResponseInfo.successResponse(), localMetrics);
             return;
         }
 
@@ -109,23 +123,30 @@ public final class AutoZone extends Zone {
             }, new SingleFlight.CompleteHandler() {
                 @Override
                 public void complete(Object value) {
-                    SingleFlightValue singleFlightValue = (SingleFlightValue)value;
+                    SingleFlightValue singleFlightValue = (SingleFlightValue) value;
                     ResponseInfo responseInfo = singleFlightValue.responseInfo;
                     UploadRegionRequestMetrics requestMetrics = singleFlightValue.metrics;
                     JSONObject response = singleFlightValue.response;
 
                     if (responseInfo != null && responseInfo.isOK() && response != null) {
                         ZonesInfo zonesInfoP = ZonesInfo.createZonesInfo(response);
-                        zonesInfoMap.put(cacheKey, zonesInfoP);
-                        GlobalCache.getInstance().cache(response, cacheKey);
-                        completeHandler.complete(0, responseInfo, requestMetrics);
+                        if (zonesInfoP.isValid()) {
+                            GlobalCache.getInstance().cache(zonesInfoP, cacheKey);
+                            completeHandler.complete(0, responseInfo, requestMetrics);
+                        } else {
+                            completeHandler.complete(ResponseInfo.ParseError, responseInfo, requestMetrics);
+                        }
                     } else {
                         if (responseInfo.isNetworkBroken()) {
                             completeHandler.complete(ResponseInfo.NetworkError, responseInfo, requestMetrics);
                         } else {
                             ZonesInfo zonesInfoP = FixedZone.localsZoneInfo().getZonesInfo(token);
-                            zonesInfoMap.put(cacheKey, zonesInfoP);
-                            completeHandler.complete(0, responseInfo, requestMetrics);
+                            if (zonesInfoP.isValid()) {
+                                GlobalCache.getInstance().cache(zonesInfoP, cacheKey);
+                                completeHandler.complete(0, responseInfo, requestMetrics);
+                            } else {
+                                completeHandler.complete(ResponseInfo.ParseError, responseInfo, requestMetrics);
+                            }
                         }
                     }
                 }
@@ -157,30 +178,30 @@ public final class AutoZone extends Zone {
 
     private static class GlobalCache {
         private static GlobalCache globalCache = new GlobalCache();
-        private ConcurrentHashMap<String, JSONObject> cache = new ConcurrentHashMap<>();
+        private ConcurrentHashMap<String, ZonesInfo> cache = new ConcurrentHashMap<>();
 
         private static GlobalCache getInstance() {
             return globalCache;
         }
 
-        private void cache(JSONObject zonesInfo, String cacheKey) {
-            if (cacheKey == null || cacheKey.isEmpty()) {
+        private synchronized void cache(ZonesInfo zonesInfo, String cacheKey) {
+            if (cacheKey == null || cacheKey.isEmpty() || zonesInfo == null) {
                 return;
             }
-
-            if (zonesInfo == null) {
-                cache.remove(cacheKey);
-            } else {
-                cache.put(cacheKey, zonesInfo);
-            }
+            cache.put(cacheKey, zonesInfo);
         }
 
-        private ZonesInfo zonesInfoForKey(String cacheKey) {
+        private synchronized ZonesInfo zonesInfoForKey(String cacheKey) {
             if (cacheKey == null || cacheKey.isEmpty()) {
                 return null;
             }
+            return cache.get(cacheKey);
+        }
 
-            return ZonesInfo.createZonesInfo(cache.get(cacheKey));
+        private void clearCache() {
+            for (ZonesInfo zonesInfo : cache.values()) {
+                zonesInfo.toTemporary();
+            }
         }
     }
 }

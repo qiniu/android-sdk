@@ -4,6 +4,7 @@ import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.UrlConverter;
 import com.qiniu.android.storage.Configuration;
+import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.storage.UploadOptions;
 
 import junit.framework.Assert;
@@ -34,8 +35,13 @@ public class FormUploadTest extends UploadFlowTest {
     }
 
     public void testCancel() {
+        GlobalConfiguration.getInstance().partialHostFrozenTime = 20*60;
+
         float cancelPercent = (float) 0.2;
         Configuration configuration = new Configuration.Builder()
+                .connectTimeout(60)
+                .responseTimeout(30)
+                .retryMax(0)
                 .useConcurrentResumeUpload(false)
                 .useHttps(true)
                 .build();

@@ -10,13 +10,10 @@ public class UtilsTest extends BaseTest {
         String type = "";
 
         type = Utils.getIpType("10.10.120.3", testHost);
-        assertTrue(type.equals(testHost + "-ipv4-A-10"));
+        assertTrue(type.equals(testHost + "-10-10"));
 
         type = Utils.getIpType("130.101.120.3", testHost);
-        assertTrue(type.equals(testHost + "-ipv4-B-130101"));
-
-        type = Utils.getIpType("192.168.120.3", testHost);
-        assertTrue(type.equals(testHost + "-ipv4-C-192168120"));
+        assertTrue(type.equals(testHost + "-130-101"));
 
         type = Utils.getIpType("2000:0000:0000:0000:0001:2345:6789:abcd", testHost);
         assertTrue(type.equals(testHost + "-ipv6-2000-0000-0000-0000"));

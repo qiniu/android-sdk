@@ -14,11 +14,11 @@ import java.util.Map;
  * Created by jemy on 17/04/2017.
  */
 
-public class ZoneInfo {
+public class ZoneInfo implements Cloneable {
 
     // 只允许内部使用
     public final static String SDKDefaultIOHost = "sdkDefaultIOHost";
-    public final static String EmptyRegionId = "sdkEmptyRegionId";
+    public final static String EmptyRegionId = "unknown";
 
     private static int DOMAIN_FROZEN_SECONDS = 10 * 60;
 
@@ -84,6 +84,14 @@ public class ZoneInfo {
         this.domains = domains;
         this.old_domains = old_domains;
         this.buildDate = new Date();
+        List<String> allHosts = new ArrayList<>();
+        if (domains != null) {
+            allHosts.addAll(domains);
+        }
+        if (old_domains != null) {
+            allHosts.addAll(old_domains);
+        }
+        this.allHosts = allHosts;
     }
 
     /**
@@ -119,7 +127,6 @@ public class ZoneInfo {
             return null;
         }
 
-        List<String> allHosts = new ArrayList<>();
         List<String> domains = new ArrayList<>();
         JSONArray domainsJson = up.optJSONArray("domains");
         if (domainsJson != null && domainsJson.length() > 0) {
@@ -127,7 +134,6 @@ public class ZoneInfo {
                 String domain = domainsJson.optString(i);
                 if (domain != null && domain.length() > 0) {
                     domains.add(domain);
-                    allHosts.add(domain);
                 }
             }
         }
@@ -139,7 +145,6 @@ public class ZoneInfo {
                 String domain = old_domainsJson.optString(i);
                 if (domain != null && domain.length() > 0) {
                     old_domains.add(domain);
-                    allHosts.add(domain);
                 }
             }
         }
@@ -150,8 +155,6 @@ public class ZoneInfo {
 
         ZoneInfo zoneInfo = new ZoneInfo(ttl, http3Enabled, ipv6Enabled, regionId, domains, old_domains);
         zoneInfo.detailInfo = obj;
-
-        zoneInfo.allHosts = allHosts;
 
         return zoneInfo;
     }
@@ -172,6 +175,13 @@ public class ZoneInfo {
         int currentTimestamp = (int) (new Date().getTime() * 0.001);
         int buildTimestamp = (int) (buildDate.getTime() * 0.001);
         return ttl > (currentTimestamp - buildTimestamp);
+    }
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        ZoneInfo info = new ZoneInfo(ttl, http3Enabled, ipv6, regionId, domains, old_domains);
+        info.detailInfo = detailInfo;
+        return info;
     }
 
     @Deprecated

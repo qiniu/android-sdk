@@ -146,5 +146,4 @@ public final class AndroidNetwork {
                 return Constants.NETWORK_CLASS_UNKNOWN;
         }
     }
-
 }

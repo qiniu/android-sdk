@@ -4,6 +4,7 @@ import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.Utils;
@@ -292,6 +293,11 @@ class PartsUpload extends BaseUpload {
         item.setReport(uploadPerformer.recoveredFrom, ReportItem.BlockKeyRecoveredFrom);
         item.setReport(uploadSource.getSize(), ReportItem.BlockKeyFileSize);
 
+        UploadSingleRequestMetrics lastRequestMetrics = metrics.lastMetrics();
+        if (lastRequestMetrics != null) {
+            item.setReport(lastRequestMetrics.hijacked, ReportItem.BlockKeyHijacking);
+        }
+
         // 统计当前 region 上传速度 文件大小 / 总耗时
         if (uploadDataErrorResponseInfo == null && uploadSource.getSize() > 0 && metrics.totalElapsedTime() > 0) {
             item.setReport(Utils.calculateSpeed(uploadSource.getSize(), metrics.totalElapsedTime()), ReportItem.BlockKeyPerceptiveSpeed);
@@ -314,6 +320,19 @@ class PartsUpload extends BaseUpload {
         item.setReport(Utils.sdkVerion(), ReportItem.BlockKeySDKVersion);
 
         UploadInfoReporter.getInstance().report(item, token.token);
+    }
+
+    @Override
+    String getUpType() {
+        if (config == null) {
+            return null;
+        }
+
+        if (config.resumeUploadVersion == Configuration.RESUME_UPLOAD_VERSION_V1) {
+            return UploadUpTypeResumableV1 + "<" + uploadSource.getSourceType() + ">";
+        } else {
+            return UploadUpTypeResumableV2 + "<" + uploadSource.getSourceType() + ">";
+        }
     }
 
     protected interface UploadFileRestDataCompleteHandler {

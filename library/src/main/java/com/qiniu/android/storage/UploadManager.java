@@ -9,7 +9,11 @@ import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.dns.DnsPrefetchTransaction;
+import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
+import com.qiniu.android.storage.serverConfig.ServerConfig;
+import com.qiniu.android.storage.serverConfig.ServerConfigMonitor;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.ContextGetter;
 import com.qiniu.android.utils.Utils;
@@ -50,6 +54,7 @@ public class UploadManager {
         this.config = config != null ? config : new Configuration.Builder().build();
         DnsPrefetchTransaction.addDnsLocalLoadTransaction();
         DnsPrefetchTransaction.setDnsCheckWhetherCachedValidTransactionAction();
+        ServerConfigMonitor.startMonitor();
     }
 
     /**
@@ -285,7 +290,7 @@ public class UploadManager {
         stream.setId(id);
         stream.setSize(size);
         stream.setFileName(fileName);
-        return syncPut(new UploadSourceStream(inputStream), key, token, options);
+        return syncPut(stream, key, token, options);
     }
 
     /**
@@ -343,6 +348,7 @@ public class UploadManager {
         }
 
         DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(config.zone, t);
+        ServerConfigMonitor.setToken(token);
 
         BaseUpload.UpTaskCompletionHandler completionHandlerP = new BaseUpload.UpTaskCompletionHandler() {
             @Override
@@ -372,6 +378,7 @@ public class UploadManager {
         }
 
         DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(config.zone, t);
+        ServerConfigMonitor.setToken(token);
 
         if (source.getSize() > 0 && source.getSize() <= config.putThreshold) {
             ResponseInfo errorInfo = null;
@@ -476,11 +483,15 @@ public class UploadManager {
 
         ReportItem item = new ReportItem();
         item.setReport(ReportItem.LogTypeQuality, ReportItem.QualityKeyLogType);
+        item.setReport(taskMetricsP.getUpType(), ReportItem.QualityKeyUpType);
         item.setReport((Utils.currentTimestamp() / 1000), ReportItem.QualityKeyUpTime);
         item.setReport(ReportItem.qualityResult(responseInfo), ReportItem.QualityKeyResult);
         item.setReport(key, ReportItem.QualityKeyTargetKey);
         item.setReport(upToken.bucket, ReportItem.QualityKeyTargetBucket);
         item.setReport(taskMetricsP.totalElapsedTime(), ReportItem.QualityKeyTotalElapsedTime);
+        if (taskMetricsP.getUcQueryMetrics() != null) {
+            item.setReport(taskMetricsP.getUcQueryMetrics().totalElapsedTime(), ReportItem.QualityKeyUcQueryElapsedTime);
+        }
         item.setReport(taskMetricsP.requestCount(), ReportItem.QualityKeyRequestsCount);
         item.setReport(taskMetricsP.regionCount(), ReportItem.QualityKeyRegionsCount);
         item.setReport(taskMetricsP.bytesSend(), ReportItem.QualityKeyBytesSent);
@@ -489,6 +500,14 @@ public class UploadManager {
         item.setReport(Utils.systemVersion(), ReportItem.QualityKeyOsVersion);
         item.setReport(Utils.sdkLanguage(), ReportItem.QualityKeySDKName);
         item.setReport(Utils.sdkVerion(), ReportItem.QualityKeySDKVersion);
+
+        UploadRegionRequestMetrics lastRegionMetrics = taskMetricsP.lastMetrics();
+        if (lastRegionMetrics != null) {
+            UploadSingleRequestMetrics lastSingleMetrics = lastRegionMetrics.lastMetrics();
+            if (lastSingleMetrics != null) {
+                item.setReport(lastSingleMetrics.hijacked, ReportItem.BlockKeyHijacking);
+            }
+        }
 
         String errorType = ReportItem.requestReportErrorType(responseInfo);
         item.setReport(errorType, ReportItem.QualityKeyErrorType);

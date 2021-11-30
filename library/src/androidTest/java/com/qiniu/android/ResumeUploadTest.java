@@ -19,7 +19,7 @@ public class ResumeUploadTest extends UploadFlowTest {
                 .useConcurrentResumeUpload(false)
                 .useHttps(true)
                 .build();
-        int[] sizeArray = {5000, 8000, 10000, 20000};
+        int[] sizeArray = {1000, 5000, 8000, 10000, 20000};
         for (int size : sizeArray) {
             String key = "android_resume_switch_region_v1_" + size + "k";
             try {

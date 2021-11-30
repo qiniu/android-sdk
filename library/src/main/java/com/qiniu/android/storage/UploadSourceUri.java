@@ -62,7 +62,7 @@ class UploadSourceUri extends UploadSourceStream {
     @Override
     public byte[] readData(int dataSize, long dataOffset) throws IOException {
         if (readException != null) {
-            throw new IOException(readException);
+            throw new IOException("Uri read data exception: " + readException, readException);
         }
 
         return super.readData(dataSize, dataOffset);
@@ -188,5 +188,10 @@ class UploadSourceUri extends UploadSourceStream {
         }
 
         return resolver;
+    }
+
+    @Override
+    String getSourceType() {
+        return "Uri";
     }
 }

@@ -27,7 +27,7 @@ abstract class BaseUpload implements Runnable {
 
 
     private UploadRegionRequestMetrics currentRegionRequestMetrics;
-    private UploadTaskMetrics metrics = new UploadTaskMetrics(null);
+    private UploadTaskMetrics metrics;
 
     private int currentRegionIndex;
     private ArrayList<IUploadRegion> regions;
@@ -79,6 +79,7 @@ abstract class BaseUpload implements Runnable {
 
     protected void initData() {
         currentRegionIndex = 0;
+        metrics = new UploadTaskMetrics(getUpType());
     }
 
 
@@ -89,7 +90,7 @@ abstract class BaseUpload implements Runnable {
         config.zone.preQuery(token, new Zone.QueryHandler() {
             @Override
             public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics) {
-                metrics.addMetrics(requestMetrics);
+                metrics.setUcQueryMetrics(requestMetrics);
 
                 if (code == 0) {
                     int prepareCode = prepareToUpload();
@@ -253,6 +254,12 @@ abstract class BaseUpload implements Runnable {
             this.currentRegionRequestMetrics.addMetrics(metrics);
         }
     }
+
+    protected static final String UploadUpTypeForm = "form";
+    protected static final String UploadUpTypeResumableV1 = "resumable_v1";
+    protected static final String UploadUpTypeResumableV2 = "resumable_v2";
+
+    abstract String getUpType();
 
     protected interface UpTaskCompletionHandler {
         void complete(ResponseInfo responseInfo,

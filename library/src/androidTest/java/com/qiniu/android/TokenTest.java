@@ -3,6 +3,8 @@ package com.qiniu.android;
 import android.test.AndroidTestCase;
 import com.qiniu.android.storage.UpToken;
 
+import java.util.Date;
+
 /**
  * Created by bailong on 15/6/1.
  */
@@ -12,6 +14,8 @@ public class TokenTest extends AndroidTestCase {
         UpToken t = UpToken.parse(TestConfig.commonToken);
 
         assertTrue(!UpToken.isInvalid(t));
+        assertTrue("token isValidForDuration error", t.isValidForDuration(5*60));
+        assertTrue("token isValidBeforeDate error", t.isValidBeforeDate(new Date()));
         assertTrue(t.toString() != null);
         assertNotSame(t, null);
     }

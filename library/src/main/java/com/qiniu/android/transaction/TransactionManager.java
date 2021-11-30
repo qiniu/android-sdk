@@ -1,5 +1,7 @@
 package com.qiniu.android.transaction;
 
+import com.qiniu.android.utils.Utils;
+
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -11,26 +13,26 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class TransactionManager {
 
     /// 事务链表
-    private ConcurrentLinkedQueue<Transaction> transactionList = new ConcurrentLinkedQueue<>();
-    /// 定时器执行次数
-    private long time = 0;
+    protected final ConcurrentLinkedQueue<Transaction> transactionList = new ConcurrentLinkedQueue<>();
     /// 事务定时器
     private Timer timer;
 
+    protected long actionCount = 0;
+
     private static final TransactionManager transactionManager = new TransactionManager();
-    private TransactionManager(){
+
+    private TransactionManager() {
     }
 
-    public static TransactionManager getInstance(){
+    public static TransactionManager getInstance() {
         return transactionManager;
     }
 
     /// 根据name查找事务
-    public ArrayList<Transaction> transactionsForName(String name){
+    public ArrayList<Transaction> transactionsForName(String name) {
         ArrayList<Transaction> arrayList = new ArrayList<>();
-        for (Transaction transaction : transactionList){
-            if ((name == null && transaction.name == null)
-                    || (name != null && transaction.name != null && transaction.name.equals(name))) {
+        for (Transaction transaction : transactionList) {
+            if ((name == null && transaction.name == null) || (transaction.name != null && transaction.name.equals(name))) {
                 arrayList.add(transaction);
             }
         }
@@ -38,11 +40,10 @@ public class TransactionManager {
     }
 
     /// 是否存在某个名称的事务
-    public boolean existTransactionsForName(String name){
+    public boolean existTransactionsForName(String name) {
         boolean isExist = false;
-        for (Transaction transaction : transactionList){
-            if ((name == null && transaction.name == null)
-                    || (name != null && transaction.name != null && transaction.name.equals(name))) {
+        for (Transaction transaction : transactionList) {
+            if ((name == null && transaction.name == null) || (transaction.name != null && transaction.name.equals(name))) {
                 isExist = true;
                 break;
             }
@@ -51,7 +52,7 @@ public class TransactionManager {
     }
 
     /// 添加一个事务
-    public void addTransaction(Transaction transaction){
+    public void addTransaction(Transaction transaction) {
         if (transaction == null) {
             return;
         }
@@ -60,7 +61,7 @@ public class TransactionManager {
     }
 
     /// 移除一个事务
-    public void removeTransaction(Transaction transaction){
+    public void removeTransaction(Transaction transaction) {
         if (transaction == null) {
             return;
         }
@@ -68,41 +69,40 @@ public class TransactionManager {
     }
 
     /// 在下一次循环执行事务, 该事务如果未被添加到事务列表，会自动添加
-    public synchronized void performTransaction(Transaction transaction){
+    public synchronized void performTransaction(Transaction transaction) {
         if (transaction == null) {
             return;
         }
 
-        if (! transactionList.contains(transaction)){
+        if (!transactionList.contains(transaction)) {
             transactionList.add(transaction);
         }
-
-        transaction.actionTime = time;
+        transaction.nextExecutionTime = Utils.currentSecondTimestamp();
     }
 
     /// 销毁资源 清空事务链表 销毁常驻线程
-    public synchronized void destroyResource(){
+    public synchronized void destroyResource() {
         invalidateTimer();
         transactionList.clear();
     }
 
 
-    private void handleAllTransaction(){
-        for (Transaction transaction : transactionList){
+    private void handleAllTransaction() {
+        for (Transaction transaction : transactionList) {
             handleTransaction(transaction);
-            if (transaction.maybeCompleted(time)){
+            if (transaction.maybeCompleted()) {
                 removeTransaction(transaction);
             }
         }
     }
 
-    private void handleTransaction(Transaction transaction){
-        transaction.handleAction(time);
+    private void handleTransaction(Transaction transaction) {
+        transaction.handleAction();
     }
 
 
-    private synchronized void createTimer(){
-        if (timer != null){
+    private synchronized void createTimer() {
+        if (timer != null) {
             return;
         }
         timer = new Timer();
@@ -114,19 +114,18 @@ public class TransactionManager {
         }, 0, 1000);
     }
 
-    private void invalidateTimer(){
+    private void invalidateTimer() {
         timer.cancel();
         timer = null;
     }
 
-    private void timerAction(){
-        time += 1;
+    private void timerAction() {
+        actionCount += 1;
         handleAllTransaction();
     }
 
 
-
-    public static class Transaction  {
+    public static class Transaction {
 
         // 事务名称
         public final String name;
@@ -137,62 +136,92 @@ public class TransactionManager {
 
 
         // 普通类型事务，事务体仅会执行一次
-        private static int TransactionTypeNormal = 0;
+        private static final int TransactionTypeNormal = 0;
         // 定时事务，事务体会定时执行
-        private static int TransactionTypeTime = 1;
+        private static final int TransactionTypeTime = 1;
         private final int type;
 
         // 事务延后时间 单位：秒
         private final int interval;
+        // 创建时间
+        private long createTime;
+        // 下一次需要执行的时间
+        protected long nextExecutionTime;
 
-        // 事务执行时间 与事务管理者定时器时间相关联
-        private long actionTime;
+        // 已执行次数
+        protected long executedCount = 0;
+        private boolean isExecuting = false;
 
 
         public Transaction(String name,
                            int after,
-                           Runnable actionHandler){
+                           Runnable actionHandler) {
 
             this.type = TransactionTypeNormal;
             this.name = name;
             this.after = after;
             this.interval = 0;
             this.actionHandler = actionHandler;
+            this.createTime = Utils.currentSecondTimestamp();
+            this.nextExecutionTime = this.createTime + after;
         }
 
 
         public Transaction(String name,
                            int after,
                            int interval,
-                           Runnable actionHandler){
+                           Runnable actionHandler) {
 
             this.type = TransactionTypeTime;
             this.name = name;
             this.after = after;
             this.interval = interval;
             this.actionHandler = actionHandler;
+            this.createTime = Utils.currentSecondTimestamp();
+            this.nextExecutionTime = this.createTime + after;
         }
 
-        private boolean shouldAction(long time){
-            return time >= actionTime;
+        protected boolean shouldAction() {
+            long currentTime = Utils.currentSecondTimestamp();
+            if (this.type == TransactionTypeNormal) {
+                return executedCount < 1 && currentTime >= nextExecutionTime;
+            } else if (this.type == TransactionTypeTime) {
+                return currentTime >= nextExecutionTime;
+            } else {
+                return false;
+            }
         }
 
-        private boolean maybeCompleted(long time){
-            return shouldAction(time) && type == TransactionTypeNormal;
+        protected boolean maybeCompleted() {
+            if (this.type == TransactionTypeNormal) {
+                return executedCount > 0;
+            } else if (this.type == TransactionTypeTime) {
+                return false;
+            } else {
+                return false;
+            }
         }
 
-        private void handleAction(long time){
-            if (! shouldAction(time)){
+        private synchronized void handleAction() {
+            if (!shouldAction()) {
                 return;
             }
-            if (actionHandler != null){
-                actionHandler.run();
+            if (actionHandler != null) {
+                isExecuting = true;
+                executedCount += 1;
+
+                try {
+                    actionHandler.run();
+                } catch (Exception ignored) {
+                }
+
+                nextExecutionTime = Utils.currentSecondTimestamp() + interval;
+                isExecuting = false;
             }
-            if (type == TransactionTypeNormal){
-                actionTime = 0;
-            } else if (type == TransactionTypeTime){
-                actionTime = time + interval;
-            }
+        }
+
+        public boolean isExecuting() {
+            return isExecuting;
         }
     }
 

@@ -6,9 +6,11 @@ import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.storage.UpToken;
+import com.qiniu.android.transaction.TransactionManager;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
+import com.qiniu.android.utils.Utils;
 
 import org.json.JSONObject;
 
@@ -20,9 +22,15 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class UploadInfoReporter {
-
+    private static final String DelayReportTransactionName = "com.qiniu.uplog";
     private ReportConfig config = ReportConfig.getInstance();
     private long lastReportTime = 0;
     private File recordDirectory = new File(config.recordDirectory);
@@ -31,6 +39,9 @@ public class UploadInfoReporter {
     private String X_Log_Client_Id;
     private RequestTransaction transaction;
 
+    private final ExecutorService executorService = new ThreadPoolExecutor(1, 2,
+            120L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<Runnable>());
     // 是否正在向服务上报中
     private boolean isReporting = false;
 
@@ -43,18 +54,17 @@ public class UploadInfoReporter {
         return instance;
     }
 
-    public synchronized void report(final ReportItem reportItem,
-                                    final String tokenString) {
-        if (reportItem == null) {
+    public synchronized void report(final ReportItem reportItem, final String tokenString) {
+        if (!checkReportAvailable() || reportItem == null || tokenString == null || tokenString.length() == 0) {
             return;
         }
 
         final String jsonString = reportItem.toJson();
-        if (!checkReportAvailable() || jsonString == null) {
+        if (jsonString == null) {
             return;
         }
 
-        AsyncRun.runInBack(new Runnable() {
+        executorService.submit(new Runnable() {
             @Override
             public void run() {
                 LogUtil.i("up log:" + StringUtils.toNonnullString(jsonString));
@@ -138,30 +148,49 @@ public class UploadInfoReporter {
         }
     }
 
-    private void reportToServerIfNeeded(String tokenString) {
-        if (isReporting) {
-            return;
-        }
+    private void reportToServerIfNeeded(final String tokenString) {
         boolean needToReport = false;
-        long currentTime = new Date().getTime();
-
+        long currentTime = Utils.currentSecondTimestamp();
+        final long interval = (long)(config.interval * 60);
         if (recorderTempFile.exists()) {
             needToReport = true;
-        } else if ((recorderFile.length() > config.uploadThreshold)
-                || (lastReportTime == 0 || (currentTime - lastReportTime) > config.interval * 60)) {
-            boolean isSuccess = recorderFile.renameTo(recorderTempFile);
-            if (isSuccess) {
-                needToReport = true;
-            }
+        } else if ((lastReportTime == 0 || (currentTime - lastReportTime) >= interval || recorderFile.length() > config.uploadThreshold) &&
+                recorderFile.renameTo(recorderTempFile)) {
+            needToReport = true;
         }
+
         if (needToReport && !this.isReporting) {
             reportToServer(tokenString);
+        } else {
+            // 有未上传日志存在，则 interval 时间后再次重试一次
+            if (!recorderFile.exists() || recorderFile.length() == 0) {
+                return;
+            }
+
+            TransactionManager manager = TransactionManager.getInstance();
+            List<TransactionManager.Transaction> transactionList = manager.transactionsForName(DelayReportTransactionName);
+            if (transactionList != null && transactionList.size() > 1) {
+                return;
+            }
+
+            if (transactionList != null && transactionList.size() == 1) {
+                TransactionManager.Transaction transaction = transactionList.get(0);
+                if (transaction != null && !transaction.isExecuting()) {
+                    return;
+                }
+            }
+
+            TransactionManager.Transaction transaction = new TransactionManager.Transaction(DelayReportTransactionName, (int) interval, new Runnable() {
+                @Override
+                public void run() {
+                    reportToServerIfNeeded(tokenString);
+                }
+            });
+            TransactionManager.getInstance().addTransaction(transaction);
         }
     }
 
     private void reportToServer(String tokenString) {
-
-        isReporting = true;
 
         RequestTransaction transaction = createUploadRequestTransaction(tokenString);
         if (transaction == null) {
@@ -173,6 +202,7 @@ public class UploadInfoReporter {
             return;
         }
 
+        isReporting = true;
         transaction.reportLog(logData, X_Log_Client_Id, true, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
@@ -185,8 +215,8 @@ public class UploadInfoReporter {
                     }
                     cleanTempLogFile();
                 }
-                isReporting = false;
 
+                isReporting = false;
                 destroyTransactionResource();
             }
         });
@@ -225,7 +255,11 @@ public class UploadInfoReporter {
         return data;
     }
 
-    private RequestTransaction createUploadRequestTransaction(String tokenString) {
+    private synchronized RequestTransaction createUploadRequestTransaction(String tokenString) {
+        if (transaction != null) {
+            return null;
+        }
+
         if (config == null) {
             return null;
         }
@@ -240,7 +274,7 @@ public class UploadInfoReporter {
         return transaction;
     }
 
-    private void destroyTransactionResource() {
+    private synchronized void destroyTransactionResource() {
         transaction = null;
     }
 }

@@ -4,6 +4,8 @@ import com.qiniu.android.utils.UrlSafeBase64;
 
 import org.json.JSONObject;
 
+import java.util.Date;
+
 /**
  * 内部使用的客户端 token 检查.
  */
@@ -12,6 +14,8 @@ public final class UpToken {
     public final String token;
     public final String accessKey;
     public final String bucket;
+
+    private long deadline = -1;
     private String returnUrl = null;
 
     private UpToken(String returnUrl, String token, String accessKey, String bucket) {
@@ -57,11 +61,19 @@ public final class UpToken {
             }
         }
 
-        int deadline = obj.optInt("deadline");
+        long deadline = obj.optInt("deadline");
         if (deadline == 0) {
             return null;
         }
-        return new UpToken(obj.optString("returnUrl"), token, t[0], bucket);
+        UpToken upToken = new UpToken(obj.optString("returnUrl"), token, t[0], bucket);
+        upToken.deadline = deadline;
+        return upToken;
+    }
+
+    public static UpToken getInvalidToken() {
+        UpToken token = new UpToken("", "", "", "");
+        token.deadline = -1;
+        return token;
     }
 
     public static boolean isInvalid(UpToken token) {
@@ -89,5 +101,27 @@ public final class UpToken {
             index += bucket;
         }
         return index;
+    }
+
+    public long getDeadline() {
+        return deadline;
+    }
+
+    public boolean isValidForDuration(long duration) {
+        return isValidBeforeTimestamp((new Date().getTime() / 1000) + duration);
+    }
+
+    public boolean isValidBeforeDate(Date date) {
+        if (date == null) {
+            return false;
+        }
+        return isValidBeforeTimestamp(date.getTime() / 1000);
+    }
+
+    private boolean isValidBeforeTimestamp(long timestamp) {
+        if (deadline < 0) {
+            return false;
+        }
+        return timestamp < deadline;
     }
 }

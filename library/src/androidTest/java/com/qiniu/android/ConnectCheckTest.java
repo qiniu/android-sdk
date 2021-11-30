@@ -19,7 +19,7 @@ public class ConnectCheckTest extends BaseTest {
     }
 
     public void testCustomCheckHosts() {
-        GlobalConfiguration.getInstance().connectCheckURLStrings = new String[]{"https://www.baidu.com"};
+        GlobalConfiguration.getInstance().connectCheckURLStrings = new String[]{"https://www.baidu.com", "https://www.google.com"};
         int maxCount = 100;
         int successCount = 0;
         for (int i = 0; i < maxCount; i++) {

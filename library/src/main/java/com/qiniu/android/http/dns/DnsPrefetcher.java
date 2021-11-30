@@ -26,21 +26,19 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DnsPrefetcher {
 
+    private Dns customDns;
+    private SystemDns systemDns;
+
     private boolean isPrefetching = false;
     private DnsCacheInfo dnsCacheInfo = null;
     private HashSet<String> prefetchHosts = new HashSet<>();
     private ConcurrentHashMap<String, List<IDnsNetworkAddress>> addressDictionary = new ConcurrentHashMap<>();
-    private final HappyDns happyDns = new HappyDns();
+    private DnsCacheFile diskCache;
 
     private final static DnsPrefetcher dnsPrefetcher = new DnsPrefetcher();
 
     private DnsPrefetcher() {
-        happyDns.setQueryErrorHandler(new HappyDns.DnsQueryErrorHandler() {
-            @Override
-            public void queryError(Exception e, String host) {
-                lastPrefetchErrorMessage = e.getMessage();
-            }
-        });
+        systemDns = new SystemDns(GlobalConfiguration.getInstance().dnsResolveTimeout);
     }
 
     public static DnsPrefetcher getInstance() {
@@ -51,11 +49,9 @@ public class DnsPrefetcher {
 
     public boolean recoverCache() {
 
-        DnsCacheFile recorder = null;
-        try {
-            recorder = new DnsCacheFile(GlobalConfiguration.getInstance().dnsCacheDir);
-        } catch (Exception e) {
-            return true;
+        DnsCacheFile recorder = getDiskCache();
+        if (recorder == null) {
+            return false;
         }
 
         String localIp = AndroidNetwork.getHostIP();
@@ -85,17 +81,17 @@ public class DnsPrefetcher {
         }
 
         // 已经添加则不再触发预取
-        boolean prefetchHostsContainHosts = false;
+        boolean prefetchHostsContainHosts = true;
         synchronized (this) {
             int countBeforeAdd = prefetchHosts.size();
             prefetchHosts.addAll(Arrays.asList(hosts));
             int countAfterAdd = prefetchHosts.size();
             if (countAfterAdd > countBeforeAdd) {
-                prefetchHostsContainHosts = true;
+                prefetchHostsContainHosts = false;
             }
         }
 
-        if (prefetchHostsContainHosts) {
+        if (!prefetchHostsContainHosts) {
             checkWhetherCachedDnsValid();
             return true;
         } else {
@@ -107,8 +103,13 @@ public class DnsPrefetcher {
         if (address == null || address.getHostValue() == null) {
             return;
         }
+
         String host = address.getHostValue();
         List<IDnsNetworkAddress> addressList = addressDictionary.get(host);
+        if (addressList == null || addressList.size() == 0) {
+            return;
+        }
+
         ArrayList<IDnsNetworkAddress> addressListNew = new ArrayList<>();
         for (IDnsNetworkAddress addressP : addressList) {
             if (!addressP.getIpValue().equals(addressP.getIpValue())) {
@@ -116,6 +117,13 @@ public class DnsPrefetcher {
             }
         }
         addressDictionary.put(host, addressListNew);
+    }
+
+    private void invalidNetworkAddressOfHost(String host) {
+        if (host == null || host.length() == 0) {
+            return;
+        }
+        addressDictionary.remove(host);
     }
 
     public List<IDnsNetworkAddress> getInetAddressByHost(String host) {
@@ -134,6 +142,42 @@ public class DnsPrefetcher {
         return null;
     }
 
+    public String lookupBySafeDns(String hostname) throws UnknownHostException {
+        if (hostname == null || hostname.length() == 0) {
+            return null;
+        }
+
+        invalidNetworkAddressOfHost(hostname);
+
+        String[] nextFetchHosts = new String[]{hostname};
+        int dnsTimeout = GlobalConfiguration.getInstance().dnsResolveTimeout;
+
+        // 自定义 dns
+        nextFetchHosts = preFetchHosts(nextFetchHosts, getCustomDns());
+        if (nextFetchHosts == null || nextFetchHosts.length == 0) {
+            List<IDnsNetworkAddress> addresses = getInetAddressByHost(hostname);
+            if (addresses != null && addresses.size() > 0) {
+                return addresses.get(0).getSourceValue();
+            }
+        }
+
+        // http dns
+        HttpDns httpDns = new HttpDns(dnsTimeout);
+        nextFetchHosts = preFetchHosts(nextFetchHosts, httpDns);
+        if (nextFetchHosts == null || nextFetchHosts.length == 0) {
+            List<IDnsNetworkAddress> addresses = getInetAddressByHost(hostname);
+            if (addresses != null && addresses.size() > 0) {
+                return addresses.get(0).getSourceValue();
+            }
+        }
+
+        return null;
+    }
+
+    public void clearDnsCache() throws IOException {
+        clearMemoryCache();
+        clearDiskCache();
+    }
 
     public void checkWhetherCachedDnsValid() {
         if (!prepareToPreFetch()) {
@@ -142,10 +186,9 @@ public class DnsPrefetcher {
 
         String[] hosts = null;
         synchronized (this) {
-            hosts = prefetchHosts.toArray(new String[0]);
+            hosts = getCacheHosts();
         }
         preFetchHosts(hosts);
-        recorderDnsCache();
         endPreFetch();
     }
 
@@ -161,7 +204,7 @@ public class DnsPrefetcher {
 
         String localIp = AndroidNetwork.getHostIP();
         if (localIp == null || getDnsCacheInfo() == null || !(localIp.equals(getDnsCacheInfo().getLocalIp()))) {
-            clearPreHosts();
+            clearMemoryCache();
         }
 
         setPrefetching(true);
@@ -173,10 +216,34 @@ public class DnsPrefetcher {
     }
 
     private void preFetchHosts(String[] fetchHosts) {
-        String[] nextFetchHosts = fetchHosts;
 
-        nextFetchHosts = preFetchHosts(nextFetchHosts, GlobalConfiguration.getInstance().dns);
-        nextFetchHosts = preFetchHosts(nextFetchHosts, happyDns);
+        String[] nextFetchHosts = fetchHosts;
+        int dnsTimeout = GlobalConfiguration.getInstance().dnsResolveTimeout;
+
+        // 自定义 dns
+        nextFetchHosts = preFetchHosts(nextFetchHosts, getCustomDns());
+        if (nextFetchHosts == null || nextFetchHosts.length == 0) {
+            return;
+        }
+
+        // 系统 dns
+        nextFetchHosts = preFetchHosts(nextFetchHosts, systemDns);
+        if (nextFetchHosts == null || nextFetchHosts.length == 0) {
+            return;
+        }
+
+        // http dns
+        HttpDns httpDns = new HttpDns(dnsTimeout);
+        nextFetchHosts = preFetchHosts(nextFetchHosts, httpDns);
+        if (nextFetchHosts == null || nextFetchHosts.length == 0) {
+            return;
+        }
+
+        // udp dns
+        UdpDns udpDns = new UdpDns(dnsTimeout);
+        nextFetchHosts = preFetchHosts(nextFetchHosts, udpDns);
+
+        recorderDnsCache();
     }
 
     private String[] preFetchHosts(String[] preHosts, Dns dns) {
@@ -187,14 +254,19 @@ public class DnsPrefetcher {
             return preHosts;
         }
 
+        UnknownHostException exception = null;
         ArrayList<String> failHosts = new ArrayList<>();
         for (String host : preHosts) {
             int rePreNum = 0;
             boolean isSuccess = false;
 
             while (rePreNum < GlobalConfiguration.getInstance().dnsRepreHostNum) {
-                if (preFetchHost(host, dns)) {
-                    isSuccess = true;
+                try {
+                    isSuccess = preFetchHost(host, dns);
+                } catch (UnknownHostException e) {
+                    lastPrefetchErrorMessage = e.toString();
+                }
+                if (isSuccess) {
                     break;
                 }
                 rePreNum += 1;
@@ -207,7 +279,7 @@ public class DnsPrefetcher {
         return failHosts.toArray(new String[0]);
     }
 
-    private boolean preFetchHost(String preHost, Dns dns) {
+    private boolean preFetchHost(String preHost, Dns dns) throws UnknownHostException {
         if (preHost == null || preHost.length() == 0) {
             return false;
         }
@@ -220,6 +292,8 @@ public class DnsPrefetcher {
             }
         }
 
+        boolean isCustomDns = (dns == getCustomDns());
+        UnknownHostException exception = null;
         List<IDnsNetworkAddress> addressList = new ArrayList<>();
         try {
             List<IDnsNetworkAddress> preIAddressList = dns.lookup(preHost);
@@ -228,17 +302,20 @@ public class DnsPrefetcher {
                     DnsNetworkAddress address = new DnsNetworkAddress(preIAddress.getHostValue(),
                             preIAddress.getIpValue(),
                             preIAddress.getTtlValue() != null ? preIAddress.getTtlValue() : GlobalConfiguration.getInstance().dnsCacheTime,
-                            preIAddress.getSourceValue(),
+                            isCustomDns ? DnsSource.Custom : preIAddress.getSourceValue(),
                             preIAddress.getTimestampValue());
                     addressList.add(address);
                 }
             }
         } catch (UnknownHostException e) {
+            exception = e;
         }
 
-        if (addressList != null && addressList.size() > 0) {
+        if (addressList.size() > 0) {
             addressDictionary.put(preHost, addressList);
             return true;
+        } else if (exception != null) {
+            throw exception;
         } else {
             return false;
         }
@@ -259,22 +336,18 @@ public class DnsPrefetcher {
     }
 
     private boolean recorderDnsCache() {
+        DnsCacheFile recorder = getDiskCache();
+        if (recorder == null) {
+            return false;
+        }
+
         String currentTime = Utils.currentTimestamp() + "";
         String localIp = AndroidNetwork.getHostIP();
-
         if (localIp == null) {
             return false;
         }
 
         DnsCacheInfo dnsCacheInfo = new DnsCacheInfo(currentTime, localIp, addressDictionary);
-
-        DnsCacheFile recorder = null;
-        try {
-            recorder = new DnsCacheFile(GlobalConfiguration.getInstance().dnsCacheDir);
-        } catch (IOException e) {
-            return false;
-        }
-
         setDnsCacheInfo(dnsCacheInfo);
 
         byte[] data = dnsCacheInfo.toJsonData();
@@ -286,8 +359,16 @@ public class DnsPrefetcher {
         return true;
     }
 
-    private void clearPreHosts() {
+    public void clearMemoryCache() {
         addressDictionary.clear();
+    }
+
+    public void clearDiskCache() throws IOException {
+        DnsCacheFile recorder = getDiskCache();
+        if (recorder == null) {
+            return;
+        }
+        recorder.clearCache();
     }
 
 
@@ -323,20 +404,8 @@ public class DnsPrefetcher {
         return autoHosts.toArray(new String[0]);
     }
 
-    private String[] getFixedZoneHosts() {
-        ArrayList<String> localHosts = new ArrayList<>();
-        FixedZone fixedZone = FixedZone.localsZoneInfo();
-        ZonesInfo zonesInfo = fixedZone.getZonesInfo(null);
-        for (ZoneInfo zoneInfo : zonesInfo.zonesInfo) {
-            if (zoneInfo != null && zoneInfo.allHosts != null) {
-                localHosts.addAll(zoneInfo.allHosts);
-            }
-        }
-        return localHosts.toArray(new String[0]);
-    }
-
     private String[] getCacheHosts() {
-        return addressDictionary.keySet().toArray(new String[0]);
+        return prefetchHosts.toArray(new String[0]);
     }
 
     public boolean isDnsOpen() {
@@ -353,6 +422,24 @@ public class DnsPrefetcher {
 
     private synchronized DnsCacheInfo getDnsCacheInfo() {
         return dnsCacheInfo;
+    }
+
+    private synchronized DnsCacheFile getDiskCache() {
+        if (diskCache == null) {
+            try {
+                diskCache = new DnsCacheFile(GlobalConfiguration.getInstance().dnsCacheDir);
+            } catch (Exception ignored) {
+                diskCache = null;
+            }
+        }
+        return diskCache;
+    }
+
+    private synchronized Dns getCustomDns() {
+        if (customDns == null) {
+            customDns = GlobalConfiguration.getInstance().dns;
+        }
+        return customDns;
     }
 
     private synchronized void setDnsCacheInfo(DnsCacheInfo dnsCacheInfo) {

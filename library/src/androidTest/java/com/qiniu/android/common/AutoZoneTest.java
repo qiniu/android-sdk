@@ -17,6 +17,31 @@ public class AutoZoneTest extends BaseTest {
     private String ak = TestConfig.ak;
     private String bkt = "javasdk";
 
+    public void testClearAutoZoneCache() {
+        final WaitCondition waitCondition = new WaitCondition();
+        AutoZone zone = new AutoZone();
+        UpToken token = UpToken.parse(TestConfig.commonToken);
+
+        zone.preQuery(token, new Zone.QueryHandler() {
+            @Override
+            public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics) {
+                waitCondition.shouldWait = false;
+            }
+        });
+
+        wait(waitCondition, 100);
+        ZonesInfo info = zone.getZonesInfo(token);
+        assertTrue("before clear cache: info was null", info != null);
+        assertTrue("before clear cache: info was't valid", info.isValid());
+        assertTrue("before clear cache: info was temporary", !info.isTemporary());
+
+        AutoZone.clearCache();
+        info = zone.getZonesInfo(token);
+        assertTrue("after clear cache: info was null", info != null);
+        assertTrue("after clear cache: info was't valid", info.isValid());
+        assertTrue("after clear cache: info was't temporary", info.isTemporary());
+    }
+
     public void testHttp() {
 
         final WaitCondition waitCondition = new WaitCondition();

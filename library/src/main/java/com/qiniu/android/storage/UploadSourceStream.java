@@ -4,12 +4,13 @@ import com.qiniu.android.utils.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 
-class UploadSourceStream implements UploadSource {
+class UploadSourceStream extends UploadSource {
 
     private long readOffset = 0;
 
     private InputStream inputStream;
     private String id;
+    private boolean hasSize = false;
     private long size = UploadSource.UnknownSourceSize;
     private String fileName;
 
@@ -53,7 +54,8 @@ class UploadSourceStream implements UploadSource {
         }
     }
 
-    public void setSize(long size) {
+    void setSize(long size) {
+        this.hasSize = size > 0;
         this.size = size;
     }
 
@@ -113,5 +115,10 @@ class UploadSourceStream implements UploadSource {
 
     @Override
     public void close() {
+    }
+
+    @Override
+    String getSourceType() {
+        return hasSize ? "Stream:HasSize" : "Stream:NoSize";
     }
 }

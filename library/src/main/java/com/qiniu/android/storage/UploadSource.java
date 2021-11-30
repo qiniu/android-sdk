@@ -2,11 +2,11 @@ package com.qiniu.android.storage;
 
 import java.io.IOException;
 
-interface UploadSource {
+abstract class UploadSource {
     /**
      * 未知大小
      */
-    long UnknownSourceSize = -1;
+    static final long UnknownSourceSize = -1;
 
     /**
      * 获取资源唯一标识
@@ -17,26 +17,26 @@ interface UploadSource {
      *
      * @return 资源修改时间
      */
-    String getId();
+    abstract String getId();
 
     /**
      * 是否可以重新加载文件信息，也即是否可以重新读取信息
      * @return return
      */
-    boolean couldReloadSource();
+    abstract boolean couldReloadSource();
 
     /**
      * 重新加载文件信息，以便于重新读取
      *
      * @return 重新加载是否成功
      */
-    boolean reloadSource();
+    abstract boolean reloadSource();
 
     /**
      * 获取资源文件名
      * @return 资源文件名
      */
-    String getFileName();
+    abstract String getFileName();
 
     /**
      * 获取资源大小
@@ -47,7 +47,7 @@ interface UploadSource {
      *
      * @return 资源大小
      */
-    long getSize();
+    abstract long getSize();
 
     /**
      * 读取数据
@@ -61,10 +61,15 @@ interface UploadSource {
      * @return 数据
      * @throws IOException 异常
      */
-    byte[] readData(int dataSize, long dataOffset) throws IOException;
+    abstract byte[] readData(int dataSize, long dataOffset) throws IOException;
 
     /**
      * 关闭流
      */
-    void close();
+    abstract void close();
+
+    /**
+     * 资源类型
+     */
+    abstract String getSourceType();
 }
