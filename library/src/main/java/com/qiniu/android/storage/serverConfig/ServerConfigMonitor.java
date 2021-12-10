@@ -189,5 +189,9 @@ public class ServerConfigMonitor {
         if (config.getNetworkCheckEnable() != null) {
             GlobalConfiguration.getInstance().connectCheckEnable = config.getNetworkCheckEnable();
         }
+
+        if (config.getHttp3Enable() != null) {
+            GlobalConfiguration.getInstance().enableHttp3 = config.getHttp3Enable();
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.qiniu.android;
 
 import android.net.Uri;
+import android.util.Log;
 
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.storage.Configuration;
@@ -21,6 +22,13 @@ import java.io.InputStream;
 import java.io.RandomAccessFile;
 
 public class UploadBaseTest extends BaseTest {
+
+    @Override
+    protected void setUp() throws Exception {
+        super.setUp();
+        LogUtil.enableLog(true);
+        LogUtil.setLogLevel(Log.VERBOSE);
+    }
 
     protected UploadOptions defaultOptions = new UploadOptions(null, null, true, new UpProgressBytesHandler() {
         @Override

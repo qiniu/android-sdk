@@ -6,6 +6,7 @@ import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.dns.SystemDns;
+import com.qiniu.android.http.request.IUploadServer;
 import com.qiniu.android.http.request.Request;
 import com.qiniu.android.http.request.IRequestClient;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
@@ -50,7 +51,7 @@ import okhttp3.Response;
 
 import static com.qiniu.android.http.ResponseInfo.NetworkError;
 
-public class SystemHttpClient implements IRequestClient {
+public class SystemHttpClient extends IRequestClient {
 
     public static final String ContentTypeHeader = "Content-Type";
     public static final String DefaultMime = "application/octet-stream";
@@ -59,6 +60,7 @@ public class SystemHttpClient implements IRequestClient {
 
     private boolean hasHandleComplete = false;
     private static ConnectionPool pool;
+    private IUploadServer currentServer;
     private Request currentRequest;
     private static final OkHttpClient baseClient = new OkHttpClient();
     private OkHttpClient httpClient;
@@ -67,19 +69,35 @@ public class SystemHttpClient implements IRequestClient {
     private RequestClientProgress requestProgress;
     private RequestClientCompleteHandler completeHandler;
 
-    @Override
     public void request(Request request,
                         boolean isAsync,
                         ProxyConfiguration connectionProxy,
                         RequestClientProgress progress,
                         RequestClientCompleteHandler complete) {
+        request(request, new Options(null, isAsync, connectionProxy), progress, complete);
+    }
+
+    @Override
+    public void request(Request request,
+                        Options options,
+                        RequestClientProgress progress,
+                        RequestClientCompleteHandler complete) {
+        IUploadServer server = null;
+        boolean isAsync = true;
+        ProxyConfiguration connectionProxy = null;
+        if (options != null) {
+            server = options.server;
+            isAsync = options.isAsync;
+            connectionProxy = options.connectionProxy;
+        }
 
         metrics = new UploadSingleRequestMetrics();
         metrics.start();
-        metrics.clientName = "okhttp";
-        metrics.clientVersion = getOkHttpVersion();
-        if (request != null) {
-            metrics.remoteAddress = request.ip;
+        metrics.setClientName(getClientId());
+        metrics.setClientVersion(getOkHttpVersion());
+        if (server != null) {
+            currentServer = server;
+            metrics.setRemoteAddress(server.getIp());
         }
         metrics.setRequest(request);
         currentRequest = request;
@@ -146,6 +164,11 @@ public class SystemHttpClient implements IRequestClient {
         }
     }
 
+    @Override
+    public String getClientId() {
+        return "okhttp";
+    }
+
     private OkHttpClient createHttpClient(ProxyConfiguration connectionProxy) {
         if (currentRequest == null) {
             return null;
@@ -166,10 +189,15 @@ public class SystemHttpClient implements IRequestClient {
             clientBuilder.dns(new Dns() {
                 @Override
                 public List<InetAddress> lookup(String s) throws UnknownHostException {
-                    if (currentRequest.getInetAddress() != null && s.equals(currentRequest.host)) {
-                        List<InetAddress> inetAddressList = new ArrayList<>();
-                        inetAddressList.add(currentRequest.getInetAddress());
-                        return inetAddressList;
+                    if (currentServer != null && s.equals(currentServer.getHost())) {
+                        InetAddress address = currentServer.getInetAddress();
+                        if (address != null) {
+                            List<InetAddress> inetAddressList = new ArrayList<>();
+                            inetAddressList.add(address);
+                            return inetAddressList;
+                        } else {
+                            return new SystemDns().lookupInetAddress(s);
+                        }
                     } else {
                         return new SystemDns().lookupInetAddress(s);
                     }
@@ -252,36 +280,36 @@ public class SystemHttpClient implements IRequestClient {
             @Override
             public void dnsStart(Call call,
                                  String domainName) {
-                metrics.domainLookupStartDate = new Date();
+                metrics.setDomainLookupStartDate(new Date());
             }
 
             @Override
             public void dnsEnd(Call call,
                                String domainName,
                                List<InetAddress> inetAddressList) {
-                metrics.domainLookupEndDate = new Date();
+                metrics.setDomainLookupEndDate(new Date());
             }
 
             @Override
             public void connectStart(Call call,
                                      InetSocketAddress inetSocketAddress,
                                      Proxy proxy) {
-                metrics.connectStartDate = new Date();
+                metrics.setConnectStartDate(new Date());
                 if (inetSocketAddress != null && inetSocketAddress.getAddress() != null) {
-                    metrics.remoteAddress = inetSocketAddress.getAddress().getHostAddress();
-                    metrics.remotePort = inetSocketAddress.getPort();
+                    metrics.setRemoteAddress(inetSocketAddress.getAddress().getHostAddress());
+                    metrics.setRemotePort(inetSocketAddress.getPort());
                 }
             }
 
             @Override
             public void secureConnectStart(Call call) {
-                metrics.connectEndDate = new Date();
+                metrics.setConnectEndDate(new Date());
             }
 
             @Override
             public void secureConnectEnd(Call call,
                                          Handshake handshake) {
-                metrics.secureConnectionStartDate = new Date();
+                metrics.setSecureConnectionStartDate(new Date());
             }
 
             @Override
@@ -289,7 +317,7 @@ public class SystemHttpClient implements IRequestClient {
                                    InetSocketAddress inetSocketAddress,
                                    Proxy proxy,
                                    Protocol protocol) {
-                metrics.secureConnectionEndDate = new Date();
+                metrics.setSecureConnectionEndDate(new Date());
             }
 
             @Override
@@ -298,7 +326,7 @@ public class SystemHttpClient implements IRequestClient {
                                       Proxy proxy,
                                       Protocol protocol,
                                       IOException ioe) {
-                metrics.connectEndDate = new Date();
+                metrics.setConnectEndDate(new Date());
             }
 
             @Override
@@ -311,12 +339,12 @@ public class SystemHttpClient implements IRequestClient {
 
             @Override
             public void requestHeadersStart(Call call) {
-                metrics.requestStartDate = new Date();
+                metrics.setRequestStartDate(new Date());
             }
 
             @Override
             public void requestHeadersEnd(Call call, okhttp3.Request request) {
-                metrics.countOfRequestHeaderBytesSent = request.headers().toString().length();
+                metrics.setCountOfRequestHeaderBytesSent(request.headers().toString().length());
             }
 
             @Override
@@ -325,24 +353,24 @@ public class SystemHttpClient implements IRequestClient {
 
             @Override
             public void requestBodyEnd(Call call, long byteCount) {
-                metrics.requestEndDate = new Date();
-                metrics.countOfRequestBodyBytesSent = byteCount;
+                metrics.setRequestEndDate(new Date());
+                metrics.setCountOfRequestBodyBytesSent(byteCount);
             }
 
             public void requestFailed(Call call, IOException ioe) {
-                metrics.countOfRequestBodyBytesSent = 0;
+                metrics.setCountOfRequestBodyBytesSent(0);
             }
 
             @Override
             public void responseHeadersStart(Call call) {
-                metrics.responseStartDate = new Date();
+                metrics.setResponseStartDate(new Date());
             }
 
             @Override
             public void responseHeadersEnd(Call call, Response response) {
                 Headers headers = response.headers();
                 if (headers != null && headers.byteCount() > 0) {
-                    metrics.countOfResponseHeaderBytesReceived = headers.byteCount();
+                    metrics.setCountOfResponseHeaderBytesReceived(headers.byteCount());
                 }
             }
 
@@ -352,12 +380,12 @@ public class SystemHttpClient implements IRequestClient {
 
             @Override
             public void responseBodyEnd(Call call, long byteCount) {
-                metrics.responseEndDate = new Date();
-                metrics.countOfResponseBodyBytesReceived = byteCount;
+                metrics.setResponseEndDate(new Date());
+                metrics.setCountOfResponseBodyBytesReceived(byteCount);
             }
 
             public void responseFailed(Call call, IOException ioe) {
-                metrics.responseEndDate = new Date();
+                metrics.setResponseEndDate(new Date());
             }
 
             @Override
@@ -384,8 +412,8 @@ public class SystemHttpClient implements IRequestClient {
         }
 
         ResponseInfo info = ResponseInfo.create(request, responseCode, null, null, errorMsg);
-        metrics.response = info;
-        metrics.request = request;
+        metrics.setResponse(info);
+        metrics.setRequest(request);
         metrics.end();
         complete.complete(info, metrics, info.response);
         releaseResource();
@@ -441,14 +469,14 @@ public class SystemHttpClient implements IRequestClient {
 
 
         final ResponseInfo info = ResponseInfo.create(request, statusCode, responseHeader, responseJson, errorMessage);
-        metrics.response = info;
-        metrics.request = request;
+        metrics.setResponse(info);
+        metrics.setRequest(request);
         if (response.protocol() == Protocol.HTTP_1_0) {
-            metrics.httpVersion = "1.0";
+            metrics.setHttpVersion("1.0");
         } else if (response.protocol() == Protocol.HTTP_1_1) {
-            metrics.httpVersion = "1.1";
+            metrics.setHttpVersion("1.1");
         } else if (response.protocol() == Protocol.HTTP_2) {
-            metrics.httpVersion = "2";
+            metrics.setHttpVersion("2");
         }
         metrics.end();
         complete.complete(info, metrics, info.response);

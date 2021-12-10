@@ -23,7 +23,7 @@ public class ConnectChecker {
     private static SingleFlight<UploadSingleRequestMetrics> singleFlight = new SingleFlight<>();
 
     public static boolean isConnected(UploadSingleRequestMetrics metrics) {
-        return metrics != null && metrics.response != null && metrics.response.statusCode > 99;
+        return metrics != null && metrics.getResponse() != null && metrics.getResponse().statusCode > 99;
     }
 
     public static UploadSingleRequestMetrics check() {
@@ -133,7 +133,7 @@ public class ConnectChecker {
         SystemHttpClient client = new SystemHttpClient();
 
         LogUtil.i("== checkHost:" + host);
-        client.request(request, true, null, null, new IRequestClient.RequestClientCompleteHandler() {
+        client.request(request, new IRequestClient.Options(null, true, null), null, new IRequestClient.RequestClientCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
                 synchronized (this) {

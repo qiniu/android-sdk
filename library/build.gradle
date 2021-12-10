@@ -2,7 +2,7 @@ import java.util.regex.Matcher
 
 apply plugin: 'com.android.library'
 
-def versionName() {
+def versionNameFunc() {
     String config = 'library/src/main/java/com/qiniu/android/common/Constants.java'
     String fileContents = new File(config).text
     Matcher myMatcher = fileContents =~ /VERSION = "(.+)";/
@@ -16,8 +16,8 @@ def versionNameToCode(String version) {
     return v.toLong()
 }
 
-String version = versionName()
-int code = versionNameToCode(version)
+String versionNameVar = versionNameFunc()
+int code = versionNameToCode(versionNameVar)
 
 android {
     compileSdkVersion 30
@@ -27,7 +27,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 30
         versionCode code
-        versionName version
+        versionName versionNameVar
     }
     buildTypes {
         release {
@@ -59,13 +59,14 @@ dependencies {
 //    implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'org.conscrypt:conscrypt-android:2.2.1'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    testImplementation 'junit:junit:4.13'
+
+    androidTestImplementation 'junit:junit:4.12'
 //    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
 
 task releaseJar(type: Jar, dependsOn: 'build') {
     //指定生成的jar名
-    baseName 'qiniu-android-sdk-' + version
+    baseName 'qiniu-android-sdk-' + versionNameVar
     //从哪里打包class文件
 //    from('build/intermediates/classes/release/com/qiniu/android/dns/')
     //打包到jar后的目录结构
@@ -85,7 +86,7 @@ android.libraryVariants.all { variant ->
     artifacts.add('archives', task)
 }
 
-setProperty('VERSION_NAME', version)
+setProperty('VERSION_NAME', versionNameVar)
 setProperty('VERSION_CODE', code)
 
 apply from: '../mvn_push.gradle'

@@ -109,9 +109,7 @@ class HttpRegionRequest {
         String scheme = config.useHttps ? "https://" : "http://";
         String urlString = scheme + serverHost + (action != null ? action : "");
         final Request request = new Request(urlString, method, header, data, config.connectTimeout);
-        request.host = serverHost;
-        request.ip = serverIP;
-
+        request.setHost(serverHost);
         LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
                 " url:" + StringUtils.toNonnullString(request.urlString));
         LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
@@ -126,7 +124,7 @@ class HttpRegionRequest {
                 boolean hijackedAndNeedRetry = false;
                 if (requestMetricsList != null && requestMetricsList.size() > 0) {
                     UploadSingleRequestMetrics metrics = requestMetricsList.get(requestMetricsList.size() - 1);
-                    boolean isSafeDnsSource = DnsSource.isCustom(metrics.syncDnsSource) || DnsSource.isDoh(metrics.syncDnsSource) || DnsSource.isDnspod(metrics.syncDnsSource);
+                    boolean isSafeDnsSource = DnsSource.isCustom(metrics.getSyncDnsSource()) || DnsSource.isDoh(metrics.getSyncDnsSource()) || DnsSource.isDnspod(metrics.getSyncDnsSource());
                     if ((metrics.isForsureHijacked() || metrics.isMaybeHijacked() && isSafeDnsSource)) {
                         hijackedAndNeedRetry = true;
                     }

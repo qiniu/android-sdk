@@ -145,7 +145,14 @@ public class GlobalConfiguration {
      */
     public boolean connectCheckEnable = true;
 
-    private static GlobalConfiguration configuration = new GlobalConfiguration();
+    /**
+     * 是否允许 http3
+     * 默认上传 client 不支持 http3, 如果 enable 需要定制支持 http3 的 client;
+     * client 指定方法见 {@link Configuration#requestClient}
+     */
+    public boolean enableHttp3 = false;
+
+    private static final GlobalConfiguration configuration = new GlobalConfiguration();
 
     private GlobalConfiguration() {
     }
