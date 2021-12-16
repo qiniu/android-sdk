@@ -1,4 +1,8 @@
 #Changelog
+## 8.5.0(2021-12-16)
+* 可自定义 request client
+* 增加 http3 相关重试逻辑
+
 ## 8.4.0(2021-12-07)
 * 优化：
     * DNS 预解析支持 DoH (DNS over HTTPS)
