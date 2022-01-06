@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/QiNiu_Android.iml" filepath="$PROJECT_DIR$/QiNiu_Android.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/library/QiNiu_Android.library.iml" filepath="$PROJECT_DIR$/.idea/modules/library/QiNiu_Android.library.iml" />
     </modules>
   </component>
 </project>

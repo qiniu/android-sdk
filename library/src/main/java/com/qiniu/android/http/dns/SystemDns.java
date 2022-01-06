@@ -18,6 +18,8 @@ import java.util.concurrent.TimeUnit;
 public class SystemDns implements Dns {
 
     private int timeout = 10;
+    private final ExecutorService executor = new ThreadPoolExecutor(1, 2,
+            60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     public SystemDns() {
     }
@@ -31,14 +33,12 @@ public class SystemDns implements Dns {
             throw new UnknownHostException("hostname is null");
         } else {
             try {
-                FutureTask<List<InetAddress>> task = new FutureTask<>(
-                        new Callable<List<InetAddress>>() {
-                            @Override
-                            public List<InetAddress> call() throws Exception {
-                                return Arrays.asList(InetAddress.getAllByName(hostname));
-                            }
-                        });
-                new Thread(task).start();
+                Future<List<InetAddress>> task = executor.submit(new Callable<List<InetAddress>>() {
+                    @Override
+                    public List<InetAddress> call() throws Exception {
+                        return Arrays.asList(InetAddress.getAllByName(hostname));
+                    }
+                });
                 return task.get(timeout, TimeUnit.SECONDS);
             } catch (Exception var4) {
                 UnknownHostException unknownHostException =
