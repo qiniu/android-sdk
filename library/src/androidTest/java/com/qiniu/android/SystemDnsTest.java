@@ -13,7 +13,7 @@ public class SystemDnsTest extends BaseTest {
         SystemDns dns = new SystemDns(5);
         try {
             List<IDnsNetworkAddress> result = dns.lookup("upload.qiniup.com");
-            assertTrue("testDnsLookup fail:", result != null && result.size() == 0);
+            assertTrue("testDnsLookup fail:", result != null && result.size() > 0);
         } catch (UnknownHostException e) {
             e.printStackTrace();
             fail("testDnsLookup fail because:" + e.getMessage());
