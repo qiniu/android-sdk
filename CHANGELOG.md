@@ -1,4 +1,8 @@
 #Changelog
+## 8.4.1(2022-01-07)
+* 优化 SystemDns 解析：异步开线程池。
+
+
 ## 8.4.0(2021-12-07)
 * 优化：
     * DNS 预解析支持 DoH (DNS over HTTPS)
