@@ -89,4 +89,40 @@ android.libraryVariants.all { variant ->
 setProperty('VERSION_NAME', versionNameVar)
 setProperty('VERSION_CODE', code)
 
+apply plugin: 'maven-publish'
+
+task generateSourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier 'sources'
+}
+
+//以下与dependencies{}同级
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'com.qiniu'
+            artifactId = 'qiniu-android-sdk'
+            version = versionNameVar
+
+            afterEvaluate { artifact(tasks.getByName("bundleReleaseAar")) }
+            artifact generateSourcesJar
+
+            pom.withXml{
+                def dependenciesNode = asNode().appendNode("dependencies")
+                configurations.implementation.allDependencies.forEach(){
+                    Dependency dependency ->
+                        if (dependency.version != "unspecified" && dependency.name != "unspecified"){
+                            def dependencyNode = dependenciesNode.appendNode('dependency')
+                            dependencyNode.appendNode('groupId', dependency.group)
+                            dependencyNode.appendNode('artifactId', dependency.name)
+                            dependencyNode.appendNode('version', dependency.version)
+                        }
+                }
+            }
+        }
+    }
+//本地地址
+    repositories { maven { url = "file:/Users/senyang/.m2/repository/" } }
+}
+
 apply from: '../mvn_push.gradle'

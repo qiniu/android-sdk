@@ -270,14 +270,14 @@ public class UploadDomainRegion implements IUploadRegion {
         String frozenType = UploadServerFreezeUtil.getFrozenType(freezeServer.getHost(), freezeServer.getIp());
         // 1. http3 冻结
         if (freezeServer.isHttp3()) {
-            if (responseInfo.isNotQiniu()) {
+            if (responseInfo.isNotQiniu() || !responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
                 hasFreezeHost = true;
                 partialHttp3Freezer.freezeType(frozenType, GlobalConfiguration.getInstance().partialHostFrozenTime);
             }
 
-            if (IUploadServer.HttpVersion3.equals(responseInfo.httpVersion) || !responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
+            if (IUploadServer.HttpVersion3.equals(responseInfo.httpVersion) || responseInfo.isHostUnavailable()) {
                 hasFreezeHost = true;
-                UploadServerFreezeUtil.globalHttp3Freezer().freezeType(frozenType, Http3FrozenTime);
+                UploadServerFreezeUtil.globalHttp3Freezer().freezeType(frozenType, GlobalConfiguration.getInstance().globalHostFrozenTime);
             }
             return;
         }
