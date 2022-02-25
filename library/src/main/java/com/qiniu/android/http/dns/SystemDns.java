@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class SystemDns implements Dns {
 
     private int timeout = 10;
-    private final ExecutorService executor = new ThreadPoolExecutor(1, 3,
+    private static final ExecutorService executor = new ThreadPoolExecutor(1, 3,
             60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     public SystemDns() {
