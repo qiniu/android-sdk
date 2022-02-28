@@ -41,7 +41,6 @@ import okhttp3.Dns;
 import okhttp3.EventListener;
 import okhttp3.Handshake;
 import okhttp3.Headers;
-import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
@@ -64,15 +63,15 @@ public class SystemHttpClient extends IRequestClient {
     private OkHttpClient httpClient;
     private Call call;
     private UploadSingleRequestMetrics metrics;
-    private RequestClientProgress requestProgress;
-    private RequestClientCompleteHandler completeHandler;
+    private Progress requestProgress;
+    private CompleteHandler completeHandler;
 
     @Override
     public void request(Request request,
                         boolean isAsync,
                         ProxyConfiguration connectionProxy,
-                        RequestClientProgress progress,
-                        RequestClientCompleteHandler complete) {
+                        Progress progress,
+                        CompleteHandler complete) {
 
         metrics = new UploadSingleRequestMetrics();
         metrics.start();
@@ -193,7 +192,7 @@ public class SystemHttpClient extends IRequestClient {
         return pool;
     }
 
-    private okhttp3.Request.Builder createRequestBuilder(final RequestClientProgress progress) {
+    private okhttp3.Request.Builder createRequestBuilder(final Progress progress) {
         if (currentRequest == null) {
             return null;
         }
@@ -375,7 +374,7 @@ public class SystemHttpClient extends IRequestClient {
     private void handleError(Request request,
                              int responseCode,
                              String errorMsg,
-                             RequestClientCompleteHandler complete) {
+                             CompleteHandler complete) {
         synchronized (this) {
             if (hasHandleComplete) {
                 return;
@@ -393,7 +392,7 @@ public class SystemHttpClient extends IRequestClient {
 
     private void handleResponse(Request request,
                                 okhttp3.Response response,
-                                RequestClientCompleteHandler complete) {
+                                CompleteHandler complete) {
         synchronized (this) {
             if (hasHandleComplete) {
                 return;

@@ -133,7 +133,7 @@ public class ConnectChecker {
         SystemHttpClient client = new SystemHttpClient();
 
         LogUtil.i("== checkHost:" + host);
-        client.request(request, true, null, null, new IRequestClient.RequestClientCompleteHandler() {
+        client.request(request, true, null, null, new IRequestClient.CompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
                 synchronized (this) {
