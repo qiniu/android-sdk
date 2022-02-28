@@ -178,11 +178,81 @@ public class AutoZoneTest extends BaseTest {
         });
     }
 
+    public void testAutoZone() {
+        final AutoZone zone = new AutoZone();
+        final UpToken token = UpToken.parse(TestConfig.commonToken);
+
+        final TestParam param = new TestParam();
+
+        zone.preQuery(token, new Zone.QueryHandler() {
+            @Override
+            public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics) {
+                ZonesInfo zonesInfo = zone.getZonesInfo(token);
+                if (zonesInfo != null){
+                    param.success = true;
+                    LogUtil.i(zonesInfo.toString());
+                } else {
+                    param.success = false;
+                }
+                param.completeCount.incrementAndGet();
+            }
+        });
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (param.completeCount.intValue() > 0){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        }, 600);
+
+        assertTrue("preQueryHost02 test complete:" + param.success, param.success);
+    }
+
+    public void testSetUcHosts02() {
+        final AutoZone zone = new AutoZone();
+        zone.setUcServers(new String[]{Config.preQueryHost02});
+        final UpToken token = UpToken.parse(TestConfig.commonToken);
+
+        final TestParam param = new TestParam();
+
+        zone.preQuery(token, new Zone.QueryHandler() {
+            @Override
+            public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics) {
+                ZonesInfo zonesInfo = zone.getZonesInfo(token);
+                if (zonesInfo != null){
+                    param.success = true;
+                    LogUtil.i(zonesInfo.toString());
+                } else {
+                    param.success = false;
+                }
+                param.completeCount.incrementAndGet();
+            }
+        });
+
+        wait(new WaitConditional() {
+            @Override
+            public boolean shouldWait() {
+                if (param.completeCount.intValue() > 0){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        }, 60);
+
+        assertTrue("preQueryHost02 test complete:" + param.success, param.success);
+    }
+
     private interface CompleteHandlder {
         void complete(boolean isSuccess);
     }
 
     private class TestParam{
+        Boolean success = false;
         AtomicInteger completeCount = new AtomicInteger(0);
     }
 
