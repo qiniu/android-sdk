@@ -46,8 +46,8 @@ public final class AutoZone extends Zone {
             return serverList;
         } else {
             ArrayList<String> serverList = new ArrayList<>();
-            serverList.add(Config.preQueryHost00);
             serverList.add(Config.preQueryHost02);
+            serverList.add(Config.preQueryHost00);
             serverList.add(Config.preQueryHost01);
             return serverList;
         }
