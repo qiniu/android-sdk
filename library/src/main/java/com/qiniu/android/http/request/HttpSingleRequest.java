@@ -92,7 +92,7 @@ class HttpSingleRequest {
                 " url:" + StringUtils.toNonnullString(request.urlString) +
                 " ip:" + StringUtils.toNonnullString(request.ip));
 
-        client.request(request, isAsync, config.proxy, new IRequestClient.RequestClientProgress() {
+        client.request(request, isAsync, config.proxy, new IRequestClient.Progress() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
                 if (checkCancelHandler.checkCancel()) {
@@ -104,7 +104,7 @@ class HttpSingleRequest {
                     progressHandler.progress(totalBytesWritten, totalBytesExpectedToWrite);
                 }
             }
-        }, new IRequestClient.RequestClientCompleteHandler() {
+        }, new IRequestClient.CompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
                 if (metrics != null) {
@@ -125,28 +125,28 @@ class HttpSingleRequest {
                 boolean isSafeDnsSource = DnsSource.isCustom(server.getSource()) || DnsSource.isDoh(server.getSource()) || DnsSource.isDnspod(server.getSource());
                 boolean hijacked = responseInfo != null && responseInfo.isNotQiniu() && !isSafeDnsSource;
                 if (hijacked && metrics != null) {
-                    metrics.hijacked = UploadSingleRequestMetrics.RequestHijacked;
+                    metrics.setHijacked(UploadSingleRequestMetrics.RequestHijacked);
                     try {
-                        metrics.syncDnsSource = DnsPrefetcher.getInstance().lookupBySafeDns(server.getHost());
+                        metrics.setSyncDnsSource(DnsPrefetcher.getInstance().lookupBySafeDns(server.getHost()));
                     } catch (Exception e) {
-                        metrics.syncDnsError = e.toString();
+                        metrics.setSyncDnsError(e.toString());
                     }
                 }
 
                 if (!hijacked && shouldCheckConnect(responseInfo)) {
                     UploadSingleRequestMetrics checkMetrics = ConnectChecker.check();
                     if (metrics != null) {
-                        metrics.connectCheckMetrics = checkMetrics;
+                        metrics.setConnectCheckMetrics(checkMetrics);
                     }
                     if (!ConnectChecker.isConnected(checkMetrics)) {
                         String message = responseInfo == null ? "" : ("check origin statusCode:" + responseInfo.statusCode + " error:" + responseInfo.error);
                         responseInfo = ResponseInfo.errorInfo(ResponseInfo.NetworkSlow, message);
                     } else if (metrics != null && !isSafeDnsSource) {
-                        metrics.hijacked = UploadSingleRequestMetrics.RequestMaybeHijacked;
+                        metrics.setHijacked(UploadSingleRequestMetrics.RequestMaybeHijacked);
                         try {
-                            metrics.syncDnsSource = DnsPrefetcher.getInstance().lookupBySafeDns(server.getHost());
+                            metrics.setSyncDnsSource(DnsPrefetcher.getInstance().lookupBySafeDns(server.getHost()));
                         } catch (Exception e) {
-                            metrics.syncDnsError = e.toString();
+                            metrics.setSyncDnsError(e.toString());
                         }
                     }
                 }
@@ -233,9 +233,9 @@ class HttpSingleRequest {
         item.setReport((requestMetrics.getStartDate().getTime() / 1000), ReportItem.RequestKeyUpTime);
         item.setReport(ReportItem.requestReportStatusCode(responseInfo), ReportItem.RequestKeyStatusCode);
         item.setReport(responseInfo != null ? responseInfo.reqId : null, ReportItem.RequestKeyRequestId);
-        item.setReport(requestMetrics.request != null ? requestMetrics.request.host : null, ReportItem.RequestKeyHost);
-        item.setReport(requestMetrics.remoteAddress, ReportItem.RequestKeyRemoteIp);
-        item.setReport(requestMetrics.remotePort, ReportItem.RequestKeyPort);
+        item.setReport(requestMetrics.getRequest() != null ? requestMetrics.getRequest().host : null, ReportItem.RequestKeyHost);
+        item.setReport(requestMetrics.getRemoteAddress(), ReportItem.RequestKeyRemoteIp);
+        item.setReport(requestMetrics.getRemotePort(), ReportItem.RequestKeyPort);
         item.setReport(requestInfo.bucket, ReportItem.RequestKeyTargetBucket);
         item.setReport(requestInfo.key, ReportItem.RequestKeyTargetKey);
         item.setReport(requestMetrics.totalElapsedTime(), ReportItem.RequestKeyTotalElapsedTime);
@@ -276,32 +276,32 @@ class HttpSingleRequest {
         }
         item.setReport(DnsPrefetcher.getInstance().lastPrefetchErrorMessage, ReportItem.RequestKeyPrefetchedErrorMessage);
 
-        item.setReport(requestMetrics.clientName, ReportItem.RequestKeyHttpClient);
-        item.setReport(requestMetrics.clientVersion, ReportItem.RequestKeyHttpClientVersion);
+        item.setReport(requestMetrics.getClientName(), ReportItem.RequestKeyHttpClient);
+        item.setReport(requestMetrics.getClientVersion(), ReportItem.RequestKeyHttpClientVersion);
 
         if (!GlobalConfiguration.getInstance().connectCheckEnable) {
             item.setReport("disable", ReportItem.RequestKeyNetworkMeasuring);
-        } else if (requestMetrics.connectCheckMetrics != null) {
-            String connectCheckDuration = String.format(Locale.ENGLISH, "%d", requestMetrics.connectCheckMetrics.totalElapsedTime());
+        } else if (requestMetrics.getConnectCheckMetrics() != null) {
+            String connectCheckDuration = String.format(Locale.ENGLISH, "%d", requestMetrics.getConnectCheckMetrics().totalElapsedTime());
             String connectCheckStatusCode = "";
-            if (requestMetrics.connectCheckMetrics.response != null) {
-                connectCheckStatusCode = String.format(Locale.ENGLISH, "%d", requestMetrics.connectCheckMetrics.response.statusCode);
+            if (requestMetrics.getConnectCheckMetrics().getResponse() != null) {
+                connectCheckStatusCode = String.format(Locale.ENGLISH, "%d", requestMetrics.getConnectCheckMetrics().getResponse().statusCode);
             }
             String networkMeasuring = String.format("duration:%s status_code:%s", connectCheckDuration, connectCheckStatusCode);
             item.setReport(networkMeasuring, ReportItem.RequestKeyNetworkMeasuring);
         }
 
         // 劫持标记
-        item.setReport(requestMetrics.hijacked, ReportItem.RequestKeyHijacking);
-        item.setReport(requestMetrics.syncDnsSource, ReportItem.RequestKeyDnsSource);
-        item.setReport(requestMetrics.syncDnsError, ReportItem.RequestKeyDnsErrorMessage);
+        item.setReport(requestMetrics.getHijacked(), ReportItem.RequestKeyHijacking);
+        item.setReport(requestMetrics.getSyncDnsSource(), ReportItem.RequestKeyDnsSource);
+        item.setReport(requestMetrics.getSyncDnsError(), ReportItem.RequestKeyDnsErrorMessage);
 
         // 统计当前请求上传速度 / 总耗时
         if (responseInfo.isOK()) {
             item.setReport(requestMetrics.perceptiveSpeed(), ReportItem.RequestKeyPerceptiveSpeed);
         }
 
-        item.setReport(requestMetrics.httpVersion, ReportItem.RequestKeyHttpVersion);
+        item.setReport(requestMetrics.getHttpVersion(), ReportItem.RequestKeyHttpVersion);
 
         UploadInfoReporter.getInstance().report(item, token.token);
     }

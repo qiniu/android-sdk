@@ -505,7 +505,7 @@ public class UploadManager {
         if (lastRegionMetrics != null) {
             UploadSingleRequestMetrics lastSingleMetrics = lastRegionMetrics.lastMetrics();
             if (lastSingleMetrics != null) {
-                item.setReport(lastSingleMetrics.hijacked, ReportItem.BlockKeyHijacking);
+                item.setReport(lastSingleMetrics.getHijacked(), ReportItem.BlockKeyHijacking);
             }
         }
 

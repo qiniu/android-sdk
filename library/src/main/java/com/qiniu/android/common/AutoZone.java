@@ -2,8 +2,8 @@ package com.qiniu.android.common;
 
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.dns.DnsPrefetchTransaction;
-import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.SingleFlight;
 
@@ -12,7 +12,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -47,6 +46,7 @@ public final class AutoZone extends Zone {
             return serverList;
         } else {
             ArrayList<String> serverList = new ArrayList<>();
+            serverList.add(Config.preQueryHost02);
             serverList.add(Config.preQueryHost00);
             serverList.add(Config.preQueryHost01);
             return serverList;

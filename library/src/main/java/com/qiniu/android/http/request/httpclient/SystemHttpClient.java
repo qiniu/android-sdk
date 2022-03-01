@@ -41,7 +41,6 @@ import okhttp3.Dns;
 import okhttp3.EventListener;
 import okhttp3.Handshake;
 import okhttp3.Headers;
-import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
@@ -50,7 +49,7 @@ import okhttp3.Response;
 
 import static com.qiniu.android.http.ResponseInfo.NetworkError;
 
-public class SystemHttpClient implements IRequestClient {
+public class SystemHttpClient extends IRequestClient {
 
     public static final String ContentTypeHeader = "Content-Type";
     public static final String DefaultMime = "application/octet-stream";
@@ -64,22 +63,22 @@ public class SystemHttpClient implements IRequestClient {
     private OkHttpClient httpClient;
     private Call call;
     private UploadSingleRequestMetrics metrics;
-    private RequestClientProgress requestProgress;
-    private RequestClientCompleteHandler completeHandler;
+    private Progress requestProgress;
+    private CompleteHandler completeHandler;
 
     @Override
     public void request(Request request,
                         boolean isAsync,
                         ProxyConfiguration connectionProxy,
-                        RequestClientProgress progress,
-                        RequestClientCompleteHandler complete) {
+                        Progress progress,
+                        CompleteHandler complete) {
 
         metrics = new UploadSingleRequestMetrics();
         metrics.start();
-        metrics.clientName = "okhttp";
-        metrics.clientVersion = getOkHttpVersion();
+        metrics.setClientName("okhttp");
+        metrics.setClientVersion(getOkHttpVersion());
         if (request != null) {
-            metrics.remoteAddress = request.ip;
+            metrics.setRemoteAddress(request.ip);
         }
         metrics.setRequest(request);
         currentRequest = request;
@@ -193,7 +192,7 @@ public class SystemHttpClient implements IRequestClient {
         return pool;
     }
 
-    private okhttp3.Request.Builder createRequestBuilder(final RequestClientProgress progress) {
+    private okhttp3.Request.Builder createRequestBuilder(final Progress progress) {
         if (currentRequest == null) {
             return null;
         }
@@ -252,36 +251,36 @@ public class SystemHttpClient implements IRequestClient {
             @Override
             public void dnsStart(Call call,
                                  String domainName) {
-                metrics.domainLookupStartDate = new Date();
+                metrics.setDomainLookupStartDate(new Date());
             }
 
             @Override
             public void dnsEnd(Call call,
                                String domainName,
                                List<InetAddress> inetAddressList) {
-                metrics.domainLookupEndDate = new Date();
+                metrics.setDomainLookupEndDate(new Date());
             }
 
             @Override
             public void connectStart(Call call,
                                      InetSocketAddress inetSocketAddress,
                                      Proxy proxy) {
-                metrics.connectStartDate = new Date();
+                metrics.setConnectStartDate(new Date());
                 if (inetSocketAddress != null && inetSocketAddress.getAddress() != null) {
-                    metrics.remoteAddress = inetSocketAddress.getAddress().getHostAddress();
-                    metrics.remotePort = inetSocketAddress.getPort();
+                    metrics.setRemoteAddress(inetSocketAddress.getAddress().getHostAddress());
+                    metrics.setRemotePort(inetSocketAddress.getPort());
                 }
             }
 
             @Override
             public void secureConnectStart(Call call) {
-                metrics.connectEndDate = new Date();
+                metrics.setConnectEndDate(new Date());
             }
 
             @Override
             public void secureConnectEnd(Call call,
                                          Handshake handshake) {
-                metrics.secureConnectionStartDate = new Date();
+                metrics.setSecureConnectionStartDate(new Date());
             }
 
             @Override
@@ -289,7 +288,7 @@ public class SystemHttpClient implements IRequestClient {
                                    InetSocketAddress inetSocketAddress,
                                    Proxy proxy,
                                    Protocol protocol) {
-                metrics.secureConnectionEndDate = new Date();
+                metrics.setSecureConnectionEndDate(new Date());
             }
 
             @Override
@@ -298,7 +297,7 @@ public class SystemHttpClient implements IRequestClient {
                                       Proxy proxy,
                                       Protocol protocol,
                                       IOException ioe) {
-                metrics.connectEndDate = new Date();
+                metrics.setConnectEndDate(new Date());
             }
 
             @Override
@@ -311,12 +310,12 @@ public class SystemHttpClient implements IRequestClient {
 
             @Override
             public void requestHeadersStart(Call call) {
-                metrics.requestStartDate = new Date();
+                metrics.setRequestStartDate(new Date());
             }
 
             @Override
             public void requestHeadersEnd(Call call, okhttp3.Request request) {
-                metrics.countOfRequestHeaderBytesSent = request.headers().toString().length();
+                metrics.setCountOfRequestHeaderBytesSent(request.headers().toString().length());
             }
 
             @Override
@@ -325,24 +324,24 @@ public class SystemHttpClient implements IRequestClient {
 
             @Override
             public void requestBodyEnd(Call call, long byteCount) {
-                metrics.requestEndDate = new Date();
-                metrics.countOfRequestBodyBytesSent = byteCount;
+                metrics.setRequestEndDate(new Date());
+                metrics.setCountOfRequestBodyBytesSent(byteCount);
             }
 
             public void requestFailed(Call call, IOException ioe) {
-                metrics.countOfRequestBodyBytesSent = 0;
+                metrics.setCountOfRequestBodyBytesSent(0);
             }
 
             @Override
             public void responseHeadersStart(Call call) {
-                metrics.responseStartDate = new Date();
+                metrics.setResponseStartDate(new Date());
             }
 
             @Override
             public void responseHeadersEnd(Call call, Response response) {
                 Headers headers = response.headers();
                 if (headers != null && headers.byteCount() > 0) {
-                    metrics.countOfResponseHeaderBytesReceived = headers.byteCount();
+                    metrics.setCountOfResponseHeaderBytesReceived(headers.byteCount());
                 }
             }
 
@@ -352,12 +351,12 @@ public class SystemHttpClient implements IRequestClient {
 
             @Override
             public void responseBodyEnd(Call call, long byteCount) {
-                metrics.responseEndDate = new Date();
-                metrics.countOfResponseBodyBytesReceived = byteCount;
+                metrics.setResponseEndDate(new Date());
+                metrics.setCountOfResponseBodyBytesReceived(byteCount);
             }
 
             public void responseFailed(Call call, IOException ioe) {
-                metrics.responseEndDate = new Date();
+                metrics.setResponseEndDate(new Date());
             }
 
             @Override
@@ -375,7 +374,7 @@ public class SystemHttpClient implements IRequestClient {
     private void handleError(Request request,
                              int responseCode,
                              String errorMsg,
-                             RequestClientCompleteHandler complete) {
+                             CompleteHandler complete) {
         synchronized (this) {
             if (hasHandleComplete) {
                 return;
@@ -384,8 +383,8 @@ public class SystemHttpClient implements IRequestClient {
         }
 
         ResponseInfo info = ResponseInfo.create(request, responseCode, null, null, errorMsg);
-        metrics.response = info;
-        metrics.request = request;
+        metrics.setResponse(info);
+        metrics.setRequest(request);
         metrics.end();
         complete.complete(info, metrics, info.response);
         releaseResource();
@@ -393,7 +392,7 @@ public class SystemHttpClient implements IRequestClient {
 
     private void handleResponse(Request request,
                                 okhttp3.Response response,
-                                RequestClientCompleteHandler complete) {
+                                CompleteHandler complete) {
         synchronized (this) {
             if (hasHandleComplete) {
                 return;
@@ -441,14 +440,14 @@ public class SystemHttpClient implements IRequestClient {
 
 
         final ResponseInfo info = ResponseInfo.create(request, statusCode, responseHeader, responseJson, errorMessage);
-        metrics.response = info;
-        metrics.request = request;
+        metrics.setResponse(info);
+        metrics.setRequest(request);
         if (response.protocol() == Protocol.HTTP_1_0) {
-            metrics.httpVersion = "1.0";
+            metrics.setHttpVersion("1.0");
         } else if (response.protocol() == Protocol.HTTP_1_1) {
-            metrics.httpVersion = "1.1";
+            metrics.setHttpVersion("1.1");
         } else if (response.protocol() == Protocol.HTTP_2) {
-            metrics.httpVersion = "2";
+            metrics.setHttpVersion("2");
         }
         metrics.end();
         complete.complete(info, metrics, info.response);

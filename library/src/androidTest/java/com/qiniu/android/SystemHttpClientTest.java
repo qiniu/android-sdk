@@ -19,7 +19,7 @@ public class SystemHttpClientTest extends BaseTest {
                 null, null, null, 15);
 
         SystemHttpClient client = new SystemHttpClient();
-        client.request(request, true, null, null, new IRequestClient.RequestClientCompleteHandler() {
+        client.request(request, true, null, null, new IRequestClient.CompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
                 assertTrue("pass", responseInfo.isOK());
@@ -38,7 +38,7 @@ public class SystemHttpClientTest extends BaseTest {
                 null, null, null, 15);
 
         SystemHttpClient client = new SystemHttpClient();
-        client.request(request, false, null, null, new IRequestClient.RequestClientCompleteHandler() {
+        client.request(request, false, null, null, new IRequestClient.CompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
                 assertTrue("pass", responseInfo.isOK());
@@ -57,7 +57,7 @@ public class SystemHttpClientTest extends BaseTest {
                 Request.HttpMethodPOST, null, "hello".getBytes(), 15);
 
         SystemHttpClient client = new SystemHttpClient();
-        client.request(request, true, null, null, new IRequestClient.RequestClientCompleteHandler() {
+        client.request(request, true, null, null, new IRequestClient.CompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
 
@@ -77,7 +77,7 @@ public class SystemHttpClientTest extends BaseTest {
                 Request.HttpMethodPOST, null, "hello".getBytes(), 15);
 
         SystemHttpClient client = new SystemHttpClient();
-        client.request(request, false, null, null, new IRequestClient.RequestClientCompleteHandler() {
+        client.request(request, false, null, null, new IRequestClient.CompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
 
@@ -97,7 +97,7 @@ public class SystemHttpClientTest extends BaseTest {
                 Request.HttpMethodPOST, null, "hello".getBytes(), 15);
 
         SystemHttpClient client = new SystemHttpClient();
-        client.request(null, true, null, null, new IRequestClient.RequestClientCompleteHandler() {
+        client.request(null, true, null, null, new IRequestClient.CompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
 
