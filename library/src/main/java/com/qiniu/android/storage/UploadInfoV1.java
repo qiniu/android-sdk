@@ -305,7 +305,7 @@ class UploadInfoV1 extends UploadInfo {
         // 已经加载过 block 数据
         // 没有需要上传的片 或者 有需要上传片但是已加载过片数据
         UploadData nextUploadData = block.nextUploadDataWithoutCheckData();
-        if (nextUploadData.getState() == UploadData.State.WaitToUpload) {
+        if (nextUploadData.getState() == UploadData.State.WaitToUpload && nextUploadData.data != null) {
             return block;
         }
 
