@@ -78,6 +78,13 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
             return;
         }
 
+        if (chunk.data == null) {
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " get chunk null");
+            ResponseInfo responseInfo = ResponseInfo.invalidArgument("chunk data is null");
+            completeHandler.complete(true, responseInfo, null, null);
+            return;
+        }
+
         final UploadBlock uploadBlock = block;
         final UploadData uploadChunk = chunk;
         RequestProgressHandler progressHandler = new RequestProgressHandler() {
