@@ -14,6 +14,10 @@ import java.util.Map;
  */
 public final class ResponseInfo {
 
+    /**
+     * StatusCode >= 100 见：https://developer.qiniu.com/kodo/3928/error-responses
+     */
+    
     @Deprecated
     public static final int ResquestSuccess = 200;
 
