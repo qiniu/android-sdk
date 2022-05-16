@@ -52,20 +52,13 @@ public final class Config {
      * <p>
      * 记录文件大于此值后暂停记录上传信息。
      */
-    public static int maxRecordFileSize = 2 * 1024 * 1024;
+    public static int maxRecordFileSize = 20 * 1024 * 1024;
 
     /**
      * 记录文件大于 uploadThreshold 后才可能触发上传，单位：字节。
-     * <p>
-     * 以 200,CwIAAF4znMnpno0U,up.qiniu.com,183.131.7.18,80,383.0,1481014578,262144 为例，
-     * 100 条，约 7400Byte ；50 条，约 3700； 1024 约 13.8 条
-     * <p>
-     * chunkSize = 256 * 1024；putThreshold = 512 * 1024
-     * 分片上传， 1M，最好情况下 5 个请求；10M，最好情况下 41 个请求
-     * <p>
      * 可依据客户上传频率、文件大小做调整
      */
-    public static int uploadThreshold = 4 * 1024;
+    public static int uploadThreshold = 16 * 1024;
 
     /**
      * 每次上传最小时间间隔.单位:分钟

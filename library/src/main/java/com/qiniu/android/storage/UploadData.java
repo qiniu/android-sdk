@@ -89,7 +89,7 @@ class UploadData {
     void clearUploadState() {
         etag = null;
         md5 = null;
-        state = State.WaitToUpload;
+        state = State.NeedToCheck;
     }
 
     void checkStateAndUpdate() {
