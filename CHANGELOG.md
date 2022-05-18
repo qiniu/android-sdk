@@ -1,5 +1,9 @@
 #Changelog
 
+## 8.4.3 （2022-5-18）
+* 修复：解决使用分片上传 v1 偶现上传异常：在多个区域域名之间进行上传重试的场景下空指针异常
+* 补充了上传 response status code 注释，详情 [code 注释说明](https://github.com/qiniu/android-sdk/blob/master/library/src/main/java/com/qiniu/android/http/ResponseInfo.java)
+
 ## 8.4.2(2022-03-02)
 * 优化：
   * 为自动获取上传域名流程增加了一个默认的备份域名。
