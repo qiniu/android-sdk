@@ -15,12 +15,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class UdpDns implements Dns {
+public class UdpDns extends BaseDns implements Dns {
     private IResolver udpIpv4Resolver;
     private IResolver udpIpv6Resolver;
-
-    private static final ExecutorService executor = new ThreadPoolExecutor(0, 4,
-            60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     public UdpDns(int timeout) {
         String[] udpIpv4Servers = GlobalConfiguration.getInstance().getUdpDnsIpv4Servers();

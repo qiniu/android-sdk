@@ -15,13 +15,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class HttpDns implements Dns {
+public class HttpDns extends BaseDns implements Dns {
 
     private IResolver httpIpv4Resolver;
     private IResolver httpIpv6Resolver;
-
-    private static final ExecutorService executor = new ThreadPoolExecutor(0, 4,
-            60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
 
     public HttpDns(int timeout) {
         String[] dohIpv4Servers = GlobalConfiguration.getInstance().getDohIpv4Servers();
