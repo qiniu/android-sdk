@@ -19,11 +19,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by yangsen on 2020/5/28
  */
-public class SystemDns implements Dns {
-
-    private int timeout = 10;
-    private static final ExecutorService executor = new ThreadPoolExecutor(1, 3,
-            60L, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+public class SystemDns extends BaseDns implements Dns {
 
     public SystemDns() {
     }
