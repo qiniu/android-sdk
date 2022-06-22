@@ -34,6 +34,13 @@ public final class FixedZone extends Zone {
             "z2");
 
     /**
+     * 首尔机房
+     */
+    public static final Zone zoneNorthEast1 = new FixedZone(new String[]{"upload-ap-northeast-1.qiniup.com", "up-ap-northeast-1.qiniup.com"},
+            null,
+            "ap-northeast-1");
+
+    /**
      * 北美机房
      */
     public static final Zone zoneNa0 = new FixedZone(new String[]{"upload-na0.qiniup.com", "up-na0.qiniup.com"},
@@ -115,9 +122,12 @@ public final class FixedZone extends Zone {
 
         List<String> upDomainsList = new ArrayList<String>(Arrays.asList(upDomains));
         List<String> oldUpDomainsList = null;
-        if (oldUpDomains != null){
+        if (oldUpDomains != null && oldUpDomains.length > 0){
             oldUpDomainsList = new ArrayList<String>(Arrays.asList(oldUpDomains));
+        } else {
+            oldUpDomainsList = new ArrayList<>();
         }
+
         ZoneInfo zoneInfo = ZoneInfo.buildInfo(upDomainsList, oldUpDomainsList, regionId);
         if (zoneInfo == null) {
             return null;
