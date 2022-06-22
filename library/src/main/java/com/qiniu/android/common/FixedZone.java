@@ -20,6 +20,13 @@ public final class FixedZone extends Zone {
             "z0");
 
     /**
+     * 华东浙江 2 机房
+     */
+    public static final Zone zoneCnEast2 = new FixedZone(new String[]{"upload-cn-east-2.qiniup.com", "up-cn-east-2.qiniup.com"},
+            null,
+            "cn-east-2");
+
+    /**
      * 华北机房
      */
     public static final Zone zone1 = new FixedZone(new String[]{"upload-z1.qiniup.com", "up-z1.qiniup.com"},
