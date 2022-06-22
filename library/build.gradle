@@ -54,7 +54,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:4.9.1'
 
 //    implementation 'com.squareup.okhttp3:okhttp:3.12.+'
-    implementation 'com.qiniu:happy-dns:1.0.0'
+    implementation 'com.qiniu:happy-dns:1.0.1'
     // for javax.annotation.Nullable use in custom MultipartBody and Headers implements.
 //    implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'org.conscrypt:conscrypt-android:2.2.1'

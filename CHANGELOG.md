@@ -1,7 +1,14 @@
 #Changelog
-## 8.4.2(2022-02-28)
+## 8.4.4 （2022-06-02）
+* 处理 Dns 预解析内存问题
+
+## 8.4.3 （2022-05-18）
+* 修复：解决使用分片上传 v1 偶现上传异常：在多个区域域名之间进行上传重试的场景下空指针异常
+* 补充了上传 response status code 注释，详情 [code 注释说明](https://github.com/qiniu/android-sdk/blob/master/library/src/main/java/com/qiniu/android/http/ResponseInfo.java)
+
+## 8.4.2(2022-03-02)
 * 优化：
-  * uc query 流程增加新的域名
+  * 为自动获取上传域名流程增加了一个默认的备份域名。
 
 ## 8.4.1(2022-01-27)
 * 优化 
@@ -20,6 +27,9 @@
 * 新增：
     * 新增 token.isValidForDuration API，可在上传之前检查 token 是否有效
    
+## 8.3.4(2022-05-10)
+* 处理分片 v1 上传偶现异常：多区域重试的断点续传场景偶现空指针异常
+
 ## 8.3.3(2021-10-20)
 * 日志不再统计手机的信号强度
 
