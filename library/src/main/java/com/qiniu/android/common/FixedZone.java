@@ -73,7 +73,7 @@ public final class FixedZone extends Zone {
      *    @return 实例
      */
     public static final Zone zoneFogCnEast1 = new FixedZone(new String[]{"upload-fog-cn-east-1.qiniup.com", "up-fog-cn-east-1.qiniup.com"},
-            new String[]{"upload-fog-cn-east-1.qiniup.com", "up-fog-cn-east-1.qiniup.com"},
+            null,
             "fog-cn-east-1");
 
     private ZonesInfo zonesInfo;
@@ -81,6 +81,8 @@ public final class FixedZone extends Zone {
     public static FixedZone localsZoneInfo() {
         ArrayList<FixedZone> localsZone = new ArrayList<>();
         localsZone.add((FixedZone)zone0);
+        localsZone.add((FixedZone)zoneCnEast2);
+        localsZone.add((FixedZone)zoneNorthEast1);
         localsZone.add((FixedZone)zone1);
         localsZone.add((FixedZone)zone2);
         localsZone.add((FixedZone)zoneNa0);
