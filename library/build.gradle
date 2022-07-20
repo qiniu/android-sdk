@@ -16,8 +16,8 @@ def versionNameToCode(String version) {
     return v.toLong()
 }
 
-String versionNameVar = versionNameFunc()
-int code = versionNameToCode(versionNameVar)
+String version = versionNameFunc()
+int code = versionNameToCode(version)
 
 android {
     compileSdkVersion 30
@@ -27,7 +27,7 @@ android {
         minSdkVersion 14
         targetSdkVersion 30
         versionCode code
-        versionName versionNameVar
+        versionName version
     }
     buildTypes {
         release {
@@ -66,7 +66,7 @@ dependencies {
 
 task releaseJar(type: Jar, dependsOn: 'build') {
     //指定生成的jar名
-    baseName 'qiniu-android-sdk-' + versionNameVar
+    baseName 'qiniu-android-sdk-' + version
     //从哪里打包class文件
 //    from('build/intermediates/classes/release/com/qiniu/android/dns/')
     //打包到jar后的目录结构
@@ -86,43 +86,7 @@ android.libraryVariants.all { variant ->
     artifacts.add('archives', task)
 }
 
-setProperty('VERSION_NAME', versionNameVar)
+setProperty('VERSION_NAME', version)
 setProperty('VERSION_CODE', code)
-
-apply plugin: 'maven-publish'
-
-task generateSourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier 'sources'
-}
-
-//以下与dependencies{}同级
-publishing {
-    publications {
-        maven(MavenPublication) {
-            groupId = 'com.qiniu'
-            artifactId = 'qiniu-android-sdk'
-            version = versionNameVar
-
-            afterEvaluate { artifact(tasks.getByName("bundleReleaseAar")) }
-            artifact generateSourcesJar
-
-            pom.withXml{
-                def dependenciesNode = asNode().appendNode("dependencies")
-                configurations.implementation.allDependencies.forEach(){
-                    Dependency dependency ->
-                        if (dependency.version != "unspecified" && dependency.name != "unspecified"){
-                            def dependencyNode = dependenciesNode.appendNode('dependency')
-                            dependencyNode.appendNode('groupId', dependency.group)
-                            dependencyNode.appendNode('artifactId', dependency.name)
-                            dependencyNode.appendNode('version', dependency.version)
-                        }
-                }
-            }
-        }
-    }
-//本地地址
-    repositories { maven { url = "file:/Users/senyang/.m2/repository/" } }
-}
 
 apply from: '../mvn_push.gradle'
