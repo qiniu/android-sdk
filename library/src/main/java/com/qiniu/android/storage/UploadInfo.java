@@ -79,7 +79,7 @@ abstract class UploadInfo {
      * @return
      */
     long getSourceSize() {
-        return sourceSize;
+        return source.getSize();
     }
 
     /**
@@ -133,7 +133,7 @@ abstract class UploadInfo {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("sourceId", sourceId);
-            jsonObject.put("sourceSize", sourceSize);
+            jsonObject.put("sourceSize", getSourceSize());
         } catch (JSONException ignore) {
         }
         return jsonObject;

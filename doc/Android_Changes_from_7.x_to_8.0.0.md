@@ -156,8 +156,8 @@
 ### 8.1 change class
 **add:**
 - com.qiniu.android.http.request.IRequestClient
-- com.qiniu.android.http.request.IRequestClient.RequestClientCompleteHandler
-- com.qiniu.android.http.request.IRequestClient.RequestClientProgress
+- com.qiniu.android.http.request.IRequestClient.CompleteHandler
+- com.qiniu.android.http.request.IRequestClient.Progress
 - com.qiniu.android.http.request.IUploadServer
 - com.qiniu.android.http.request.RequestTransaction.RequestCompleteHandler
 - com.qiniu.android.http.request.IUploadRegion

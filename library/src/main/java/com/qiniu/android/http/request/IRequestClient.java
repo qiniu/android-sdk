@@ -9,18 +9,18 @@ import org.json.JSONObject;
 
 public abstract class IRequestClient {
 
-    public interface RequestClientProgress {
+    public interface Progress {
         void progress(long totalBytesWritten, long totalBytesExpectedToWrite);
     }
 
-    public interface RequestClientCompleteHandler {
+    public interface CompleteHandler {
         void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response);
     }
 
     public abstract void request(Request request,
                                  Options options,
-                                 RequestClientProgress progress,
-                                 RequestClientCompleteHandler complete);
+                                 Progress progress,
+                                 CompleteHandler complete);
 
     public abstract void cancel();
 

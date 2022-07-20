@@ -9,15 +9,17 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Created by yangsen on 2020/5/28
  */
-public class SystemDns implements Dns {
-
-    private int timeout = 10;
+public class SystemDns extends BaseDns implements Dns {
 
     public SystemDns() {
     }
@@ -31,14 +33,12 @@ public class SystemDns implements Dns {
             throw new UnknownHostException("hostname is null");
         } else {
             try {
-                FutureTask<List<InetAddress>> task = new FutureTask<>(
-                        new Callable<List<InetAddress>>() {
-                            @Override
-                            public List<InetAddress> call() throws Exception {
-                                return Arrays.asList(InetAddress.getAllByName(hostname));
-                            }
-                        });
-                new Thread(task).start();
+                Future<List<InetAddress>> task = executor.submit(new Callable<List<InetAddress>>() {
+                    @Override
+                    public List<InetAddress> call() throws Exception {
+                        return Arrays.asList(InetAddress.getAllByName(hostname));
+                    }
+                });
                 return task.get(timeout, TimeUnit.SECONDS);
             } catch (Exception var4) {
                 UnknownHostException unknownHostException =

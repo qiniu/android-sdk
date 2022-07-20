@@ -13,36 +13,122 @@ import java.util.Map;
  * 定义HTTP请求的日志信息和常规方法
  */
 public final class ResponseInfo {
+
+    /**
+     * StatusCode >= 100 见：https://developer.qiniu.com/kodo/3928/error-responses
+     */
+    
     @Deprecated
     public static final int ResquestSuccess = 200;
+
+    /**
+     * 请求成功
+     */
     public static final int RequestSuccess = 200;
 
+    /**
+     * 非预期的系统调用，使用库上传时出现的调用异常，此错误非 SDK 层业务逻辑错误。
+     */
     public static final int UnexpectedSysCallError = -10;
+
     @Deprecated
     public static final int NoUsableHostError = -9;
+
+    /**
+     * 在上传时，SDK 内部业务逻辑非预期。正常情况下，此错误并会被抛掷应用层。
+     *
+     * 此错误出现的原因一般为某个上传流程异常请求导致，实际应该抛出请求，但因为调用异常未被抛出。
+     */
     public static final int SDKInteriorError = -9;
+
+    /**
+     * 劫持错误。当请求确定或可能被劫持会抛出此错误。
+     */
     public static final int MaliciousResponseError = -8;
+
+    /**
+     * 本地 io 异常，可能是文件读取异常，也可能是网络 io 异常
+     */
     public static final int LocalIOError = -7;
+
+    /**
+     * 空文件错误。文件不存在 或 读取文件的大小为 0
+     */
     public static final int ZeroSizeFile = -6;
+
+    /**
+     * 无效 token。token 格式错误。
+     */
     public static final int InvalidToken = -5;
+
+    /**
+     * 无效参数。参数设置错误。
+     */
     public static final int InvalidArgument = -4;
+
+    /**
+     * 无效文件。读取文件异常。
+     */
     public static final int InvalidFile = -3;
+
+    /**
+     * 用户取消
+     */
     public static final int Cancelled = -2;
+
+    /**
+     * 网络错误
+     */
     public static final int NetworkError = -1;
 
+    @Deprecated
     public static final int Crc32NotMatch = -406;
 
+    @Deprecated
     public static final int UnknownError = 10000;
 
     // <-- error code copy from ios
+
+    /**
+     * 请求超时
+     */
     public static final int TimedOut = -1001;
+
+    /**
+     * 无法解析 host
+     */
     public static final int UnknownHost = -1003;
+
+    /**
+     * 请求链接 host 异常
+     */
     public static final int CannotConnectToHost = -1004;
+
+    /**
+     * 网络异常断开
+     */
     public static final int NetworkConnectionLost = -1005;
+
+    /**
+     * SSL 校验异常
+     */
     public static final int NetworkSSLError = -1200;
+
+    /**
+     * 网络协议错误
+     */
     public static final int NetworkProtocolError = 100;
+
+    /**
+     * 网络异常，没有网络，或网络环境太差。
+     */
     public static final int NetworkSlow = -1009;
+
+    /**
+     * 响应解析异常
+     */
     public static final int ParseError = -1015;
+
     @Deprecated
     public static final int PasrseError = -1015;
 

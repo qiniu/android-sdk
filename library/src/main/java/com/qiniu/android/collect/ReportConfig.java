@@ -16,12 +16,12 @@ public class ReportConfig {
     public double interval;
 
     /**
-     *  记录文件大于 uploadThreshold 会触发上传，单位：字节  默认为4 * 1024
+     *  记录文件大于 uploadThreshold 会触发上传，单位：字节  默认为16 * 1024
      */
     public long uploadThreshold;
 
     /**
-     * 记录文件最大值  要大于 uploadThreshold  单位：字节  默认为2 * 1024 * 1024
+     * 记录文件最大值  要大于 uploadThreshold  单位：字节  默认为20 * 1024 * 1024
      */
     public long maxRecordFileSize;
 

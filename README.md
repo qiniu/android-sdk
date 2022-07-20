@@ -16,7 +16,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 | Qiniu SDK 版本 | 最低 Android版本   |       依赖库版本           |
 |------------ |-----------------|------------------------|
 |  8.5.0        |  Android 4.0+     |        okhttp 4+         |
-|  8.4.0        |  Android 4.0+     |        okhttp 4+         |
+|  8.4.*        |  Android 4.0+     |        okhttp 4+         |
 |  8.3.2        |  Android 4.0+     |        okhttp 4+         |
 |  8.3.1        |  Android 4.0+     |        okhttp 4+         |
 |  8.3.0        |  Android 5.0+     |        okhttp 4+         |
@@ -34,7 +34,11 @@ https://github.com/qiniudemo/qiniu-lab-android
 |  7.0.7        |  Android 2.2+     | android-async-http 1.4.8 |
 
 ### 注意
+<<<<<<< HEAD
 * 推荐使用最新版：8.5.0
+=======
+* 推荐使用最新版：8.4.4
+>>>>>>> 98d26eeeca7ce1195e056739ff599f9af7aa2646
 * 7.6.2 ~ 8.3.2 AndroidNetwork.getMobileDbm()可以获取手机信号强度，需要如下权限(API>=18时生效)
 ```
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
@@ -628,6 +632,9 @@ import com.qiniu.android.bigdata.pipeline.Pipeline;
     }, null);
 ...
 ```
+
+**9).如何理解上传返回 code :**
+详情 [code 注释说明](https://github.com/qiniu/android-sdk/blob/master/library/src/main/java/com/qiniu/android/http/ResponseInfo.java)
 
 ## 代码贡献
 
