@@ -2,7 +2,7 @@ import java.util.regex.Matcher
 
 apply plugin: 'com.android.library'
 
-def versionNameFunc() {
+def versionName() {
     String config = 'library/src/main/java/com/qiniu/android/common/Constants.java'
     String fileContents = new File(config).text
     Matcher myMatcher = fileContents =~ /VERSION = "(.+)";/
@@ -16,7 +16,7 @@ def versionNameToCode(String version) {
     return v.toLong()
 }
 
-String version = versionNameFunc()
+String version = versionName()
 int code = versionNameToCode(version)
 
 android {
