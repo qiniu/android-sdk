@@ -9,8 +9,6 @@ import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.request.IUploadServer;
 import com.qiniu.android.http.request.UploadRequestState;
 import com.qiniu.android.storage.GlobalConfiguration;
-import com.qiniu.android.storage.serverConfig.ServerConfigMonitor;
-import com.qiniu.android.storage.serverConfig.ServerUserConfig;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.Utils;
@@ -89,9 +87,6 @@ public class UploadDomainRegion implements IUploadRegion {
         this.zoneInfo = zoneInfo;
 
         isAllFrozen = false;
-        http3Enabled = zoneInfo.http3Enabled;
-        // 暂不开启
-        http3Enabled = false;
 
         ipv6Enabled = zoneInfo.ipv6;
 
@@ -142,7 +137,7 @@ public class UploadDomainRegion implements IUploadRegion {
         }
 
         // 1. 优先选择http3
-        if (couldUseHttp3()) {
+        if (couldUseHttp3() && requestState.couldUseHttp3()) {
             for (String host : hostList) {
                 UploadServerDomain domain = domainInfo.get(host);
                 if (domain == null) {

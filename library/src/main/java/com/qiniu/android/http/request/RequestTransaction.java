@@ -3,9 +3,9 @@ package com.qiniu.android.http.request;
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.UserAgent;
+import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.request.handler.RequestShouldRetryHandler;
-import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.serverRegion.UploadDomainRegion;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
@@ -21,7 +21,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,6 +91,7 @@ public class RequestTransaction {
                           IUploadRegion currentRegion) {
 
         this.requestState = new UploadRequestState();
+        this.requestState.setCouldUseHttp3(config.requestClient != null);
         this.requestInfo = new UploadRequestInfo();
         this.requestInfo.targetRegionId = targetRegion.getZoneInfo().getRegionId();
         this.requestInfo.currentRegionId = currentRegion.getZoneInfo().getRegionId();
