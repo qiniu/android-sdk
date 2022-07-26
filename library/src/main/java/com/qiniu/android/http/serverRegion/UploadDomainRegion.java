@@ -215,6 +215,10 @@ public class UploadDomainRegion implements IUploadRegion {
             }
         }
 
+        if (http2Server != null) {
+            http2Server.setHttpVersion(IUploadServer.HttpVersion2);
+        }
+
         UploadServer server = (UploadServer) UploadServerNetworkStatus.getBetterNetworkServer(http3Server, http2Server);
         if (server == null && !hasFreezeHost && hostList.size() > 0) {
             int index = (int) (Math.random() * hostList.size());
@@ -222,12 +226,14 @@ public class UploadDomainRegion implements IUploadRegion {
             UploadServerDomain domain = domainInfo.get(host);
             if (domain != null) {
                 server = domain.getOneServer();
+                if (server != null) {
+                    server.setHttpVersion(IUploadServer.HttpVersion2);
+                }
             }
             unfreezeServer(server);
         }
 
         if (server != null) {
-            server.setHttpVersion(IUploadServer.HttpVersion2);
             LogUtil.i("get server host:" + StringUtils.toNonnullString(server.getHost()) + " ip:" + StringUtils.toNonnullString(server.getIp()));
         } else {
             isAllFrozen = true;

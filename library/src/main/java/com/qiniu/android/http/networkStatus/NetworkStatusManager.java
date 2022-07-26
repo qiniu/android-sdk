@@ -37,6 +37,7 @@ public class NetworkStatusManager {
         if (hasInit){
             return;
         }
+        hasInit = true;
         networkStatusManager.networkStatusInfo = new ConcurrentHashMap<>();
         networkStatusManager.asyncRecoverNetworkStatusFromDisk();
     }
