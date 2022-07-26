@@ -219,12 +219,36 @@ class HttpSingleRequest {
             return;
         }
         long byteCount = requestMetrics.bytesSend();
-        long second = requestMetrics.totalElapsedTime();
-        if (second > 0 && byteCount >= 1024 * 1024) {
-            int speed = (int) (byteCount * 1000 / second);
-            String type = NetworkStatusManager.getNetworkStatusType(server.getHost(), server.getIp());
-            NetworkStatusManager.getInstance().updateNetworkStatus(type, speed);
+        long milliSecond = requestMetrics.totalElapsedTime();
+        if (milliSecond <= 0) {
+            return;
         }
+
+        if (byteCount <= 8 * 1024) {
+            milliSecond = (long)((float)milliSecond * 0.08);
+        } else if (byteCount <= 16 * 1024) {
+            milliSecond = (long)((float)milliSecond * 0.15);
+        } else if (byteCount <= 32 * 1024) {
+            milliSecond = (long)((float)milliSecond * 0.22);
+        } else if (byteCount <= 64 * 1024) {
+            milliSecond = (long)((float)milliSecond * 0.30);
+        } else if (byteCount <= 128 * 1024) {
+            milliSecond = (long)((float)milliSecond * 0.45);
+        } else if (byteCount <= 256 * 1024) {
+            milliSecond = (long)((float)milliSecond * 0.73);
+        } else if (byteCount <= 512 * 1024) {
+            milliSecond = (long)((float)milliSecond * 0.86);
+        } else if (byteCount <= 1024 * 1024) {
+            milliSecond = (long)((float)milliSecond * 0.95);
+        }
+
+        if (milliSecond <= 0) {
+            milliSecond = 10;
+        }
+
+        int speed = (int) (byteCount / milliSecond);
+        String type = NetworkStatusManager.getNetworkStatusType(server.getHttpVersion(), server.getHost(), server.getIp());
+        NetworkStatusManager.getInstance().updateNetworkStatus(type, speed);
     }
 
     private void updateHttpServerInfo(IUploadServer server, ResponseInfo responseInfo) {

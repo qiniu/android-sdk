@@ -8,6 +8,7 @@ public class UploadServerNetworkStatus {
         return isServerNetworkBetter(serverA, serverB) ? serverA : serverB;
     }
 
+    // 如果两个 Server 网速相同优先使用 serverA
     public static boolean isServerNetworkBetter(IUploadServer serverA, IUploadServer serverB) {
         if (serverA == null) {
             return false;
@@ -15,11 +16,11 @@ public class UploadServerNetworkStatus {
             return true;
         }
 
-        String serverTypeA = NetworkStatusManager.getNetworkStatusType(serverA.getHost(), serverA.getIp());
-        String serverTypeB = NetworkStatusManager.getNetworkStatusType(serverB.getHost(), serverB.getIp());
-        if (serverTypeA == null) {
+        String serverTypeA = NetworkStatusManager.getNetworkStatusType(serverA.getHttpVersion(), serverA.getHost(), serverA.getIp());
+        String serverTypeB = NetworkStatusManager.getNetworkStatusType(serverA.getHttpVersion(), serverB.getHost(), serverB.getIp());
+        if (serverTypeA == null || serverTypeA.length() == 0) {
             return false;
-        } else if (serverTypeB == null) {
+        } else if (serverTypeB == null || serverTypeB.length() == 0) {
             return true;
         }
 

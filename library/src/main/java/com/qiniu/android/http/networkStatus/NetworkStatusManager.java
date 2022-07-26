@@ -41,8 +41,13 @@ public class NetworkStatusManager {
         networkStatusManager.asyncRecoverNetworkStatusFromDisk();
     }
 
+    @Deprecated
     public static String getNetworkStatusType(String host, String ip) {
         return Utils.getIpType(ip, host);
+    }
+
+    public static String getNetworkStatusType(String httpVersion, String host, String ip) {
+        return Utils.getIpType(httpVersion, ip, host);
     }
 
     public NetworkStatus getNetworkStatus(String type) {
@@ -165,7 +170,7 @@ public class NetworkStatusManager {
 
     public static class NetworkStatus {
 
-        private int speed;
+        private int speed = 600;
 
         public int getSpeed() {
             return speed;

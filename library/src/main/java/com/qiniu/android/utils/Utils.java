@@ -153,6 +153,7 @@ public class Utils {
         return ret;
     }
 
+    @Deprecated
     public static String getIpType(String ip, String host) {
         String type = host;
         if (ip == null || ip.length() == 0) {
@@ -164,6 +165,23 @@ public class Utils {
             type = getIPV4StringType(ip, host);
         }
         return type;
+    }
+
+    public static String getIpType(String httpVersion, String ip, String host) {
+        if (httpVersion == null) {
+            httpVersion = "";
+        }
+
+        String type = host;
+        if (ip == null || ip.length() == 0) {
+            return httpVersion + "-" + type;
+        }
+        if (ip.contains(":")) {
+            type = getIPV6StringType(ip, host);
+        } else if (ip.contains(".")) {
+            type = getIPV4StringType(ip, host);
+        }
+        return httpVersion + "-" + type;
     }
 
     public static boolean isIpv6(String ip) {
