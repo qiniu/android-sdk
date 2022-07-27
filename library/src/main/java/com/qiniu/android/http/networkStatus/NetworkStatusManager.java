@@ -70,6 +70,8 @@ public class NetworkStatusManager {
         if (status == null) {
             status = new NetworkStatus();
             networkStatusInfo.put(type, status);
+        } else {
+            speed = (int)((float)speed * 0.4  + (float)status.getSpeed() * 0.6);
         }
         status.setSpeed(speed);
 
@@ -169,9 +171,10 @@ public class NetworkStatusManager {
         }
     }
 
+    protected static final int DefaultSpeed = 600;
     public static class NetworkStatus {
 
-        private int speed = 600;
+        private int speed = DefaultSpeed;
 
         public int getSpeed() {
             return speed;

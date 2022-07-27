@@ -8,7 +8,7 @@ public class UploadServerNetworkStatus {
         return isServerNetworkBetter(serverA, serverB) ? serverA : serverB;
     }
 
-    // 如果两个 Server 网速相同优先使用 serverA
+    // 如果两个 Server 网速相同且类别相同优先使用 serverA，类别不同优先使用 Http3
     public static boolean isServerNetworkBetter(IUploadServer serverA, IUploadServer serverB) {
         if (serverA == null) {
             return false;
@@ -27,6 +27,23 @@ public class UploadServerNetworkStatus {
         NetworkStatusManager.NetworkStatus serverStatusA = NetworkStatusManager.getInstance().getNetworkStatus(serverTypeA);
         NetworkStatusManager.NetworkStatus serverStatusB = NetworkStatusManager.getInstance().getNetworkStatus(serverTypeB);
 
-        return serverStatusB.getSpeed() < serverStatusA.getSpeed();
+        int serverASpeed = serverStatusA.getSpeed();
+        int serverBSpeed = serverStatusB.getSpeed();
+        String serverAHttpVersion = serverA.getHttpVersion();
+        String serverBHttpVersion = serverB.getHttpVersion();
+        if (serverAHttpVersion.equals(IUploadServer.HttpVersion3) && !serverAHttpVersion.equals(serverBHttpVersion)) {
+            if (serverASpeed < 200 && serverBSpeed == NetworkStatusManager.DefaultSpeed) {
+                return true;
+            } else if (serverASpeed > NetworkStatusManager.DefaultSpeed && serverBSpeed > 400) {
+                return false;
+            }
+        } else if (serverBHttpVersion.equals(IUploadServer.HttpVersion3) && !serverAHttpVersion.equals(serverBHttpVersion)) {
+            if (serverBSpeed < 200 && serverASpeed == NetworkStatusManager.DefaultSpeed) {
+                return true;
+            } else if (serverASpeed > NetworkStatusManager.DefaultSpeed && serverBSpeed > 400) {
+                return false;
+            }
+        }
+        return serverBSpeed <= serverASpeed;
     }
 }

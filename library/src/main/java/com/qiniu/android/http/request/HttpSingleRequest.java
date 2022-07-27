@@ -1,5 +1,7 @@
 package com.qiniu.android.http.request;
 
+import android.util.Log;
+
 import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;
@@ -220,7 +222,7 @@ class HttpSingleRequest {
         }
         long byteCount = requestMetrics.bytesSend();
         long milliSecond = requestMetrics.totalElapsedTime();
-        if (milliSecond <= 0) {
+        if (milliSecond <= 0 || byteCount < 1024) {
             return;
         }
 
@@ -235,9 +237,9 @@ class HttpSingleRequest {
         } else if (byteCount <= 128 * 1024) {
             milliSecond = (long)((float)milliSecond * 0.45);
         } else if (byteCount <= 256 * 1024) {
-            milliSecond = (long)((float)milliSecond * 0.73);
+            milliSecond = (long)((float)milliSecond * 0.76);
         } else if (byteCount <= 512 * 1024) {
-            milliSecond = (long)((float)milliSecond * 0.86);
+            milliSecond = (long)((float)milliSecond * 0.88);
         } else if (byteCount <= 1024 * 1024) {
             milliSecond = (long)((float)milliSecond * 0.95);
         }
@@ -247,6 +249,7 @@ class HttpSingleRequest {
         }
 
         int speed = (int) (byteCount / milliSecond);
+        Log.d("speed","httpVersion:" + server.getHttpVersion() + " byte:" + byteCount/1024.0 + "  milliSecond:" + milliSecond + "   speed:" + speed);
         String type = NetworkStatusManager.getNetworkStatusType(server.getHttpVersion(), server.getHost(), server.getIp());
         NetworkStatusManager.getInstance().updateNetworkStatus(type, speed);
     }
