@@ -19,7 +19,7 @@ public class HttpHeaderTest {
     private Headers headers;
 
     @Before
-    protected void setUp() throws Exception {
+    public void setUp() throws Exception {
 
         HashMap<String, String> keyVaules = new HashMap<>();
         keyVaules.put("date", "2020-07-15 07:40:01");

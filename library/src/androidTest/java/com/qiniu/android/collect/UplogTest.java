@@ -5,10 +5,15 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.qiniu.android.TestConfig;
 import com.qiniu.android.BaseTest;
 
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 public class UplogTest extends BaseTest {
+
+    @Test
+    public void test() {
+    }
 
     private void no_testUplog() {
         ReportItem item = new ReportItem();

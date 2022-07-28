@@ -48,8 +48,7 @@ public class DnsApiTest extends BaseTest {
         assertTrue(addressList.size() > 0);
     }
 
-    @Test
-    public void testRecover(){
+    private void testRecover(){
         final String host = "uplog.qbox.me";
 
         final DnsPrefetcher dnsPrefetcher = DnsPrefetcher.getInstance();

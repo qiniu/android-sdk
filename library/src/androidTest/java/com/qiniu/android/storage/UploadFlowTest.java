@@ -22,8 +22,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
-//@RunWith(AndroidJUnit4.class)
 public class UploadFlowTest extends UploadBaseTest {
+
+    public void test() {
+    }
 
     protected void cancelTest(long cancelPosition,
                               File file,

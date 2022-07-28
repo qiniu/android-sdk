@@ -8,6 +8,7 @@ import com.qiniu.android.common.Zone;
 import com.qiniu.android.BaseTest;
 import com.qiniu.android.storage.UpToken;
 
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 
@@ -21,6 +22,7 @@ public class DnsTransactionTest extends BaseTest {
     private int completeCount = 0;
     private int successCount = 0;
 
+    @Test
     public void testLocalLoad(){
 
         completeCount = 0;
@@ -54,7 +56,7 @@ public class DnsTransactionTest extends BaseTest {
         assertTrue(successCount < 2);
     }
 
-
+    @Test
     public void test_CheckAndPrefetch(){
 
         completeCount = 0;
@@ -91,7 +93,7 @@ public class DnsTransactionTest extends BaseTest {
         assertTrue("successCount:" + successCount, successCount < 3);
     }
 
-
+    @Test
     public void testCheckWhetherCachedValid(){
 
         completeCount = 0;

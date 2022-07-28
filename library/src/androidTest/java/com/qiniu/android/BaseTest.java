@@ -4,11 +4,6 @@ import android.content.Context;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
-
-import com.qiniu.android.transaction.TransactionManager;
-
-import junit.framework.TestCase;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -21,12 +16,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by yangsen on 2020/5/26
  */
-//@RunWith(AndroidJUnit4.class)
 public class BaseTest {
 
     private long maxWaitTimestamp = 0;
 
-    private Context context;
+    private Context context = ApplicationProvider.getApplicationContext();
 
     @Before
     public void setUp() throws Exception {

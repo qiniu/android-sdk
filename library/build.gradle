@@ -28,6 +28,8 @@ android {
         targetSdkVersion 30
         versionCode code
         versionName version
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {

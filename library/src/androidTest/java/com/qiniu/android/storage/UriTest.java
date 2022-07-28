@@ -44,6 +44,9 @@ public class UriTest extends BaseTest {
             {false, false, false},
     };
 
+    public void test() {
+    }
+
     private void notestUpload() {
         int MB = 1024;
         int[] sizeList = {512, MB, 4*MB, 5*MB, 8*MB, 10*MB, 20*MB};
@@ -74,8 +77,8 @@ public class UriTest extends BaseTest {
     }
 
 
-    @Test
-    public void testUpload() {
+
+    private void testUpload() {
         String uriString = "content://media/external/images/media/12045";
         Uri uri = Uri.parse(uriString);
         testUpload(uri, "uri_test", "AAAA", true, false, false);

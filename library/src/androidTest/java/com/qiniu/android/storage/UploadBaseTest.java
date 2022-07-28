@@ -22,10 +22,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 
-//@RunWith(AndroidJUnit4.class)
 public class UploadBaseTest extends BaseTest {
 
-    @Override @Before
+    @Override
+    @Before
     public void setUp() throws Exception {
         LogUtil.enableLog(true);
         LogUtil.setLogLevel(Log.VERBOSE);
