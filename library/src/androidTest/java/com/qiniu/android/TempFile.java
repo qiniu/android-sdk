@@ -1,5 +1,9 @@
 package com.qiniu.android;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+import org.junit.runner.RunWith;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
