@@ -31,6 +31,12 @@ public class UploadServerNetworkStatus {
         int serverBSpeed = serverStatusB.getSpeed();
         String serverAHttpVersion = serverA.getHttpVersion();
         String serverBHttpVersion = serverB.getHttpVersion();
+        if (serverAHttpVersion == null) {
+            serverAHttpVersion = "";
+        }
+        if (serverBHttpVersion == null) {
+            serverBHttpVersion = "";
+        }
         if (serverAHttpVersion.equals(IUploadServer.HttpVersion3) && !serverAHttpVersion.equals(serverBHttpVersion)) {
             if (serverASpeed < 200 && serverBSpeed == NetworkStatusManager.DefaultSpeed) {
                 return true;

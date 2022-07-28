@@ -143,7 +143,7 @@ public class UploadDomainRegion implements IUploadRegion {
                 if (domain == null) {
                     continue;
                 }
-                IUploadServer domainServer = domain.getServer(new UploadServerDomain.GetServerCondition() {
+                UploadServer domainServer = domain.getServer(new UploadServerDomain.GetServerCondition() {
                     @Override
                     public boolean condition(String host, UploadServer serverP, UploadServer filterServer) {
                         String filterServerIP = filterServer == null ? null : filterServer.getIp();
@@ -165,16 +165,15 @@ public class UploadDomainRegion implements IUploadRegion {
                         return UploadServerNetworkStatus.isServerNetworkBetter(filterServer, serverP);
                     }
                 });
+                if (domainServer != null) {
+                    domainServer.setHttpVersion(IUploadServer.HttpVersion3);
+                }
 
                 http3Server = (UploadServer) UploadServerNetworkStatus.getBetterNetworkServer(domainServer, http3Server);
 
                 if (http3Server != null) {
                     break;
                 }
-            }
-
-            if (http3Server != null) {
-                http3Server.setHttpVersion(IUploadServer.HttpVersion3);
             }
         }
 
@@ -185,7 +184,7 @@ public class UploadDomainRegion implements IUploadRegion {
             if (domain == null) {
                 continue;
             }
-            IUploadServer domainServer = domain.getServer(new UploadServerDomain.GetServerCondition() {
+            UploadServer domainServer = domain.getServer(new UploadServerDomain.GetServerCondition() {
                 @Override
                 public boolean condition(String host, UploadServer serverP, UploadServer filterServer) {
                     String filterServerIP = filterServer == null ? null : filterServer.getIp();
@@ -207,16 +206,15 @@ public class UploadDomainRegion implements IUploadRegion {
                     return UploadServerNetworkStatus.isServerNetworkBetter(filterServer, serverP);
                 }
             });
+            if (domainServer != null) {
+                domainServer.setHttpVersion(IUploadServer.HttpVersion2);
+            }
 
             http2Server = (UploadServer) UploadServerNetworkStatus.getBetterNetworkServer(domainServer, http2Server);
 
             if (http2Server != null) {
                 break;
             }
-        }
-
-        if (http2Server != null) {
-            http2Server.setHttpVersion(IUploadServer.HttpVersion2);
         }
 
         UploadServer server = (UploadServer) UploadServerNetworkStatus.getBetterNetworkServer(http3Server, http2Server);
