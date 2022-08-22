@@ -45,9 +45,9 @@ public class UploadServerNetworkStatus {
             }
         } else if (serverBHttpVersion.equals(IUploadServer.HttpVersion3) && !serverAHttpVersion.equals(serverBHttpVersion)) {
             if (serverBSpeed < 200 && serverASpeed == NetworkStatusManager.DefaultSpeed) {
-                return true;
-            } else if (serverASpeed > NetworkStatusManager.DefaultSpeed && serverBSpeed > 400) {
                 return false;
+            } else if (serverBSpeed > NetworkStatusManager.DefaultSpeed && serverASpeed > 400) {
+                return true;
             }
         }
         return serverBSpeed <= serverASpeed;
