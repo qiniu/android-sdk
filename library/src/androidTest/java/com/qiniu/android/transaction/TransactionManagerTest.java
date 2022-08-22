@@ -4,6 +4,7 @@ import com.qiniu.android.BaseTest;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.Utils;
 
+import java.lang.reflect.Field;
 import java.util.Date;
 
 /**
@@ -33,15 +34,25 @@ public class TransactionManagerTest extends BaseTest {
 
     public void testTransactionManagerAddAndRemove(){
 
-        final boolean[] executedTransaction = {false};
+        final int[] executedTransaction = {0};
         String normalName = "testNormalTransaction";
         TransactionManager.Transaction normal = new TransactionManager.Transaction(normalName, 0, new Runnable() {
             @Override
             public void run() {
                 LogUtil.d("1: thread:" + Thread.currentThread().getId() + new Date().toString());
-                executedTransaction[0] = true;
+                executedTransaction[0] += 1;
             }
         });
+
+        try {
+            Field executedCountField = TransactionManager.Transaction.class.getDeclaredField("executedCount");
+            executedCountField.setAccessible(true);
+            long executedCount = executedCountField.getLong(normal);
+            System.out.print("A Transaction executedCount:" + executedCount);
+            assertEquals("A Transaction executedCount was not 1", 0, executedCount);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         String timeName = "testTimeTransaction";
         TransactionManager.Transaction time = new TransactionManager.Transaction(timeName, 3, 2, new Runnable() {
@@ -63,7 +74,7 @@ public class TransactionManagerTest extends BaseTest {
         wait(new WaitConditional() {
             @Override
             public boolean shouldWait() {
-                return !executedTransaction[0];
+                return executedTransaction[0] == 0;
             }
         }, 5 * 60);
         

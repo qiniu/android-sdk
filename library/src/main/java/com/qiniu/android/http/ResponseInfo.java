@@ -137,6 +137,12 @@ public final class ResponseInfo {
      * 回复状态码
      */
     public final int statusCode;
+
+    /**
+     * 请求使用的 http 版本信息
+     */
+    public final String httpVersion;
+
     /**
      * response 信息
      */
@@ -184,6 +190,7 @@ public final class ResponseInfo {
 
     private ResponseInfo(JSONObject json,
                          Map<String, String> responseHeader,
+                         String httpVersion,
                          int statusCode,
                          String reqId,
                          String xlog,
@@ -192,6 +199,7 @@ public final class ResponseInfo {
                          String error) {
         this.response = json;
         this.responseHeader = responseHeader;
+        this.httpVersion = httpVersion;
         this.statusCode = statusCode;
         this.reqId = reqId != null ? reqId : "";
         this.xlog = xlog;
@@ -215,7 +223,7 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo successResponse() {
-        ResponseInfo responseInfo = new ResponseInfo(null, null, RequestSuccess, "inter:reqid", "inter:xlog", "inter:xvia", null, null);
+        ResponseInfo responseInfo = new ResponseInfo(null, null, null, RequestSuccess, "inter:reqid", "inter:xlog", "inter:xvia", null, null);
         return responseInfo;
     }
 
@@ -265,7 +273,7 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo errorInfo(int statusCode, String error) {
-        ResponseInfo responseInfo = new ResponseInfo(null, null, statusCode, null, null, null, null, error);
+        ResponseInfo responseInfo = new ResponseInfo(null, null, "", statusCode, null, null, null, null, error);
         return responseInfo;
     }
 
@@ -274,8 +282,17 @@ public final class ResponseInfo {
                                       Map<String, String> responseHeader,
                                       JSONObject response,
                                       String errorMessage) {
+        return create(request, null, responseCode, responseHeader, response, errorMessage);
+    }
 
-        String host = (request != null ? request.host : null);
+    public static ResponseInfo create(Request request,
+                                      String httpVersion,
+                                      int responseCode,
+                                      Map<String, String> responseHeader,
+                                      JSONObject response,
+                                      String errorMessage) {
+
+        String host = (request != null ? request.getHost() : null);
         String reqId = null;
         String xlog = null;
         String xvia = null;
@@ -291,13 +308,13 @@ public final class ResponseInfo {
             }
         }
 
-        ResponseInfo responseInfo = new ResponseInfo(response, responseHeader, responseCode, reqId, xlog, xvia, host, errorMessage);
+        ResponseInfo responseInfo = new ResponseInfo(response, responseHeader, httpVersion, responseCode, reqId, xlog, xvia, host, errorMessage);
         return responseInfo;
     }
 
     public ResponseInfo checkMaliciousResponse() {
-        if (statusCode == 200 && ((reqId == null || reqId.length() == 0) && xlog == null)) {
-            return new ResponseInfo(null, responseHeader, MaliciousResponseError, reqId, xlog, xvia, host, "this is a malicious response");
+        if (statusCode == 200 && (reqId == null && xlog == null)) {
+            return new ResponseInfo(null, responseHeader, httpVersion, MaliciousResponseError, reqId, xlog, xvia, host, "this is a malicious response");
         } else {
             return this;
         }

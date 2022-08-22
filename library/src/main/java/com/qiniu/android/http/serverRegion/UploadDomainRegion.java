@@ -19,7 +19,7 @@ import java.util.List;
 
 
 public class UploadDomainRegion implements IUploadRegion {
-    private static int Http3FrozenTime = 3600 * 24;
+    private final static int Http3FrozenTime = 3600 * 24;
 
     // 是否支持http3
     private boolean http3Enabled;
@@ -30,8 +30,8 @@ public class UploadDomainRegion implements IUploadRegion {
     private boolean hasFreezeHost;
     private boolean isAllFrozen;
     // 局部冻结管理对象
-    private UploadServerFreezeManager partialHttp2Freezer = new UploadServerFreezeManager();
-    private UploadServerFreezeManager partialHttp3Freezer = new UploadServerFreezeManager();
+    private final UploadServerFreezeManager partialHttp2Freezer = new UploadServerFreezeManager();
+    private final UploadServerFreezeManager partialHttp3Freezer = new UploadServerFreezeManager();
 
     private ArrayList<String> domainHostList;
     private HashMap<String, UploadServerDomain> domainHashMap;
@@ -87,9 +87,6 @@ public class UploadDomainRegion implements IUploadRegion {
         this.zoneInfo = zoneInfo;
 
         isAllFrozen = false;
-        http3Enabled = zoneInfo.http3Enabled;
-        // 暂不开启
-        http3Enabled = false;
 
         ipv6Enabled = zoneInfo.ipv6;
 
@@ -129,7 +126,6 @@ public class UploadDomainRegion implements IUploadRegion {
 
         freezeServerIfNeed(responseInfo, freezeServer);
 
-        UploadServer server = null;
         ArrayList<String> hostList = domainHostList;
         HashMap<String, UploadServerDomain> domainInfo = domainHashMap;
         if (requestState.isUseOldServer()
@@ -140,13 +136,14 @@ public class UploadDomainRegion implements IUploadRegion {
         }
 
         // 1. 优先选择http3
-        if (http3Enabled && freezeServer != null && freezeServer.isHttp3()) {
+        UploadServer http3Server = null;
+        if (couldUseHttp3() && requestState.couldUseHttp3()) {
             for (String host : hostList) {
                 UploadServerDomain domain = domainInfo.get(host);
                 if (domain == null) {
                     continue;
                 }
-                IUploadServer domainServer = domain.getServer(new UploadServerDomain.GetServerCondition() {
+                UploadServer domainServer = domain.getServer(new UploadServerDomain.GetServerCondition() {
                     @Override
                     public boolean condition(String host, UploadServer serverP, UploadServer filterServer) {
                         String filterServerIP = filterServer == null ? null : filterServer.getIp();
@@ -160,7 +157,7 @@ public class UploadDomainRegion implements IUploadRegion {
                         String frozenType = UploadServerFreezeUtil.getFrozenType(host, filterServerIP);
                         boolean isFrozen = UploadServerFreezeUtil.isTypeFrozenByFreezeManagers(frozenType, new UploadServerFreezeManager[]{partialHttp3Freezer, UploadServerFreezeUtil.globalHttp3Freezer()});
 
-                        if (isFrozen) {
+                        if (isFrozen || !HttpServerManager.getInstance().isServerSupportHttp3(host, filterServerIP)) {
                             return false;
                         }
 
@@ -168,27 +165,26 @@ public class UploadDomainRegion implements IUploadRegion {
                         return UploadServerNetworkStatus.isServerNetworkBetter(filterServer, serverP);
                     }
                 });
+                if (domainServer != null) {
+                    domainServer.setHttpVersion(IUploadServer.HttpVersion3);
+                }
 
-                server = (UploadServer) UploadServerNetworkStatus.getBetterNetworkServer(domainServer, server);
+                http3Server = (UploadServer) UploadServerNetworkStatus.getBetterNetworkServer(domainServer, http3Server);
 
-                if (server != null) {
+                if (http3Server != null) {
                     break;
                 }
-            }
-
-            if (server != null) {
-                server.setHttpVersion(IUploadServer.HttpVersion3);
-                return server;
             }
         }
 
         // 2. 挑选http2
+        UploadServer http2Server = null;
         for (String host : hostList) {
             UploadServerDomain domain = domainInfo.get(host);
             if (domain == null) {
                 continue;
             }
-            IUploadServer domainServer = domain.getServer(new UploadServerDomain.GetServerCondition() {
+            UploadServer domainServer = domain.getServer(new UploadServerDomain.GetServerCondition() {
                 @Override
                 public boolean condition(String host, UploadServer serverP, UploadServer filterServer) {
                     String filterServerIP = filterServer == null ? null : filterServer.getIp();
@@ -210,26 +206,32 @@ public class UploadDomainRegion implements IUploadRegion {
                     return UploadServerNetworkStatus.isServerNetworkBetter(filterServer, serverP);
                 }
             });
+            if (domainServer != null) {
+                domainServer.setHttpVersion(IUploadServer.HttpVersion2);
+            }
 
-            server = (UploadServer) UploadServerNetworkStatus.getBetterNetworkServer(domainServer, server);
+            http2Server = (UploadServer) UploadServerNetworkStatus.getBetterNetworkServer(domainServer, http2Server);
 
-            if (server != null) {
+            if (http2Server != null) {
                 break;
             }
         }
 
+        UploadServer server = (UploadServer) UploadServerNetworkStatus.getBetterNetworkServer(http3Server, http2Server);
         if (server == null && !hasFreezeHost && hostList.size() > 0) {
             int index = (int) (Math.random() * hostList.size());
             String host = hostList.get(index);
             UploadServerDomain domain = domainInfo.get(host);
             if (domain != null) {
                 server = domain.getOneServer();
+                if (server != null) {
+                    server.setHttpVersion(IUploadServer.HttpVersion2);
+                }
             }
             unfreezeServer(server);
         }
 
         if (server != null) {
-            server.setHttpVersion(IUploadServer.HttpVersion2);
             LogUtil.i("get server host:" + StringUtils.toNonnullString(server.getHost()) + " ip:" + StringUtils.toNonnullString(server.getIp()));
         } else {
             isAllFrozen = true;
@@ -268,14 +270,14 @@ public class UploadDomainRegion implements IUploadRegion {
         String frozenType = UploadServerFreezeUtil.getFrozenType(freezeServer.getHost(), freezeServer.getIp());
         // 1. http3 冻结
         if (freezeServer.isHttp3()) {
-            if (responseInfo.isNotQiniu()) {
+            if (responseInfo.isNotQiniu() || !responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
                 hasFreezeHost = true;
                 partialHttp3Freezer.freezeType(frozenType, GlobalConfiguration.getInstance().partialHostFrozenTime);
             }
 
-            if (!responseInfo.canConnectToHost() || responseInfo.isHostUnavailable()) {
+            if (IUploadServer.HttpVersion3.equals(responseInfo.httpVersion) || responseInfo.isHostUnavailable()) {
                 hasFreezeHost = true;
-                UploadServerFreezeUtil.globalHttp3Freezer().freezeType(frozenType, Http3FrozenTime);
+                UploadServerFreezeUtil.globalHttp3Freezer().freezeType(frozenType, GlobalConfiguration.getInstance().globalHostFrozenTime);
             }
             return;
         }
@@ -303,6 +305,11 @@ public class UploadDomainRegion implements IUploadRegion {
 
         String frozenType = UploadServerFreezeUtil.getFrozenType(freezeServer.getHost(), freezeServer.getIp());
         partialHttp2Freezer.unfreezeType(frozenType);
+        partialHttp3Freezer.unfreezeType(frozenType);
+    }
+
+    private boolean couldUseHttp3() {
+        return GlobalConfiguration.getInstance().enableHttp3;
     }
 
 

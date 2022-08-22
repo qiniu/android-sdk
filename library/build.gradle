@@ -3,7 +3,7 @@ import java.util.regex.Matcher
 apply plugin: 'com.android.library'
 
 def versionName() {
-    String config = 'library/src/main/java/com/qiniu/android/common/Constants.java'
+    String config = getProjectDir().getPath() + '/src/main/java/com/qiniu/android/common/Constants.java'
     String fileContents = new File(config).text
     Matcher myMatcher = fileContents =~ /VERSION = "(.+)";/
     String version = myMatcher[0][1]
@@ -59,7 +59,8 @@ dependencies {
 //    implementation 'com.google.code.findbugs:jsr305:3.0.2'
     implementation 'org.conscrypt:conscrypt-android:2.2.1'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    testImplementation 'junit:junit:4.13'
+
+    androidTestImplementation 'junit:junit:4.12'
 //    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
 

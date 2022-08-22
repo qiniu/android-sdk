@@ -1,5 +1,7 @@
 package com.qiniu.android.http.request;
 
+import android.util.Log;
+
 import com.qiniu.android.collect.ReportItem;
 import com.qiniu.android.collect.UploadInfoReporter;
 import com.qiniu.android.http.ResponseInfo;
@@ -12,6 +14,7 @@ import com.qiniu.android.http.request.handler.CheckCancelHandler;
 import com.qiniu.android.http.request.handler.RequestProgressHandler;
 import com.qiniu.android.http.request.handler.RequestShouldRetryHandler;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
+import com.qiniu.android.http.serverRegion.HttpServerManager;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.storage.UpToken;
@@ -69,9 +72,12 @@ class HttpSingleRequest {
                               final RequestShouldRetryHandler shouldRetryHandler,
                               final RequestProgressHandler progressHandler,
                               final RequestCompleteHandler completeHandler) {
-
-        if (server.isHttp3()) {
-            client = new SystemHttpClient();
+        // 满足以下条件方可使用自定义 client
+        // 1. 自定义 client 不能为空
+        // 2. 自定义 client 如果非 qn-curl client（七牛 http3 插件），则可以直接使用；
+        //                 如果是 qn-curl client（七牛 http3 插件），仅允许 http3 请求。
+        if (config.requestClient != null && (!config.requestClient.getClientId().equals("qn-curl") || (server != null && server.isHttp3()))) {
+            client = config.requestClient;
         } else {
             client = new SystemHttpClient();
         }
@@ -90,9 +96,9 @@ class HttpSingleRequest {
         LogUtil.i("key:" + StringUtils.toNonnullString(requestInfo.key) +
                 " retry:" + currentRetryTime +
                 " url:" + StringUtils.toNonnullString(request.urlString) +
-                " ip:" + StringUtils.toNonnullString(request.ip));
+                " ip:" + StringUtils.toNonnullString(server.getIp()));
 
-        client.request(request, isAsync, config.proxy, new IRequestClient.Progress() {
+        client.request(request, new IRequestClient.Options(server, isAsync, config.proxy), new IRequestClient.Progress() {
             @Override
             public void progress(long totalBytesWritten, long totalBytesExpectedToWrite) {
                 if (checkCancelHandler.checkCancel()) {
@@ -107,6 +113,10 @@ class HttpSingleRequest {
         }, new IRequestClient.CompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
+
+                // 更新 host/ip 状态信息
+                updateHttpServerInfo(server, responseInfo);
+
                 if (metrics != null) {
                     requestMetricsList.add(metrics);
                 }
@@ -211,11 +221,71 @@ class HttpSingleRequest {
             return;
         }
         long byteCount = requestMetrics.bytesSend();
-        long second = requestMetrics.totalElapsedTime();
-        if (second > 0 && byteCount >= 1024 * 1024) {
-            int speed = (int) (byteCount * 1000 / second);
-            String type = NetworkStatusManager.getNetworkStatusType(server.getHost(), server.getIp());
-            NetworkStatusManager.getInstance().updateNetworkStatus(type, speed);
+        long milliSecond = requestMetrics.totalElapsedTime();
+        if (milliSecond <= 0 || byteCount < 1024) {
+            return;
+        }
+
+        if (byteCount <= 8 * 1024) {
+            milliSecond = (long)((float)milliSecond * 0.08);
+        } else if (byteCount <= 16 * 1024) {
+            milliSecond = (long)((float)milliSecond * 0.15);
+        } else if (byteCount <= 32 * 1024) {
+            milliSecond = (long)((float)milliSecond * 0.22);
+        } else if (byteCount <= 64 * 1024) {
+            milliSecond = (long)((float)milliSecond * 0.30);
+        } else if (byteCount <= 128 * 1024) {
+            milliSecond = (long)((float)milliSecond * 0.45);
+        } else if (byteCount <= 256 * 1024) {
+            milliSecond = (long)((float)milliSecond * 0.76);
+        } else if (byteCount <= 512 * 1024) {
+            milliSecond = (long)((float)milliSecond * 0.88);
+        } else if (byteCount <= 1024 * 1024) {
+            milliSecond = (long)((float)milliSecond * 0.95);
+        }
+
+        if (milliSecond <= 0) {
+            milliSecond = 10;
+        }
+
+        int speed = (int) (byteCount / milliSecond);
+        Log.d("speed","httpVersion:" + server.getHttpVersion() + " byte:" + byteCount/1024.0 + "  milliSecond:" + milliSecond + "   speed:" + speed);
+        String type = NetworkStatusManager.getNetworkStatusType(server.getHttpVersion(), server.getHost(), server.getIp());
+        NetworkStatusManager.getInstance().updateNetworkStatus(type, speed);
+    }
+
+    private void updateHttpServerInfo(IUploadServer server, ResponseInfo responseInfo) {
+        if (responseInfo == null || responseInfo.responseHeader == null || server == null || server.getHost() == null) {
+            return;
+        }
+
+        String altSvc = responseInfo.responseHeader.get("x-alt-svc");
+        if (altSvc == null) {
+            return;
+        }
+
+        int live = 0;
+        String ip = null;
+        String host = server.getHost();
+        String[] items = altSvc.split(";");
+        for (String it : items) {
+            String item = it.replace(" ", "");
+            item = item.replace("\"", "");
+            if (item.contains("ip=")) {
+                String[] ipItems = item.split("=");
+                if (ipItems.length == 2 && ipItems[0].equals("ip")) {
+                    ip = ipItems[1];
+                }
+            } else if (item.contains("ma=")) {
+                String[] maItems = item.split("=");
+                if (maItems.length == 2 && maItems[0].equals("ma")) {
+                    live = Integer.parseInt(maItems[1]);
+                }
+            }
+        }
+
+        if (host != null && ip != null && live > 0) {
+            HttpServerManager.getInstance().addHttp3Server(host, ip, live);
         }
     }
 
@@ -233,7 +303,7 @@ class HttpSingleRequest {
         item.setReport((requestMetrics.getStartDate().getTime() / 1000), ReportItem.RequestKeyUpTime);
         item.setReport(ReportItem.requestReportStatusCode(responseInfo), ReportItem.RequestKeyStatusCode);
         item.setReport(responseInfo != null ? responseInfo.reqId : null, ReportItem.RequestKeyRequestId);
-        item.setReport(requestMetrics.getRequest() != null ? requestMetrics.getRequest().host : null, ReportItem.RequestKeyHost);
+        item.setReport(requestMetrics.getRequest() != null ? requestMetrics.getRequest().getHost() : null, ReportItem.RequestKeyHost);
         item.setReport(requestMetrics.getRemoteAddress(), ReportItem.RequestKeyRemoteIp);
         item.setReport(requestMetrics.getRemotePort(), ReportItem.RequestKeyPort);
         item.setReport(requestInfo.bucket, ReportItem.RequestKeyTargetBucket);

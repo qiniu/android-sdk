@@ -2,9 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/library/QiNiu_Android.library.iml" filepath="$PROJECT_DIR$/.idea/modules/library/QiNiu_Android.library.iml" />
-      <module fileurl="file://$PROJECT_DIR$/Qiniu_Android.iml" filepath="$PROJECT_DIR$/Qiniu_Android.iml" group="Qiniu_Android" />
-      <module fileurl="file://$PROJECT_DIR$/library/library.iml" filepath="$PROJECT_DIR$/library/library.iml" group="Qiniu_Android/library" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/android-sdk.iml" filepath="$PROJECT_DIR$/.idea/modules/android-sdk.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/library/android-sdk.library.iml" filepath="$PROJECT_DIR$/.idea/modules/library/android-sdk.library.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/library/android-sdk.library.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/library/android-sdk.library.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/library/android-sdk.library.main.iml" filepath="$PROJECT_DIR$/.idea/modules/library/android-sdk.library.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/library/android-sdk.library.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/library/android-sdk.library.unitTest.iml" />
     </modules>
   </component>
 </project>

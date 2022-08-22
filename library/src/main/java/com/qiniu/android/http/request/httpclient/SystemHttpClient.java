@@ -6,6 +6,7 @@ import com.qiniu.android.http.ProgressHandler;
 import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.dns.SystemDns;
+import com.qiniu.android.http.request.IUploadServer;
 import com.qiniu.android.http.request.Request;
 import com.qiniu.android.http.request.IRequestClient;
 import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
@@ -58,6 +59,7 @@ public class SystemHttpClient extends IRequestClient {
 
     private boolean hasHandleComplete = false;
     private static ConnectionPool pool;
+    private IUploadServer currentServer;
     private Request currentRequest;
     private static final OkHttpClient baseClient = new OkHttpClient();
     private OkHttpClient httpClient;
@@ -66,19 +68,35 @@ public class SystemHttpClient extends IRequestClient {
     private Progress requestProgress;
     private CompleteHandler completeHandler;
 
-    @Override
     public void request(Request request,
                         boolean isAsync,
                         ProxyConfiguration connectionProxy,
                         Progress progress,
                         CompleteHandler complete) {
+        request(request, new Options(null, isAsync, connectionProxy), progress, complete);
+    }
+
+    @Override
+    public void request(Request request,
+                        Options options,
+                        Progress progress,
+                        CompleteHandler complete) {
+        IUploadServer server = null;
+        boolean isAsync = true;
+        ProxyConfiguration connectionProxy = null;
+        if (options != null) {
+            server = options.server;
+            isAsync = options.isAsync;
+            connectionProxy = options.connectionProxy;
+        }
 
         metrics = new UploadSingleRequestMetrics();
         metrics.start();
-        metrics.setClientName("okhttp");
+        metrics.setClientName(getClientId());
         metrics.setClientVersion(getOkHttpVersion());
-        if (request != null) {
-            metrics.setRemoteAddress(request.ip);
+        if (server != null) {
+            currentServer = server;
+            metrics.setRemoteAddress(server.getIp());
         }
         metrics.setRequest(request);
         currentRequest = request;
@@ -145,6 +163,11 @@ public class SystemHttpClient extends IRequestClient {
         }
     }
 
+    @Override
+    public String getClientId() {
+        return "okhttp";
+    }
+
     private OkHttpClient createHttpClient(ProxyConfiguration connectionProxy) {
         if (currentRequest == null) {
             return null;
@@ -165,10 +188,15 @@ public class SystemHttpClient extends IRequestClient {
             clientBuilder.dns(new Dns() {
                 @Override
                 public List<InetAddress> lookup(String s) throws UnknownHostException {
-                    if (currentRequest.getInetAddress() != null && s.equals(currentRequest.host)) {
-                        List<InetAddress> inetAddressList = new ArrayList<>();
-                        inetAddressList.add(currentRequest.getInetAddress());
-                        return inetAddressList;
+                    if (currentServer != null && s.equals(currentServer.getHost())) {
+                        InetAddress address = currentServer.getInetAddress();
+                        if (address != null) {
+                            List<InetAddress> inetAddressList = new ArrayList<>();
+                            inetAddressList.add(address);
+                            return inetAddressList;
+                        } else {
+                            return new SystemDns().lookupInetAddress(s);
+                        }
                     } else {
                         return new SystemDns().lookupInetAddress(s);
                     }
