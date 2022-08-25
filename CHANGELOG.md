@@ -1,8 +1,7 @@
 #Changelog
 
 ## 8.5.0(2021-12-16)
-* 可自定义 request client
-* 增加 http3 相关重试逻辑
+* 支持自定义 request client
 * 升级 HappyDns 依赖至 v2.0.0
 
 ## 8.4.4 （2022-06-02）
