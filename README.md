@@ -83,7 +83,7 @@ new UpCompletionHandler() {
 ...
 ```
 
-### 使用 http3 协议发起请求
+### 支持使用 http3 协议发起请求
 ```java
 import com.qiniu.client.curl.CurlClient;
 import com.qiniu.android.storage.Configuration;
