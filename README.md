@@ -83,9 +83,9 @@ new UpCompletionHandler() {
 ...
 ```
 
-### 支持使用 http3 协议发起请求
+### 支持使用 HTTP/3 协议发起请求
 
-导入 [http3 client 插件](https://github.com/qiniu/qiniu-android-curl-plugin)，http3 client 插件依赖于 Android SDK v8.5.0及以上版本
+导入 [HTTP/3 client 插件](https://github.com/qiniu/qiniu-android-curl-plugin)，http3 client 插件依赖于 Android SDK v8.5.0及以上版本
 
 安装导入
 ```java
