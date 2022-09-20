@@ -391,6 +391,11 @@ public final class ResponseInfo {
         }
     }
 
+    // 在断点续上传过程中，ctx 信息已过期。
+    public boolean isCtxExpiredError() {
+        return statusCode == 701;
+    }
+
     public boolean isNetworkBroken() {
         return statusCode == NetworkError || statusCode == NetworkSlow;
     }

@@ -120,6 +120,7 @@ abstract class BaseUpload implements Runnable {
         currentRegionRequestMetrics.start();
     }
 
+    @Deprecated
     protected boolean switchRegionAndUpload() {
         if (currentRegionRequestMetrics != null) {
             currentRegionRequestMetrics.end();
@@ -209,12 +210,25 @@ abstract class BaseUpload implements Runnable {
 
     protected boolean switchRegionAndUploadIfNeededWithErrorResponse(ResponseInfo errorResponseInfo) {
         if (errorResponseInfo == null || errorResponseInfo.isOK() || // 不存在 || 不是error 不切
-                !errorResponseInfo.couldRetry() || !config.allowBackupHost || // 不能重试不切
-                !switchRegionAndUpload()) { // 切换失败
+                !errorResponseInfo.couldRetry() || !config.allowBackupHost) { // 不能重试
             return false;
-        } else {
-            return true;
         }
+
+        if (currentRegionRequestMetrics != null) {
+            currentRegionRequestMetrics.end();
+            metrics.addMetrics(currentRegionRequestMetrics);
+            currentRegionRequestMetrics = null;
+        }
+
+        // 切换区域，当为 context 过期错误不需要切换区域
+        if (!errorResponseInfo.isCtxExpiredError() && !switchRegion()) {
+            // 非 context 过期错误，但是切换 region 失败
+            return false;
+        }
+
+        startToUpload();
+
+        return true;
     }
 
     protected IUploadRegion getTargetRegion() {

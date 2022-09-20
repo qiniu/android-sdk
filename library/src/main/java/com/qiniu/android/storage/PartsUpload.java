@@ -109,9 +109,9 @@ class PartsUpload extends BaseUpload {
     }
 
     @Override
-    protected boolean switchRegionAndUpload() {
+    protected boolean switchRegionAndUploadIfNeededWithErrorResponse(ResponseInfo errorResponseInfo) {
         reportBlock();
-        return super.switchRegionAndUpload();
+        return super.switchRegionAndUploadIfNeededWithErrorResponse(errorResponseInfo);
     }
 
     @Override

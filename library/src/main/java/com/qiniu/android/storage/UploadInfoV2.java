@@ -3,6 +3,7 @@ package com.qiniu.android.storage;
 import com.qiniu.android.utils.ListVector;
 import com.qiniu.android.utils.MD5;
 import com.qiniu.android.utils.StringUtils;
+import com.qiniu.android.utils.Utils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -293,8 +294,7 @@ class UploadInfoV2 extends UploadInfo {
             return false;
         }
 
-        long timestamp = new Date().getTime() / 1000;
-        return expireAt > (timestamp - 3600 * 24 * 2);
+        return (expireAt - 3600 * 24) > Utils.currentSecondTimestamp();
     }
 
     // 文件已经读取结束 & 所有片均上传

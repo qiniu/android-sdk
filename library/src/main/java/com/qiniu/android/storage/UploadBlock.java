@@ -1,5 +1,7 @@
 package com.qiniu.android.storage;
 
+import com.qiniu.android.utils.Utils;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -12,6 +14,9 @@ class UploadBlock {
     final int size;
     final int index;
     final List<UploadData> uploadDataList;
+
+    // 单位：秒
+    Long expireAt = null;
 
     String md5 = null;
     String ctx = null;
@@ -38,6 +43,7 @@ class UploadBlock {
         long offset = jsonObject.getLong("offset");
         int size = jsonObject.getInt("size");
         int index = jsonObject.getInt("index");
+        long expireAt = jsonObject.getLong("expired_at");
         String md5 = jsonObject.optString("md5");
         String ctx = jsonObject.optString("ctx");
         ArrayList<UploadData> uploadDataList = new ArrayList<UploadData>();
@@ -51,9 +57,20 @@ class UploadBlock {
         }
 
         UploadBlock block = new UploadBlock(offset, size, index, uploadDataList);
+        block.expireAt = expireAt;
         block.md5 = md5;
         block.ctx = ctx;
         return block;
+    }
+
+    boolean isValid() {
+        if (expireAt == null || expireAt == 0) {
+            // 不存在时，为新创建 block: 有效
+            return true;
+        }
+
+        // 存在则有效期必须为过期
+        return (expireAt - 3600 * 24) > Utils.currentSecondTimestamp();
     }
 
     boolean isCompleted() {
@@ -107,6 +124,7 @@ class UploadBlock {
         jsonObject.putOpt("offset", offset);
         jsonObject.putOpt("size", size);
         jsonObject.putOpt("index", index);
+        jsonObject.putOpt("expired_at", expireAt);
         jsonObject.putOpt("md5", md5);
         jsonObject.putOpt("ctx", ctx);
         if (uploadDataList != null && uploadDataList.size() > 0) {
