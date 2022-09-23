@@ -1,6 +1,5 @@
 package com.qiniu.android.http.request;
 
-import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,6 +14,9 @@ public class Request {
     public final String httpMethod;
     public final Map<String, String> allHeaders;
     public final int timeout;
+    public final int connectTimeout;
+    public final int readTimeout;
+    public final int writeTimeout;
     public byte[] httpBody;
 
     private String host;
@@ -24,12 +26,27 @@ public class Request {
                    Map<String, String> allHeaders,
                    byte[] httpBody,
                    int timeout) {
+        this(urlString, httpMethod, allHeaders, httpBody, 10,
+                (int) ((timeout - 10) * 0.5),
+                (int) ((timeout - 10) * 0.5));
+    }
+
+    public Request(String urlString,
+                   String httpMethod,
+                   Map<String, String> allHeaders,
+                   byte[] httpBody,
+                   int connectTimeout,
+                   int readTimeout,
+                   int writeTimeout) {
 
         this.urlString = urlString;
         this.httpMethod = (httpMethod != null) ? httpMethod : HttpMethodGet;
         this.allHeaders = (allHeaders != null) ? allHeaders : new HashMap<String, String>();
-        this.httpBody = (httpBody != null) ? httpBody :  new byte[0];
-        this.timeout = timeout;
+        this.httpBody = (httpBody != null) ? httpBody : new byte[0];
+        this.connectTimeout = connectTimeout;
+        this.readTimeout = readTimeout;
+        this.writeTimeout = writeTimeout;
+        this.timeout = connectTimeout + writeTimeout + readTimeout;
     }
 
     void setHost(String host) {

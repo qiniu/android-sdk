@@ -99,14 +99,17 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
 
                 String ctx = null;
+                Long expiredAt = null;
                 if (response != null) {
                     try {
                         ctx = response.getString("ctx");
+                        expiredAt = response.getLong("expired_at");
                     } catch (JSONException e) {
                     }
                 }
-                if (responseInfo.isOK() && ctx != null) {
+                if (responseInfo.isOK() && ctx != null && expiredAt != null) {
                     uploadBlock.ctx = ctx;
+                    uploadBlock.expireAt = expiredAt;
                     uploadChunk.updateState(UploadData.State.Complete);
                     recordUploadInfo();
                     notifyProgress(false);
@@ -121,7 +124,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " makeBlock");
             makeBlock(uploadBlock, uploadChunk, progressHandler, completeHandlerP);
         } else {
-            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " makeBlock");
+            LogUtil.i("key:" + StringUtils.toNonnullString(key) + " uploadChunk");
             uploadChunk(uploadBlock, uploadChunk, progressHandler, completeHandlerP);
         }
     }

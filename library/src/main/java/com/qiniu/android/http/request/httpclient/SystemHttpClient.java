@@ -206,9 +206,9 @@ public class SystemHttpClient extends IRequestClient {
 
         clientBuilder.connectionPool(SystemHttpClient.getConnectPool());
 
-        clientBuilder.connectTimeout(currentRequest.timeout, TimeUnit.SECONDS);
-        clientBuilder.readTimeout(currentRequest.timeout, TimeUnit.SECONDS);
-        clientBuilder.writeTimeout(60, TimeUnit.SECONDS);
+        clientBuilder.connectTimeout(currentRequest.connectTimeout, TimeUnit.SECONDS);
+        clientBuilder.readTimeout(currentRequest.readTimeout, TimeUnit.SECONDS);
+        clientBuilder.writeTimeout(currentRequest.writeTimeout, TimeUnit.SECONDS);
 
         return clientBuilder.build();
     }
