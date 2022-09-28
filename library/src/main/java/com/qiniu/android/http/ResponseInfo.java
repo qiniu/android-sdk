@@ -17,7 +17,7 @@ public final class ResponseInfo {
     /**
      * StatusCode >= 100 见：https://developer.qiniu.com/kodo/3928/error-responses
      */
-    
+
     @Deprecated
     public static final int ResquestSuccess = 200;
 
@@ -36,7 +36,7 @@ public final class ResponseInfo {
 
     /**
      * 在上传时，SDK 内部业务逻辑非预期。正常情况下，此错误并会被抛掷应用层。
-     *
+     * <p>
      * 此错误出现的原因一般为某个上传流程异常请求导致，实际应该抛出请求，但因为调用异常未被抛出。
      */
     public static final int SDKInteriorError = -9;
@@ -335,14 +335,22 @@ public final class ResponseInfo {
     }
 
     public boolean couldRetry() {
-        if (isQiniu() && (isCancelled()
+        if (isNotQiniu()) {
+            return true;
+        }
+
+        if (isCtxExpiredError()) {
+            return true;
+        }
+
+        if (isCancelled()
+                || statusCode == 100
                 || (statusCode > 300 && statusCode < 400)
                 || (statusCode > 400 && statusCode < 500 && statusCode != 406)
                 || statusCode == 501 || statusCode == 573
                 || statusCode == 608 || statusCode == 612 || statusCode == 614 || statusCode == 616
                 || statusCode == 619 || statusCode == 630 || statusCode == 631 || statusCode == 640
-                || statusCode == 701
-                || (statusCode < -1 && statusCode > -1000))) {
+                || (statusCode < -1 && statusCode > -1000)) {
             return false;
         } else {
             return true;
@@ -350,7 +358,18 @@ public final class ResponseInfo {
     }
 
     public boolean couldRegionRetry() {
-        if (!couldRetry() || statusCode == 400 || statusCode == 579) {
+        if (isNotQiniu()) {
+            return true;
+        }
+
+        if (isCancelled()
+                || statusCode == 100
+                || (statusCode > 300 && statusCode < 500 && statusCode != 406)
+                || statusCode == 501 || statusCode == 573 || statusCode == 579
+                || statusCode == 608 || statusCode == 612 || statusCode == 614 || statusCode == 616
+                || statusCode == 619 || statusCode == 630 || statusCode == 631 || statusCode == 640
+                || statusCode == 701
+                || (statusCode < -1 && statusCode > -1000)) {
             return false;
         } else {
             return true;
@@ -358,8 +377,19 @@ public final class ResponseInfo {
     }
 
     public boolean couldHostRetry() {
-        if (isNotQiniu() || !couldRegionRetry() || statusCode == 502 || statusCode == 503 ||
-                statusCode == 571 || statusCode == 599) {
+        if (isNotQiniu()) {
+            return true;
+        }
+
+        if (isCancelled()
+                || statusCode == 100
+                || (statusCode > 300 && statusCode < 500 && statusCode != 406)
+                || statusCode == 501 || statusCode == 502 || statusCode == 503
+                || statusCode == 571 || statusCode == 573 || statusCode == 579 || statusCode == 599
+                || statusCode == 608 || statusCode == 612 || statusCode == 614 || statusCode == 616
+                || statusCode == 619 || statusCode == 630 || statusCode == 631 || statusCode == 640
+                || statusCode == 701
+                || (statusCode < -1 && statusCode > -1000)) {
             return false;
         } else {
             return true;
@@ -393,7 +423,7 @@ public final class ResponseInfo {
 
     // 在断点续上传过程中，ctx 信息已过期。
     public boolean isCtxExpiredError() {
-        return statusCode == 701;
+        return statusCode == 701 || (statusCode == 612 && error != null && error.contains("no such uploadId"));
     }
 
     public boolean isNetworkBroken() {

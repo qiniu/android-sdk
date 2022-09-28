@@ -107,6 +107,10 @@ abstract class BaseUpload implements Runnable {
         });
     }
 
+    protected boolean reloadUploadInfo() {
+        return true;
+    }
+
     protected int prepareToUpload() {
         int ret = 0;
         if (!setupRegions()) {
@@ -218,6 +222,11 @@ abstract class BaseUpload implements Runnable {
             currentRegionRequestMetrics.end();
             metrics.addMetrics(currentRegionRequestMetrics);
             currentRegionRequestMetrics = null;
+        }
+
+        // 重新加载上传数据，上传记录 & Resource index 归零
+        if (!reloadUploadInfo()) {
+            return false;
         }
 
         // 切换区域，当为 context 过期错误不需要切换区域

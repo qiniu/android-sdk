@@ -259,6 +259,8 @@ class UploadInfoV2 extends UploadInfo {
 
     @Override
     void clearUploadState() {
+        expireAt = null;
+        uploadId = null;
         dataList.enumerateObjects(new ListVector.EnumeratorHandler<UploadData>() {
             @Override
             public boolean enumerate(UploadData data) {
