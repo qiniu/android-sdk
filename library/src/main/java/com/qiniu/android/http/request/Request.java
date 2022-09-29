@@ -27,8 +27,8 @@ public class Request {
                    byte[] httpBody,
                    int timeout) {
         this(urlString, httpMethod, allHeaders, httpBody, 10,
-                (int) ((timeout - 10) * 0.5),
-                (int) ((timeout - 10) * 0.5));
+                (timeout - 10) >> 1,
+                (timeout - 10) >> 1);
     }
 
     public Request(String urlString,
