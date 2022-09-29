@@ -70,7 +70,7 @@ class UploadBlock {
         }
 
         // 存在则有效期必须为过期
-        return (expireAt - 3600 * 24) > Utils.currentSecondTimestamp();
+        return (expireAt - 2 * 3600) > Utils.currentSecondTimestamp();
     }
 
     boolean isCompleted() {

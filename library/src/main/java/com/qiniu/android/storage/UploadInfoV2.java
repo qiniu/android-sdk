@@ -296,7 +296,7 @@ class UploadInfoV2 extends UploadInfo {
             return false;
         }
 
-        return (expireAt - 3600 * 24) > Utils.currentSecondTimestamp();
+        return (expireAt - 2 * 3600) > Utils.currentSecondTimestamp();
     }
 
     // 文件已经读取结束 & 所有片均上传
