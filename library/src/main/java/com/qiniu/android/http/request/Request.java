@@ -38,6 +38,15 @@ public class Request {
                    int connectTimeout,
                    int readTimeout,
                    int writeTimeout) {
+        if (connectTimeout < 0) {
+            connectTimeout = 10;
+        }
+        if (readTimeout < 0) {
+            readTimeout = 10;
+        }
+        if (writeTimeout < 0) {
+            writeTimeout = 30;
+        }
 
         this.urlString = urlString;
         this.httpMethod = (httpMethod != null) ? httpMethod : HttpMethodGet;

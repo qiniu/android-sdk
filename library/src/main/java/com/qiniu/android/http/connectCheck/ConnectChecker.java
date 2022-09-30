@@ -129,7 +129,8 @@ public class ConnectChecker {
             }
         }, timeout, TimeUnit.SECONDS);
 
-        Request request = new Request(host, Request.HttpMethodHEAD, null, null, timeout);
+        Request request = new Request(host, Request.HttpMethodHEAD, null, null,
+                timeout, timeout, timeout);
         SystemHttpClient client = new SystemHttpClient();
 
         LogUtil.i("== checkHost:" + host);
