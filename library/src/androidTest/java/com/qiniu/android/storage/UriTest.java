@@ -44,6 +44,7 @@ public class UriTest extends BaseTest {
             {false, false, false},
     };
 
+    @Test
     public void test() {
     }
 
