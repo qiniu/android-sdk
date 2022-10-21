@@ -1,8 +1,12 @@
 package com.qiniu.android;
 
-import android.test.AndroidTestCase;
+import android.content.Context;
 
-import com.qiniu.android.utils.LogUtil;
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+import org.junit.Assert;
+import org.junit.Before;
 
 import java.util.Date;
 import java.util.concurrent.CountDownLatch;
@@ -11,15 +15,16 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by yangsen on 2020/5/26
  */
-public class BaseTest extends AndroidTestCase {
-
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        LogUtil.enableLog(true);
-    }
+public class BaseTest {
 
     private long maxWaitTimestamp = 0;
+
+    private Context context = ApplicationProvider.getApplicationContext();
+
+    @Before
+    public void setUp() throws Exception {
+        context = ApplicationProvider.getApplicationContext();
+    }
 
     /**
      * waitCondition: 等待条件
@@ -47,6 +52,9 @@ public class BaseTest extends AndroidTestCase {
         }
     }
 
+    protected Context getContext() {
+        return context;
+    }
 
     public interface WaitConditional {
         boolean shouldWait();
@@ -76,5 +84,62 @@ public class BaseTest extends AndroidTestCase {
         long endTimestamp = new Date().getTime();
 
         assertTrue(((startTimestamp + waitTime * 1000) < endTimestamp));
+    }
+
+
+    protected void fail(String message) {
+        Assert.fail(message);
+    }
+
+    protected void assertTrue(boolean condition) {
+        Assert.assertTrue(condition);
+    }
+
+    protected void assertTrue(String message, boolean condition) {
+        Assert.assertTrue(message, condition);
+    }
+
+    protected void assertFalse(boolean condition) {
+        Assert.assertFalse(condition);
+    }
+
+    protected void assertFalse(String message, boolean condition) {
+        Assert.assertFalse(message, condition);
+    }
+
+    protected void assertNull(Object object) {
+        Assert.assertNull(object);
+    }
+
+    protected void assertNull(String message, Object object) {
+        Assert.assertNull(message, object);
+    }
+
+    protected void assertNotNull(Object object) {
+        Assert.assertNotNull(object);
+    }
+
+    protected void assertNotNull(String message, Object object) {
+        Assert.assertNotNull(message, object);
+    }
+
+    protected void assertEquals(Object expected, Object actual) {
+        Assert.assertEquals(expected, actual);
+    }
+
+    protected void assertEquals(String message, Object expected, Object actual) {
+        Assert.assertEquals(message, expected, actual);
+    }
+
+    protected void assertEquals(String message, long expected, long actual) {
+        Assert.assertEquals(message, expected, actual);
+    }
+
+    protected void assertEquals(int expected, int actual) {
+        Assert.assertEquals(expected, actual);
+    }
+
+    protected void assertEquals(String message, int expected, int actual) {
+        Assert.assertEquals(message, expected, actual);
     }
 }

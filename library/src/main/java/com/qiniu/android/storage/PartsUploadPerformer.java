@@ -72,6 +72,12 @@ abstract class PartsUploadPerformer {
     }
 
     boolean reloadInfo() {
+        if (uploadInfo == null) {
+            return false;
+        }
+
+        recoveredFrom = null;
+        uploadInfo.clearUploadState();
         return uploadInfo.reloadSource();
     }
 
@@ -82,11 +88,7 @@ abstract class PartsUploadPerformer {
     }
 
     void switchRegion(IUploadRegion region) {
-        if (uploadInfo != null) {
-            uploadInfo.clearUploadState();
-        }
         currentRegion = region;
-        recoveredFrom = null;
         if (targetRegion == null) {
             targetRegion = region;
         }

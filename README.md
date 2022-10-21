@@ -15,6 +15,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 
 | Qiniu SDK 版本 | 最低 Android版本   |       依赖库版本           |
 |------------ |-----------------|------------------------|
+|  8.5.0        |  Android 4.0+     |        okhttp 4+         |
 |  8.4.*        |  Android 4.0+     |        okhttp 4+         |
 |  8.3.2        |  Android 4.0+     |        okhttp 4+         |
 |  8.3.1        |  Android 4.0+     |        okhttp 4+         |
@@ -33,7 +34,7 @@ https://github.com/qiniudemo/qiniu-lab-android
 |  7.0.7        |  Android 2.2+     | android-async-http 1.4.8 |
 
 ### 注意
-* 推荐使用最新版：8.4.4
+* 推荐使用最新版：8.5.0
 * 7.6.2 ~ 8.3.2 AndroidNetwork.getMobileDbm()可以获取手机信号强度，需要如下权限(API>=18时生效)
 ```
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
@@ -52,10 +53,10 @@ https://github.com/qiniudemo/qiniu-lab-android
 * Android Studio中添加dependencies 或者 在项目中添加maven依赖
 ```
 // 1. 直接导入
-implementation 'com.qiniu:qiniu-android-sdk:8.4.+'
+implementation 'com.qiniu:qiniu-android-sdk:8.5.+'
 
 // 2. 如果要修改okhttp依赖的版本，可采用以下方式（强烈建议使用七牛库依赖的okhttp版本）
-implementation ('com.qiniu:qiniu-android-sdk:8.4.+'){
+implementation ('com.qiniu:qiniu-android-sdk:8.5.+'){
     exclude (group: 'com.squareup.okhttp3', module: 'okhttp')
 }
 implementation 'com.squareup.okhttp3:okhttp:4.9.1'
@@ -81,6 +82,32 @@ new UpCompletionHandler() {
 }, null);
 ...
 ```
+
+### 支持使用 HTTP/3 协议发起请求
+
+导入 [HTTP/3 client 插件](https://github.com/qiniu/qiniu-android-curl-plugin)，http3 client 插件依赖于 Android SDK v8.5.0及以上版本
+
+安装导入
+```java
+// 移除 qiniu-android-sdk 依赖 : implementation 'com.qiniu:qiniu-android-sdk:x.x.+' 
+implementation 'com.qiniu:qiniu-android-curl-plugin:1.0.0'
+```
+
+使用 CurlClient
+```java
+import com.qiniu.client.curl.CurlClient;
+import com.qiniu.android.storage.Configuration;
+import com.qiniu.android.storage.UploadManager;
+
+// @param caPath: SSL 证书本地路径；如果想自定义 CA 可设置此选项，此处为 CA 文件的本地路径。
+// 				  如果未定义（caPath 配置 null）则使用 SDK 内部提供的 CA 证书，证书来源：https://curl.se/ca/cacert.pem
+CurlClient client = new CurlClient(caPath);
+Configuration config = new Configuration.Builder()
+                .requestClient(client)
+                .build();
+UploadManager manager = new UploadManager(config);
+```
+
 
 ## 测试
 

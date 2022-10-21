@@ -37,12 +37,18 @@ public class NetworkStatusManager {
         if (hasInit){
             return;
         }
+        hasInit = true;
         networkStatusManager.networkStatusInfo = new ConcurrentHashMap<>();
         networkStatusManager.asyncRecoverNetworkStatusFromDisk();
     }
 
+    @Deprecated
     public static String getNetworkStatusType(String host, String ip) {
         return Utils.getIpType(ip, host);
+    }
+
+    public static String getNetworkStatusType(String httpVersion, String host, String ip) {
+        return Utils.getIpType(httpVersion, ip, host);
     }
 
     public NetworkStatus getNetworkStatus(String type) {
@@ -64,6 +70,8 @@ public class NetworkStatusManager {
         if (status == null) {
             status = new NetworkStatus();
             networkStatusInfo.put(type, status);
+        } else {
+            speed = (int)((float)speed * 0.4  + (float)status.getSpeed() * 0.6);
         }
         status.setSpeed(speed);
 
@@ -163,9 +171,10 @@ public class NetworkStatusManager {
         }
     }
 
+    protected static final int DefaultSpeed = 600;
     public static class NetworkStatus {
 
-        private int speed;
+        private int speed = DefaultSpeed;
 
         public int getSpeed() {
             return speed;

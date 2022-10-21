@@ -93,11 +93,6 @@ class PartsUpload extends BaseUpload {
 
     @Override
     protected boolean switchRegion() {
-        // 重新加载资源，如果加载失败，不可切换 region
-        if (!uploadPerformer.couldReloadInfo() || !uploadPerformer.reloadInfo()) {
-            return false;
-        }
-
         boolean isSuccess = super.switchRegion();
         if (isSuccess) {
             uploadPerformer.switchRegion(getCurrentRegion());
@@ -109,9 +104,19 @@ class PartsUpload extends BaseUpload {
     }
 
     @Override
-    protected boolean switchRegionAndUpload() {
+    protected boolean switchRegionAndUploadIfNeededWithErrorResponse(ResponseInfo errorResponseInfo) {
         reportBlock();
-        return super.switchRegionAndUpload();
+        return super.switchRegionAndUploadIfNeededWithErrorResponse(errorResponseInfo);
+    }
+
+    @Override
+    protected boolean reloadUploadInfo() {
+        if (!super.reloadUploadInfo()) {
+            return false;
+        }
+
+        // 重新加载资源
+        return uploadPerformer.couldReloadInfo() && uploadPerformer.reloadInfo();
     }
 
     @Override

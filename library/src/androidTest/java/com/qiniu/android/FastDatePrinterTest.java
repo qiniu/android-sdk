@@ -1,14 +1,21 @@
 package com.qiniu.android;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
 import com.qiniu.android.utils.FastDatePrinter;
 import com.qiniu.android.utils.LogUtil;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+@RunWith(AndroidJUnit4.class)
 public class FastDatePrinterTest extends BaseTest {
 
+    @Test
     public void testCreate(){
 
         Date date = new Date(1595474306393l);

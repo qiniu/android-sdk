@@ -1,5 +1,7 @@
 package com.qiniu.android.common;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
 import com.qiniu.android.BaseTest;
 import com.qiniu.android.TestConfig;
 import com.qiniu.android.http.ResponseInfo;
@@ -7,16 +9,21 @@ import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.LogUtil;
 
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
  * Created by long on 2016/9/30.
  */
+@RunWith(AndroidJUnit4.class)
 public class AutoZoneTest extends BaseTest {
     private String ak = TestConfig.ak;
     private String bkt = "javasdk";
 
+    @Test
     public void testClearAutoZoneCache() {
         final WaitCondition waitCondition = new WaitCondition();
         AutoZone zone = new AutoZone();
@@ -42,6 +49,7 @@ public class AutoZoneTest extends BaseTest {
         assertTrue("after clear cache: info was't temporary", info.isTemporary());
     }
 
+    @Test
     public void testHttp() {
 
         final WaitCondition waitCondition = new WaitCondition();
@@ -96,6 +104,7 @@ public class AutoZoneTest extends BaseTest {
 //    }
 
     private boolean isTestUCServerComplete = false;
+    @Test
     public void testUCServer(){
         String ucServer = "uc.server.test";
         AutoZone autoZone = new AutoZone();
@@ -122,6 +131,7 @@ public class AutoZoneTest extends BaseTest {
         assertTrue(autoZone.getZonesInfo(null) == null);
     }
 
+    @Test
     public void testMufiHttp() {
 
         final TestParam param = new TestParam();
@@ -178,6 +188,7 @@ public class AutoZoneTest extends BaseTest {
         });
     }
 
+    @Test
     public void testAutoZone() {
         final AutoZone zone = new AutoZone();
         final UpToken token = UpToken.parse(TestConfig.commonToken);
@@ -212,6 +223,7 @@ public class AutoZoneTest extends BaseTest {
         assertTrue("preQueryHost02 test complete:" + param.success, param.success);
     }
 
+    @Test
     public void testSetUcHosts02() {
         final AutoZone zone = new AutoZone();
         zone.setUcServers(new String[]{Config.preQueryHost02});

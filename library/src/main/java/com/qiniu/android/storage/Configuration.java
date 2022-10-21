@@ -4,6 +4,7 @@ import com.qiniu.android.common.AutoZone;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ProxyConfiguration;
 import com.qiniu.android.http.UrlConverter;
+import com.qiniu.android.http.request.IRequestClient;
 
 import java.io.File;
 
@@ -49,13 +50,19 @@ public final class Configuration {
     public final int retryInterval;
 
     /**
-     * 连接超时时间 单位 秒
+     * 连接超时时间 单位 秒，默认：10
      * 注：每个文件上传肯能存在多个操作，当每个操作失败时，可能存在多个请求重试。
      */
     public final int connectTimeout;
 
     /**
-     * 服务器响应超时时间 单位 秒
+     * write 响应超时时间 单位 秒，默认：30
+     * 注：每个文件上传肯能存在多个操作，当每个操作失败时，可能存在多个请求重试。
+     */
+    public final int writeTimeout;
+
+    /**
+     * 服务器响应超时时间，对应到 readTimeout 单位 秒，默认：10
      * 注：每个文件上传肯能存在多个操作，当每个操作失败时，可能存在多个请求重试。
      */
     public final int responseTimeout;
@@ -107,8 +114,13 @@ public final class Configuration {
      */
     public final UrlConverter urlConverter;
 
+    /**
+     * 指定 client
+     */
+    public final IRequestClient requestClient;
 
     private Configuration(Builder builder) {
+        requestClient = builder.requestClient;
         useConcurrentResumeUpload = builder.useConcurrentResumeUpload;
         resumeUploadVersion = builder.resumeUploadVersion;
         concurrentTaskCount = builder.concurrentTaskCount;
@@ -127,6 +139,7 @@ public final class Configuration {
         putThreshold = builder.putThreshold;
 
         connectTimeout = builder.connectTimeout;
+        writeTimeout = builder.writeTimeout;
         responseTimeout = builder.responseTimeout;
 
         recorder = builder.recorder;
@@ -167,6 +180,7 @@ public final class Configuration {
     }
 
     public static class Builder {
+        private IRequestClient requestClient = null;
         private Zone zone = null;
         private Recorder recorder = null;
         private KeyGenerator keyGen = null;
@@ -175,8 +189,9 @@ public final class Configuration {
         private boolean useHttps = true;
         private int chunkSize = 2 * 1024 * 1024;
         private int putThreshold = 4 * 1024 * 1024;
-        private int connectTimeout = 90;
-        private int responseTimeout = 60;
+        private int connectTimeout = 10;
+        private  int writeTimeout = 30;
+        private int responseTimeout = 10;
         private int retryMax = 1;
         private int retryInterval = 500;
         private boolean allowBackupHost = true;
@@ -184,6 +199,11 @@ public final class Configuration {
         private boolean useConcurrentResumeUpload = false;
         private int resumeUploadVersion = RESUME_UPLOAD_VERSION_V1;
         private int concurrentTaskCount = 3;
+
+        public Builder requestClient(IRequestClient requestClient) {
+            this.requestClient = requestClient;
+            return this;
+        }
 
         public Builder zone(Zone zone) {
             this.zone = zone;
@@ -218,6 +238,11 @@ public final class Configuration {
 
         public Builder connectTimeout(int timeout) {
             this.connectTimeout = timeout;
+            return this;
+        }
+
+        public Builder writeTimeout(int timeout) {
+            this.writeTimeout = timeout;
             return this;
         }
 

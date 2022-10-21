@@ -17,7 +17,7 @@ public final class ResponseInfo {
     /**
      * StatusCode >= 100 见：https://developer.qiniu.com/kodo/3928/error-responses
      */
-    
+
     @Deprecated
     public static final int ResquestSuccess = 200;
 
@@ -137,6 +137,12 @@ public final class ResponseInfo {
      * 回复状态码
      */
     public final int statusCode;
+
+    /**
+     * 请求使用的 http 版本信息
+     */
+    public final String httpVersion;
+
     /**
      * response 信息
      */
@@ -184,6 +190,7 @@ public final class ResponseInfo {
 
     private ResponseInfo(JSONObject json,
                          Map<String, String> responseHeader,
+                         String httpVersion,
                          int statusCode,
                          String reqId,
                          String xlog,
@@ -192,6 +199,7 @@ public final class ResponseInfo {
                          String error) {
         this.response = json;
         this.responseHeader = responseHeader;
+        this.httpVersion = httpVersion;
         this.statusCode = statusCode;
         this.reqId = reqId != null ? reqId : "";
         this.xlog = xlog;
@@ -215,7 +223,7 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo successResponse() {
-        ResponseInfo responseInfo = new ResponseInfo(null, null, RequestSuccess, "inter:reqid", "inter:xlog", "inter:xvia", null, null);
+        ResponseInfo responseInfo = new ResponseInfo(null, null, null, RequestSuccess, "inter:reqid", "inter:xlog", "inter:xvia", null, null);
         return responseInfo;
     }
 
@@ -265,7 +273,7 @@ public final class ResponseInfo {
     }
 
     public static ResponseInfo errorInfo(int statusCode, String error) {
-        ResponseInfo responseInfo = new ResponseInfo(null, null, statusCode, null, null, null, null, error);
+        ResponseInfo responseInfo = new ResponseInfo(null, null, "", statusCode, null, null, null, null, error);
         return responseInfo;
     }
 
@@ -274,8 +282,17 @@ public final class ResponseInfo {
                                       Map<String, String> responseHeader,
                                       JSONObject response,
                                       String errorMessage) {
+        return create(request, null, responseCode, responseHeader, response, errorMessage);
+    }
 
-        String host = (request != null ? request.host : null);
+    public static ResponseInfo create(Request request,
+                                      String httpVersion,
+                                      int responseCode,
+                                      Map<String, String> responseHeader,
+                                      JSONObject response,
+                                      String errorMessage) {
+
+        String host = (request != null ? request.getHost() : null);
         String reqId = null;
         String xlog = null;
         String xvia = null;
@@ -291,13 +308,13 @@ public final class ResponseInfo {
             }
         }
 
-        ResponseInfo responseInfo = new ResponseInfo(response, responseHeader, responseCode, reqId, xlog, xvia, host, errorMessage);
+        ResponseInfo responseInfo = new ResponseInfo(response, responseHeader, httpVersion, responseCode, reqId, xlog, xvia, host, errorMessage);
         return responseInfo;
     }
 
     public ResponseInfo checkMaliciousResponse() {
-        if (statusCode == 200 && ((reqId == null || reqId.length() == 0) && xlog == null)) {
-            return new ResponseInfo(null, responseHeader, MaliciousResponseError, reqId, xlog, xvia, host, "this is a malicious response");
+        if (statusCode == 200 && (reqId == null && xlog == null)) {
+            return new ResponseInfo(null, responseHeader, httpVersion, MaliciousResponseError, reqId, xlog, xvia, host, "this is a malicious response");
         } else {
             return this;
         }
@@ -318,14 +335,22 @@ public final class ResponseInfo {
     }
 
     public boolean couldRetry() {
-        if (isQiniu() && (isCancelled()
+        if (isNotQiniu()) {
+            return true;
+        }
+
+        if (isCtxExpiredError()) {
+            return true;
+        }
+
+        if (isCancelled()
+                || statusCode == 100
                 || (statusCode > 300 && statusCode < 400)
                 || (statusCode > 400 && statusCode < 500 && statusCode != 406)
                 || statusCode == 501 || statusCode == 573
                 || statusCode == 608 || statusCode == 612 || statusCode == 614 || statusCode == 616
                 || statusCode == 619 || statusCode == 630 || statusCode == 631 || statusCode == 640
-                || statusCode == 701
-                || (statusCode < -1 && statusCode > -1000))) {
+                || (statusCode < -1 && statusCode > -1000)) {
             return false;
         } else {
             return true;
@@ -333,7 +358,18 @@ public final class ResponseInfo {
     }
 
     public boolean couldRegionRetry() {
-        if (!couldRetry() || statusCode == 400 || statusCode == 579) {
+        if (isNotQiniu()) {
+            return true;
+        }
+
+        if (isCancelled()
+                || statusCode == 100
+                || (statusCode > 300 && statusCode < 500 && statusCode != 406)
+                || statusCode == 501 || statusCode == 573 || statusCode == 579
+                || statusCode == 608 || statusCode == 612 || statusCode == 614 || statusCode == 616
+                || statusCode == 619 || statusCode == 630 || statusCode == 631 || statusCode == 640
+                || statusCode == 701
+                || (statusCode < -1 && statusCode > -1000)) {
             return false;
         } else {
             return true;
@@ -341,8 +377,19 @@ public final class ResponseInfo {
     }
 
     public boolean couldHostRetry() {
-        if (isNotQiniu() || !couldRegionRetry() || statusCode == 502 || statusCode == 503 ||
-                statusCode == 571 || statusCode == 599) {
+        if (isNotQiniu()) {
+            return true;
+        }
+
+        if (isCancelled()
+                || statusCode == 100
+                || (statusCode > 300 && statusCode < 500 && statusCode != 406)
+                || statusCode == 501 || statusCode == 502 || statusCode == 503
+                || statusCode == 571 || statusCode == 573 || statusCode == 579 || statusCode == 599
+                || statusCode == 608 || statusCode == 612 || statusCode == 614 || statusCode == 616
+                || statusCode == 619 || statusCode == 630 || statusCode == 631 || statusCode == 640
+                || statusCode == 701
+                || (statusCode < -1 && statusCode > -1000)) {
             return false;
         } else {
             return true;
@@ -372,6 +419,11 @@ public final class ResponseInfo {
         } else {
             return false;
         }
+    }
+
+    // 在断点续上传过程中，ctx 信息已过期。
+    public boolean isCtxExpiredError() {
+        return statusCode == 701 || (statusCode == 612 && error != null && error.contains("no such uploadId"));
     }
 
     public boolean isNetworkBroken() {

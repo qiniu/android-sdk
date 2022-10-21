@@ -18,10 +18,25 @@ public abstract class IRequestClient {
     }
 
     public abstract void request(Request request,
-                                 boolean isAsync,
-                                 ProxyConfiguration connectionProxy,
+                                 Options options,
                                  Progress progress,
                                  CompleteHandler complete);
 
     public abstract void cancel();
+
+    public String getClientId() {
+        return "customized";
+    }
+
+    public static class Options {
+        public final IUploadServer server;
+        public final boolean isAsync;
+        public final ProxyConfiguration connectionProxy;
+
+        public Options(IUploadServer server, boolean isAsync, ProxyConfiguration connectionProxy) {
+            this.server = server;
+            this.isAsync = isAsync;
+            this.connectionProxy = connectionProxy;
+        }
+    }
 }

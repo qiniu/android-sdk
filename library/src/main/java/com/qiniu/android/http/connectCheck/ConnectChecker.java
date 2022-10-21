@@ -129,11 +129,13 @@ public class ConnectChecker {
             }
         }, timeout, TimeUnit.SECONDS);
 
-        Request request = new Request(host, Request.HttpMethodHEAD, null, null, timeout);
+        Request request = new Request(host, Request.HttpMethodHEAD, null, null,
+                timeout, timeout, timeout);
         SystemHttpClient client = new SystemHttpClient();
 
         LogUtil.i("== checkHost:" + host);
-        client.request(request, true, null, null, new IRequestClient.CompleteHandler() {
+
+        client.request(request, new IRequestClient.Options(null, true, null), null, new IRequestClient.CompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadSingleRequestMetrics metrics, JSONObject response) {
                 synchronized (this) {
