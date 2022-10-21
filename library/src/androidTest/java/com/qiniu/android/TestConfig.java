@@ -10,6 +10,7 @@ public final class TestConfig {
     // TODO: 2020-05-09 bad token for testPutBytesWithFixedZoneUseBackupDomains
     // 华东上传凭证
     public static final String bucket_z0 = "kodo-phone-zone0-space";
+
     public static final String token_z0 = "dxVQk8gyk3WswArbNhdKIwmwibJ9nFsQhMNUmtIM:Qxeb7v5PXIrih_gwR-6pD1KsGgg=:eyJzY29wZSI6ImtvZG8tcGhvbmUtem9uZTAtc3BhY2UiLCJkZWFkbGluZSI6MTY2OTUzNDk3OCwgInJldHVybkJvZHkiOiJ7XCJmb29cIjokKHg6Zm9vKSwgXCJiYXJcIjokKHg6YmFyKSwgXCJtaW1lVHlwZVwiOiQobWltZVR5cGUpLCBcImhhc2hcIjokKGV0YWcpLCBcImtleVwiOiQoa2V5KSwgXCJmbmFtZVwiOiQoZm5hbWUpfSJ9";
     // 华北上传凭证
     public static final String bucket_z1 = "kodo-phone-zone1-space";

@@ -20,6 +20,13 @@ public final class FixedZone extends Zone {
             "z0");
 
     /**
+     * 华东浙江 2 机房
+     */
+    public static final Zone zoneCnEast2 = new FixedZone(new String[]{"upload-cn-east-2.qiniup.com", "up-cn-east-2.qiniup.com"},
+            null,
+            "cn-east-2");
+
+    /**
      * 华北机房
      */
     public static final Zone zone1 = new FixedZone(new String[]{"upload-z1.qiniup.com", "up-z1.qiniup.com"},
@@ -32,6 +39,13 @@ public final class FixedZone extends Zone {
     public static final Zone zone2 = new FixedZone(new String[]{"upload-z2.qiniup.com", "up-z2.qiniup.com"},
             new String[]{"upload-z2.qbox.me", "up-z2.qbox.me"},
             "z2");
+
+    /**
+     * 首尔机房
+     */
+    public static final Zone zoneApNorthEast1 = new FixedZone(new String[]{"upload-ap-northeast-1.qiniup.com", "up-ap-northeast-1.qiniup.com"},
+            null,
+            "ap-northeast-1");
 
     /**
      * 北美机房
@@ -47,29 +61,16 @@ public final class FixedZone extends Zone {
             new String[]{"upload-as0.qbox.me", "up-as0.qbox.me"},
             "as0");
 
-    /**
-     *    zone fog-cn-east-1 雾存储 华东-1
-     *    分片上传暂时仅支持分片 api v2
-     *    分片 api v2设置方式：配置 Configuration 的 resumeUploadVersion 为 Configuration.RESUME_UPLOAD_VERSION_V2
-     *    eg:
-     *    Configuration configuration = new Configuration.Builder()
-     *                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
-     *                 .build();
-     *
-     *    @return 实例
-     */
-    public static final Zone zoneFogCnEast1 = new FixedZone(new String[]{"upload-fog-cn-east-1.qiniup.com", "up-fog-cn-east-1.qiniup.com"},
-            new String[]{"upload-fog-cn-east-1.qiniup.com", "up-fog-cn-east-1.qiniup.com"},
-            "fog-cn-east-1");
-
     private ZonesInfo zonesInfo;
 
     public static FixedZone localsZoneInfo() {
         ArrayList<FixedZone> localsZone = new ArrayList<>();
         localsZone.add((FixedZone)zone0);
+        localsZone.add((FixedZone)zoneCnEast2);
         localsZone.add((FixedZone)zone1);
         localsZone.add((FixedZone)zone2);
         localsZone.add((FixedZone)zoneNa0);
+        localsZone.add((FixedZone)zoneApNorthEast1);
         localsZone.add((FixedZone)zoneAs0);
 
         ArrayList<ZoneInfo> zoneInfoArray = new ArrayList<>();
@@ -115,9 +116,12 @@ public final class FixedZone extends Zone {
 
         List<String> upDomainsList = new ArrayList<String>(Arrays.asList(upDomains));
         List<String> oldUpDomainsList = null;
-        if (oldUpDomains != null){
+        if (oldUpDomains != null && oldUpDomains.length > 0){
             oldUpDomainsList = new ArrayList<String>(Arrays.asList(oldUpDomains));
+        } else {
+            oldUpDomainsList = new ArrayList<>();
         }
+
         ZoneInfo zoneInfo = ZoneInfo.buildInfo(upDomainsList, oldUpDomainsList, regionId);
         if (zoneInfo == null) {
             return null;

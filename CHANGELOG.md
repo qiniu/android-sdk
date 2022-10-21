@@ -1,4 +1,9 @@
 #Changelog
+## 8.5.1(2022-10-21)
+* 移除雾存储区域：华东一区
+* 新增首尔和华东浙江 2 区 Region
+* 优化分片上传 ctx 超时检测
+* Configuration: 增加 writeTimeout 配置属性，用于配置 tcp 写超时
 
 ## 8.5.0(2022-08-25)
 * 支持自定义 request client
