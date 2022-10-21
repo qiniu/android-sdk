@@ -28,7 +28,10 @@ android {
         targetSdkVersion 30
         versionCode code
         versionName version
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -37,16 +40,20 @@ android {
         debug {
             testCoverageEnabled = true
         }
-
     }
 
     lintOptions {
         warning 'InvalidPackage'
     }
+    compileOptions {
+        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_8
+    }
+    ndkVersion '20.0.5594570'
 
-    useLibrary 'android.test.runner'
-    useLibrary 'android.test.base'
-    useLibrary 'android.test.mock'
+//    useLibrary 'android.test.runner'
+//    useLibrary 'android.test.base'
+//    useLibrary 'android.test.mock'
 }
 
 
@@ -60,7 +67,16 @@ dependencies {
     implementation 'org.conscrypt:conscrypt-android:2.2.1'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
-    androidTestImplementation 'junit:junit:4.12'
+    androidTestImplementation 'junit:junit:4.13.2'
+    androidTestImplementation "androidx.test.ext:junit:1.1.3"
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+
+//    androidTestImplementation "androidx.test:runner:1.4.0"
+//    androidTestImplementation "androidx.test:core:1.4.0"
+//    androidTestImplementation "androidx.test:rules:1.4.0"
+
+//    androidTestImplementation 'org.testng:testng:6.9.6'
+    androidTestCompileOnly project(path: ':library')
 //    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
 

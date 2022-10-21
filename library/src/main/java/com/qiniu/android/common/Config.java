@@ -16,7 +16,7 @@ public final class Config {
      * 记录上传信息条件：
      * isRecord 为 true,
      * 记录文件大小 小于 maxRecordFileSize .
-     * <p>
+     * </p>
      * 记录文件大小 大于 maxRecordFileSize 时, 则暂停记录信息。
      */
     public static boolean isRecord = true;
@@ -28,7 +28,7 @@ public final class Config {
      * isRecord 为 true, isUpload 为 true,
      * 且 记录文件大小 大于 uploadThreshold,
      * 且 距上次上传时间大于 minInteval .
-     * <p>
+     * </p>
      * 上传成功后，清空记录文件文件
      */
     public static boolean isUpload = true;
@@ -49,7 +49,7 @@ public final class Config {
 
     /**
      * 记录上传信息文件最大值，单位：字节。
-     * <p>
+     *
      * 记录文件大于此值后暂停记录上传信息。
      */
     public static int maxRecordFileSize = 20 * 1024 * 1024;

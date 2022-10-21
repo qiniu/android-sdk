@@ -84,6 +84,27 @@ class UploadInfoV1 extends UploadInfo {
     }
 
     @Override
+    boolean isValid() {
+        if (!super.isValid()) {
+            return false;
+        }
+
+        final boolean[] isValid = {true};
+        blockList.enumerateObjects(new ListVector.EnumeratorHandler<UploadBlock>() {
+            @Override
+            public boolean enumerate(UploadBlock block) {
+                boolean valid = block.isValid();
+                if (!valid) {
+                    isValid[0] = false;
+                    return true;
+                }
+                return false;
+            }
+        });
+        return isValid[0];
+    }
+
+    @Override
     boolean reloadSource() {
         isEOF = false;
         readException = null;

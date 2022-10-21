@@ -65,7 +65,8 @@ public class UploadSingleRequestMetrics extends UploadMetrics {
 
     public void setRequest(Request request) {
         if (request != null) {
-            this.request = new Request(request.urlString, request.httpMethod, request.allHeaders, null, request.timeout);
+            this.request = new Request(request.urlString, request.httpMethod, request.allHeaders, null,
+                    request.connectTimeout, request.readTimeout, request.writeTimeout);
 
             long headerLength = 0;
             long bodyLength = 0;

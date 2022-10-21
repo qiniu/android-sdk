@@ -1,8 +1,13 @@
 package com.qiniu.android.transaction;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
 import com.qiniu.android.BaseTest;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.Utils;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.lang.reflect.Field;
 import java.util.Date;
@@ -10,8 +15,10 @@ import java.util.Date;
 /**
  * Created by yangsen on 2020/6/9
  */
+@RunWith(AndroidJUnit4.class)
 public class TransactionManagerTest extends BaseTest {
 
+    @Test
     public void testTransaction(){
 
         TransactionManager.Transaction normal = new TransactionManager.Transaction("1", 0, new Runnable() {
@@ -32,6 +39,7 @@ public class TransactionManagerTest extends BaseTest {
         assertNotNull(time);
     }
 
+    @Test
     public void testTransactionManagerAddAndRemove(){
 
         final int[] executedTransaction = {0};
