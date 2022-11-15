@@ -65,17 +65,17 @@ public final class FixedZone extends Zone {
 
     public static FixedZone localsZoneInfo() {
         ArrayList<FixedZone> localsZone = new ArrayList<>();
-        localsZone.add((FixedZone)zone0);
-        localsZone.add((FixedZone)zoneCnEast2);
-        localsZone.add((FixedZone)zone1);
-        localsZone.add((FixedZone)zone2);
-        localsZone.add((FixedZone)zoneNa0);
-        localsZone.add((FixedZone)zoneApNorthEast1);
-        localsZone.add((FixedZone)zoneAs0);
+        localsZone.add((FixedZone) zone0);
+        localsZone.add((FixedZone) zoneCnEast2);
+        localsZone.add((FixedZone) zone1);
+        localsZone.add((FixedZone) zone2);
+        localsZone.add((FixedZone) zoneNa0);
+        localsZone.add((FixedZone) zoneApNorthEast1);
+        localsZone.add((FixedZone) zoneAs0);
 
         ArrayList<ZoneInfo> zoneInfoArray = new ArrayList<>();
-        for (FixedZone zone : localsZone){
-            if (zone.zonesInfo != null && zone.zonesInfo.zonesInfo != null){
+        for (FixedZone zone : localsZone) {
+            if (zone.zonesInfo != null && zone.zonesInfo.zonesInfo != null) {
                 zoneInfoArray.addAll(zone.zonesInfo.zonesInfo);
             }
         }
@@ -90,7 +90,7 @@ public final class FixedZone extends Zone {
         this.zonesInfo = new ZonesInfo(zoneInfoList);
     }
 
-    public FixedZone(ZonesInfo zonesInfo){
+    public FixedZone(ZonesInfo zonesInfo) {
         this.zonesInfo = zonesInfo;
     }
 
@@ -116,7 +116,7 @@ public final class FixedZone extends Zone {
 
         List<String> upDomainsList = new ArrayList<String>(Arrays.asList(upDomains));
         List<String> oldUpDomainsList = null;
-        if (oldUpDomains != null && oldUpDomains.length > 0){
+        if (oldUpDomains != null && oldUpDomains.length > 0) {
             oldUpDomainsList = new ArrayList<String>(Arrays.asList(oldUpDomains));
         } else {
             oldUpDomainsList = new ArrayList<>();
@@ -139,7 +139,12 @@ public final class FixedZone extends Zone {
 
     @Override
     public void preQuery(UpToken token, QueryHandler completeHandler) {
-        if (completeHandler != null){
+        preQuery(token, ApiType.ActionTypeNone, completeHandler);
+    }
+
+    @Override
+    public void preQuery(UpToken token,  int actionType, QueryHandler completeHandler) {
+        if (completeHandler != null) {
             completeHandler.complete(0, null, null);
         }
     }

@@ -13,6 +13,8 @@ public abstract class Zone {
 
     public abstract void preQuery(UpToken token, QueryHandler completeHandler);
 
+    public abstract void preQuery(UpToken token, int actionType, QueryHandler completeHandler);
+
     public interface QueryHandler {
         void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics);
     }

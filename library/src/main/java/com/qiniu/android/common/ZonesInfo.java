@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ZonesInfo implements Cloneable {
 
@@ -22,9 +23,50 @@ public class ZonesInfo implements Cloneable {
     }
 
     public static ZonesInfo createZonesInfo(JSONObject jsonObject) {
+        return createZonesInfo(jsonObject, ApiType.ActionTypeNone);
+    }
+
+    public static ZonesInfo createZonesInfo(JSONObject jsonObject, int actionType) {
         ArrayList<ZoneInfo> zonesInfo = new ArrayList<>();
-        try {
-            if (jsonObject != null) {
+        if (jsonObject != null) {
+            try {
+                String[] supportApis = ApiType.apisWithActionType(actionType);
+                if (supportApis != null && supportApis.length > 0) {
+                    JSONObject universal = jsonObject.getJSONObject("universal");
+                    JSONArray apis = universal.getJSONArray("support_apis");
+
+                    boolean support = true;
+                    for (String supportApi : supportApis) {
+
+                        // 需要支持的  api 是否存在，任何一个不存在则不支持。
+                        boolean contain = false;
+                        for (int i = 0; i < apis.length(); i++) {
+                            String api = apis.getString(i);
+                            if (supportApi.equals(api)) {
+                                contain = true;
+                                break;
+                            }
+                        }
+
+                        if (!contain) {
+                            support = false;
+                            break;
+                        }
+                    }
+
+                    if (support) {
+                        // 支持 api ，universal 满足条件
+                        ZoneInfo zoneInfo = ZoneInfo.buildFromJson(universal);
+                        if (zoneInfo != null && zoneInfo.isValid()) {
+                            zonesInfo.add(zoneInfo);
+                        }
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+
+
+            try {
                 JSONArray hosts = jsonObject.getJSONArray("hosts");
                 for (int i = 0; i < hosts.length(); i++) {
                     ZoneInfo zoneInfo = ZoneInfo.buildFromJson(hosts.getJSONObject(i));
@@ -32,8 +74,9 @@ public class ZonesInfo implements Cloneable {
                         zonesInfo.add(zoneInfo);
                     }
                 }
+
+            } catch (Exception ignored) {
             }
-        } catch (Exception ignored) {
         }
 
         return new ZonesInfo(zonesInfo);
@@ -57,7 +100,7 @@ public class ZonesInfo implements Cloneable {
         ArrayList<ZoneInfo> infos = new ArrayList<>();
         if (zonesInfo != null && zonesInfo.size() > 0) {
             for (ZoneInfo zoneInfo : zonesInfo) {
-                infos.add((ZoneInfo)zoneInfo.clone());
+                infos.add((ZoneInfo) zoneInfo.clone());
             }
         }
         ZonesInfo info = new ZonesInfo(infos);

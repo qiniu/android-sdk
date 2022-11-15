@@ -10,6 +10,7 @@ import com.qiniu.android.utils.SingleFlight;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -82,6 +83,11 @@ public final class AutoZone extends Zone {
 
     @Override
     public void preQuery(final UpToken token, final QueryHandler completeHandler) {
+        preQuery(token, ApiType.ActionTypeNone, completeHandler);
+    }
+
+    @Override
+    public void preQuery(UpToken token, final int actionType, QueryHandler completeHandler) {
         if (token == null || !token.isValid()) {
             completeHandler.complete(-1, ResponseInfo.invalidToken("invalid token"), null);
             return;
@@ -90,7 +96,7 @@ public final class AutoZone extends Zone {
         UploadRegionRequestMetrics localMetrics = new UploadRegionRequestMetrics(null);
         localMetrics.start();
 
-        final String cacheKey = token.index();
+        final String cacheKey = token.index() + ApiType.actionTypeString(actionType);
         ZonesInfo zonesInfo = GlobalCache.getInstance().zonesInfoForKey(cacheKey);
         if (zonesInfo != null && zonesInfo.isValid() && !zonesInfo.isTemporary()) {
             localMetrics.end();
@@ -129,7 +135,7 @@ public final class AutoZone extends Zone {
                     JSONObject response = singleFlightValue.response;
 
                     if (responseInfo != null && responseInfo.isOK() && response != null) {
-                        ZonesInfo zonesInfoP = ZonesInfo.createZonesInfo(response);
+                        ZonesInfo zonesInfoP = ZonesInfo.createZonesInfo(response, actionType);
                         if (zonesInfoP.isValid()) {
                             GlobalCache.getInstance().cache(zonesInfoP, cacheKey);
                             completeHandler.complete(0, responseInfo, requestMetrics);
