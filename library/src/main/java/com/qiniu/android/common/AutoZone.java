@@ -24,6 +24,7 @@ public final class AutoZone extends Zone {
      */
     private String[] ucServers;
     private ArrayList<RequestTransaction> transactions = new ArrayList<>();
+    private FixedZone defaultZone;
 
     private static final SingleFlight SingleFlight = new SingleFlight();
 
@@ -38,6 +39,10 @@ public final class AutoZone extends Zone {
         if (ucServers != null && ucServers.length > 0) {
             this.ucServers = ucServers;
         }
+    }
+
+    public void setDefaultZones(FixedZone[] zones) {
+        defaultZone = FixedZone.combineZones(zones);
     }
 
     public List<String> getUcServerList() {
@@ -143,12 +148,20 @@ public final class AutoZone extends Zone {
                             completeHandler.complete(ResponseInfo.ParseError, responseInfo, requestMetrics);
                         }
                     } else {
-                        if (responseInfo.isNetworkBroken()) {
+                        if (responseInfo != null && responseInfo.isNetworkBroken()) {
                             completeHandler.complete(ResponseInfo.NetworkError, responseInfo, requestMetrics);
                         } else {
-                            ZonesInfo zonesInfoP = FixedZone.localsZoneInfo().getZonesInfo(token);
-                            if (zonesInfoP.isValid()) {
-                                GlobalCache.getInstance().cache(zonesInfoP, cacheKey);
+                            ZonesInfo info = null;
+                            if (defaultZone != null) {
+                                ZonesInfo infoP = defaultZone.getZonesInfo(token);
+                                if (infoP != null && infoP.isValid()) {
+                                    infoP.toTemporary();
+                                    info = infoP;
+                                }
+                            }
+
+                            if (info != null) {
+                                GlobalCache.getInstance().cache(info, cacheKey);
                                 completeHandler.complete(0, responseInfo, requestMetrics);
                             } else {
                                 completeHandler.complete(ResponseInfo.ParseError, responseInfo, requestMetrics);
