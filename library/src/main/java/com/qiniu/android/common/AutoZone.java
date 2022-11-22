@@ -72,11 +72,18 @@ public final class AutoZone extends Zone {
     }
 
     @Override
+    @Deprecated
     public ZonesInfo getZonesInfo(UpToken token) {
+        return getZonesInfo(token, ApiType.ActionTypeNone);
+    }
+
+    @Override
+    public ZonesInfo getZonesInfo(UpToken token, int actionType) {
         if (token == null) {
             return null;
         }
-        ZonesInfo zonesInfo = GlobalCache.getInstance().zonesInfoForKey(token.index());
+        final String cacheKey = token.index() + ApiType.actionTypeString(actionType);
+        ZonesInfo zonesInfo = GlobalCache.getInstance().zonesInfoForKey(cacheKey);
         if (zonesInfo != null) {
             try {
                 zonesInfo = (ZonesInfo) zonesInfo.clone();
@@ -87,6 +94,7 @@ public final class AutoZone extends Zone {
     }
 
     @Override
+    @Deprecated
     public void preQuery(final UpToken token, final QueryHandler completeHandler) {
         preQuery(token, ApiType.ActionTypeNone, completeHandler);
     }
@@ -153,7 +161,7 @@ public final class AutoZone extends Zone {
                         } else {
                             ZonesInfo info = null;
                             if (defaultZone != null) {
-                                ZonesInfo infoP = defaultZone.getZonesInfo(token);
+                                ZonesInfo infoP = defaultZone.getZonesInfo(token, actionType);
                                 if (infoP != null && infoP.isValid()) {
                                     infoP.toTemporary();
                                     info = infoP;

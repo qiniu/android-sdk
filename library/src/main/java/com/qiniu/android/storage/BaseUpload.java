@@ -178,7 +178,7 @@ abstract class BaseUpload implements Runnable {
         if (config == null || config.zone == null) {
             return false;
         }
-        ZonesInfo zonesInfo = config.zone.getZonesInfo(token);
+        ZonesInfo zonesInfo = config.zone.getZonesInfo(token, actionType());
         if (zonesInfo == null || zonesInfo.zonesInfo == null || zonesInfo.zonesInfo.size() == 0) {
             return false;
         }

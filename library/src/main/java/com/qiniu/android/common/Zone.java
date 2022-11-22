@@ -9,8 +9,12 @@ import com.qiniu.android.storage.UpToken;
  */
 public abstract class Zone {
 
+    @Deprecated
     public abstract ZonesInfo getZonesInfo(UpToken token);
 
+    public abstract ZonesInfo getZonesInfo(UpToken token, int actionType);
+
+    @Deprecated
     public abstract void preQuery(UpToken token, QueryHandler completeHandler);
 
     public abstract void preQuery(UpToken token, int actionType, QueryHandler completeHandler);

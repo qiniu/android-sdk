@@ -1,5 +1,6 @@
 package com.qiniu.android.http.dns;
 
+import com.qiniu.android.common.ApiType;
 import com.qiniu.android.common.Config;
 import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.Zone;
@@ -383,7 +384,7 @@ public class DnsPrefetcher {
 
         final Wait wait = new Wait();
 
-        currentZone.preQuery(token, new Zone.QueryHandler() {
+        currentZone.preQuery(token, ApiType.ActionTypeNone, new Zone.QueryHandler() {
             @Override
             public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics) {
                 wait.stopWait();
@@ -392,7 +393,7 @@ public class DnsPrefetcher {
 
         wait.startWait();
 
-        ZonesInfo autoZonesInfo = currentZone.getZonesInfo(token);
+        ZonesInfo autoZonesInfo = currentZone.getZonesInfo(token, ApiType.ActionTypeNone);
         ArrayList<String> autoHosts = new ArrayList<>();
         if (autoZonesInfo != null && autoZonesInfo.zonesInfo != null && autoZonesInfo.zonesInfo.size() > 0) {
             for (ZoneInfo zoneInfo : autoZonesInfo.zonesInfo) {
