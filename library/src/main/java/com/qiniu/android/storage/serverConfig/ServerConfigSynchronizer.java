@@ -51,7 +51,8 @@ class ServerConfigSynchronizer {
     }
 
     private static synchronized RequestTransaction createServerConfigTransaction() {
-        if (serverConfigTransaction != null) {
+        // 只上传传才会有 Token，当有上传时才做请求，避免不必要的请求
+        if (serverConfigTransaction != null || Token == null) {
             return null;
         }
 
