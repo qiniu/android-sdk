@@ -16,6 +16,9 @@ public class ReportItem {
         if (key == null || value == null){
             return;
         }
+        if (value instanceof String && ((String) value).length() > 1024) {
+            value = ((String) value).substring(0, 1024);
+        }
         keyValues.put(key, value);
     }
 
