@@ -69,8 +69,12 @@ public final class Config {
      * preQuery host
      */
     public static String preQueryHost00 = "uc.qbox.me";
-    public static String preQueryHost01 = "api.qiniu.com";
+    public static String preQueryHost01 = "api.qiniu.com"; // not use
     public static String preQueryHost02 = "kodo-config.qiniuapi.com";
+
+    public static String[] preQueryHosts() {
+        return new String[]{preQueryHost00, preQueryHost02};
+    }
 
     /**
      * 当网络切换到 wifi 下，切换到此设置

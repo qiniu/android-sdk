@@ -52,7 +52,7 @@ class ServerConfigSynchronizer {
 
     private static synchronized RequestTransaction createServerConfigTransaction() {
         // 只上传传才会有 Token，当有上传时才做请求，避免不必要的请求
-        if (serverConfigTransaction != null || Token == null) {
+        if (serverConfigTransaction != null) {
             return null;
         }
 
@@ -61,12 +61,11 @@ class ServerConfigSynchronizer {
             token = UpToken.getInvalidToken();
         }
 
-        List<String> servers = new ArrayList<>();
+        List<String> servers = null;
         if (Hosts != null && Hosts.length > 0) {
-            servers.addAll(Arrays.asList(Hosts));
+            servers = Arrays.asList(Hosts);
         } else {
-            servers.add(Config.preQueryHost00);
-            servers.add(Config.preQueryHost01);
+            servers = Arrays.asList(Config.preQueryHosts());
         }
         serverConfigTransaction = new RequestTransaction(servers, token);
         return serverConfigTransaction;
@@ -111,12 +110,11 @@ class ServerConfigSynchronizer {
             return null;
         }
 
-        List<String> servers = new ArrayList<>();
+        List<String> servers = null;
         if (Hosts != null && Hosts.length > 0) {
-            servers.addAll(Arrays.asList(Hosts));
+            servers = Arrays.asList(Hosts);
         } else {
-            servers.add(Config.preQueryHost00);
-            servers.add(Config.preQueryHost01);
+            servers = Arrays.asList(Config.preQueryHosts());
         }
         serverUserConfigTransaction = new RequestTransaction(servers, token);
         return serverUserConfigTransaction;
@@ -126,9 +124,9 @@ class ServerConfigSynchronizer {
         serverUserConfigTransaction = null;
     }
 
-   interface ServerConfigHandler {
+    interface ServerConfigHandler {
         void handle(ServerConfig config);
-   }
+    }
 
     interface ServerUserConfigHandler {
         void handle(ServerUserConfig config);

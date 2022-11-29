@@ -51,11 +51,7 @@ public final class AutoZone extends Zone {
             Collections.addAll(serverList, ucServers);
             return serverList;
         } else {
-            ArrayList<String> serverList = new ArrayList<>();
-            serverList.add(Config.preQueryHost02);
-            serverList.add(Config.preQueryHost00);
-            serverList.add(Config.preQueryHost01);
-            return serverList;
+            return Arrays.asList(Config.preQueryHosts());
         }
     }
 
@@ -67,7 +63,7 @@ public final class AutoZone extends Zone {
         if (ucServers != null && ucServers.length > 0) {
             return ucServers;
         } else {
-            return new String[]{Config.preQueryHost00, Config.preQueryHost01};
+            return Config.preQueryHosts();
         }
     }
 
