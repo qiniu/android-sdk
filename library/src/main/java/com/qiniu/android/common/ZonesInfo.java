@@ -83,7 +83,18 @@ public class ZonesInfo implements Cloneable {
     }
 
     public boolean isValid() {
-        return zonesInfo != null && zonesInfo.size() > 0 && zonesInfo.get(0).isValid();
+        if (zonesInfo == null || zonesInfo.size() == 0) {
+            return false;
+        }
+
+        boolean valid = true;
+        for (ZoneInfo info : zonesInfo) {
+            if (!info.isValid()) {
+                valid = false;
+                break;
+            }
+        }
+        return valid;
     }
 
     // 是否为临时 zone, 临时 zone，不建议长期使用
