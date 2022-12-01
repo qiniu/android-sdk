@@ -1,6 +1,5 @@
 package com.qiniu.android.storage;
 
-import com.qiniu.android.common.ApiType;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.common.ZonesInfo;
@@ -88,7 +87,7 @@ abstract class BaseUpload implements Runnable {
     public void run() {
         metrics.start();
 
-        config.zone.preQuery(token, actionType(), new Zone.QueryHandler() {
+        config.zone.preQuery(token, new Zone.QueryHandler() {
             @Override
             public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics) {
                 metrics.setUcQueryMetrics(requestMetrics);
@@ -157,28 +156,11 @@ abstract class BaseUpload implements Runnable {
         }
     }
 
-    private int actionType() {
-        String upType = getUpType();
-        if (upType == null) {
-            return ApiType.ActionTypeNone;
-        }
-
-        int type = ApiType.ActionTypeNone;
-        if (upType.contains(UploadUpTypeForm)) {
-            type = ApiType.ActionTypeUploadByForm;
-        } else if (upType.contains(UploadUpTypeResumableV1)) {
-            type = ApiType.ActionTypeUploadByResumeV1;
-        } else if (upType.contains(UploadUpTypeResumableV2)) {
-            type = ApiType.ActionTypeUploadByResumeV2;
-        }
-        return type;
-    }
-
     private boolean setupRegions() {
         if (config == null || config.zone == null) {
             return false;
         }
-        ZonesInfo zonesInfo = config.zone.getZonesInfo(token, actionType());
+        ZonesInfo zonesInfo = config.zone.getZonesInfo(token);
         if (zonesInfo == null || zonesInfo.zonesInfo == null || zonesInfo.zonesInfo.size() == 0) {
             return false;
         }

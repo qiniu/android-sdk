@@ -23,49 +23,8 @@ public class ZonesInfo implements Cloneable {
     }
 
     public static ZonesInfo createZonesInfo(JSONObject jsonObject) {
-        return createZonesInfo(jsonObject, ApiType.ActionTypeNone);
-    }
-
-    public static ZonesInfo createZonesInfo(JSONObject jsonObject, int actionType) {
         ArrayList<ZoneInfo> zonesInfo = new ArrayList<>();
         if (jsonObject != null) {
-            try {
-                String[] supportApis = ApiType.apisWithActionType(actionType);
-                if (supportApis != null && supportApis.length > 0) {
-                    JSONObject universal = jsonObject.getJSONObject("universal");
-                    JSONArray apis = universal.getJSONArray("support_apis");
-
-                    boolean support = true;
-                    for (String supportApi : supportApis) {
-
-                        // 需要支持的  api 是否存在，任何一个不存在则不支持。
-                        boolean contain = false;
-                        for (int i = 0; i < apis.length(); i++) {
-                            String api = apis.getString(i);
-                            if (supportApi.equals(api)) {
-                                contain = true;
-                                break;
-                            }
-                        }
-
-                        if (!contain) {
-                            support = false;
-                            break;
-                        }
-                    }
-
-                    if (support) {
-                        // 支持 api ，universal 满足条件
-                        ZoneInfo zoneInfo = ZoneInfo.buildFromJson(universal);
-                        if (zoneInfo != null && zoneInfo.isValid()) {
-                            zonesInfo.add(zoneInfo);
-                        }
-                    }
-                }
-            } catch (Exception ignored) {
-            }
-
-
             try {
                 JSONArray hosts = jsonObject.getJSONArray("hosts");
                 for (int i = 0; i < hosts.length(); i++) {

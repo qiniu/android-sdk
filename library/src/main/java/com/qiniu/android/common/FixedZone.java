@@ -143,24 +143,12 @@ public final class FixedZone extends Zone {
     }
 
     @Override
-    @Deprecated
     public ZonesInfo getZonesInfo(UpToken token) {
         return zonesInfo;
     }
 
     @Override
-    public ZonesInfo getZonesInfo(UpToken token, int actionType) {
-        return zonesInfo;
-    }
-
-    @Override
-    @Deprecated
     public void preQuery(UpToken token, QueryHandler completeHandler) {
-        preQuery(token, ApiType.ActionTypeNone, completeHandler);
-    }
-
-    @Override
-    public void preQuery(UpToken token, int actionType, QueryHandler completeHandler) {
         if (completeHandler != null) {
             completeHandler.complete(0, null, null);
         }

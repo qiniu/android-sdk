@@ -68,17 +68,11 @@ public final class AutoZone extends Zone {
     }
 
     @Override
-    @Deprecated
     public ZonesInfo getZonesInfo(UpToken token) {
-        return getZonesInfo(token, ApiType.ActionTypeNone);
-    }
-
-    @Override
-    public ZonesInfo getZonesInfo(UpToken token, int actionType) {
         if (token == null) {
             return null;
         }
-        final String cacheKey = token.index() + ApiType.actionTypeString(actionType);
+        final String cacheKey = token.index();
         ZonesInfo zonesInfo = GlobalCache.getInstance().zonesInfoForKey(cacheKey);
         if (zonesInfo != null) {
             try {
@@ -90,13 +84,7 @@ public final class AutoZone extends Zone {
     }
 
     @Override
-    @Deprecated
     public void preQuery(final UpToken token, final QueryHandler completeHandler) {
-        preQuery(token, ApiType.ActionTypeNone, completeHandler);
-    }
-
-    @Override
-    public void preQuery(UpToken token, final int actionType, QueryHandler completeHandler) {
         if (token == null || !token.isValid()) {
             completeHandler.complete(-1, ResponseInfo.invalidToken("invalid token"), null);
             return;
@@ -105,7 +93,7 @@ public final class AutoZone extends Zone {
         UploadRegionRequestMetrics localMetrics = new UploadRegionRequestMetrics(null);
         localMetrics.start();
 
-        final String cacheKey = token.index() + ApiType.actionTypeString(actionType);
+        final String cacheKey = token.index();
         ZonesInfo zonesInfo = GlobalCache.getInstance().zonesInfoForKey(cacheKey);
         if (zonesInfo != null && zonesInfo.isValid() && !zonesInfo.isTemporary()) {
             localMetrics.end();
@@ -144,7 +132,7 @@ public final class AutoZone extends Zone {
                     JSONObject response = singleFlightValue.response;
 
                     if (responseInfo != null && responseInfo.isOK() && response != null) {
-                        ZonesInfo zonesInfoP = ZonesInfo.createZonesInfo(response, actionType);
+                        ZonesInfo zonesInfoP = ZonesInfo.createZonesInfo(response);
                         if (zonesInfoP.isValid()) {
                             GlobalCache.getInstance().cache(zonesInfoP, cacheKey);
                             completeHandler.complete(0, responseInfo, requestMetrics);
@@ -157,7 +145,7 @@ public final class AutoZone extends Zone {
                         } else {
                             ZonesInfo info = null;
                             if (defaultZone != null) {
-                                ZonesInfo infoP = defaultZone.getZonesInfo(token, actionType);
+                                ZonesInfo infoP = defaultZone.getZonesInfo(token);
                                 if (infoP != null && infoP.isValid()) {
                                     infoP.toTemporary();
                                     info = infoP;
