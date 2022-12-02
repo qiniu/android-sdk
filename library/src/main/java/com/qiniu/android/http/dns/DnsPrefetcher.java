@@ -1,7 +1,6 @@
 package com.qiniu.android.http.dns;
 
 import com.qiniu.android.common.Config;
-import com.qiniu.android.common.FixedZone;
 import com.qiniu.android.common.Zone;
 import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.common.ZonesInfo;

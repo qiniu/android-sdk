@@ -6,6 +6,7 @@ import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.transaction.TransactionManager;
 
 import java.util.List;
+import java.util.Random;
 
 public class ServerConfigMonitor {
     private static final String TransactionKey = "ServerConfig";
@@ -42,7 +43,9 @@ public class ServerConfigMonitor {
             return;
         }
 
-        TransactionManager.Transaction transaction = new TransactionManager.Transaction(TransactionKey, 0, 10, new Runnable() {
+        Random random = new Random();
+        int interval = 120 + random.nextInt(240);
+        TransactionManager.Transaction transaction = new TransactionManager.Transaction(TransactionKey, 0, interval, new Runnable() {
             @Override
             public void run() {
                 configMonitor.monitor();

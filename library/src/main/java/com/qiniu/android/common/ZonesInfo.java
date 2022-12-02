@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class ZonesInfo implements Cloneable {
 
@@ -23,8 +24,8 @@ public class ZonesInfo implements Cloneable {
 
     public static ZonesInfo createZonesInfo(JSONObject jsonObject) {
         ArrayList<ZoneInfo> zonesInfo = new ArrayList<>();
-        try {
-            if (jsonObject != null) {
+        if (jsonObject != null) {
+            try {
                 JSONArray hosts = jsonObject.getJSONArray("hosts");
                 for (int i = 0; i < hosts.length(); i++) {
                     ZoneInfo zoneInfo = ZoneInfo.buildFromJson(hosts.getJSONObject(i));
@@ -32,15 +33,27 @@ public class ZonesInfo implements Cloneable {
                         zonesInfo.add(zoneInfo);
                     }
                 }
+
+            } catch (Exception ignored) {
             }
-        } catch (Exception ignored) {
         }
 
         return new ZonesInfo(zonesInfo);
     }
 
     public boolean isValid() {
-        return zonesInfo != null && zonesInfo.size() > 0 && zonesInfo.get(0).isValid();
+        if (zonesInfo == null || zonesInfo.size() == 0) {
+            return false;
+        }
+
+        boolean valid = true;
+        for (ZoneInfo info : zonesInfo) {
+            if (!info.isValid()) {
+                valid = false;
+                break;
+            }
+        }
+        return valid;
     }
 
     // 是否为临时 zone, 临时 zone，不建议长期使用
@@ -57,7 +70,7 @@ public class ZonesInfo implements Cloneable {
         ArrayList<ZoneInfo> infos = new ArrayList<>();
         if (zonesInfo != null && zonesInfo.size() > 0) {
             for (ZoneInfo zoneInfo : zonesInfo) {
-                infos.add((ZoneInfo)zoneInfo.clone());
+                infos.add((ZoneInfo) zoneInfo.clone());
             }
         }
         ZonesInfo info = new ZonesInfo(infos);

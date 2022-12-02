@@ -64,18 +64,28 @@ public final class FixedZone extends Zone {
     private ZonesInfo zonesInfo;
 
     public static FixedZone localsZoneInfo() {
-        ArrayList<FixedZone> localsZone = new ArrayList<>();
-        localsZone.add((FixedZone)zone0);
-        localsZone.add((FixedZone)zoneCnEast2);
-        localsZone.add((FixedZone)zone1);
-        localsZone.add((FixedZone)zone2);
-        localsZone.add((FixedZone)zoneNa0);
-        localsZone.add((FixedZone)zoneApNorthEast1);
-        localsZone.add((FixedZone)zoneAs0);
+        FixedZone[] localsZone = new FixedZone[]{
+                (FixedZone) zone0, (FixedZone) zoneCnEast2,
+                (FixedZone) zone1, (FixedZone) zone2,
+                (FixedZone) zoneNa0, (FixedZone) zoneApNorthEast1,
+                (FixedZone) zoneAs0,
+        };
+
+        FixedZone zone = combineZones(localsZone);
+        if (zone != null) {
+            zone.zonesInfo.toTemporary();
+        }
+        return zone;
+    }
+
+    public static FixedZone combineZones(FixedZone[] zones) {
+        if (zones == null || zones.length == 0) {
+            return null;
+        }
 
         ArrayList<ZoneInfo> zoneInfoArray = new ArrayList<>();
-        for (FixedZone zone : localsZone){
-            if (zone.zonesInfo != null && zone.zonesInfo.zonesInfo != null){
+        for (FixedZone zone : zones) {
+            if (zone.zonesInfo != null && zone.zonesInfo.zonesInfo != null) {
                 zoneInfoArray.addAll(zone.zonesInfo.zonesInfo);
             }
         }
@@ -90,7 +100,7 @@ public final class FixedZone extends Zone {
         this.zonesInfo = new ZonesInfo(zoneInfoList);
     }
 
-    public FixedZone(ZonesInfo zonesInfo){
+    public FixedZone(ZonesInfo zonesInfo) {
         this.zonesInfo = zonesInfo;
     }
 
@@ -116,7 +126,7 @@ public final class FixedZone extends Zone {
 
         List<String> upDomainsList = new ArrayList<String>(Arrays.asList(upDomains));
         List<String> oldUpDomainsList = null;
-        if (oldUpDomains != null && oldUpDomains.length > 0){
+        if (oldUpDomains != null && oldUpDomains.length > 0) {
             oldUpDomainsList = new ArrayList<String>(Arrays.asList(oldUpDomains));
         } else {
             oldUpDomainsList = new ArrayList<>();
@@ -139,7 +149,7 @@ public final class FixedZone extends Zone {
 
     @Override
     public void preQuery(UpToken token, QueryHandler completeHandler) {
-        if (completeHandler != null){
+        if (completeHandler != null) {
             completeHandler.complete(0, null, null);
         }
     }

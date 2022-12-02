@@ -10,6 +10,7 @@ import com.qiniu.android.utils.SingleFlight;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,6 +24,7 @@ public final class AutoZone extends Zone {
      */
     private String[] ucServers;
     private ArrayList<RequestTransaction> transactions = new ArrayList<>();
+    private FixedZone defaultZone;
 
     private static final SingleFlight SingleFlight = new SingleFlight();
 
@@ -39,17 +41,17 @@ public final class AutoZone extends Zone {
         }
     }
 
+    public void setDefaultZones(FixedZone[] zones) {
+        defaultZone = FixedZone.combineZones(zones);
+    }
+
     public List<String> getUcServerList() {
         if (ucServers != null && ucServers.length > 0) {
             ArrayList<String> serverList = new ArrayList<>();
             Collections.addAll(serverList, ucServers);
             return serverList;
         } else {
-            ArrayList<String> serverList = new ArrayList<>();
-            serverList.add(Config.preQueryHost02);
-            serverList.add(Config.preQueryHost00);
-            serverList.add(Config.preQueryHost01);
-            return serverList;
+            return Arrays.asList(Config.preQueryHosts());
         }
     }
 
@@ -61,7 +63,7 @@ public final class AutoZone extends Zone {
         if (ucServers != null && ucServers.length > 0) {
             return ucServers;
         } else {
-            return new String[]{Config.preQueryHost00, Config.preQueryHost01};
+            return Config.preQueryHosts();
         }
     }
 
@@ -70,7 +72,8 @@ public final class AutoZone extends Zone {
         if (token == null) {
             return null;
         }
-        ZonesInfo zonesInfo = GlobalCache.getInstance().zonesInfoForKey(token.index());
+        final String cacheKey = token.index();
+        ZonesInfo zonesInfo = GlobalCache.getInstance().zonesInfoForKey(cacheKey);
         if (zonesInfo != null) {
             try {
                 zonesInfo = (ZonesInfo) zonesInfo.clone();
@@ -137,12 +140,20 @@ public final class AutoZone extends Zone {
                             completeHandler.complete(ResponseInfo.ParseError, responseInfo, requestMetrics);
                         }
                     } else {
-                        if (responseInfo.isNetworkBroken()) {
+                        if (responseInfo != null && responseInfo.isNetworkBroken()) {
                             completeHandler.complete(ResponseInfo.NetworkError, responseInfo, requestMetrics);
                         } else {
-                            ZonesInfo zonesInfoP = FixedZone.localsZoneInfo().getZonesInfo(token);
-                            if (zonesInfoP.isValid()) {
-                                GlobalCache.getInstance().cache(zonesInfoP, cacheKey);
+                            ZonesInfo info = null;
+                            if (defaultZone != null) {
+                                ZonesInfo infoP = defaultZone.getZonesInfo(token);
+                                if (infoP != null && infoP.isValid()) {
+                                    infoP.toTemporary();
+                                    info = infoP;
+                                }
+                            }
+
+                            if (info != null) {
+                                GlobalCache.getInstance().cache(info, cacheKey);
                                 completeHandler.complete(0, responseInfo, requestMetrics);
                             } else {
                                 completeHandler.complete(ResponseInfo.ParseError, responseInfo, requestMetrics);
