@@ -182,6 +182,24 @@ public class ServerConfigMonitor {
                 }
             }
         }
+
+        // connect check 配置
+        ServerConfig.ConnectCheckConfig checkConfig = config.getConnectCheckConfig();
+        if (checkConfig != null) {
+            if (checkConfig.getEnable() != null) {
+                GlobalConfiguration.getInstance().connectCheckEnable = checkConfig.getEnable();
+            }
+
+            if (checkConfig.getTimeoutMs() != null) {
+                GlobalConfiguration.getInstance().connectCheckTimeout = checkConfig.getTimeoutMs();
+            }
+
+            String[] urls = checkConfig.getUrls();
+            Boolean isOverride = checkConfig.getOverride();
+            if (isOverride != null && isOverride && urls != null && urls.length > 0) {
+                GlobalConfiguration.DefaultConnectCheckURLStrings = urls;
+            }
+        }
     }
 
     private void handleServerUserConfig(ServerUserConfig config) {

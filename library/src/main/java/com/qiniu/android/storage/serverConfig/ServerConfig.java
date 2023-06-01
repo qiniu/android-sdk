@@ -16,6 +16,7 @@ public class ServerConfig {
     private JSONObject info;
     private RegionConfig regionConfig;
     private DnsConfig dnsConfig;
+    private ConnectCheckConfig connectCheckConfig;
 
     public ServerConfig(JSONObject info) {
         if (info == null) {
@@ -38,6 +39,7 @@ public class ServerConfig {
 
         this.dnsConfig = new DnsConfig(info.optJSONObject("dns"));
         this.regionConfig = new RegionConfig(info.optJSONObject("region"));
+        this.connectCheckConfig = new ConnectCheckConfig(info.optJSONObject("connection_check"));
 
         if (this.ttl < 10) {
             this.ttl = 10;
@@ -54,6 +56,10 @@ public class ServerConfig {
 
     public DnsConfig getDnsConfig() {
         return dnsConfig;
+    }
+
+    public ConnectCheckConfig getConnectCheckConfig() {
+        return connectCheckConfig;
     }
 
     public boolean isValid() {
@@ -220,6 +226,60 @@ public class ServerConfig {
 
         public DnsServer getIpv6Server() {
             return ipv6Server;
+        }
+    }
+
+    public static class ConnectCheckConfig {
+        private Boolean isOverride;
+        private Boolean enable;
+        private Integer timeoutMs;
+        private String[] urls;
+
+        ConnectCheckConfig(JSONObject info) {
+            if (info == null) {
+                return;
+            }
+
+            if (info.opt("override_default") != null) {
+                this.isOverride = info.optBoolean("override_default");
+            }
+
+            if (info.opt("enabled") != null) {
+                this.enable = info.optBoolean("enabled");
+            }
+
+            if (info.opt("timeout_ms") != null) {
+                this.timeoutMs = info.optInt("timeout_ms");
+            }
+
+            if (info.opt("urls") != null) {
+                try {
+                    JSONArray jsonArray = info.getJSONArray("urls");
+                    String[] urls = new String[jsonArray.length()];
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        urls[i] = jsonArray.getString(i);
+                    }
+                    this.urls = urls;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        public Boolean getOverride() {
+            return isOverride;
+        }
+
+        public Boolean getEnable() {
+            return enable;
+        }
+
+        public Integer getTimeoutMs() {
+            return timeoutMs;
+        }
+
+        public String[] getUrls() {
+            return urls;
         }
     }
 }

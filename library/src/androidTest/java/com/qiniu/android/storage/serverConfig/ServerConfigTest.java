@@ -29,7 +29,7 @@ public class ServerConfigTest extends BaseTest {
 
     @Test
     public void testServerConfigModel() {
-        String serverConfigJsonString = "{\"region\":{\"clear_id\":10,\"clear_cache\":true},\"dns\":{\"enabled\":true,\"clear_id\":10,\"clear_cache\":true,\"doh\":{\"enabled\":true,\"ipv4\":{\"override_default\":true,\"urls\":[\"https://223.5.5.5/dns-query\"]},\"ipv6\":{\"override_default\":true,\"urls\":[\"https://FFAE::EEEE/dns-query\"]}},\"udp\":{\"enabled\":true,\"ipv4\":{\"ips\":[\"223.5.5.5\",\"1.1.1.1\"],\"override_default\":true},\"ipv6\":{\"ips\":[\"FFAE::EEEE\"],\"override_default\":true}}},\"ttl\":86400}";
+        String serverConfigJsonString = "{\"ttl\": 86400,\"region\": {\"clear_id\": 10,\"clear_cache\": true},\"dns\": {\"enabled\": true,\"clear_id\": 10,\"clear_cache\": true,\"doh\": {\"enabled\": true,\"ipv4\": {\"override_default\": true,\"urls\": [\"https://223.5.5.5/dns-query\"]},\"ipv6\": {\"override_default\": true,\"urls\": [\"https://FFAE::EEEE/dns-query\"]}},\"udp\": {\"enabled\": true,\"ipv4\": {\"ips\": [\"223.5.5.5\", \"1.1.1.1\"],\"override_default\": true},\"ipv6\": {\"ips\": [\"FFAE::EEEE\"],\"override_default\": true}}},\"connection_check\": {\"override_default\": true,\"enabled\": true,\"timeout_ms\": 3000,\"urls\": [\"a.com\", \"b.com\"]}}";
         try {
             JSONObject jsonObject = new JSONObject(serverConfigJsonString);
             ServerConfig serverConfig = new ServerConfig(jsonObject);
@@ -55,6 +55,11 @@ public class ServerConfigTest extends BaseTest {
             assertTrue("server config dns doh ipv6 server servers was null", serverConfig.getDnsConfig().getDohDnsConfig().getIpv6Server().getServers() != null);
             assertTrue("server config region was null", serverConfig.getRegionConfig() != null);
             assertTrue("server config region clear id was null", serverConfig.getRegionConfig().getClearId() > 0);
+            assertTrue("server config connection check was null", serverConfig.getConnectCheckConfig() != null);
+            assertTrue("server config connection check enable should true", serverConfig.getConnectCheckConfig().getEnable());
+            assertTrue("server config connection override should true", serverConfig.getConnectCheckConfig().getOverride());
+            assertTrue("server config connection check timeout should bigger than 0", serverConfig.getConnectCheckConfig().getTimeoutMs() > 0);
+            assertTrue("server config connection urls was null", serverConfig.getConnectCheckConfig().getUrls() != null);
         } catch (JSONException e) {
             fail("server config exception:" + e);
         }

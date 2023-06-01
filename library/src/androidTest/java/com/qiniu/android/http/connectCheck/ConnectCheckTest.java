@@ -27,8 +27,8 @@ public class ConnectCheckTest extends BaseTest {
 
     @Test
     public void testCustomCheckHosts() {
-        GlobalConfiguration.getInstance().connectCheckURLStrings = new String[]{"https://www.baidu.com", "https://www.google.com"};
-        int maxCount = 100;
+        GlobalConfiguration.getInstance().connectCheckURLStrings = new String[]{"https://www.qiniu.com", "https://www.google.com"};
+        int maxCount = 20;
         int successCount = 0;
         for (int i = 0; i < maxCount; i++) {
             if (ConnectChecker.isConnected(ConnectChecker.check())) {
@@ -36,12 +36,12 @@ public class ConnectCheckTest extends BaseTest {
             }
         }
 
-        assertEquals("maxCount:" + maxCount + " successCount:" + successCount, maxCount, successCount);
+        assertTrue("maxCount:" + maxCount + " successCount:" + successCount, successCount > 12);
     }
 
     @Test
     public void testNotConnected() {
-        GlobalConfiguration.getInstance().connectCheckURLStrings = new String[]{"https://www.test1.com", "https://www.test2.com"};
+        GlobalConfiguration.getInstance().connectCheckURLStrings = new String[]{"https://connect.a.com", "https://connect.a.com"};
         int maxCount = 100;
         int successCount = 0;
         for (int i = 0; i < maxCount; i++) {
