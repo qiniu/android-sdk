@@ -51,7 +51,7 @@ public class HttpTest extends BaseTest {
     @Test
     public void testPost1() throws Throwable {
 
-        httpManager.asyncPost("https://up.qiniup.com",
+        httpManager.asyncPost("https://up-na0.qiniup.com",
                 "hello".getBytes(), null, UpToken.parse(TestConfig.commonToken), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override
@@ -73,7 +73,8 @@ public class HttpTest extends BaseTest {
             }
         }, 60);
 
-        Assert.assertTrue(info.reqId == "");
+        assertEquals(info.error, 400, info.statusCode);
+        assertTrue("reqid is empty", info.reqId.length() > 0);
     }
 
     @Test
