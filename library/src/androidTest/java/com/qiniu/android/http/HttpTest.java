@@ -51,7 +51,7 @@ public class HttpTest extends BaseTest {
     @Test
     public void testPost1() throws Throwable {
 
-        httpManager.asyncPost("https://www.baidu.com",
+        httpManager.asyncPost("https://up.qiniup.com",
                 "hello".getBytes(), null, UpToken.parse(TestConfig.commonToken), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override

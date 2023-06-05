@@ -58,8 +58,8 @@ class UpProgress {
             AsyncRun.runInMain(new Runnable() {
                 @Override
                 public void run() {
-                    LogUtil.i("key:" + key + " progress uploadBytes:" + totalBytes + " totalBytes:" + totalBytes);
-                    ((UpProgressBytesHandler) handler).progress(key, totalBytes, totalBytes);
+                    LogUtil.i("key:" + key + " progress uploadBytes:" + uploadBytes + " totalBytes:" + totalBytes);
+                    ((UpProgressBytesHandler) handler).progress(key, uploadBytes, totalBytes);
                 }
             });
             return;

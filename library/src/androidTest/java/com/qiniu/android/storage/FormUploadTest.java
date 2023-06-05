@@ -206,7 +206,7 @@ public class FormUploadTest extends UploadFlowTest {
         }
 
         Configuration configuration = new Configuration.Builder()
-                .zone(new FixedZone(new String[]{"upnono-na0.qiniu.com", "upnono-na0.qiniu.com"}))
+                .zone(new FixedZone(new String[]{"upnono-na0.qiniup.com", "upnono-na0.qiniup.com"}))
                 .urlConverter(new UrlConverter() {
                     @Override
                     public String convert(String url) {
