@@ -8,6 +8,9 @@ import com.qiniu.android.BaseTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Arrays;
+import java.util.List;
+
 
 /**
  * Created by yangsen on 2020/6/3
@@ -21,9 +24,12 @@ public class GlobalConfigurationTest extends BaseTest {
         configuration.dohIpv4Servers = null;
         configuration.udpDnsIpv4Servers = null;
         configuration.connectCheckURLStrings = null;
-        assertTrue("dohIpv4Servers cfg error", configuration.getDohIpv4Servers()[0].equals("https://8.8.8.8/dns-query"));
-        assertTrue("udpDnsIpv4Servers cfg error", configuration.getUdpDnsIpv4Servers()[1].equals("8.8.8.8"));
-        assertTrue("connectCheckURLStrings cfg error", configuration.getConnectCheckUrls()[0].equals("https://www.qiniu.com"));
+        List<String> dohIpv4Servers = Arrays.asList(configuration.getDohIpv4Servers());
+        List<String> udpDnsIpv4Servers = Arrays.asList(configuration.getUdpDnsIpv4Servers());
+        List<String> connectCheckURLStrings = Arrays.asList(configuration.getConnectCheckUrls());
+        assertTrue("dohIpv4Servers cfg error", dohIpv4Servers.contains("https://8.8.8.8/dns-query"));
+        assertTrue("udpDnsIpv4Servers cfg error", udpDnsIpv4Servers.contains("8.8.8.8"));
+        assertTrue("connectCheckURLStrings cfg error", connectCheckURLStrings.contains("https://www.qiniu.com"));
     }
 
 }

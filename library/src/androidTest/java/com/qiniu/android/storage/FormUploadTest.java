@@ -69,7 +69,6 @@ public class FormUploadTest extends UploadFlowTest {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                 .useConcurrentResumeUpload(true)
-                .useHttps(false)
                 .build();
         int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
         for (int size : sizeArray) {
@@ -207,7 +206,6 @@ public class FormUploadTest extends UploadFlowTest {
         }
 
         Configuration configuration = new Configuration.Builder()
-                .useHttps(false)
                 .zone(new FixedZone(new String[]{"upnono-na0.qiniu.com", "upnono-na0.qiniu.com"}))
                 .urlConverter(new UrlConverter() {
                     @Override

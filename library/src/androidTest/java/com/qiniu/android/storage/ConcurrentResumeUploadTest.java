@@ -65,7 +65,6 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                 .useConcurrentResumeUpload(true)
-                .useHttps(false)
                 .build();
         int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
         for (int size : sizeArray) {
@@ -135,14 +134,12 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
         Configuration configurationHttp = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                 .useConcurrentResumeUpload(true)
-                .useHttps(false)
                 .build();
         uploadFileAndAssertSuccessResult(file, null, configurationHttp, null);
 
         Configuration configurationHttps = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                 .useConcurrentResumeUpload(true)
-                .useHttps(true)
                 .build();
         uploadFileAndAssertSuccessResult(file, null, configurationHttps, null);
 
@@ -226,7 +223,6 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(true)
                 .chunkSize(4 * 1024 * 1024)
-                .useHttps(false)
                 .build();
         int[] sizeArray = {500, 2000, 4000, 5000, 8000, 20000};
         long timestamp = new Date().getTime();
@@ -298,7 +294,6 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
         Configuration configurationHttp = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(true)
-                .useHttps(false)
                 .build();
         uploadFileAndAssertSuccessResult(file, null, configurationHttp, null);
 
@@ -326,7 +321,6 @@ public class ConcurrentResumeUploadTest extends UploadFlowTest {
         Configuration configurationHttp = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(true)
-                .useHttps(false)
                 .build();
         uploadFileAndAssertResult(ResponseInfo.ZeroSizeFile, file, key, configurationHttp, null);
 

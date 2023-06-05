@@ -60,7 +60,7 @@ public class SystemHttpClientTest extends BaseTest {
 
         final WaitCondition waitCondition = new WaitCondition();
 
-        Request request = new Request("http://www.baidu.com/",
+        Request request = new Request("https://www.baidu.com/",
                 Request.HttpMethodPOST, null, "hello".getBytes(), 15);
 
         SystemHttpClient client = new SystemHttpClient();
@@ -81,7 +81,7 @@ public class SystemHttpClientTest extends BaseTest {
 
         final WaitCondition waitCondition = new WaitCondition();
 
-        Request request = new Request("http://www.baidu.com/",
+        Request request = new Request("https://www.baidu.com/",
                 Request.HttpMethodPOST, null, "hello".getBytes(), 15);
 
         SystemHttpClient client = new SystemHttpClient();
@@ -102,7 +102,7 @@ public class SystemHttpClientTest extends BaseTest {
 
         final WaitCondition waitCondition = new WaitCondition();
 
-        Request request = new Request("http://www.baidu.com/",
+        Request request = new Request("https://www.baidu.com/",
                 Request.HttpMethodPOST, null, "hello".getBytes(), 15);
 
         SystemHttpClient client = new SystemHttpClient();
