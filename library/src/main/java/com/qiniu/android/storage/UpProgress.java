@@ -3,8 +3,6 @@ package com.qiniu.android.storage;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.LogUtil;
 
-import kotlin.jvm.Synchronized;
-
 class UpProgress {
 
     private long maxProgressUploadBytes = -1;
