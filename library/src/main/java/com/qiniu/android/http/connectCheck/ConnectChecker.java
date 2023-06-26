@@ -68,8 +68,8 @@ public class ConnectChecker {
     }
 
     private static void checkAllHosts(final CheckCompleteHandler completeHandler) {
-        String[] allHosts = GlobalConfiguration.getInstance().connectCheckURLStrings;
-        if (allHosts == null) {
+        String[] allHosts = GlobalConfiguration.getInstance().getConnectCheckUrls();
+        if (allHosts == null || allHosts.length == 0) {
             completeHandler.complete(null);
             return;
         }

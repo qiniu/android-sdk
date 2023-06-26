@@ -69,4 +69,11 @@ public class Request {
     protected boolean isValid() {
         return this.urlString == null || httpMethod == null;
     }
+
+    public Request copyWithoutBody() {
+        Request request = new Request(urlString, httpMethod, allHeaders, null,
+                connectTimeout, readTimeout, writeTimeout);
+        request.host = host;
+        return request;
+    }
 }

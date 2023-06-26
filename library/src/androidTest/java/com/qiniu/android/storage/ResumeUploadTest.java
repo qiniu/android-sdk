@@ -62,7 +62,6 @@ public class ResumeUploadTest extends UploadFlowTest {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                 .useConcurrentResumeUpload(false)
-                .useHttps(false)
                 .build();
         int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
         for (int size : sizeArray) {
@@ -102,7 +101,6 @@ public class ResumeUploadTest extends UploadFlowTest {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                 .useConcurrentResumeUpload(false)
-                .useHttps(true)
                 .chunkSize(1024 * 1024)
                 .build();
         int[] sizeArray = {30000};
@@ -132,7 +130,6 @@ public class ResumeUploadTest extends UploadFlowTest {
         Configuration configurationHttp = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                 .useConcurrentResumeUpload(false)
-                .useHttps(false)
                 .build();
         uploadFileAndAssertSuccessResult(file, null, configurationHttp, null);
 
@@ -191,7 +188,6 @@ public class ResumeUploadTest extends UploadFlowTest {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
                 .useConcurrentResumeUpload(false)
-                .useHttps(false)
                 .build();
 
         String key = "android_resume_custom_param_v1";
@@ -254,7 +250,6 @@ public class ResumeUploadTest extends UploadFlowTest {
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
                 .chunkSize(4 * 1024 * 1024)
-                .useHttps(false)
                 .build();
         int[] sizeArray = {500, 1000, 3000, 4000, 5000, 8000, 10000, 20000};
         for (int size : sizeArray) {
@@ -295,7 +290,6 @@ public class ResumeUploadTest extends UploadFlowTest {
         Configuration configuration = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
-                .useHttps(true)
                 .chunkSize(4 * 1024 * 1024)
                 .build();
         int[] sizeArray = {30000};
@@ -325,7 +319,6 @@ public class ResumeUploadTest extends UploadFlowTest {
         Configuration configurationHttp = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
-                .useHttps(false)
                 .build();
         uploadFileAndAssertSuccessResult(file, null, configurationHttp, null);
 
@@ -353,7 +346,6 @@ public class ResumeUploadTest extends UploadFlowTest {
         Configuration configurationHttp = new Configuration.Builder()
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
-                .useHttps(false)
                 .build();
         uploadFileAndAssertResult(ResponseInfo.ZeroSizeFile, file, key, configurationHttp, null);
 
@@ -385,7 +377,6 @@ public class ResumeUploadTest extends UploadFlowTest {
                 .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
                 .useConcurrentResumeUpload(false)
                 .chunkSize(4 * 1024 * 1024)
-                .useHttps(false)
                 .build();
 
         String key = "android_resume_custom_param_v2";

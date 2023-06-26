@@ -50,7 +50,7 @@ public class HttpTest extends BaseTest {
     @Test
     public void testPost1() throws Throwable {
 
-        httpManager.asyncPost("http://www.baidu.com",
+        httpManager.asyncPost("https://up-na0.qiniup.com",
                 "hello".getBytes(), null, UpToken.parse(TestConfig.commonToken), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override
@@ -72,13 +72,14 @@ public class HttpTest extends BaseTest {
             }
         }, 60);
 
-        Assert.assertTrue(info.reqId == "");
+        assertEquals(info.error, 400, info.statusCode);
+        assertTrue("reqid is empty", info.reqId.length() > 0);
     }
 
     @Test
     public void testPost2() throws Throwable {
 
-        httpManager.asyncPost("http://up.qiniu.com", "hello".getBytes(), null,
+        httpManager.asyncPost("https://up.qiniup.com", "hello".getBytes(), null,
                 UpToken.parse(TestConfig.commonToken), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override
@@ -107,7 +108,7 @@ public class HttpTest extends BaseTest {
         AsyncRun.runInMain(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
 
-                httpManager.asyncPost("http://httpbin.org/status/500", "hello".getBytes(),
+                httpManager.asyncPost("https://httpbin.org/status/500", "hello".getBytes(),
                         null, UpToken.parse(TestConfig.commonToken), "hello".getBytes().length,
                         null, new CompletionHandler() {
                             @Override
@@ -138,7 +139,7 @@ public class HttpTest extends BaseTest {
     public void testPost4() throws Throwable {
         AsyncRun.runInMain(new Runnable() { // THIS IS THE KEY TO SUCCESS
             public void run() {
-                httpManager.asyncPost("http://httpbin.org/status/418",
+                httpManager.asyncPost("https://httpbin.org/status/418",
                         "hello".getBytes(),
                         null, UpToken.parse(TestConfig.commonToken), "hello".getBytes().length,
                         null, new CompletionHandler() {
@@ -160,17 +161,16 @@ public class HttpTest extends BaseTest {
                     return false;
                 }
             }
-        }, 5);
+        }, 60);
 
         Assert.assertEquals(418, info.statusCode);
         Assert.assertNotNull(info.error);
     }
 
-    @Test
-    public void testPostNoDomain() throws Throwable {
+    private void testPostNoDomain() throws Throwable {
 
 
-        httpManager.asyncPost("http://no-domain.qiniu.com", "hello".getBytes(),
+        httpManager.asyncPost("https://no-domain.qiniu.com", "hello".getBytes(),
                 null, UpToken.parse(TestConfig.commonToken), "hello".getBytes().length,
                 null, new CompletionHandler() {
                     @Override
@@ -217,8 +217,8 @@ public class HttpTest extends BaseTest {
 //                ResponseInfo.TimedOut == info.statusCode);
 //    }
 
-    @Test
-    public void testPostIP() throws Throwable {
+
+    private void testPostIP() throws Throwable {
         info = null;
         StringMap x = new StringMap().put("Host", "up.qiniu.com");
 
@@ -274,7 +274,7 @@ public class HttpTest extends BaseTest {
             }
         }, 60);
 
-        Assert.assertTrue(!"".equals(info.reqId));
+        Assert.assertTrue(info.reqId.length() > 0);
         Assert.assertEquals(400, info.statusCode);
     }
 

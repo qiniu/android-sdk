@@ -5,8 +5,8 @@ import com.qiniu.android.utils.LogUtil;
 
 class UpProgress {
 
-    private volatile long maxProgressUploadBytes = -1;
-    private volatile long previousUploadBytes = 0;
+    private long maxProgressUploadBytes = -1;
+    private long previousUploadBytes = 0;
     private final UpProgressHandler handler;
 
     UpProgress(UpProgressHandler handler) {
@@ -19,49 +19,34 @@ class UpProgress {
         }
 
         if (totalBytes > 0) {
-            if (this.maxProgressUploadBytes < 0) {
-                this.maxProgressUploadBytes = (long)(totalBytes * 0.95);
+            synchronized (this) {
+                if (this.maxProgressUploadBytes < 0) {
+                    this.maxProgressUploadBytes = (long) (totalBytes * 0.95);
+                }
             }
 
-            if (uploadBytes > maxProgressUploadBytes) {
+            if (uploadBytes > this.maxProgressUploadBytes) {
                 return;
             }
         }
 
-        if (uploadBytes > previousUploadBytes) {
-            previousUploadBytes = uploadBytes;
-        } else {
-            // 不大于之前回调百分比，不再回调
-            return;
-        }
-
-        if (handler instanceof UpProgressBytesHandler) {
-            final long uploadBytesFinal = uploadBytes;
-            AsyncRun.runInMain(new Runnable() {
-                @Override
-                public void run() {
-                    LogUtil.i("key:" + key + " progress uploadBytes:" + uploadBytesFinal + " totalBytes:" + totalBytes);
-                    ((UpProgressBytesHandler) handler).progress(key, uploadBytesFinal, totalBytes);
-                }
-            });
-            return;
-        }
-
-        if (totalBytes < 0) {
-            return;
-        }
-
-        final double notifyPercent = (double) uploadBytes / (double) totalBytes;
-        AsyncRun.runInMain(new Runnable() {
-            @Override
-            public void run() {
-                LogUtil.i("key:" + key + " progress:" + notifyPercent);
-                handler.progress(key, notifyPercent);
+        synchronized (this) {
+            if (uploadBytes > this.previousUploadBytes) {
+                this.previousUploadBytes = uploadBytes;
+            } else {
+                // 不大于之前回调百分比，不再回调
+                return;
             }
-        });
+        }
+
+        notify(key, uploadBytes, totalBytes);
     }
 
     public void notifyDone(final String key, final long totalBytes) {
+        notify(key, totalBytes, totalBytes);
+    }
+
+    private void notify(final String key, long uploadBytes, final long totalBytes) {
         if (handler == null) {
             return;
         }
@@ -71,18 +56,23 @@ class UpProgress {
             AsyncRun.runInMain(new Runnable() {
                 @Override
                 public void run() {
-                    LogUtil.i("key:" + key + " progress uploadBytes:" + totalBytes + " totalBytes:" + totalBytes);
-                    ((UpProgressBytesHandler) handler).progress(key, totalBytes, totalBytes);
+                    LogUtil.i("key:" + key + " progress uploadBytes:" + uploadBytes + " totalBytes:" + totalBytes);
+                    ((UpProgressBytesHandler) handler).progress(key, uploadBytes, totalBytes);
                 }
             });
             return;
         }
 
+        if (totalBytes <= 0) {
+            return;
+        }
+
+        final double notifyPercent = (double) uploadBytes / (double) totalBytes;
         AsyncRun.runInMain(new Runnable() {
             @Override
             public void run() {
-                LogUtil.i("key:" + key + " progress:1");
-                handler.progress(key, 1);
+                LogUtil.i("key:" + key + " progress:" + notifyPercent);
+                handler.progress(key, notifyPercent);
             }
         });
     }

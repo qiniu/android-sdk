@@ -55,7 +55,7 @@ public class ClientTest extends BaseTest {
         UpToken token = UpToken.parse(TestConfig.commonToken);
 
         Client client = new Client(null, 90, 90, null, null);
-        ResponseInfo responseInfo = client.syncMultipartPost("http://up.qiniu.com", postArgs, token);
+        ResponseInfo responseInfo = client.syncMultipartPost("https://up.qiniup.com", postArgs, token);
 
         assertTrue(responseInfo != null);
     }
@@ -73,7 +73,7 @@ public class ClientTest extends BaseTest {
         UpToken token = UpToken.parse(TestConfig.commonToken);
 
         Client client = new Client(null, 90, 90, null, null);
-        client.asyncMultipartPost("http://up.qiniu.com", postArgs, token, null, new CompletionHandler() {
+        client.asyncMultipartPost("https://up.qiniu.com", postArgs, token, null, new CompletionHandler() {
             @Override
             public void complete(ResponseInfo info, JSONObject response) {
 

@@ -127,7 +127,7 @@ class HttpSingleRequest {
                     completeAction(server, responseInfo, responseInfo.response, metrics, completeHandler);
                     return;
                 }
-                
+
                 if (responseInfo != null) {
                     responseInfo = responseInfo.checkMaliciousResponse();
                 }
@@ -184,7 +184,9 @@ class HttpSingleRequest {
     }
 
     private boolean shouldCheckConnect(ResponseInfo responseInfo) {
-        if (!GlobalConfiguration.getInstance().connectCheckEnable) {
+        GlobalConfiguration cfg = GlobalConfiguration.getInstance();
+        String[] checkUrls = cfg.getConnectCheckUrls();
+        if (!cfg.connectCheckEnable && checkUrls == null || checkUrls.length == 0) {
             return false;
         }
 
@@ -227,21 +229,21 @@ class HttpSingleRequest {
         }
 
         if (byteCount <= 8 * 1024) {
-            milliSecond = (long)((float)milliSecond * 0.08);
+            milliSecond = (long) ((float) milliSecond * 0.08);
         } else if (byteCount <= 16 * 1024) {
-            milliSecond = (long)((float)milliSecond * 0.15);
+            milliSecond = (long) ((float) milliSecond * 0.15);
         } else if (byteCount <= 32 * 1024) {
-            milliSecond = (long)((float)milliSecond * 0.22);
+            milliSecond = (long) ((float) milliSecond * 0.22);
         } else if (byteCount <= 64 * 1024) {
-            milliSecond = (long)((float)milliSecond * 0.30);
+            milliSecond = (long) ((float) milliSecond * 0.30);
         } else if (byteCount <= 128 * 1024) {
-            milliSecond = (long)((float)milliSecond * 0.45);
+            milliSecond = (long) ((float) milliSecond * 0.45);
         } else if (byteCount <= 256 * 1024) {
-            milliSecond = (long)((float)milliSecond * 0.76);
+            milliSecond = (long) ((float) milliSecond * 0.76);
         } else if (byteCount <= 512 * 1024) {
-            milliSecond = (long)((float)milliSecond * 0.88);
+            milliSecond = (long) ((float) milliSecond * 0.88);
         } else if (byteCount <= 1024 * 1024) {
-            milliSecond = (long)((float)milliSecond * 0.95);
+            milliSecond = (long) ((float) milliSecond * 0.95);
         }
 
         if (milliSecond <= 0) {
@@ -249,7 +251,7 @@ class HttpSingleRequest {
         }
 
         int speed = (int) (byteCount / milliSecond);
-        Log.d("speed","httpVersion:" + server.getHttpVersion() + " byte:" + byteCount/1024.0 + "  milliSecond:" + milliSecond + "   speed:" + speed);
+        Log.d("speed", "httpVersion:" + server.getHttpVersion() + " byte:" + byteCount / 1024.0 + "  milliSecond:" + milliSecond + "   speed:" + speed);
         String type = NetworkStatusManager.getNetworkStatusType(server.getHttpVersion(), server.getHost(), server.getIp());
         NetworkStatusManager.getInstance().updateNetworkStatus(type, speed);
     }

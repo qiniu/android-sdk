@@ -44,7 +44,7 @@ public class HttpsTest extends BaseTest {
     public void testPost1() throws Throwable {
 
         info = null;
-        httpManager.asyncPost("https://www.baidu.com/", "hello".getBytes(), null,
+        httpManager.asyncPost("https://up-na0.qiniup.com", "hello".getBytes(), null,
                 UpToken.parse(TestConfig.commonToken), "hello".getBytes().length, null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
@@ -65,7 +65,8 @@ public class HttpsTest extends BaseTest {
         }, 5);
 
 
-        assertEquals(info.error, 200, info.statusCode);
+        assertEquals(info.error, 400, info.statusCode);
+        assertTrue("reqid is empty", info.reqId.length() > 0);
     }
 
 //    @SmallTest
