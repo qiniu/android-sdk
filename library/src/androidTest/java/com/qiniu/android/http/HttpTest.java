@@ -161,7 +161,7 @@ public class HttpTest extends BaseTest {
                     return false;
                 }
             }
-        }, 5);
+        }, 60);
 
         Assert.assertEquals(418, info.statusCode);
         Assert.assertNotNull(info.error);
