@@ -41,13 +41,6 @@ public final class FixedZone extends Zone {
             "z2");
 
     /**
-     * 首尔机房
-     */
-    public static final Zone zoneApNorthEast1 = new FixedZone(new String[]{"upload-ap-northeast-1.qiniup.com", "up-ap-northeast-1.qiniup.com"},
-            null,
-            "ap-northeast-1");
-
-    /**
      * 北美机房
      */
     public static final Zone zoneNa0 = new FixedZone(new String[]{"upload-na0.qiniup.com", "up-na0.qiniup.com"},
@@ -67,7 +60,7 @@ public final class FixedZone extends Zone {
         FixedZone[] localsZone = new FixedZone[]{
                 (FixedZone) zone0, (FixedZone) zoneCnEast2,
                 (FixedZone) zone1, (FixedZone) zone2,
-                (FixedZone) zoneNa0, (FixedZone) zoneApNorthEast1,
+                (FixedZone) zoneNa0,
                 (FixedZone) zoneAs0,
         };
 
