@@ -33,7 +33,7 @@ public class FormUploadTest extends UploadFlowTest {
             try {
                 file = TempFile.createFile(size, key);
             } catch (IOException e) {
-                Assert.assertTrue(e.getMessage(), false);
+                assertTrue(e.getMessage(), false);
             }
             switchRegionTestWithFile(file, key, configuration, null);
         }
@@ -58,7 +58,7 @@ public class FormUploadTest extends UploadFlowTest {
             try {
                 file = TempFile.createFile(size, key);
             } catch (IOException e) {
-                Assert.fail(e.getMessage());
+                fail(e.getMessage());
             }
             cancelTest((long) (size * cancelPercent), file, key, configuration, null);
         }
@@ -77,7 +77,7 @@ public class FormUploadTest extends UploadFlowTest {
             try {
                 file = TempFile.createFile(size, key);
             } catch (IOException e) {
-                Assert.assertTrue(e.getMessage(), false);
+                assertTrue(e.getMessage(), false);
             }
             uploadFileAndAssertSuccessResult(file, key, configuration, null);
         }
@@ -97,7 +97,7 @@ public class FormUploadTest extends UploadFlowTest {
             try {
                 file = TempFile.createFile(size, key);
             } catch (IOException e) {
-                Assert.assertTrue(e.getMessage(), false);
+                assertTrue(e.getMessage(), false);
             }
             uploadFileAndAssertSuccessResult(file, key, configuration, null);
         }
@@ -117,7 +117,7 @@ public class FormUploadTest extends UploadFlowTest {
         try {
             file = TempFile.createFile(10, key);
         } catch (IOException e) {
-            Assert.assertTrue(e.getMessage(), false);
+            assertTrue(e.getMessage(), false);
         }
         uploadFileAndAssertSuccessResult(file, key, null, options);
     }
@@ -131,7 +131,7 @@ public class FormUploadTest extends UploadFlowTest {
             try {
                 file = TempFile.createFile(10, key);
             } catch (IOException e) {
-                Assert.assertTrue(e.getMessage(), false);
+                assertTrue(e.getMessage(), false);
             }
             uploadFileAndAssertSuccessResult(file, key, null, null);
         }
@@ -144,7 +144,7 @@ public class FormUploadTest extends UploadFlowTest {
         try {
             file = TempFile.createFile(10, key);
         } catch (IOException e) {
-            Assert.assertTrue(e.getMessage(), false);
+            assertTrue(e.getMessage(), false);
         }
         uploadFileAndAssertResult(ResponseInfo.InvalidToken, file, "noAuth", "android_form_no_auth", null, null);
     }
@@ -156,7 +156,7 @@ public class FormUploadTest extends UploadFlowTest {
         try {
             file = TempFile.createFile(0, key);
         } catch (IOException e) {
-            Assert.assertTrue(e.getMessage(), false);
+            assertTrue(e.getMessage(), false);
         }
         uploadFileAndAssertResult(ResponseInfo.ZeroSizeFile, file, key, null, null);
     }

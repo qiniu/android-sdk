@@ -33,7 +33,7 @@ public class ListVectorTest extends BaseTest {
             vectorList(v);
         }
 
-        Assert.assertTrue("v:" + v, v.size() == count);
+        assertTrue("v:" + v, v.size() == count);
     }
 
     @Test
@@ -62,7 +62,7 @@ public class ListVectorTest extends BaseTest {
             vectorList(v);
         }
 
-        Assert.assertTrue("v:" + v, v.size() == count);
+        assertTrue("v:" + v, v.size() == count);
     }
 
     private void vectorAdd(List<String> v) {

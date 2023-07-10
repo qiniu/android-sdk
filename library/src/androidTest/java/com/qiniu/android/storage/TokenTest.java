@@ -1,7 +1,7 @@
 package com.qiniu.android.storage;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -24,7 +24,7 @@ public class TokenTest {
 
         UpToken t = UpToken.parse(TestConfig.commonToken);
 
-        assertTrue(!UpToken.isInvalid(t));
+        assertTrue("uptoken is invalid", !UpToken.isInvalid(t));
         assertTrue("token isValidForDuration error", t.isValidForDuration(5*60));
         assertTrue("token isValidBeforeDate error", t.isValidBeforeDate(new Date()));
         assertTrue(t.toString() != null);
@@ -33,13 +33,13 @@ public class TokenTest {
 
     public void testEmpty() {
         UpToken t = UpToken.parse(null);
-        assertEquals(t, null);
+        assertNull("== 1 ==", t);
 
         t = UpToken.parse("");
-        assertEquals(t, null);
+        assertNull("== 2 ==", t);
 
         t = UpToken.parse("1:2:3");
-        assertEquals(t, null);
+        assertNull("== 3 ==", t);
     }
 
     @Test

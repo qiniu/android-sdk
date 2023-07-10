@@ -39,7 +39,7 @@ public class RequestTransactionTest extends BaseTest {
         requestTransaction.queryUploadHosts(true, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                Assert.assertTrue("pass", responseInfo.isOK());
+                assertTrue("pass", responseInfo.isOK());
                 waitCondition.shouldWait = false;
             }
         });
@@ -71,7 +71,7 @@ public class RequestTransactionTest extends BaseTest {
         }, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                Assert.assertTrue("pass", responseInfo.isOK());
+                assertTrue("pass", responseInfo.isOK());
                 waitCondition.shouldWait = false;
             }
         });
@@ -97,7 +97,7 @@ public class RequestTransactionTest extends BaseTest {
                     } catch (JSONException e) {}
 
                     if (ct == null) {
-                        Assert.assertTrue("pass", false);
+                        assertTrue("pass", false);
                         waitCondition.shouldWait = false;
                         return;
                     }
@@ -114,7 +114,7 @@ public class RequestTransactionTest extends BaseTest {
                                 } catch (JSONException e) {}
 
                                 if (ct_02 == null) {
-                                    Assert.assertTrue("pass", false);
+                                    assertTrue("pass", false);
                                     waitCondition.shouldWait = false;
                                     return;
                                 }
@@ -122,18 +122,18 @@ public class RequestTransactionTest extends BaseTest {
                                 makeFile(new String[]{ct_02}, new RequestTransaction.RequestCompleteHandler() {
                                     @Override
                                     public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                                        Assert.assertTrue("pass", responseInfo.isOK());
+                                        assertTrue("pass", responseInfo.isOK());
                                         waitCondition.shouldWait = false;
                                     }
                                 });
                             } else {
-                                Assert.assertTrue("pass", false);
+                                assertTrue("pass", false);
                                 waitCondition.shouldWait = false;
                             }
                         }
                     });
                 } else {
-                    Assert.fail("fail");
+                    fail("fail");
                     waitCondition.shouldWait = false;
                 }
             }
@@ -191,7 +191,7 @@ public class RequestTransactionTest extends BaseTest {
         makeFile(null, new RequestTransaction.RequestCompleteHandler() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
-                Assert.assertTrue("pass", !responseInfo.isOK());
+                assertTrue("pass", !responseInfo.isOK());
                 waitCondition.shouldWait = false;
             }
         });
