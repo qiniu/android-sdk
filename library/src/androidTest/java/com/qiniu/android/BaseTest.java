@@ -3,7 +3,8 @@ package com.qiniu.android;
 import android.content.Context;
 
 import androidx.test.core.app.ApplicationProvider;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+import com.qiniu.android.utils.LogUtil;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -23,6 +24,8 @@ public class BaseTest {
 
     @Before
     public void setUp() throws Exception {
+        LogUtil.enableLog(true);
+        LogUtil.enableDate(true);
         context = ApplicationProvider.getApplicationContext();
     }
 

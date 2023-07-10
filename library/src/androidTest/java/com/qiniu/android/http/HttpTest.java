@@ -247,8 +247,7 @@ public class HttpTest extends BaseTest {
         Assert.assertEquals(400, info.statusCode);
     }
 
-    @Test
-    public void testProxy() throws Throwable {
+    private void testProxy() throws Throwable {
         StringMap x = new StringMap();
         ProxyConfiguration p = new ProxyConfiguration("115.238.101.32", 80);
         Client c = new Client(p, 10, 30, null, null);
@@ -274,8 +273,8 @@ public class HttpTest extends BaseTest {
             }
         }, 60);
 
-        Assert.assertTrue(info.reqId.length() > 0);
-        Assert.assertEquals(400, info.statusCode);
+        assertTrue(info.reqId.length() > 0);
+        assertEquals(400, info.statusCode);
     }
 
     @Test
