@@ -163,6 +163,7 @@ public class HttpTest extends BaseTest {
             }
         }, 60);
 
+        assertTrue("status code:" + info.statusCode, info.statusCode == 418 || info.statusCode % 100 == 5);
         assertEquals(418, info.statusCode);
         assertNotNull(info.error);
     }

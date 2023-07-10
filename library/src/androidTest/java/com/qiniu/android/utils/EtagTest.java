@@ -57,6 +57,6 @@ public class EtagTest extends BaseTest {
         int b = (int) ((len + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE);
         assertEquals("不应该溢出", 554, b);
         int a = (int) (len + Configuration.BLOCK_SIZE - 1) / Configuration.BLOCK_SIZE;
-        assertTrue("预计会溢出", 554 == a);
+        assertTrue("预计会溢出", 554 != a);
     }
 }
