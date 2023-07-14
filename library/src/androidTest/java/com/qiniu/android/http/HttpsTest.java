@@ -117,6 +117,6 @@ public class HttpsTest extends BaseTest {
 //            e.printStackTrace();
 //        }
 //        // cert is not match
-//        Assert.assertEquals(info.error, -1, info.statusCode);
+//        assertEquals(info.error, -1, info.statusCode);
 //    }
 }

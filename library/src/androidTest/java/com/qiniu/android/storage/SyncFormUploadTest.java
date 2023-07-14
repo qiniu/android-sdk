@@ -43,13 +43,13 @@ public class SyncFormUploadTest extends BaseTest {
         info = uploadManager.syncPut(b, expectKey, TestConfig.commonToken, opt);
         resp = info.response;
 
-        Assert.assertTrue(info.toString(), info.isOK());
-        Assert.assertNotNull(info.reqId);
-        Assert.assertNotNull(resp);
+        assertTrue(info.toString(), info.isOK());
+        assertNotNull(info.reqId);
+        assertNotNull(resp);
 
         String hash = resp.optString("hash");
-        Assert.assertEquals(hash, Etag.data(b));
-        Assert.assertEquals(expectKey, key = resp.optString("key"));
+        assertEquals(hash, Etag.data(b));
+        assertEquals(expectKey, key = resp.optString("key"));
     }
 
     @Test
@@ -76,11 +76,11 @@ public class SyncFormUploadTest extends BaseTest {
 
         resp = info.response;
         key = resp.optString("key");
-        Assert.assertTrue(info.toString(), info.isOK());
+        assertTrue(info.toString(), info.isOK());
 
-        Assert.assertNotNull(info.reqId);
-        Assert.assertNotNull(resp);
-        Assert.assertEquals("Fqr0xh3cxeii2r7eDztILNmuqUNN", resp.optString("key", ""));
+        assertNotNull(info.reqId);
+        assertNotNull(resp);
+        assertEquals("Fqr0xh3cxeii2r7eDztILNmuqUNN", resp.optString("key", ""));
     }
 
     @Test
@@ -89,7 +89,7 @@ public class SyncFormUploadTest extends BaseTest {
         info = uploadManager.syncPut("hello".getBytes(), expectKey, "invalid", null);
 
         resp = info.response;
-        Assert.assertEquals(info.toString(), ResponseInfo.InvalidToken, info.statusCode);
+        assertEquals(info.toString(), ResponseInfo.InvalidToken, info.statusCode);
         assertNull(resp);
     }
 
@@ -100,9 +100,9 @@ public class SyncFormUploadTest extends BaseTest {
         info = uploadManager.syncPut((byte[]) null, expectKey, "invalid", null);
 
         resp = info.response;
-        Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile,
+        assertEquals(info.toString(), ResponseInfo.ZeroSizeFile,
                 info.statusCode);
-        Assert.assertNull(resp);
+        assertNull(resp);
     }
 
     @Test
@@ -111,8 +111,8 @@ public class SyncFormUploadTest extends BaseTest {
         info = uploadManager.syncPut(new byte[1], expectKey, null, null);
 
         resp = info.response;
-        Assert.assertEquals(info.toString(), ResponseInfo.InvalidToken, info.statusCode);
-        Assert.assertNull(resp);
+        assertEquals(info.toString(), ResponseInfo.InvalidToken, info.statusCode);
+        assertNull(resp);
     }
 
     @Test
@@ -121,9 +121,8 @@ public class SyncFormUploadTest extends BaseTest {
         info = uploadManager.syncPut(new byte[1], expectKey, "", null);
 
         resp = info.response;
-        Assert.assertEquals(info.toString(), ResponseInfo.InvalidToken,
-                info.statusCode);
-        Assert.assertNull(resp);
+        assertEquals(info.toString(), ResponseInfo.InvalidToken, info.statusCode);
+        assertNull(resp);
     }
 
     @Test
@@ -138,7 +137,7 @@ public class SyncFormUploadTest extends BaseTest {
         resp = info.response;
         key = resp.optString("key");
         assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isOK());
+        assertTrue(info.toString(), info.isOK());
 
         //上传策略含空格 \"fname\":\" $(fname) \"
 //        assertEquals(f.getName(), resp.optString("fname", "res doesn't include the FNAME").trim());
@@ -159,21 +158,21 @@ public class SyncFormUploadTest extends BaseTest {
         info = uploadManager.syncPut(f, expectKey, TestConfig.commonToken, opt);
 
         resp = info.response;
-        Assert.assertEquals(f.toString(), 0, f.length());
-        Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
-        Assert.assertNull(resp);
-        Assert.assertFalse(info.toString(), info.isOK());
-        Assert.assertEquals(info.toString(), "", info.reqId);
+        assertEquals(f.toString(), 0, f.length());
+        assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
+        assertNull(resp);
+        assertFalse(info.toString(), info.isOK());
+        assertEquals(info.toString(), "", info.reqId);
         TempFile.remove(f);
     }
 
     @Test
     public void test0byte() {
         info = uploadManager.syncPut(new byte[0], null, TestConfig.commonToken, null);
-        Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
+        assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
 
         info = uploadManager.syncPut("", null, TestConfig.commonToken, null);
-        Assert.assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
+        assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
     }
 
 
@@ -194,9 +193,9 @@ public class SyncFormUploadTest extends BaseTest {
 
         resp = info.response;
         key = resp.optString("key");
-        Assert.assertEquals(info.toString(), expectKey, key);
-        Assert.assertTrue(info.toString(), info.isOK());
-        Assert.assertNotNull(info.reqId);
-        Assert.assertNotNull(resp);
+        assertEquals(info.toString(), expectKey, key);
+        assertTrue(info.toString(), info.isOK());
+        assertNotNull(info.reqId);
+        assertNotNull(resp);
     }
 }
