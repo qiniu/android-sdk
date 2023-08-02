@@ -71,6 +71,10 @@ publishing {
             artifact(androidSourcesJar)
             artifact(androidJavadocsJar)
 
+            afterEvaluate {
+                from components.release
+            }
+
             pom {
                 name = POM_NAME
                 description = POM_DESCRIPTION
