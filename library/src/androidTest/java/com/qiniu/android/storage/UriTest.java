@@ -60,7 +60,7 @@ public class UriTest extends BaseTest {
                 uri = writeFileToDownload(file, fileName);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
-                Assert.fail(e.getMessage());
+                fail(e.getMessage());
                 return;
             }
 

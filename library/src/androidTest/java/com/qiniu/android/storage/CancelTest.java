@@ -77,7 +77,7 @@ public class CancelTest extends BaseTest {
         LogUtil.d(type + "   " + failedCount);
         if (failedCount > ts.length / 2) {
             String info = type + ": 共 " + ts.length + "个测试，至多允许 " + ts.length / 2 + " 失败，实际失败 " + failedCount + " 个： " + tt.info.toString();
-            Assert.assertEquals(info, tt.expectKey, tt.key);
+            assertEquals(info, tt.expectKey, tt.key);
         }
     }
 
@@ -225,7 +225,7 @@ public class CancelTest extends BaseTest {
 
         try {
             signal.await(570, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", temp.info);
+            assertNotNull("timeout", temp.info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

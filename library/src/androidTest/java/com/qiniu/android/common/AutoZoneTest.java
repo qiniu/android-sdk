@@ -100,7 +100,7 @@ public class AutoZoneTest extends BaseTest {
 //    public void testSplitE() {
 //        String s1 = "bkt:key";
 //        String s2 = "bkt";
-//        Assert.assertEquals(s1.split(":")[0], s2.split(":")[0]);
+//        assertEquals(s1.split(":")[0], s2.split(":")[0]);
 //    }
 
     private boolean isTestUCServerComplete = false;

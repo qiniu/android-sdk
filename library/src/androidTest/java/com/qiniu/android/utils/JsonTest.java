@@ -2,6 +2,8 @@ package com.qiniu.android.utils;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.qiniu.android.BaseTest;
+
 import junit.framework.Assert;
 
 import org.json.JSONException;
@@ -18,15 +20,15 @@ import java.util.Map;
  * Created by Simon on 3/3/16.
  */
 @RunWith(AndroidJUnit4.class)
-public class JsonTest {
+public class JsonTest extends BaseTest {
 
     private boolean showContent = false;
 
     @Test
     public void testEmpty() {
         JSONObject json = new JSONObject();
-        Assert.assertNotNull(json);
-        Assert.assertEquals("{}", json.toString());
+        assertNotNull(json);
+        assertEquals("{}", json.toString());
     }
 
     // e: org.json.JSONException: End of input at character 0 of
@@ -39,9 +41,9 @@ public class JsonTest {
         } catch (JSONException e) {
             ex = e;
         }
-        Assert.assertNotNull(ex);
+        assertNotNull(ex);
         if (showContent) {
-            Assert.assertEquals(str, ex.getMessage());
+            assertEquals(str, ex.getMessage());
         }
     }
 
@@ -55,9 +57,9 @@ public class JsonTest {
         } catch (JSONException e) {
             ex = e;
         }
-        Assert.assertNotNull(ex);
+        assertNotNull(ex);
         if (showContent) {
-            Assert.assertEquals(str, ex.getMessage());
+            assertEquals(str, ex.getMessage());
         }
     }
 
@@ -65,9 +67,9 @@ public class JsonTest {
     public void testB() throws JSONException {
         String str = "{}";
         JSONObject json = new JSONObject(str);
-        Assert.assertNotNull(json);
+        assertNotNull(json);
         if (showContent) {
-            Assert.assertEquals(str, json.toString());
+            assertEquals(str, json.toString());
         }
     }
 
@@ -81,9 +83,9 @@ public class JsonTest {
         } catch (JSONException e) {
             ex = e;
         }
-        Assert.assertNotNull(ex);
+        assertNotNull(ex);
         if (showContent) {
-            Assert.assertEquals(str, ex.getMessage());
+            assertEquals(str, ex.getMessage());
         }
     }
 
@@ -97,9 +99,9 @@ public class JsonTest {
         } catch (JSONException e) {
             ex = e;
         }
-        Assert.assertNotNull(ex);
+        assertNotNull(ex);
         if (showContent) {
-            Assert.assertEquals(str, ex.getMessage());
+            assertEquals(str, ex.getMessage());
         }
     }
 
@@ -108,7 +110,7 @@ public class JsonTest {
         Map<String, Object> m = new HashMap<>();
         m.put("a", 1);
         String s = Json.encodeMap(m);
-        Assert.assertEquals("{\"a\":1}", s);
+        assertEquals("{\"a\":1}", s);
     }
 
     @Test
@@ -116,6 +118,6 @@ public class JsonTest {
         List<String> l = new ArrayList<>();
         l.add("a");
         String s = Json.encodeList(l);
-        Assert.assertEquals("[\"a\"]", s);
+        assertEquals("[\"a\"]", s);
     }
 }

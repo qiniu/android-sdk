@@ -2,6 +2,7 @@ package com.qiniu.android.bigdata.pipeline;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.qiniu.android.BaseTest;
 import com.qiniu.android.http.ResponseInfo;
 
 import junit.framework.Assert;
@@ -10,6 +11,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +24,7 @@ import java.util.concurrent.TimeUnit;
  */
 
 @RunWith(AndroidJUnit4.class)
-public class PipelineTest {
+public class PipelineTest extends BaseTest {
     final CountDownLatch signal = new CountDownLatch(1);
     private volatile ResponseInfo info = null;
 
@@ -34,7 +36,7 @@ public class PipelineTest {
         Map<String, Integer> m = new HashMap<>();
         m.put("a", 3);
         Points.formatPoint(m, b2);
-        Assert.assertEquals(b1.toString(), b2.toString());
+        assertEquals(b1.toString(), b2.toString());
     }
 
     @Test
@@ -56,12 +58,12 @@ public class PipelineTest {
 
         try {
             signal.await(1200, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
+            assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         System.out.println(info);
-//        Assert.assertTrue(info.isOK());
+//        assertTrue(info.isOK());
     }
 
     @Test
@@ -77,11 +79,11 @@ public class PipelineTest {
 
         try {
             signal.await(1200, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
+            assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-//        Assert.assertTrue(info.isOK());
+//        assertTrue(info.isOK());
     }
 
     @Test
@@ -106,12 +108,12 @@ public class PipelineTest {
 
         try {
             signal.await(1200, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
+            assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         System.out.println(info);
-//        Assert.assertTrue(info.isOK());
+//        assertTrue(info.isOK());
     }
 
     @Test
@@ -130,11 +132,11 @@ public class PipelineTest {
 
         try {
             signal.await(1200, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
+            assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-//        Assert.assertTrue(info.isOK());
+//        assertTrue(info.isOK());
     }
 
     @Test
@@ -153,11 +155,11 @@ public class PipelineTest {
 
         try {
             signal.await(1200, TimeUnit.SECONDS); // wait for callback
-            Assert.assertNotNull("timeout", info);
+            assertNotNull("timeout", info);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-//        Assert.assertTrue(info.isOK());
+//        assertTrue(info.isOK());
     }
 
     static class A {
