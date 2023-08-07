@@ -14,27 +14,28 @@ https://github.com/qiniudemo/qiniu-lab-android
 ### 运行环境
 
 | Qiniu SDK 版本 | 最低 Android版本   |       依赖库版本           |
-|------------ |-----------------|------------------------|
-|  8.5.x        |  Android 4.0+     |        okhttp 4+         |
-|  8.4.x        |  Android 4.0+     |        okhttp 4+         |
-|  8.3.2        |  Android 4.0+     |        okhttp 4+         |
-|  8.3.1        |  Android 4.0+     |        okhttp 4+         |
-|  8.3.0        |  Android 5.0+     |        okhttp 4+         |
-|  8.2.x        |  Android 5.0+     |        okhttp 4+         |
-|  8.1.x        |  Android 5.0+     |        okhttp 4+         |
-|  8.0.x        |  Android 5.0+     |        okhttp 4+         |
-|  7.7.x        |  Android 5.0+     |        okhttp 4+         |
-|  7.6.x        |  Android 5.0+     |        okhttp 4+         |
-|  7.5.x        |  Android 5.0+     |        okhttp 4+         |
-|  7.4.6        |  Android 4.0+     |        okhttp 3.12.6     |
-|  7.3.x        |  Android 2.3+     |        okhttp 3.11.0     |
-|  7.2.x        |  Android 2.3+     |        okhttp 3+         |
-|  7.1.x        |  Android 2.3+     |        okhttp 2.6+       |
-| 7.0.8,7.0.9   |  Android 2.2+     | android-async-http 1.4.9 |
-|  7.0.7        |  Android 2.2+     | android-async-http 1.4.8 |
+|--------------|-----------------|------------------------|
+| 8.6.x        |  Android 4.0+     |        okhttp 4+         |
+| 8.5.x        |  Android 4.0+     |        okhttp 4+         |
+| 8.4.x        |  Android 4.0+     |        okhttp 4+         |
+| 8.3.2        |  Android 4.0+     |        okhttp 4+         |
+| 8.3.1        |  Android 4.0+     |        okhttp 4+         |
+| 8.3.0        |  Android 5.0+     |        okhttp 4+         |
+| 8.2.x        |  Android 5.0+     |        okhttp 4+         |
+| 8.1.x        |  Android 5.0+     |        okhttp 4+         |
+| 8.0.x        |  Android 5.0+     |        okhttp 4+         |
+| 7.7.x        |  Android 5.0+     |        okhttp 4+         |
+| 7.6.x        |  Android 5.0+     |        okhttp 4+         |
+| 7.5.x        |  Android 5.0+     |        okhttp 4+         |
+| 7.4.6        |  Android 4.0+     |        okhttp 3.12.6     |
+| 7.3.x        |  Android 2.3+     |        okhttp 3.11.0     |
+| 7.2.x        |  Android 2.3+     |        okhttp 3+         |
+| 7.1.x        |  Android 2.3+     |        okhttp 2.6+       |
+| 7.0.8,7.0.9  |  Android 2.2+     | android-async-http 1.4.9 |
+| 7.0.7        |  Android 2.2+     | android-async-http 1.4.8 |
 
 ### 注意
-* 推荐使用最新版：8.5.3
+* 推荐使用最新版：8.6.0
 * 7.6.2 ~ 8.3.2 AndroidNetwork.getMobileDbm()可以获取手机信号强度，需要如下权限(API>=18时生效)
 ```
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
@@ -53,10 +54,10 @@ https://github.com/qiniudemo/qiniu-lab-android
 * Android Studio中添加dependencies 或者 在项目中添加maven依赖
 ```
 // 1. 直接导入
-implementation 'com.qiniu:qiniu-android-sdk:8.5.+'
+implementation 'com.qiniu:qiniu-android-sdk:8.6.+'
 
 // 2. 如果要修改okhttp依赖的版本，可采用以下方式（强烈建议使用七牛库依赖的okhttp版本）
-implementation ('com.qiniu:qiniu-android-sdk:8.5.+'){
+implementation ('com.qiniu:qiniu-android-sdk:8.6.+'){
     exclude (group: 'com.squareup.okhttp3', module: 'okhttp')
 }
 implementation 'com.squareup.okhttp3:okhttp:4.9.1'
