@@ -168,10 +168,10 @@ public class UploadBaseTest extends BaseTest {
             }
         }, 10 * 60);
 
-        LogUtil.d("=== upload file type:" + file.type() + " response key:" + (key != null ? key : "") + " response:" + completeInfo.responseInfo);
+        LogUtil.i("=== upload file type:" + file.type() + " response key:" + (key != null ? key : "") + " response:" + completeInfo.responseInfo);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo != null);
         assertTrue(completeInfo.responseInfo.toString(), completeInfo.responseInfo.statusCode == statusCode);
-        assertTrue(completeInfo.responseInfo.toString(), verifyUploadKey(key, completeInfo.key));
+        assertEquals(completeInfo.responseInfo.toString(), key, completeInfo.key);
 
         // 成功验证 etag
         if (statusCode == ResponseInfo.RequestSuccess) {

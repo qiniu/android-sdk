@@ -48,33 +48,28 @@ task androidJavadocs(type: Javadoc) {
 }
 
 task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
-    classifier = 'javadoc'
+    archiveClassifier.set('javadoc')
     from androidJavadocs.destinationDir
 }
 
 task androidSourcesJar(type: Jar) {
-    classifier = 'sources'
-    from android.sourceSets.main.java.sourceFiles
+    archiveClassifier.set('sources')
+    from android.sourceSets.main.java.srcDirs
 }
 
 publishing {
-    publications{
-        mavenJava(MavenPublication){
+    publications {
+        mavenJava(MavenPublication) {
             groupId = GROUP
             artifactId = POM_ARTIFACT_ID
             version = VERSION_NAME
 
-            artifact androidSourcesJar {
-                classifier = 'sources'
-            }
-
-            artifact androidJavadocsJar {
-                classifier "javadoc"
-            }
-
             afterEvaluate {
                 from components.release
             }
+
+            artifact(androidSourcesJar)
+            artifact(androidJavadocsJar)
 
             pom {
                 name = POM_NAME

@@ -23,13 +23,13 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
     @Test
     public void testMutiUploadV1() {
 
-        final int maxCount = 40;
+        final int maxCount = 8;
 
         final TestParam param = new TestParam();
         param.completeCount = 0;
         param.successCount = 0;
 
-        final int start = 37;
+        final int start = 1;
         for (int i = start; i < maxCount; i++) {
             Configuration config = new Configuration.Builder()
                     .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V1)
@@ -78,13 +78,13 @@ public class ComplexUploadSceneTest extends UploadBaseTest {
     @Test
     public void testMutiUploadV2() {
 
-        final int maxCount = 40;
+        final int maxCount = 8;
 
         final TestParam param = new TestParam();
         param.completeCount = 0;
         param.successCount = 0;
 
-        final int start = 37;
+        final int start = 1;
         for (int i = start; i < maxCount; i++) {
             Configuration config = new Configuration.Builder()
                     .resumeUploadVersion(Configuration.RESUME_UPLOAD_VERSION_V2)
