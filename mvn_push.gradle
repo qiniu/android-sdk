@@ -64,12 +64,12 @@ publishing {
             artifactId = POM_ARTIFACT_ID
             version = VERSION_NAME
 
-            afterEvaluate {
-                from components.release
+            artifacts {
+                artifact(androidSourcesJar)
+                artifact(androidJavadocsJar)
+                artifact("$buildDir/outputs/aar/${project.name}-release.aar")
             }
 
-            artifact(androidSourcesJar)
-            artifact(androidJavadocsJar)
 
             pom {
                 name = POM_NAME
@@ -97,6 +97,20 @@ publishing {
                     developerConnection=POM_SCM_DEV_CONNECTION
                     url=POM_SCM_URL
                 }
+
+                withXml {
+                    def dependencies = asNode().appendNode("dependencies")
+
+                    configurations
+                            .getByName("releaseCompileClasspath")
+                            .resolvedConfiguration
+                            .firstLevelModuleDependencies.forEach {
+                        def dependency = dependencies.appendNode("dependency")
+                        dependency.appendNode("groupId", it.moduleGroup)
+                        dependency.appendNode("artifactId", it.moduleName)
+                        dependency.appendNode("version", it.moduleVersion)
+                    }
+                }
             }
         }
     }
@@ -105,10 +119,10 @@ publishing {
         maven {
             name = POM_NAME
             url = getReleaseRepositoryUrl()
-            credentials {
-                username = getRepositoryUsername()
-                password = getRepositoryPassword()
-            }
+//            credentials {
+//                username = getRepositoryUsername()
+//                password = getRepositoryPassword()
+//            }
         }
     }
 
@@ -117,5 +131,5 @@ publishing {
             
 signing {
     required { isReleaseBuild()}
-    sign publishing.publications.mavenJava
+    sign publishing.publications
 }
