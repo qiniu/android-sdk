@@ -84,7 +84,7 @@ public final class FixedZone extends Zone {
                 "upload-" + regionId + ".qiniup.com",
                 "up-" + regionId + ".qiniup.com"
         };
-        return new FixedZone(upDomains, new String[]{}, "regionId");
+        return new FixedZone(upDomains, new String[]{}, regionId);
     }
 
     private ZonesInfo zonesInfo;
