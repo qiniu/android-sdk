@@ -12,8 +12,8 @@ public class ServerConfigMonitor {
     private static final String TransactionKey = "ServerConfig";
 
     private boolean enable = true;
-    private ServerConfigCache cache = new ServerConfigCache();
-    private static ServerConfigMonitor configMonitor = new ServerConfigMonitor();
+    private final ServerConfigCache cache = new ServerConfigCache();
+    private static final ServerConfigMonitor configMonitor = new ServerConfigMonitor();
 
     public static void setEnable(boolean enable) {
         configMonitor.enable = enable;
@@ -70,12 +70,6 @@ public class ServerConfigMonitor {
             return;
         }
 
-        if (cache.getConfig() == null) {
-            ServerConfig config = cache.getConfigFromDisk();
-            handleServerConfig(config);
-            cache.setConfig(config);
-        }
-
         ServerConfig serverConfig = cache.getConfig();
         if (serverConfig == null || !serverConfig.isValid()) {
             ServerConfigSynchronizer.getServerConfigFromServer(new ServerConfigSynchronizer.ServerConfigHandler() {
@@ -87,15 +81,10 @@ public class ServerConfigMonitor {
 
                     handleServerConfig(config);
                     cache.setConfig(config);
-                    cache.saveConfigToDisk(config);
                 }
             });
-        }
-
-        if (cache.getUserConfig() == null) {
-            ServerUserConfig config = cache.getUserConfigFromDisk();
-            handleServerUserConfig(config);
-            cache.setUserConfig(config);
+        } else {
+            handleServerConfig(serverConfig);
         }
 
         ServerUserConfig serverUserConfig = cache.getUserConfig();
@@ -109,9 +98,10 @@ public class ServerConfigMonitor {
 
                     handleServerUserConfig(config);
                     cache.setUserConfig(config);
-                    cache.saveUserConfigToDisk(config);
                 }
             });
+        } else {
+            handleServerUserConfig(serverUserConfig);
         }
     }
 

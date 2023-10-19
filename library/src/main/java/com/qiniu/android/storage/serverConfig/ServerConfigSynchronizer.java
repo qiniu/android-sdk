@@ -41,6 +41,7 @@ class ServerConfigSynchronizer {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
                 if (responseInfo.isOK() && response != null) {
+
                     handler.handle(new ServerConfig(response));
                 } else {
                     handler.handle(null);
