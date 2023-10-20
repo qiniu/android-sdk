@@ -24,7 +24,7 @@ public class CacheTest extends BaseTest {
                 .setFlushCount(1)
                 .builder();
 
-        cache.cache(key, info, false);
+        cache.cache(key, info, true);
 
 
         // 1. 测试内存缓存
