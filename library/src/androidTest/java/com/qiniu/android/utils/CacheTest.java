@@ -74,6 +74,17 @@ public class CacheTest extends BaseTest {
         String foo;
         int bar;
 
+        Info(){
+        }
+
+        public Info(JSONObject jsonObject) {
+            if (jsonObject == null) {
+                return;
+            }
+
+            this.foo = jsonObject.optString("foo");
+            this.bar = jsonObject.optInt("bar");
+        }
 
         @Override
         public JSONObject toJson() {
@@ -85,18 +96,6 @@ public class CacheTest extends BaseTest {
                 e.printStackTrace();
             }
             return jsonObject;
-        }
-
-        @Override
-        public Cache.Object initWithJsonObject(JSONObject jsonObject) {
-            if (jsonObject == null) {
-                return null;
-            }
-
-            Info info = new Info();
-            info.foo = jsonObject.optString("foo");
-            info.bar = jsonObject.optInt("bar");
-            return info;
         }
     }
 }

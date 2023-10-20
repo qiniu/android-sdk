@@ -98,7 +98,7 @@ public class SingleFlightTest extends BaseTest {
         testStatus.maxCount = 1000;
         testStatus.completeCount = 0;
 
-        SingleFlight singleFlight = new SingleFlight();
+        SingleFlight<String> singleFlight = new SingleFlight<>();
         for (int i = 0; i < testStatus.maxCount; i++) {
             singleFlightPerform(singleFlight, i, 0, true, new CompleteHandler() {
                 @Override
@@ -121,16 +121,16 @@ public class SingleFlightTest extends BaseTest {
         LogUtil.d("== async completeCount:" + testStatus.completeCount + " end");
     }
 
-    private void singleFlightPerform(final SingleFlight singleFlight,
+    private void singleFlightPerform(final SingleFlight<String> singleFlight,
                                      final int index,
                                      final int retryCount,
                                      final boolean isAsync,
                                      final CompleteHandler completeHandler) {
 
         try {
-            singleFlight.perform("key", new SingleFlight.ActionHandler() {
+            singleFlight.perform("key", new SingleFlight.ActionHandler<String>() {
                 @Override
-                public void action(final SingleFlight.CompleteHandler singleFlightCompleteHandler) throws Exception {
+                public void action(final SingleFlight.CompleteHandler<String> singleFlightCompleteHandler) throws Exception {
 
                     final CompleteHandler completeHandlerP = new CompleteHandler() {
                         @Override
@@ -160,9 +160,9 @@ public class SingleFlightTest extends BaseTest {
                         completeHandlerP.complete();
                     }
                 }
-            }, new SingleFlight.CompleteHandler() {
+            }, new SingleFlight.CompleteHandler<String>() {
                 @Override
-                public void complete(Object value) {
+                public void complete(String value) {
                     if (retryCount < RetryCount) {
                         singleFlightPerform(singleFlight, index, retryCount + 1, isAsync, completeHandler);
                     } else {
