@@ -37,7 +37,7 @@ public final class AutoZone extends Zone {
     private static final SingleFlight<SingleFlightValue> SingleFlight = new SingleFlight<>();
 
     private static final Cache zoneCache = new Cache.Builder(ZonesInfo.class)
-            .setVersion("v1.0.0")
+            .setVersion("v1")
             .builder();
 
     //私有云可能改变ucServer
@@ -188,7 +188,16 @@ public final class AutoZone extends Zone {
         if (ucHosts == null || ucHosts.isEmpty()) {
             return akAndBucket;
         }
-        return UrlSafeBase64.encodeToString(ucHosts.get(0)+":"+akAndBucket);
+
+        StringBuilder hosts = new StringBuilder();
+        for (String host : ucHosts) {
+            if (host == null || host.isEmpty()) {
+                continue;
+            }
+            hosts.append(host).append(":");
+        }
+
+        return UrlSafeBase64.encodeToString(hosts+akAndBucket);
     }
 
     private RequestTransaction createUploadRequestTransaction(UpToken token) {

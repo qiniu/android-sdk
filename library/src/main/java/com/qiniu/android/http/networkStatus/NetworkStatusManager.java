@@ -11,7 +11,7 @@ public class NetworkStatusManager {
     private static final NetworkStatusManager networkStatusManager = new NetworkStatusManager();
 
     private final Cache cache = new Cache.Builder(NetworkStatus.class)
-            .setVersion("v1.0.2")
+            .setVersion("v2")
             .setFlushCount(10)
             .builder();
 

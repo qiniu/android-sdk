@@ -9,10 +9,10 @@ class ServerConfigCache {
     private static final String kServerUserConfigDiskKey = "ServerUserConfig";
 
     private final Cache configCache = new Cache.Builder(ServerConfig.class)
-            .setVersion("v1.0.0")
+            .setVersion("v1")
             .builder();
     private final Cache userConfigCache = new Cache.Builder(ServerUserConfig.class)
-            .setVersion("v1.0.0")
+            .setVersion("v1")
             .builder();
     ;
 
