@@ -1,5 +1,7 @@
 package com.qiniu.android.common;
 
+import com.qiniu.android.utils.Utils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -76,14 +78,15 @@ public class ZoneInfo implements Cloneable {
                      boolean ipv6,
                      String regionId,
                      List<String> domains,
-                     List<String> old_domains) {
+                     List<String> old_domains,
+                     Date buildDate) {
         this.ttl = ttl;
         this.http3Enabled = http3Enabled;
         this.ipv6 = ipv6;
         this.regionId = regionId;
         this.domains = domains;
         this.old_domains = old_domains;
-        this.buildDate = new Date();
+        this.buildDate = buildDate != null ? buildDate : new Date();
         List<String> allHosts = new ArrayList<>();
         if (domains != null) {
             allHosts.addAll(domains);
@@ -105,6 +108,12 @@ public class ZoneInfo implements Cloneable {
         }
 
         int ttl = obj.optInt("ttl");
+        long timestamp = obj.optInt("timestamp");
+        if (timestamp < 100) {
+            timestamp = Utils.currentTimestamp();
+            obj.put("timestamp", timestamp);
+        }
+
         boolean http3Enabled = false;
         boolean ipv6Enabled = false;
         try {
@@ -153,7 +162,8 @@ public class ZoneInfo implements Cloneable {
             return null;
         }
 
-        ZoneInfo zoneInfo = new ZoneInfo(ttl, http3Enabled, ipv6Enabled, regionId, domains, old_domains);
+        Date buildDate = new Date(timestamp);
+        ZoneInfo zoneInfo = new ZoneInfo(ttl, http3Enabled, ipv6Enabled, regionId, domains, old_domains, buildDate);
         zoneInfo.detailInfo = obj;
 
         return zoneInfo;
@@ -179,7 +189,7 @@ public class ZoneInfo implements Cloneable {
 
     @Override
     protected Object clone() throws CloneNotSupportedException {
-        ZoneInfo info = new ZoneInfo(ttl, http3Enabled, ipv6, regionId, domains, old_domains);
+        ZoneInfo info = new ZoneInfo(ttl, http3Enabled, ipv6, regionId, domains, old_domains, buildDate);
         info.detailInfo = detailInfo;
         return info;
     }
