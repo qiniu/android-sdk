@@ -59,7 +59,7 @@ public class ZoneInfo implements Cloneable {
             regionId = EmptyRegionId;
         }
         HashMap<String, Object> info = new HashMap<>();
-        info.put("ttl", 86400 * 1000);
+        info.put("ttl", 86400);
         info.put("region", regionId);
         info.put("up", upJson);
 
@@ -110,7 +110,7 @@ public class ZoneInfo implements Cloneable {
         int ttl = obj.optInt("ttl");
         long timestamp = obj.optInt("timestamp");
         if (timestamp < 100) {
-            timestamp = Utils.currentTimestamp();
+            timestamp = Utils.currentSecondTimestamp();
             obj.put("timestamp", timestamp);
         }
 
@@ -162,7 +162,7 @@ public class ZoneInfo implements Cloneable {
             return null;
         }
 
-        Date buildDate = new Date(timestamp);
+        Date buildDate = new Date(timestamp * 1000);
         ZoneInfo zoneInfo = new ZoneInfo(ttl, http3Enabled, ipv6Enabled, regionId, domains, old_domains, buildDate);
         zoneInfo.detailInfo = obj;
 
@@ -182,7 +182,11 @@ public class ZoneInfo implements Cloneable {
     }
 
     public boolean isValid() {
-        int currentTimestamp = (int) (new Date().getTime() * 0.001);
+        if (buildDate == null) {
+            return false;
+        }
+
+        int currentTimestamp = (int) (Utils.currentSecondTimestamp());
         int buildTimestamp = (int) (buildDate.getTime() * 0.001);
         return ttl > (currentTimestamp - buildTimestamp);
     }
