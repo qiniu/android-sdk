@@ -85,6 +85,15 @@ abstract class BaseUpload implements Runnable {
 
     @Override
     public void run() {
+        try {
+            innerRun();
+        } catch (Exception e) {
+            ResponseInfo responseInfo = ResponseInfo.unexpectedSysCallError(e.getMessage());
+            completeAction(responseInfo, null);
+        }
+    }
+
+    private void innerRun() {
         metrics.start();
 
         config.zone.preQuery(token, new Zone.QueryHandler() {

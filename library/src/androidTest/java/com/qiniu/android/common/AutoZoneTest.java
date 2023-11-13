@@ -40,13 +40,12 @@ public class AutoZoneTest extends BaseTest {
         ZonesInfo info = zone.getZonesInfo(token);
         assertTrue("before clear cache: info was null", info != null);
         assertTrue("before clear cache: info was't valid", info.isValid());
-        assertTrue("before clear cache: info was temporary", !info.isTemporary());
 
+        // 清除不能影响通过 token 获取 ZonesInfo
         AutoZone.clearCache();
         info = zone.getZonesInfo(token);
         assertTrue("after clear cache: info was null", info != null);
         assertTrue("after clear cache: info was't valid", info.isValid());
-        assertTrue("after clear cache: info was't temporary", info.isTemporary());
     }
 
     @Test

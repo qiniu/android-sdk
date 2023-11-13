@@ -1,5 +1,6 @@
 package com.qiniu.android.storage.serverConfig;
 
+import com.qiniu.android.utils.Cache;
 import com.qiniu.android.utils.Utils;
 
 import org.json.JSONArray;
@@ -9,7 +10,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ServerConfig {
+public class ServerConfig implements Cache.Object {
 
     private long timestamp;
     private long ttl = 10;
@@ -22,6 +23,7 @@ public class ServerConfig {
         if (info == null) {
             return;
         }
+
         this.info = info;
 
         this.ttl = info.optLong("ttl", 5 * 60);
@@ -46,8 +48,13 @@ public class ServerConfig {
         }
     }
 
-    public JSONObject getInfo() {
+    @Override
+    public JSONObject toJson() {
         return info;
+    }
+
+    public JSONObject getInfo() {
+        return toJson();
     }
 
     public RegionConfig getRegionConfig() {
