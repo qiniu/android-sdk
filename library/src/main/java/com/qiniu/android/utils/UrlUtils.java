@@ -18,7 +18,7 @@ public class UrlUtils {
      * 如果 host 不包含 scheme 则按照 useHttps 增加 scheme
      */
     public static String setHostScheme(String host, boolean useHttps) {
-        if (host == null || StringUtils.isNullOrEmpty(host)) {
+        if (StringUtils.isNullOrEmpty(host)) {
             return null;
         }
 
