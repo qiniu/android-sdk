@@ -68,12 +68,13 @@ public final class Config {
     /**
      * preQuery host
      */
-    public static String preQueryHost00 = "kodo-config.qiniuapi.com";
-    public static String preQueryHost01 = "uc.qbox.me";
-    public static String preQueryHost02 = "api.qiniu.com";
+    public static String preQueryHost00 = "uc.qiniuapi.com";
+    public static String preQueryHost01 = "kodo-config.qiniuapi.com";
+    public static String preQueryHost02 = "uc.qbox.me";
+    public static String preQueryHost03 = "api.qiniu.com";
 
     public static String[] preQueryHosts() {
-        return new String[]{preQueryHost00, preQueryHost01, preQueryHost02};
+        return new String[]{preQueryHost00, preQueryHost01, preQueryHost02, preQueryHost03};
     }
 
     /**

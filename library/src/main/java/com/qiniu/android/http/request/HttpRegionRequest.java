@@ -11,6 +11,7 @@ import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
+import com.qiniu.android.utils.UrlUtils;
 
 import org.json.JSONObject;
 
@@ -106,8 +107,7 @@ class HttpRegionRequest {
             serverHost = config.urlConverter.convert(serverHost);
         }
 
-        String scheme = config.useHttps ? "https://" : "http://";
-        String urlString = scheme + serverHost + (action != null ? action : "");
+        String urlString = UrlUtils.setHostScheme(serverHost, config.useHttps) + (action != null ? action : "");
         final Request request = new Request(urlString, method, header, data,
                 config.connectTimeout,
                 config.writeTimeout,
