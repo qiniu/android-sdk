@@ -1,4 +1,5 @@
 package com.qiniu.android.http.dns;
+
 import com.qiniu.android.storage.Recorder;
 
 import java.io.File;
@@ -12,9 +13,22 @@ import java.io.IOException;
 
 public class DnsCacheFile implements Recorder {
 
+    /**
+     * dns 缓存路径
+     */
     public String directory;
+
+    /**
+     * dns 缓存文件句柄
+     */
     public File f;
 
+    /**
+     * DnsCacheFile 构造函数
+     *
+     * @param directory dns 缓存路径
+     * @throws IOException 异常信息
+     */
     public DnsCacheFile(String directory) throws IOException {
         if (directory == null) {
             throw new IOException("directory invalid");

@@ -28,5 +28,10 @@ public interface Recorder {
      */
     void del(String key);
 
+    /**
+     * 获取记录的文件名
+     *
+     * @return 记录的文件名
+     */
     String getFileName();
 }

@@ -12,13 +12,18 @@ import okio.BufferedSink;
  */
 public class ByteBody extends RequestBody {
 
-    private static final int SEGMENT_SIZE = 1024*16; // okio.Segment.SIZE
+    private static final int SEGMENT_SIZE = 1024 * 16; // okio.Segment.SIZE
 
     private final MediaType mediaType;
     private final byte[] body;
 
-    public ByteBody(MediaType mediaType,
-                    byte[] body){
+    /**
+     * 请求体
+     *
+     * @param mediaType mediaType
+     * @param body      请求体 byte 数组
+     */
+    public ByteBody(MediaType mediaType, byte[] body) {
 
         this.mediaType = mediaType;
         this.body = body;
@@ -39,7 +44,7 @@ public class ByteBody extends RequestBody {
 
         int byteOffset = 0;
         int byteSize = SEGMENT_SIZE;
-        while (byteOffset < body.length){
+        while (byteOffset < body.length) {
             byteSize = Math.min(byteSize, body.length - byteOffset);
             RequestBody requestBody = getRequestBodyWithRange(byteOffset, byteSize);
             requestBody.writeTo(bufferedSink);
@@ -50,7 +55,7 @@ public class ByteBody extends RequestBody {
     }
 
 
-    private RequestBody getRequestBodyWithRange(int location, int size){
+    private RequestBody getRequestBodyWithRange(int location, int size) {
         byte[] data = Arrays.copyOfRange(body, location, location + size);
         return RequestBody.create(contentType(), data);
     }

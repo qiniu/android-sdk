@@ -18,13 +18,16 @@ public class HappyDns implements Dns {
 
     private DnsQueryErrorHandler errorHandler;
 
-    public HappyDns(){
+    /**
+     * 构造函数
+     */
+    public HappyDns() {
         int dnsTimeout = GlobalConfiguration.getInstance().dnsResolveTimeout;
         systemDns = new SystemDns(dnsTimeout);
         customDns = GlobalConfiguration.getInstance().dns;
     }
 
-    void setQueryErrorHandler(DnsQueryErrorHandler handler){
+    void setQueryErrorHandler(DnsQueryErrorHandler handler) {
         errorHandler = handler;
     }
 

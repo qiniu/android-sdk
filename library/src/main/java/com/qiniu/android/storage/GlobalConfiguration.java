@@ -10,6 +10,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * 上传全局配置
+ */
 public class GlobalConfiguration {
 
     /**
@@ -198,6 +201,11 @@ public class GlobalConfiguration {
         }
     }
 
+    /**
+     * 获取 Doh 方式进行 Dns 预解析使用的 Server
+     *
+     * @return Server 列表
+     */
     public String[] getDohIpv6Servers() {
         if (dohIpv6Servers != null) {
             return dohIpv6Servers;
@@ -206,6 +214,11 @@ public class GlobalConfiguration {
         }
     }
 
+    /**
+     * 获取网络状态检测使用的 Url
+     *
+     * @return Url 列表
+     */
     public String[] getConnectCheckUrls() {
         if (connectCheckURLStrings != null) {
             return connectCheckURLStrings;
@@ -214,6 +227,11 @@ public class GlobalConfiguration {
         }
     }
 
+    /**
+     * 解析 Base64 数据为字符串数组
+     *
+     * @return 字符串数组
+     */
     public static String[] parseBase64Array(String data) {
         try {
             byte[] jsonBytes = UrlSafeBase64.decode(data);

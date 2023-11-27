@@ -99,7 +99,11 @@ public final class HttpDate {
         return null;
     }
 
-    /** Returns the string for {@code value}. */
+    /**
+     * Returns the string for {@code value}.
+     *
+     * @return the string for {@code value}.
+     */
     public static String format(Date value) {
         return STANDARD_DATE_FORMAT.get().format(value);
     }

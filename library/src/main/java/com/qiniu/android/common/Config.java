@@ -49,7 +49,7 @@ public final class Config {
 
     /**
      * 记录上传信息文件最大值，单位：字节。
-     *
+     * <p>
      * 记录文件大于此值后暂停记录上传信息。
      */
     public static int maxRecordFileSize = 20 * 1024 * 1024;
@@ -69,10 +69,27 @@ public final class Config {
      * preQuery host
      */
     public static String preQueryHost00 = "uc.qiniuapi.com";
+
+    /**
+     * preQuery host
+     */
     public static String preQueryHost01 = "kodo-config.qiniuapi.com";
+
+    /**
+     * preQuery host
+     */
     public static String preQueryHost02 = "uc.qbox.me";
+
+    /**
+     * preQuery host
+     */
     public static String preQueryHost03 = "api.qiniu.com";
 
+    /**
+     * 获取 preQuery hosts
+     *
+     * @return preQuery hosts
+     */
     public static String[] preQueryHosts() {
         return new String[]{preQueryHost00, preQueryHost01, preQueryHost02, preQueryHost03};
     }
@@ -85,8 +102,11 @@ public final class Config {
         interval = 2;
     }
 
+    /**
+     * 标准设置
+     */
     public static void normal() {
-        uploadThreshold = 4 * 1024;
+        uploadThreshold = 16 * 1024;
         interval = 10;
     }
 

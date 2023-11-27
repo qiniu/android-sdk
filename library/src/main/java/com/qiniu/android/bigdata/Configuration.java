@@ -7,8 +7,15 @@ import com.qiniu.android.http.ProxyConfiguration;
  */
 
 public final class Configuration implements Cloneable {
+
+    /**
+     * pipelineHost
+     */
     public String pipelineHost = "https://pipeline.qiniu.com";
 
+    /**
+     * 请求 proxy
+     */
     public ProxyConfiguration proxy;
 
 
@@ -22,6 +29,12 @@ public final class Configuration implements Cloneable {
      */
     public int responseTimeout = 10;
 
+    /**
+     * Configuration copy
+     *
+     * @param config 待 copy 对象
+     * @return Configuration
+     */
     public static Configuration copy(Configuration config) {
         if (config == null) {
             return new Configuration();
@@ -33,6 +46,11 @@ public final class Configuration implements Cloneable {
         }
     }
 
+    /**
+     * Configuration clone
+     *
+     * @return Configuration
+     */
     public Configuration clone() throws CloneNotSupportedException {
         return (Configuration) super.clone();
     }

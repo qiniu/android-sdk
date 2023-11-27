@@ -39,12 +39,18 @@ def getRepositoryPassword() {
     return hasProperty('NEXUS_PASSWORD') ? NEXUS_PASSWORD : ""
 }
 
-task androidJavadocs(type: Javadoc) {
+task androidJavadocs(type: Javadoc, dependsOn: 'assembleRelease') {
     failOnError = false
-    source = android.sourceSets.main.java.srcDirs
     options.encoding = "UTF-8"
     options.charSet = 'UTF-8'
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    android.libraryVariants.all { variant ->
+        if (variant.name == 'release') {
+            owner.classpath += variant.javaCompile.classpath
+        }
+    }
+    source = android.sourceSets.main.java.srcDirs
+    exclude '**/R.html', '**/R.*.html', '**/index.html'
 }
 
 task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {

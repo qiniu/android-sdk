@@ -73,6 +73,9 @@ public final class Headers {
     /**
      * Returns headers for the alternating header names and values. There must be an even number of
      * arguments, and they must alternate between header names and values.
+     *
+     * @param namesAndValues header
+     * @return Headers
      */
     public static Headers of(String... namesAndValues) {
         if (namesAndValues == null) throw new NullPointerException("namesAndValues == null");
@@ -101,9 +104,11 @@ public final class Headers {
     }
 
 
-
     /**
      * Returns headers for the header names and values in the {@link Map}.
+     *
+     * @param headers headers
+     * @return Headers
      */
     public static Headers of(Map<String, String> headers) {
         if (headers == null) throw new NullPointerException("headers == null");
@@ -128,7 +133,12 @@ public final class Headers {
         return new Headers(namesAndValues);
     }
 
-    /** Returns the last value corresponding to the specified field, or null. */
+    /**
+     * Returns the last value corresponding to the specified field, or null.
+     *
+     * @param name head name
+     * @return head value
+     */
     public String get(String name) {
         return get(namesAndValues, name);
     }
@@ -136,27 +146,48 @@ public final class Headers {
     /**
      * Returns the last value corresponding to the specified field parsed as an HTTP date, or null if
      * either the field is absent or cannot be parsed as a date.
+     *
+     * @param name head name
+     * @return Date
      */
     public Date getDate(String name) {
         return HttpDate.parse(get(name));
     }
 
-    /** Returns the number of field values. */
+    /**
+     * Returns the number of field values.
+     *
+     * @return the number of field values.
+     */
     public int size() {
         return namesAndValues.length / 2;
     }
 
-    /** Returns the field at {@code position}. */
+    /**
+     * Returns the field at {@code position}.
+     *
+     * @param index index
+     * @return the field at {@code position}.
+     */
     public String name(int index) {
         return namesAndValues[index * 2];
     }
 
-    /** Returns the value at {@code index}. */
+    /**
+     * Returns the value at {@code index}.
+     *
+     * @param index index
+     * @return the value at {@code index}.
+     */
     public String value(int index) {
         return namesAndValues[index * 2 + 1];
     }
 
-    /** Returns an immutable case-insensitive set of header names. */
+    /**
+     * Returns an immutable case-insensitive set of header names.
+     *
+     * @return an immutable case-insensitive set of header names.
+     */
     public Set<String> names() {
         TreeSet<String> result = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         for (int i = 0, size = size(); i < size; i++) {
@@ -165,7 +196,12 @@ public final class Headers {
         return Collections.unmodifiableSet(result);
     }
 
-    /** Returns an immutable list of the header values for {@code name}. */
+    /**
+     * Returns an immutable list of the header values for {@code name}.
+     *
+     * @param name head name
+     * @return an immutable list of the header values for {@code name}.
+     */
     public List<String> values(String name) {
         List<String> result = null;
         for (int i = 0, size = size(); i < size; i++) {
@@ -183,6 +219,8 @@ public final class Headers {
      * Returns the number of bytes required to encode these headers using HTTP/1.1. This is also the
      * approximate size of HTTP/2 headers before they are compressed with HPACK. This value is
      * intended to be used as a metric: smaller headers are more efficient to encode and transmit.
+     *
+     * @return the number of bytes required to encode these headers using HTTP/1.1.
      */
     public long byteCount() {
         // Each header name has 2 bytes of overhead for ': ' and every header value has 2 bytes of
@@ -196,6 +234,11 @@ public final class Headers {
         return result;
     }
 
+    /**
+     * newBuilder
+     *
+     * @return newBuilder
+     */
     public Builder newBuilder() {
         Builder result = new Builder();
         Collections.addAll(result.namesAndValues, namesAndValues);
@@ -224,9 +267,11 @@ public final class Headers {
      *   Content-Type: text/html
      *   Content-Length: 050
      * }</pre>
-     *
      * Applications that require semantically equal headers should convert them into a canonical form
      * before comparing them for equality.
+     *
+     * @param other other
+     * @return equals
      */
     @Override
     public boolean equals(Object other) {
@@ -234,11 +279,21 @@ public final class Headers {
                 && Arrays.equals(((Headers) other).namesAndValues, namesAndValues);
     }
 
+    /**
+     * hashCode
+     *
+     * @return hashCode
+     */
     @Override
     public int hashCode() {
         return Arrays.hashCode(namesAndValues);
     }
 
+    /**
+     * toString
+     *
+     * @return toString
+     */
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
@@ -248,6 +303,11 @@ public final class Headers {
         return result.toString();
     }
 
+    /**
+     * toMultimap
+     *
+     * @return Map<String, List < String>>
+     */
     public Map<String, List<String>> toMultimap() {
         Map<String, List<String>> result = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         for (int i = 0, size = size(); i < size; i++) {
@@ -262,6 +322,9 @@ public final class Headers {
         return result;
     }
 
+    /**
+     * Builder
+     */
     public static final class Builder {
         final List<String> namesAndValues = new ArrayList<>(20);
 
@@ -282,7 +345,12 @@ public final class Headers {
             }
         }
 
-        /** Add an header line containing a field name, a literal colon, and a value. */
+        /**
+         * Add an header line containing a field name, a literal colon, and a value.
+         *
+         * @param line line
+         * @return Builder
+         */
         public Builder add(String line) {
             int index = line.indexOf(":");
             if (index == -1) {
@@ -293,6 +361,10 @@ public final class Headers {
 
         /**
          * Add a header with the specified name and value. Does validation of header names and values.
+         *
+         * @param name  name
+         * @param value value
+         * @return Builder
          */
         public Builder add(String name, String value) {
             checkNameAndValue(name, value);
@@ -301,6 +373,9 @@ public final class Headers {
 
         /**
          * Adds all headers from an existing collection.
+         *
+         * @param headers headers
+         * @return Builder
          */
         public Builder addAll(Headers headers) {
             int size = headers.size();
@@ -314,6 +389,10 @@ public final class Headers {
         /**
          * Add a field with the specified value without any validation. Only appropriate for headers
          * from the remote peer or cache.
+         *
+         * @param name  name
+         * @param value value
+         * @return Builder
          */
         Builder addLenient(String name, String value) {
             namesAndValues.add(name);
@@ -321,6 +400,12 @@ public final class Headers {
             return this;
         }
 
+        /**
+         * removeAll
+         *
+         * @param name name
+         * @return Builder
+         */
         public Builder removeAll(String name) {
             for (int i = 0; i < namesAndValues.size(); i += 2) {
                 if (name.equalsIgnoreCase(namesAndValues.get(i))) {
@@ -335,6 +420,10 @@ public final class Headers {
         /**
          * Set a field with the specified value. If the field is not found, it is added. If the field is
          * found, the existing values are replaced.
+         *
+         * @param name  name
+         * @param value value
+         * @return Builder
          */
         public Builder set(String name, String value) {
             checkNameAndValue(name, value);
@@ -364,7 +453,12 @@ public final class Headers {
             }
         }
 
-        /** Equivalent to {@code build().get(name)}, but potentially faster. */
+        /**
+         * Equivalent to {@code build().get(name)}, but potentially faster.
+         *
+         * @param name name
+         * @return value
+         */
         public String get(String name) {
             for (int i = namesAndValues.size() - 2; i >= 0; i -= 2) {
                 if (name.equalsIgnoreCase(namesAndValues.get(i))) {
@@ -374,6 +468,11 @@ public final class Headers {
             return null;
         }
 
+        /**
+         * build
+         *
+         * @return Headers
+         */
         public Headers build() {
             return new Headers(this);
         }

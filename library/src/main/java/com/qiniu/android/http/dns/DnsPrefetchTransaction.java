@@ -11,6 +11,11 @@ public class DnsPrefetchTransaction {
 
     private static boolean isDnsLoaded = false;
 
+    /**
+     * 将 SDK 内部使用域名的 Dns 预解析操作添加到周期性的事务中
+     *
+     * @return 添加是否成功
+     */
     public static synchronized boolean addDnsLocalLoadTransaction() {
         if (isDnsLoaded) {
             return false;
@@ -33,7 +38,13 @@ public class DnsPrefetchTransaction {
         return true;
     }
 
-
+    /**
+     * 将 zone 中使用域名的 Dns 预解析操作添加到周期性的事务中
+     *
+     * @param currentZone zone
+     * @param token       上传 token
+     * @return 添加是否成功
+     */
     public static synchronized boolean addDnsCheckAndPrefetchTransaction(final Zone currentZone, final UpToken token) {
         if (!DnsPrefetcher.getInstance().isDnsOpen()) {
             return false;
@@ -58,6 +69,12 @@ public class DnsPrefetchTransaction {
         return true;
     }
 
+    /**
+     * 将 hosts 中域名的 Dns 预解析操作添加到周期性的事务中
+     *
+     * @param hosts 域名
+     * @return 添加是否成功
+     */
     public static synchronized boolean addDnsCheckAndPrefetchTransaction(final String[] hosts) {
         if (!DnsPrefetcher.getInstance().isDnsOpen()) {
             return false;
@@ -78,7 +95,11 @@ public class DnsPrefetchTransaction {
         return true;
     }
 
-
+    /**
+     * 将检查缓存是否有效的操作添加到周期性事务中，无效则重新拉取
+     *
+     * @return 添加是否成功
+     */
     public static synchronized boolean setDnsCheckWhetherCachedValidTransactionAction() {
         if (!DnsPrefetcher.getInstance().isDnsOpen()) {
             return false;

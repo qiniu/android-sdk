@@ -5,7 +5,7 @@ public class IPAddressUtil {
     private final static int INADDR16SZ = 16;
     private final static int INT16SZ = 2;
 
-    /*
+    /**
      * Converts IPv4 address in its textual presentation form
      * into its numeric binary form.
      *
@@ -13,8 +13,7 @@ public class IPAddressUtil {
      * @return a byte array representing the IPv4 numeric address
      */
     @SuppressWarnings("fallthrough")
-    public static byte[] textToNumericFormatV4(String src)
-    {
+    public static byte[] textToNumericFormatV4(String src) {
         byte[] res = new byte[INADDR4SZ];
 
         long tmpValue = 0;
@@ -75,9 +74,9 @@ public class IPAddressUtil {
             case 1:
                 res[1] = (byte) ((tmpValue >> 16) & 0xff);
             case 2:
-                res[2] = (byte) ((tmpValue >>  8) & 0xff);
+                res[2] = (byte) ((tmpValue >> 8) & 0xff);
             case 3:
-                res[3] = (byte) ((tmpValue >>  0) & 0xff);
+                res[3] = (byte) ((tmpValue >> 0) & 0xff);
         }
         return res;
     }
@@ -92,8 +91,7 @@ public class IPAddressUtil {
      * @param src a String representing an IPv6 address in textual format
      * @return a byte array representing the IPv6 numeric address
      */
-    public static byte[] textToNumericFormatV6(String src)
-    {
+    public static byte[] textToNumericFormatV6(String src) {
         // Shortest valid string is "::", hence at least 2 chars
         if (src.length() < 2) {
             return null;
@@ -107,8 +105,8 @@ public class IPAddressUtil {
         byte[] dst = new byte[INADDR16SZ];
 
         int srcb_length = srcb.length;
-        int pc = src.indexOf ("%");
-        if (pc == srcb_length -1) {
+        int pc = src.indexOf("%");
+        if (pc == srcb_length - 1) {
             return null;
         }
 
@@ -157,10 +155,10 @@ public class IPAddressUtil {
             if (ch == '.' && ((j + INADDR4SZ) <= INADDR16SZ)) {
                 String ia4 = src.substring(curtok, srcb_length);
                 /* check this IPv4 address has 3 dots, ie. A.B.C.D */
-                int dot_count = 0, index=0;
-                while ((index = ia4.indexOf ('.', index)) != -1) {
-                    dot_count ++;
-                    index ++;
+                int dot_count = 0, index = 0;
+                while ((index = ia4.indexOf('.', index)) != -1) {
+                    dot_count++;
+                    index++;
                 }
                 if (dot_count != 3) {
                     return null;
@@ -206,6 +204,8 @@ public class IPAddressUtil {
     }
 
     /**
+     * isIPv4LiteralAddress
+     *
      * @param src a String representing an IPv4 address in textual format
      * @return a boolean indicating whether src is an IPv4 literal address
      */
@@ -214,6 +214,8 @@ public class IPAddressUtil {
     }
 
     /**
+     * isIPv6LiteralAddress
+     *
      * @param src a String representing an IPv6 address in textual format
      * @return a boolean indicating whether src is an IPv6 literal address
      */
@@ -221,11 +223,11 @@ public class IPAddressUtil {
         return textToNumericFormatV6(src) != null;
     }
 
-    /*
+    /**
      * Convert IPv4-Mapped address to IPv4 address. Both input and
      * returned value are in network order binary form.
      *
-     * @param src a String representing an IPv4-Mapped address in textual format
+     * @param addr a String representing an IPv4-Mapped address in textual format
      * @return a byte array representing the IPv4 numeric address
      */
     public static byte[] convertFromIPv4MappedAddress(byte[] addr) {
@@ -253,8 +255,8 @@ public class IPAddressUtil {
                 (addr[4] == 0x00) && (addr[5] == 0x00) &&
                 (addr[6] == 0x00) && (addr[7] == 0x00) &&
                 (addr[8] == 0x00) && (addr[9] == 0x00) &&
-                (addr[10] == (byte)0xff) &&
-                (addr[11] == (byte)0xff))  {
+                (addr[10] == (byte) 0xff) &&
+                (addr[11] == (byte) 0xff)) {
             return true;
         }
         return false;

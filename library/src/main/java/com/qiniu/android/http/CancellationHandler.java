@@ -2,6 +2,9 @@ package com.qiniu.android.http;
 
 import java.io.IOException;
 
+/**
+ * 取消对调定义
+ */
 public interface CancellationHandler {
 
     /**
@@ -11,6 +14,9 @@ public interface CancellationHandler {
      */
     boolean isCancelled();
 
+    /**
+     * 取消异常
+     */
     class CancellationException extends IOException {
     }
 }

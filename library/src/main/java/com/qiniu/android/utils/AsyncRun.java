@@ -25,8 +25,13 @@ public final class AsyncRun {
             1000L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>());
 
+    /**
+     * 主线程执行任务
+     *
+     * @param r 执行体
+     */
     public static void runInMain(Runnable r) {
-        if (Looper.getMainLooper() == Looper.myLooper()){
+        if (Looper.getMainLooper() == Looper.myLooper()) {
             r.run();
         } else {
             mainThreadHandler.post(r);
@@ -34,10 +39,12 @@ public final class AsyncRun {
     }
 
     /**
-     * delay: delay in milliseconds before task is to be executed.
+     * 延迟执行任务
+     *
+     * @param delay 延迟执行时间，单位：ms
+     * @param r     执行体
      */
-    public static void runInMain(int delay,
-                                 final Runnable r){
+    public static void runInMain(int delay, final Runnable r) {
 
         delayTimerTask(delay, new TimerTask() {
             @Override
@@ -48,15 +55,22 @@ public final class AsyncRun {
         });
     }
 
+    /**
+     * 后台执行任务
+     *
+     * @param r 执行体
+     */
     public static void runInBack(Runnable r) {
         executorService.submit(r);
     }
 
     /**
-     * delay: delay in milliseconds before task is to be executed.
+     * 延迟执行任务
+     *
+     * @param delay 延迟执行时间，单位：ms
+     * @param r     执行体
      */
-    public static void runInBack(int delay,
-                                 final Runnable r) {
+    public static void runInBack(int delay, final Runnable r) {
 
         delayTimerTask(delay, new TimerTask() {
             @Override
@@ -67,7 +81,7 @@ public final class AsyncRun {
         });
     }
 
-    private static void delayTimerTask(int delay, TimerTask timerTask){
+    private static void delayTimerTask(int delay, TimerTask timerTask) {
         Timer timer = new Timer();
         timer.schedule(timerTask, delay);
     }

@@ -32,35 +32,28 @@ import java.util.TimeZone;
 /**
  * <p>FastDatePrinter is a fast and thread-safe version of
  * {@link java.text.SimpleDateFormat}.</p>
- * <p>
  * <p>Since FastDatePrinter is thread safe, you can use a static member instance:</p>
  * <code>
  * private static final DatePrinter DATE_PRINTER = FastDateFormat.getInstance("yyyy-MM-dd");
  * </code>
- * <p>
  * <p>This class can be used as a direct replacement to
  * {@code SimpleDateFormat} in most formatting situations.
  * This class is especially useful in multi-threaded server environments.
  * {@code SimpleDateFormat} is not thread-safe in any JDK version,
  * nor will it be as Sun have closed the bug/RFE.
  * </p>
- * <p>
  * <p>Only formatting is supported by this class, but all patterns are compatible with
  * SimpleDateFormat (except time zones and some year patterns - see below).</p>
- * <p>
  * <p>Java 1.4 introduced a new pattern letter, {@code 'Z'}, to represent
  * time zones in RFC822 format (eg. {@code +0800} or {@code -1100}).
  * This pattern letter can be used here (on all JDK versions).</p>
- * <p>
  * <p>In addition, the pattern {@code 'ZZ'} has been made to represent
  * ISO 8601 extended format time zones (eg. {@code +08:00} or {@code -11:00}).
  * This introduces a minor incompatibility with Java 1.4, but at a gain of
  * useful functionality.</p>
- * <p>
  * <p>Starting with JDK7, ISO 8601 support was added using the pattern {@code 'X'}.
  * To maintain compatibility, {@code 'ZZ'} will continue to be supported, but using
  * one of the {@code 'X'} formats is recommended.
- * <p>
  * <p>Javadoc cites for the year pattern: <i>For formatting, if the number of
  * pattern letters is 2, the year is truncated to 2 digits; otherwise it is
  * interpreted as a number.</i> Starting with Java 1.7 a pattern of 'Y' or
@@ -508,10 +501,12 @@ public final class FastDatePrinter {
         }
     }
 
-    /* (non-Javadoc)
-     * @see org.apache.commons.lang3.time.DatePrinter#format(java.util.Date)
+    /**
+     * format
+     *
+     * @param millis 时间戳
+     * @return format 信息
      */
-
     public String format(final long millis) {
         final Calendar c = newCalendar();
         c.setTimeInMillis(millis);
@@ -549,6 +544,12 @@ public final class FastDatePrinter {
      * @see org.apache.commons.lang3.time.DatePrinter#format(java.util.Date, java.lang.StringBuffer)
      */
 
+    /**
+     * format
+     *
+     * @param date date
+     * @return String
+     */
     public String format(final Date date) {
         final Calendar c = newCalendar();
         c.setTime(date);
@@ -559,6 +560,12 @@ public final class FastDatePrinter {
      * @see org.apache.commons.lang3.time.DatePrinter#format(java.util.Calendar, java.lang.StringBuffer)
      */
 
+    /**
+     * format
+     *
+     * @param calendar calendar
+     * @return String
+     */
     public String format(final Calendar calendar) {
         return format(calendar, new StringBuilder(mMaxLengthEstimate)).toString();
     }
@@ -567,6 +574,13 @@ public final class FastDatePrinter {
      * @see org.apache.commons.lang3.time.DatePrinter#format(long, java.lang.Appendable)
      */
 
+    /**
+     * format
+     *
+     * @param millis millis
+     * @param buf    buf
+     * @return StringBuffer
+     */
     public StringBuffer format(final long millis, final StringBuffer buf) {
         final Calendar c = newCalendar();
         c.setTimeInMillis(millis);
@@ -577,6 +591,13 @@ public final class FastDatePrinter {
      * @see org.apache.commons.lang3.time.DatePrinter#format(java.util.Date, java.lang.Appendable)
      */
 
+    /**
+     * format
+     *
+     * @param date date
+     * @param buf  buf
+     * @return StringBuffer
+     */
     public StringBuffer format(final Date date, final StringBuffer buf) {
         final Calendar c = newCalendar();
         c.setTime(date);
@@ -587,23 +608,54 @@ public final class FastDatePrinter {
      * @see org.apache.commons.lang3.time.DatePrinter#format(java.util.Calendar, java.lang.Appendable)
      */
 
+    /**
+     * format
+     *
+     * @param calendar calendar
+     * @param buf      buf
+     * @return StringBuffer
+     */
     public StringBuffer format(final Calendar calendar, final StringBuffer buf) {
         // do not pass in calendar directly, this will cause TimeZone of FastDatePrinter to be ignored
         return format(calendar.getTime(), buf);
     }
 
+    /**
+     * format
+     *
+     * @param millis millis
+     * @param buf    buf
+     * @param <B>    buf class
+     * @return Appendable
+     */
     public <B extends Appendable> B format(final long millis, final B buf) {
         final Calendar c = newCalendar();
         c.setTimeInMillis(millis);
         return applyRules(c, buf);
     }
 
+    /**
+     * format
+     *
+     * @param date date
+     * @param buf  buf
+     * @param <B>  buf class
+     * @return Appendable
+     */
     public <B extends Appendable> B format(final Date date, final B buf) {
         final Calendar c = newCalendar();
         c.setTime(date);
         return applyRules(c, buf);
     }
 
+    /**
+     * format
+     *
+     * @param calendar calendar
+     * @param buf      buf
+     * @param <B>      buf class
+     * @return Appendable
+     */
     public <B extends Appendable> B format(Calendar calendar, final B buf) {
         // do not pass in calendar directly, this will cause TimeZone of FastDatePrinter to be ignored
         if (!calendar.getTimeZone().equals(mTimeZone)) {
@@ -656,6 +708,12 @@ public final class FastDatePrinter {
     /* (non-Javadoc)
      * @see org.apache.commons.lang3.time.DatePrinter#getPattern()
      */
+
+    /**
+     * getPattern
+     *
+     * @return Pattern
+     */
     public String getPattern() {
         return mPattern;
     }
@@ -666,10 +724,21 @@ public final class FastDatePrinter {
     /* (non-Javadoc)
      * @see org.apache.commons.lang3.time.DatePrinter#getTimeZone()
      */
+
+    /**
+     * get TimeZone
+     *
+     * @return TimeZone
+     */
     public TimeZone getTimeZone() {
         return mTimeZone;
     }
 
+    /**
+     * get Locale
+     *
+     * @return Locale
+     */
     public Locale getLocale() {
         return mLocale;
     }
@@ -677,7 +746,6 @@ public final class FastDatePrinter {
     /**
      * <p>Gets an estimate for the maximum string length that the
      * formatter will produce.</p>
-     * <p>
      * <p>The actual formatted length will almost always be less than or
      * equal to this amount.</p>
      *
@@ -696,7 +764,6 @@ public final class FastDatePrinter {
      * @param obj the object to compare to
      * @return {@code true} if equal
      */
-
     public boolean equals(final Object obj) {
         if (obj instanceof FastDatePrinter == false) {
             return false;
@@ -712,7 +779,6 @@ public final class FastDatePrinter {
      *
      * @return a hash code compatible with equals
      */
-
     public int hashCode() {
         return mPattern.hashCode() + 13 * (mTimeZone.hashCode() + 13 * mLocale.hashCode());
     }
@@ -722,7 +788,6 @@ public final class FastDatePrinter {
      *
      * @return a debugging string
      */
-
     public String toString() {
         return "FastDatePrinter[" + mPattern + "," + mLocale + "," + mTimeZone.getID() + "]";
     }
@@ -797,7 +862,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public int estimateLength() {
             return 1;
         }
@@ -805,7 +869,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public void appendTo(final Appendable buffer, final Calendar calendar) throws IOException {
             buffer.append(mValue);
         }
@@ -830,7 +893,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public int estimateLength() {
             return mValue.length();
         }
@@ -838,7 +900,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public void appendTo(final Appendable buffer, final Calendar calendar) throws IOException {
             buffer.append(mValue);
         }
@@ -866,7 +927,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public int estimateLength() {
             int max = 0;
             for (int i = mValues.length; --i >= 0; ) {
@@ -881,7 +941,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public void appendTo(final Appendable buffer, final Calendar calendar) throws IOException {
             buffer.append(mValues[calendar.get(mField)]);
         }
@@ -905,7 +964,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public int estimateLength() {
             return 4;
         }
@@ -913,7 +971,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public void appendTo(final Appendable buffer, final Calendar calendar) throws IOException {
             appendTo(buffer, calendar.get(mField));
         }
@@ -921,7 +978,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public final void appendTo(final Appendable buffer, final int value) throws IOException {
             if (value < 10) {
                 buffer.append((char) (value + '0'));
@@ -949,7 +1005,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public int estimateLength() {
             return 2;
         }
@@ -957,7 +1012,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public void appendTo(final Appendable buffer, final Calendar calendar) throws IOException {
             appendTo(buffer, calendar.get(Calendar.MONTH) + 1);
         }
@@ -965,7 +1019,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public final void appendTo(final Appendable buffer, final int value) throws IOException {
             if (value < 10) {
                 buffer.append((char) (value + '0'));
@@ -1000,7 +1053,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public int estimateLength() {
             return mSize;
         }
@@ -1008,7 +1060,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public void appendTo(final Appendable buffer, final Calendar calendar) throws IOException {
             appendTo(buffer, calendar.get(mField));
         }
@@ -1016,7 +1067,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public final void appendTo(final Appendable buffer, final int value) throws IOException {
             appendFullDigits(buffer, value, mSize);
         }
@@ -1040,7 +1090,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public int estimateLength() {
             return 2;
         }
@@ -1048,7 +1097,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public void appendTo(final Appendable buffer, final Calendar calendar) throws IOException {
             appendTo(buffer, calendar.get(mField));
         }
@@ -1056,7 +1104,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public final void appendTo(final Appendable buffer, final int value) throws IOException {
             if (value < 100) {
                 appendDigits(buffer, value);
@@ -1082,7 +1129,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public int estimateLength() {
             return 2;
         }
@@ -1090,7 +1136,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public void appendTo(final Appendable buffer, final Calendar calendar) throws IOException {
             appendTo(buffer, calendar.get(Calendar.YEAR) % 100);
         }
@@ -1098,7 +1143,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public final void appendTo(final Appendable buffer, final int value) throws IOException {
             appendDigits(buffer, value);
         }
@@ -1120,7 +1164,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public int estimateLength() {
             return 2;
         }
@@ -1128,7 +1171,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public void appendTo(final Appendable buffer, final Calendar calendar) throws IOException {
             appendTo(buffer, calendar.get(Calendar.MONTH) + 1);
         }
@@ -1136,7 +1178,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public final void appendTo(final Appendable buffer, final int value) throws IOException {
             appendDigits(buffer, value);
         }
@@ -1161,7 +1202,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public int estimateLength() {
             return mRule.estimateLength();
         }
@@ -1169,7 +1209,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public void appendTo(final Appendable buffer, final Calendar calendar) throws IOException {
             int value = calendar.get(Calendar.HOUR);
             if (value == 0) {
@@ -1181,7 +1220,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public void appendTo(final Appendable buffer, final int value) throws IOException {
             mRule.appendTo(buffer, value);
         }
@@ -1206,7 +1244,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public int estimateLength() {
             return mRule.estimateLength();
         }
@@ -1214,7 +1251,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public void appendTo(final Appendable buffer, final Calendar calendar) throws IOException {
             int value = calendar.get(Calendar.HOUR_OF_DAY);
             if (value == 0) {
@@ -1226,7 +1262,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public void appendTo(final Appendable buffer, final int value) throws IOException {
             mRule.appendTo(buffer, value);
         }
@@ -1243,17 +1278,36 @@ public final class FastDatePrinter {
         }
 
 
+        /**
+         * estimateLength
+         *
+         * @return estimateLength
+         */
         public int estimateLength() {
             return mRule.estimateLength();
         }
 
 
+        /**
+         * append
+         *
+         * @param buffer   the output buffer
+         * @param calendar calendar to be appended
+         * @throws IOException IOException
+         */
         public void appendTo(final Appendable buffer, final Calendar calendar) throws IOException {
             final int value = calendar.get(Calendar.DAY_OF_WEEK);
             mRule.appendTo(buffer, value != Calendar.SUNDAY ? value - 1 : 7);
         }
 
 
+        /**
+         * appendTo
+         *
+         * @param buffer the output buffer
+         * @param value  the value to be appended
+         * @throws IOException IOException
+         */
         public void appendTo(final Appendable buffer, final int value) throws IOException {
             mRule.appendTo(buffer, value);
         }
@@ -1357,7 +1411,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public int estimateLength() {
             return 5;
         }
@@ -1365,7 +1418,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public void appendTo(final Appendable buffer, final Calendar calendar) throws IOException {
 
             int offset = calendar.get(Calendar.ZONE_OFFSET) + calendar.get(Calendar.DST_OFFSET);
@@ -1435,7 +1487,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public int estimateLength() {
             return length;
         }
@@ -1443,7 +1494,6 @@ public final class FastDatePrinter {
         /**
          * {@inheritDoc}
          */
-
         public void appendTo(final Appendable buffer, final Calendar calendar) throws IOException {
             int offset = calendar.get(Calendar.ZONE_OFFSET) + calendar.get(Calendar.DST_OFFSET);
             if (offset == 0) {

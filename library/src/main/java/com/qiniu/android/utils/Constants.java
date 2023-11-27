@@ -1,6 +1,10 @@
 package com.qiniu.android.utils;
 
+/**
+ * 常量定义
+ */
 public class Constants {
+
     /**
      * Unknown network class
      */
