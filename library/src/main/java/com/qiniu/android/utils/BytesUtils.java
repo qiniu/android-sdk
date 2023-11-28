@@ -7,6 +7,9 @@ import java.io.IOException;
  */
 public class BytesUtils {
 
+    private BytesUtils() {
+    }
+
     /**
      * 获取 byte 数组的子数组
      *

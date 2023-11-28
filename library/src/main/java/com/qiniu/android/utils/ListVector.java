@@ -72,9 +72,17 @@ public class ListVector<E> extends Vector<E> {
 
     /**
      * EnumeratorHandler
+     *
      * @param <T> enumerate 对象的类型
      */
     public interface EnumeratorHandler<T> {
+
+        /**
+         * enumerate
+         *
+         * @param t T
+         * @return stop
+         */
         boolean enumerate(T t);
     }
 }

@@ -12,6 +12,9 @@ public class HttpServerManager {
     private ConcurrentHashMap<String, Long> serversInfo = new ConcurrentHashMap<>();
     private final static HttpServerManager manager = new HttpServerManager();
 
+    private HttpServerManager() {
+    }
+
     /**
      * 单例对象
      *

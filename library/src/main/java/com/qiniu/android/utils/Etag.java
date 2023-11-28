@@ -16,6 +16,9 @@ import java.security.NoSuchAlgorithmException;
  */
 public final class Etag {
 
+    private Etag() {
+    }
+
     /**
      * 计算二进制数据的etag
      *

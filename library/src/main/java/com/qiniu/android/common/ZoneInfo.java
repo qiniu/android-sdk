@@ -15,32 +15,83 @@ import java.util.Map;
 /**
  * Created by jemy on 17/04/2017.
  */
-
 public class ZoneInfo implements Cloneable {
 
-    // 只允许内部使用
+    /**
+     * 默认 io host
+     * 只允许内部使用
+     */
     public final static String SDKDefaultIOHost = "sdkDefaultIOHost";
+
+    /**
+     * 未知 region id
+     */
     public final static String EmptyRegionId = "unknown";
 
     private static int DOMAIN_FROZEN_SECONDS = 10 * 60;
 
+    /**
+     * 有效时间
+     */
     public final int ttl;
+
+    /**
+     * 是否允许 HTTP/3
+     */
     public final boolean http3Enabled;
+
+    /**
+     * 是否是 IPv6
+     */
     public final boolean ipv6;
+
+    /**
+     * 主要域名
+     */
     public final List<String> domains;
+
+    /**
+     * 备用域名
+     */
     public final List<String> old_domains;
 
+    /**
+     * regionId
+     */
     public final String regionId;
+
+    /**
+     * 所有域名
+     */
     public List<String> allHosts;
+
+    /**
+     * detailInfo
+     */
     public JSONObject detailInfo;
 
     private final Date buildDate;
 
+    /**
+     * 构造函数
+     *
+     * @param mainHosts 主要域名
+     * @param regionId  区域 ID
+     * @return ZoneInfo
+     */
     public static ZoneInfo buildInfo(List<String> mainHosts,
                                      String regionId) {
         return buildInfo(mainHosts, null, regionId);
     }
 
+    /**
+     * 构造函数
+     *
+     * @param mainHosts 主要域名
+     * @param oldHosts  备用域名
+     * @param regionId  区域 ID
+     * @return ZoneInfo
+     */
     public static ZoneInfo buildInfo(List<String> mainHosts,
                                      List<String> oldHosts,
                                      String regionId) {
@@ -98,9 +149,11 @@ public class ZoneInfo implements Cloneable {
     }
 
     /**
+     * 构造函数
+     *
      * @param obj Not allowed to be null
-     * @return
-     * @throws JSONException
+     * @return ZoneInfo
+     * @throws JSONException 异常
      */
     public static ZoneInfo buildFromJson(JSONObject obj) throws JSONException {
         if (obj == null) {
@@ -169,10 +222,20 @@ public class ZoneInfo implements Cloneable {
         return zoneInfo;
     }
 
+    /**
+     * 获取区域 ID
+     *
+     * @return 区域 ID
+     */
     public String getRegionId() {
         return regionId;
     }
 
+    /**
+     * 转字符串
+     *
+     * @return 字符串
+     */
     @Override
     public String toString() {
         Map<String, Object> m = new HashMap<String, Object>();
@@ -181,6 +244,11 @@ public class ZoneInfo implements Cloneable {
         return new JSONObject(m).toString();
     }
 
+    /**
+     * 是否有效
+     *
+     * @return 是否有效
+     */
     public boolean isValid() {
         if (buildDate == null) {
             return false;
@@ -191,6 +259,12 @@ public class ZoneInfo implements Cloneable {
         return ttl > (currentTimestamp - buildTimestamp);
     }
 
+    /**
+     * clone
+     *
+     * @return Object
+     * @throws CloneNotSupportedException 异常
+     */
     @Override
     protected Object clone() throws CloneNotSupportedException {
         ZoneInfo info = new ZoneInfo(ttl, http3Enabled, ipv6, regionId, domains, old_domains, buildDate);
@@ -198,13 +272,38 @@ public class ZoneInfo implements Cloneable {
         return info;
     }
 
+    /**
+     * server group
+     */
     @Deprecated
     public static class UploadServerGroup {
+
+        /**
+         * 备注信息
+         */
         public final String info;
+
+        /**
+         * 主要域名
+         */
         public final ArrayList<String> main;
+
+        /**
+         * 备用域名
+         */
         public final ArrayList<String> backup;
+
+        /**
+         * 所有域名
+         */
         public final ArrayList<String> allHosts;
 
+        /**
+         * 构造函数
+         *
+         * @param jsonObject json
+         * @return UploadServerGroup
+         */
         public static UploadServerGroup buildInfoFromJson(JSONObject jsonObject) {
             if (jsonObject == null) {
                 return null;
@@ -243,6 +342,14 @@ public class ZoneInfo implements Cloneable {
             return new UploadServerGroup(info, main, backup, allHosts);
         }
 
+        /**
+         * 构造函数
+         *
+         * @param info     备注信息
+         * @param main     主要域名
+         * @param backup   备用域名
+         * @param allHosts 所有域名
+         */
         public UploadServerGroup(String info,
                                  ArrayList<String> main,
                                  ArrayList<String> backup,

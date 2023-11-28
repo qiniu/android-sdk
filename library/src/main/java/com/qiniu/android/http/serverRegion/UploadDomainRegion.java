@@ -17,7 +17,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-
+/**
+ * region domain 管理对象
+ */
 public class UploadDomainRegion implements IUploadRegion {
     private final static int Http3FrozenTime = 3600 * 24;
 
@@ -39,6 +41,18 @@ public class UploadDomainRegion implements IUploadRegion {
     private HashMap<String, UploadServerDomain> oldDomainHashMap;
     private ZoneInfo zoneInfo;
 
+    /**
+     * 构造函数
+     */
+    public UploadDomainRegion() {
+    }
+
+    /**
+     * 是否和另一个 region 相同
+     *
+     * @param region 另一个 region
+     * @return 是否相同
+     */
     @Override
     public boolean isEqual(IUploadRegion region) {
         if (region == null) {
@@ -68,16 +82,31 @@ public class UploadDomainRegion implements IUploadRegion {
         }
     }
 
+    /**
+     * 是否有效
+     *
+     * @return 是否有效
+     */
     @Override
     public boolean isValid() {
         return !isAllFrozen && (domainHostList.size() > 0 || oldDomainHostList.size() > 0);
     }
 
+    /**
+     * 获取 zone info
+     *
+     * @return zone info
+     */
     @Override
     public ZoneInfo getZoneInfo() {
         return zoneInfo;
     }
 
+    /**
+     * 设置 zone info
+     *
+     * @param zoneInfo ZoneInfo
+     */
     @Override
     public void setupRegionData(ZoneInfo zoneInfo) {
         if (zoneInfo == null) {
@@ -118,6 +147,14 @@ public class UploadDomainRegion implements IUploadRegion {
         return domainHashMap;
     }
 
+    /**
+     * 获取下一个可重试的 Server
+     *
+     * @param requestState 请求状态
+     * @param responseInfo 请求响应信息
+     * @param freezeServer 冻结的 Server 信息
+     * @return 下一个可重试的 Server
+     */
     @Override
     public IUploadServer getNextServer(UploadRequestState requestState, ResponseInfo responseInfo, IUploadServer freezeServer) {
         if (isAllFrozen || requestState == null) {
@@ -241,6 +278,11 @@ public class UploadDomainRegion implements IUploadRegion {
         return server;
     }
 
+    /**
+     * 更新 host 的 ip 列表
+     *
+     * @param host host
+     */
     @Override
     public void updateIpListFormHost(String host) {
         if (host == null) {

@@ -29,4 +29,10 @@ public final class PostArgs {
      */
     public String mimeType;
 
+    /**
+     * 构造函数
+     */
+    public PostArgs() {
+    }
+
 }

@@ -238,6 +238,15 @@ public final class Client {
         });
     }
 
+    /**
+     * 异步请求
+     *
+     * @param requestBuilder 请求构造器
+     * @param headers        请求头
+     * @param upToken        上传 Token
+     * @param totalSize      请求体大小
+     * @param complete       结束回调
+     */
     public void asyncSend(final Request.Builder requestBuilder, StringMap headers, final UpToken upToken,
                           final long totalSize, final CompletionHandler complete) {
         if (headers != null) {
@@ -287,6 +296,18 @@ public final class Client {
         });
     }
 
+    /**
+     * 异步 POST 请求
+     *
+     * @param url               请求 url
+     * @param body              请求 body
+     * @param headers           请求 header
+     * @param upToken           上传 token
+     * @param totalSize         请求总大小
+     * @param progressHandler   请求进度回调
+     * @param completionHandler 结束回调
+     * @param c                 取消回调
+     */
     public void asyncPost(String url, byte[] body,
                           StringMap headers, final UpToken upToken,
                           final long totalSize, ProgressHandler progressHandler,

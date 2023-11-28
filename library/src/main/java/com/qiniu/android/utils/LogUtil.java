@@ -15,6 +15,9 @@ public class LogUtil {
     private static boolean enableFile = true;
     private static boolean enableFunction = false;
 
+    private LogUtil() {
+    }
+
     /**
      * 开启日志
      *

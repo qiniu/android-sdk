@@ -12,11 +12,19 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class TransactionManager {
 
-    /// 事务链表
+    /**
+     * 事务链表
+     */
     protected final ConcurrentLinkedQueue<Transaction> transactionList = new ConcurrentLinkedQueue<>();
-    /// 事务定时器
+
+    /**
+     * 事务定时器
+     */
     private Timer timer;
 
+    /**
+     * action 数量
+     */
     protected long actionCount = 0;
 
     private static final TransactionManager transactionManager = new TransactionManager();
@@ -24,11 +32,21 @@ public class TransactionManager {
     private TransactionManager() {
     }
 
+    /**
+     * 获取事务管理器单例
+     *
+     * @return 事务管理器单例
+     */
     public static TransactionManager getInstance() {
         return transactionManager;
     }
 
-    /// 根据name查找事务
+    /**
+     * 根据 name 查找事务
+     *
+     * @param name name
+     * @return 事务列表
+     */
     public ArrayList<Transaction> transactionsForName(String name) {
         ArrayList<Transaction> arrayList = new ArrayList<>();
         for (Transaction transaction : transactionList) {
@@ -39,7 +57,12 @@ public class TransactionManager {
         return arrayList;
     }
 
-    /// 是否存在某个名称的事务
+    /**
+     * 是否存在某个名称的事务
+     *
+     * @param name 事务名称
+     * @return 是否存在
+     */
     public boolean existTransactionsForName(String name) {
         boolean isExist = false;
         for (Transaction transaction : transactionList) {
@@ -51,7 +74,11 @@ public class TransactionManager {
         return isExist;
     }
 
-    /// 添加一个事务
+    /**
+     * 添加一个事务
+     *
+     * @param transaction 事务
+     */
     public void addTransaction(Transaction transaction) {
         if (transaction == null) {
             return;
@@ -60,7 +87,11 @@ public class TransactionManager {
         createTimer();
     }
 
-    /// 移除一个事务
+    /**
+     * 移除一个事务
+     *
+     * @param transaction 事务
+     */
     public void removeTransaction(Transaction transaction) {
         if (transaction == null) {
             return;
@@ -68,7 +99,11 @@ public class TransactionManager {
         transactionList.remove(transaction);
     }
 
-    /// 在下一次循环执行事务, 该事务如果未被添加到事务列表，会自动添加
+    /**
+     * 在下一次循环执行事务, 该事务如果未被添加到事务列表，会自动添加
+     *
+     * @param transaction 事务
+     */
     public synchronized void performTransaction(Transaction transaction) {
         if (transaction == null) {
             return;
@@ -80,7 +115,9 @@ public class TransactionManager {
         transaction.nextExecutionTime = Utils.currentSecondTimestamp();
     }
 
-    /// 销毁资源 清空事务链表 销毁常驻线程
+    /**
+     * 销毁资源 清空事务链表 销毁常驻线程
+     */
     public synchronized void destroyResource() {
         invalidateTimer();
         transactionList.clear();
@@ -124,16 +161,25 @@ public class TransactionManager {
         handleAllTransaction();
     }
 
-
+    /**
+     * Transaction
+     */
     public static class Transaction {
 
-        // 事务名称
+        /**
+         * 事务名称
+         */
         public final String name;
-        // 事务延迟执行时间 单位：秒
-        public final int after;
-        // 事务内容
-        public final Runnable actionHandler;
 
+        /**
+         * 事务延迟执行时间 单位：秒
+         */
+        public final int after;
+
+        /**
+         * 事务内容
+         */
+        public final Runnable actionHandler;
 
         // 普通类型事务，事务体仅会执行一次
         private static final int TransactionTypeNormal = 0;
@@ -145,14 +191,25 @@ public class TransactionManager {
         private final int interval;
         // 创建时间
         private long createTime;
-        // 下一次需要执行的时间
+
+        /**
+         * 下一次需要执行的时间
+         */
         protected long nextExecutionTime;
 
-        // 已执行次数
+        /**
+         * 已执行次数
+         */
         protected long executedCount = 0;
         private boolean isExecuting = false;
 
-
+        /**
+         * 构造函数
+         *
+         * @param name          名称
+         * @param after         执行延迟时间
+         * @param actionHandler 执行体
+         */
         public Transaction(String name,
                            int after,
                            Runnable actionHandler) {
@@ -166,7 +223,14 @@ public class TransactionManager {
             this.nextExecutionTime = this.createTime + after;
         }
 
-
+        /**
+         * 构造函数
+         *
+         * @param name          名称
+         * @param after         执行延迟时间
+         * @param interval      周期执行时间间隔
+         * @param actionHandler 执行体
+         */
         public Transaction(String name,
                            int after,
                            int interval,
@@ -181,6 +245,11 @@ public class TransactionManager {
             this.nextExecutionTime = this.createTime + after;
         }
 
+        /**
+         * 是否需要执行
+         *
+         * @return 是否需要执行
+         */
         protected boolean shouldAction() {
             long currentTime = Utils.currentSecondTimestamp();
             if (this.type == TransactionTypeNormal) {
@@ -192,6 +261,11 @@ public class TransactionManager {
             }
         }
 
+        /**
+         * 是否已经结束
+         *
+         * @return 是否已经结束
+         */
         protected boolean maybeCompleted() {
             if (this.type == TransactionTypeNormal) {
                 return executedCount > 0;
@@ -220,6 +294,11 @@ public class TransactionManager {
             }
         }
 
+        /**
+         * 是否正在执行
+         *
+         * @return 是否正在执行
+         */
         public boolean isExecuting() {
             return isExecuting;
         }

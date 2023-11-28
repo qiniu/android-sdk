@@ -30,5 +30,6 @@ public class Constants {
      */
     public static final String NETWORK_CLASS_4_G = "4g";
 
-
+    private Constants() {
+    }
 }

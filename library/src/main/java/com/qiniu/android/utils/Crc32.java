@@ -10,6 +10,9 @@ import java.util.zip.CRC32;
  */
 public final class Crc32 {
 
+    private Crc32() {
+    }
+
     /**
      * 计算二进制字节校验码
      *

@@ -110,6 +110,12 @@ public final class FixedZone extends Zone {
         return zone;
     }
 
+    /**
+     * 把多个 Zone 合并成一个 Zone Group，重试时会依次切换不同 Zone 进行重试
+     *
+     * @param zones zones
+     * @return Zone Group
+     */
     public static FixedZone combineZones(FixedZone[] zones) {
         if (zones == null || zones.length == 0) {
             return null;

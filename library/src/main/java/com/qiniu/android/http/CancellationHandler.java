@@ -18,5 +18,11 @@ public interface CancellationHandler {
      * 取消异常
      */
     class CancellationException extends IOException {
+
+        /**
+         * 构造函数
+         */
+        public CancellationException() {
+        }
     }
 }

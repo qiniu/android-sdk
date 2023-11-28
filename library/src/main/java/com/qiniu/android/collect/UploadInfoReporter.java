@@ -29,6 +29,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * 记录上报
+ */
 public class UploadInfoReporter {
     private static final String DelayReportTransactionName = "com.qiniu.uplog";
     private ReportConfig config = ReportConfig.getInstance();
@@ -50,10 +53,21 @@ public class UploadInfoReporter {
     private UploadInfoReporter() {
     }
 
+    /**
+     * 获取上报单例
+     *
+     * @return 上报单例
+     */
     public static UploadInfoReporter getInstance() {
         return instance;
     }
 
+    /**
+     * 上报记录
+     *
+     * @param reportItem  记录信息
+     * @param tokenString Token
+     */
     public synchronized void report(final ReportItem reportItem, final String tokenString) {
         if (!checkReportAvailable() || reportItem == null || tokenString == null || tokenString.length() == 0) {
             return;
@@ -76,6 +90,9 @@ public class UploadInfoReporter {
         });
     }
 
+    /**
+     * 清理
+     */
     public void clean() {
         cleanRecorderFile();
         cleanTempLogFile();
@@ -151,7 +168,7 @@ public class UploadInfoReporter {
     private void reportToServerIfNeeded(final String tokenString) {
         boolean needToReport = false;
         long currentTime = Utils.currentSecondTimestamp();
-        final long interval = (long)(config.interval * 60);
+        final long interval = (long) (config.interval * 60);
         if (recorderTempFile.exists()) {
             needToReport = true;
         } else if ((lastReportTime == 0 || (currentTime - lastReportTime) >= interval || recorderFile.length() > config.uploadThreshold) &&

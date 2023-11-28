@@ -11,6 +11,9 @@ import com.qiniu.android.storage.GlobalConfiguration;
 public final class ContextGetter {
     private static Context context = applicationContext();
 
+    private ContextGetter() {
+    }
+
     /**
      * application Context
      *

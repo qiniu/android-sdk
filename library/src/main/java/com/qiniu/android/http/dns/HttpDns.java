@@ -15,11 +15,19 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Http Dns
+ */
 public class HttpDns extends BaseDns implements Dns {
 
     private IResolver httpIpv4Resolver;
     private IResolver httpIpv6Resolver;
 
+    /**
+     * 构造函数
+     *
+     * @param timeout 解析超时时间
+     */
     public HttpDns(int timeout) {
         String[] dohIpv4Servers = GlobalConfiguration.getInstance().getDohIpv4Servers();
         if (dohIpv4Servers != null && dohIpv4Servers.length > 0) {
@@ -32,6 +40,13 @@ public class HttpDns extends BaseDns implements Dns {
         }
     }
 
+    /**
+     * Dns 解析函数
+     *
+     * @param hostname host 域名
+     * @return 解析结果
+     * @throws UnknownHostException 异常
+     */
     @Override
     public List<IDnsNetworkAddress> lookup(String hostname) throws UnknownHostException {
         if (!GlobalConfiguration.getInstance().dohEnable) {

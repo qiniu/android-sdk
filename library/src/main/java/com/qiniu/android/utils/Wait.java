@@ -2,11 +2,23 @@ package com.qiniu.android.utils;
 
 import java.util.concurrent.CountDownLatch;
 
+/**
+ * wait
+ */
 public class Wait {
 
     final CountDownLatch completeSingle = new CountDownLatch(1);
 
-    public void startWait(){
+    /**
+     * 构造函数
+     */
+    public Wait() {
+    }
+
+    /**
+     * 开始等待
+     */
+    public void startWait() {
         while (completeSingle.getCount() > 0) {
             try {
                 completeSingle.await();
@@ -16,7 +28,10 @@ public class Wait {
         }
     }
 
-    public void stopWait(){
+    /**
+     * 停止等待
+     */
+    public void stopWait() {
         completeSingle.countDown();
     }
 

@@ -35,6 +35,9 @@ public class DnsSource {
      */
     public static final String None = "none";
 
+    private DnsSource() {
+    }
+
     /**
      * 判断解析源是否为 Doh
      *

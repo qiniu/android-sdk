@@ -13,13 +13,27 @@ public class UploadServerFreezeManager {
     private ConcurrentHashMap<String, UploadServerFreezeItem> frozenInfo = new ConcurrentHashMap<>();
     private final static UploadServerFreezeManager manager = new UploadServerFreezeManager();
 
+    /**
+     * 构造函数
+     */
     public UploadServerFreezeManager() {
     }
 
+    /**
+     * 获取单例
+     *
+     * @return 单例
+     */
     public static UploadServerFreezeManager getInstance() {
         return manager;
     }
 
+    /**
+     * 查看 type 是否冻结
+     *
+     * @param type type
+     * @return 是否冻结
+     */
     public boolean isTypeFrozen(String type) {
         if (type == null || type.length() == 0) {
             return true;
@@ -32,6 +46,12 @@ public class UploadServerFreezeManager {
         return isFrozen;
     }
 
+    /**
+     * 冻结 type
+     *
+     * @param type       type
+     * @param frozenTime 冻结时间
+     */
     public void freezeType(String type, int frozenTime) {
         if (type == null || type.length() == 0) {
             return;
@@ -44,6 +64,11 @@ public class UploadServerFreezeManager {
         item.freeze(frozenTime);
     }
 
+    /**
+     * 解冻 type
+     *
+     * @param type type
+     */
     public void unfreezeType(String type) {
         if (type == null || type.length() == 0) {
             return;

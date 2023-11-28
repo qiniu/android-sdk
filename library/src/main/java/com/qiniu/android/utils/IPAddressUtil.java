@@ -1,9 +1,15 @@
 package com.qiniu.android.utils;
 
+/**
+ * ip util
+ */
 public class IPAddressUtil {
     private final static int INADDR4SZ = 4;
     private final static int INADDR16SZ = 16;
     private final static int INT16SZ = 2;
+
+    private IPAddressUtil() {
+    }
 
     /**
      * Converts IPv4 address in its textual presentation form
@@ -81,11 +87,10 @@ public class IPAddressUtil {
         return res;
     }
 
-    /*
+    /**
      * Convert IPv6 presentation level address to network order binary form.
      * credit:
-     *  Converted from C code from Solaris 8 (inet_pton)
-     *
+     * Converted from C code from Solaris 8 (inet_pton)
      * Any component of the string following a per-cent % is ignored.
      *
      * @param src a String representing an IPv6 address in textual format

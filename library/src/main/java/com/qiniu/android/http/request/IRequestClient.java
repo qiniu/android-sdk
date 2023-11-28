@@ -41,6 +41,12 @@ public abstract class IRequestClient {
     }
 
     /**
+     * 构造函数
+     */
+    protected IRequestClient() {
+    }
+
+    /**
      * 触发请求
      *
      * @param request  请求信息

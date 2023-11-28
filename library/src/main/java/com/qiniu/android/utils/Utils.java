@@ -11,9 +11,21 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 
+/**
+ * utils
+ */
 public class Utils {
 
     private static Boolean isDebug = null;
+
+    private Utils() {
+    }
+
+    /**
+     * 是否是 Debug
+     *
+     * @return 是否是 Debug
+     */
     public static boolean isDebug() {
         if (isDebug != null) {
             return isDebug;
@@ -33,23 +45,48 @@ public class Utils {
         }
     }
 
+    /**
+     * SDK Version
+     *
+     * @return SDK Version
+     */
     public static String sdkVerion() {
         return Constants.VERSION;
     }
 
+    /**
+     * SDK Language
+     *
+     * @return SDK Language
+     */
     public static String sdkLanguage() {
         return "Android";
     }
 
+    /**
+     * 获取 PID
+     *
+     * @return PID
+     */
     public static Integer getCurrentProcessID() {
         return android.os.Process.myPid();
     }
 
+    /**
+     * 获取 TID
+     *
+     * @return TID
+     */
     public static Long getCurrentThreadID() {
         Thread thread = Thread.currentThread();
         return thread.getId();
     }
 
+    /**
+     * 获取系统名
+     *
+     * @return 系统名
+     */
     public static String systemName() {
         try {
             String model = android.os.Build.MODEL != null ? android.os.Build.MODEL.trim() : "";
@@ -78,6 +115,11 @@ public class Utils {
         return manufacturer;
     }
 
+    /**
+     * 获取系统版本
+     *
+     * @return 系统版本
+     */
     public static String systemVersion() {
         try {
             String v = android.os.Build.VERSION.RELEASE;
@@ -90,10 +132,21 @@ public class Utils {
         }
     }
 
+    /**
+     * 获取信号强度
+     *
+     * @return 信号强度
+     */
+    @Deprecated
     public static Integer getCurrentSignalStrength() {
         return null;
     }
 
+    /**
+     * 获取网络类型
+     *
+     * @return 网络类型
+     */
     public static String getCurrentNetworkType() {
         Context context = ContextGetter.applicationContext();
         if (context == null) {
@@ -102,19 +155,35 @@ public class Utils {
         return AndroidNetwork.networkType(context);
     }
 
-    /// 单位：毫秒
+    /**
+     * 获取当前时间戳
+     * 单位：毫秒
+     *
+     * @return 当前时间戳
+     */
     public static long currentTimestamp() {
         return new Date().getTime();
     }
 
-    // 单位：秒
+    /**
+     * 获取当前时间戳
+     * 单位：秒
+     *
+     * @return 当前时间戳
+     */
     public static long currentSecondTimestamp() {
         return currentTimestamp() / 1000;
     }
 
-    /// 两个时间的时间段 单位：毫秒
-    public static long dateDuration(Date startDate, Date endDate){
-        if (startDate != null && endDate != null){
+    /**
+     * 两个时间的时间间隔 单位：毫秒
+     *
+     * @param startDate 开始时间
+     * @param endDate   结束时间
+     * @return 时间间隔
+     */
+    public static long dateDuration(Date startDate, Date endDate) {
+        if (startDate != null && endDate != null) {
             return (endDate.getTime() - startDate.getTime());
         } else {
             return 0l;
@@ -123,17 +192,23 @@ public class Utils {
 
     /**
      * 计算 上传 或 下载 速度 单位：B/s
-     * @param bytes 单位： B
-     * @param totalTime  单位：ms
+     *
+     * @param bytes     单位： B
+     * @param totalTime 单位：ms
      * @return 速度
      */
-    public static Long calculateSpeed(Long bytes, Long totalTime){
+    public static Long calculateSpeed(Long bytes, Long totalTime) {
         if (bytes == null || bytes < 0 || totalTime == null || totalTime == 0) {
             return null;
         }
         return bytes * 1000 / totalTime;
     }
 
+    /**
+     * SDK 路径
+     *
+     * @return SDK 路径
+     */
     public static String sdkDirectory() {
         Context context = ContextGetter.applicationContext();
         if (context == null) {
@@ -143,6 +218,12 @@ public class Utils {
         return directory;
     }
 
+    /**
+     * Escape 字符串
+     *
+     * @param string 字符串
+     * @return Escape 后的字符串
+     */
     public static String formEscape(String string) {
         if (string == null) {
             return null;
@@ -153,6 +234,13 @@ public class Utils {
         return ret;
     }
 
+    /**
+     * 获取 ip 类型
+     *
+     * @param ip   ip
+     * @param host host
+     * @return ip 类型
+     */
     @Deprecated
     public static String getIpType(String ip, String host) {
         String type = host;
@@ -167,6 +255,14 @@ public class Utils {
         return type;
     }
 
+    /**
+     * 获取 ip 类型
+     *
+     * @param httpVersion HTTP version
+     * @param ip          ip
+     * @param host        host
+     * @return ip 类型
+     */
     public static String getIpType(String httpVersion, String ip, String host) {
         if (httpVersion == null) {
             httpVersion = "";
@@ -184,6 +280,12 @@ public class Utils {
         return httpVersion + "-" + type;
     }
 
+    /**
+     * 判断 IP 是否为 IPv6
+     *
+     * @param ip ip
+     * @return 是否为 IPv6
+     */
     public static boolean isIpv6(String ip) {
         if (StringUtils.isNullOrEmpty(ip)) {
             return false;

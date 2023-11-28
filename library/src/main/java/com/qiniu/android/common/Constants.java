@@ -15,4 +15,7 @@ public final class Constants {
      * UTF-8 编码
      */
     public static final String UTF_8 = "utf-8";
+
+    private Constants() {
+    }
 }

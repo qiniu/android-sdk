@@ -207,6 +207,12 @@ public final class Configuration {
         private int concurrentTaskCount = 3;
 
         /**
+         * 构造函数
+         */
+        public Builder() {
+        }
+
+        /**
          * Builder 构造方法
          *
          * @param requestClient 请求的客户端

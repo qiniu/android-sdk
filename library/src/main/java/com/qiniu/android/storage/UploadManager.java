@@ -26,29 +26,44 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
-
+/**
+ * 上传类
+ */
 public class UploadManager {
 
     private final Configuration config;
 
-
+    /**
+     * 构造函数
+     *
+     * @param recorder 文件上传进度记录，可实现断点续传
+     */
     public UploadManager(Recorder recorder) {
         this(recorder, null);
     }
 
+    /**
+     * 构造函数
+     *
+     * @param recorder 文件上传进度记录，可实现断点续传
+     * @param keyGen   上文件传进度记录的 key 生成器
+     */
     public UploadManager(Recorder recorder, KeyGenerator keyGen) {
         this(new Configuration.Builder().recorder(recorder, keyGen).build());
     }
 
     /**
-     * default 1 Threads
+     * 构造函数
+     * 默认为串行
      */
     public UploadManager() {
         this(new Configuration.Builder().build());
     }
 
     /**
-     * @param config Configuration, default 1 Thread
+     * 构造函数
+     *
+     * @param config Configuration, 默认为串行
      */
     public UploadManager(Configuration config) {
         this.config = config != null ? config : new Configuration.Builder().build();
@@ -522,7 +537,7 @@ public class UploadManager {
         } else if (source instanceof byte[]) {
             fileSize = ((byte[]) source).length;
         }
-        item.setReport((Long)fileSize, ReportItem.QualityKeyFileSize);
+        item.setReport((Long) fileSize, ReportItem.QualityKeyFileSize);
 
         // 统计当前文件上传速度，也即用户感知速度： 总文件大小 / 总耗时
         if (source != null && responseInfo.isOK() && taskMetrics.totalElapsedTime() > 0) {

@@ -11,6 +11,9 @@ import java.util.Map;
  */
 public final class Json {
 
+    private Json() {
+    }
+
     /**
      * map 转 json
      *

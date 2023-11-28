@@ -11,6 +11,9 @@ import java.io.UnsupportedEncodingException;
  */
 public final class UrlSafeBase64 {
 
+    private UrlSafeBase64() {
+    }
+
     /**
      * 编码字符串
      *
@@ -46,7 +49,7 @@ public final class UrlSafeBase64 {
     public static byte[] decode(String data) {
         try {
             return Base64.decode(data, Base64.URL_SAFE | Base64.NO_WRAP);
-        } catch (RuntimeException e){
+        } catch (RuntimeException e) {
             return null;
         }
     }

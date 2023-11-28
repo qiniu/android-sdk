@@ -10,6 +10,12 @@ import com.qiniu.android.storage.UpToken;
 public abstract class Zone {
 
     /**
+     * 构造函数
+     */
+    protected Zone() {
+    }
+
+    /**
      * 根据上传 token 获取 zone
      *
      * @param token 上传 token
@@ -29,6 +35,13 @@ public abstract class Zone {
      * 预查询结束回调
      */
     public interface QueryHandler {
+        /**
+         * 预查询结束回调
+         *
+         * @param code         状态码
+         * @param responseInfo 查询响应
+         * @param metrics      查询指标
+         */
         void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics);
     }
 }

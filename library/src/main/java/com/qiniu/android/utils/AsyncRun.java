@@ -25,6 +25,9 @@ public final class AsyncRun {
             1000L, TimeUnit.MILLISECONDS,
             new LinkedBlockingQueue<Runnable>());
 
+    private AsyncRun() {
+    }
+
     /**
      * 主线程执行任务
      *

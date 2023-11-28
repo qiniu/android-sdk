@@ -25,6 +25,9 @@ public class ConnectChecker {
     private static ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private static SingleFlight<UploadSingleRequestMetrics> singleFlight = new SingleFlight<>();
 
+    private ConnectChecker() {
+    }
+
     /**
      * 根据请求 metrics 判断网络是否正常连接
      *

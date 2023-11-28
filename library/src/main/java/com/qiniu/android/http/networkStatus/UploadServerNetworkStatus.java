@@ -2,13 +2,33 @@ package com.qiniu.android.http.networkStatus;
 
 import com.qiniu.android.http.request.IUploadServer;
 
+/**
+ * UploadServerNetworkStatus
+ */
 public class UploadServerNetworkStatus {
 
+    private UploadServerNetworkStatus() {
+    }
+
+    /**
+     * 获取网络状态较好的 server
+     *
+     * @param serverA serverA
+     * @param serverB serverB
+     * @return 网络状态较好的 server
+     */
     public static IUploadServer getBetterNetworkServer(IUploadServer serverA, IUploadServer serverB) {
         return isServerNetworkBetter(serverA, serverB) ? serverA : serverB;
     }
 
-    // 如果两个 Server 网速相同且类别相同优先使用 serverA，类别不同优先使用 Http3
+    /**
+     * serverA 网络状态是否较 serverB 好
+     * 如果两个 Server 网速相同且类别相同优先使用 serverA，类别不同 HTTP/3 较好
+     *
+     * @param serverA serverA
+     * @param serverB serverB
+     * @return 是否较好
+     */
     public static boolean isServerNetworkBetter(IUploadServer serverA, IUploadServer serverB) {
         if (serverA == null) {
             return false;

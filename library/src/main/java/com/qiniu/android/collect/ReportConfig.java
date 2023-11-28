@@ -3,6 +3,9 @@ package com.qiniu.android.collect;
 import com.qiniu.android.common.Config;
 import com.qiniu.android.utils.Utils;
 
+/**
+ * 记录配置
+ */
 public class ReportConfig {
 
     /**
@@ -16,7 +19,7 @@ public class ReportConfig {
     public double interval;
 
     /**
-     *  记录文件大于 uploadThreshold 会触发上传，单位：字节  默认为16 * 1024
+     * 记录文件大于 uploadThreshold 会触发上传，单位：字节  默认为16 * 1024
      */
     public long uploadThreshold;
 
@@ -42,7 +45,7 @@ public class ReportConfig {
 
     private static ReportConfig instance = new ReportConfig();
 
-    private ReportConfig(){
+    private ReportConfig() {
         this.isReportEnable = Config.isRecord;
         this.interval = Config.interval;
         this.serverURL = Config.upLogURL;
@@ -56,7 +59,12 @@ public class ReportConfig {
         this.timeoutInterval = 10;
     }
 
-    public static ReportConfig getInstance(){
+    /**
+     * 获取配置单例
+     *
+     * @return 配置单例
+     */
+    public static ReportConfig getInstance() {
         return instance;
     }
 }

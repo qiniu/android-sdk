@@ -30,6 +30,12 @@ public final class Configuration implements Cloneable {
     public int responseTimeout = 10;
 
     /**
+     * 构造函数
+     */
+    public Configuration() {
+    }
+
+    /**
      * Configuration copy
      *
      * @param config 待 copy 对象

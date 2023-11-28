@@ -11,8 +11,12 @@ import java.util.zip.GZIPOutputStream;
  */
 public class GZipUtil {
 
+    private GZipUtil() {
+    }
+
     /**
      * 压缩字符串
+     *
      * @param string 带压缩数据
      * @return 压缩后的数据
      */
@@ -25,6 +29,7 @@ public class GZipUtil {
 
     /**
      * 压缩 byte 数组
+     *
      * @param bytes 带压缩数据
      * @return 压缩后的数据
      */
@@ -56,6 +61,7 @@ public class GZipUtil {
 
     /**
      * 解压缩 byte 数组
+     *
      * @param bytes 待解压缩数据
      * @return 解压缩后的数据
      */

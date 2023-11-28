@@ -21,13 +21,28 @@ import java.util.concurrent.TimeUnit;
  */
 public class SystemDns extends BaseDns implements Dns {
 
+    /**
+     * 构造函数
+     */
     public SystemDns() {
     }
 
+    /**
+     * 构造函数
+     *
+     * @param timeout DNS 解析超时时间
+     */
     public SystemDns(int timeout) {
         this.timeout = timeout;
     }
 
+    /**
+     * DNS 解析域名
+     *
+     * @param hostname 域名
+     * @return 解析结果
+     * @throws UnknownHostException 异常
+     */
     public List<InetAddress> lookupInetAddress(final String hostname) throws UnknownHostException {
         if (hostname == null) {
             throw new UnknownHostException("hostname is null");
@@ -49,6 +64,13 @@ public class SystemDns extends BaseDns implements Dns {
         }
     }
 
+    /**
+     * DNS 解析域名
+     *
+     * @param hostname 域名
+     * @return 解析结果
+     * @throws UnknownHostException 异常
+     */
     @Override
     public List<IDnsNetworkAddress> lookup(String hostname) throws UnknownHostException {
         long timestamp = new Date().getTime() / 1000;

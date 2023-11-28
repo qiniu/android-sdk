@@ -11,6 +11,9 @@ public class DnsPrefetchTransaction {
 
     private static boolean isDnsLoaded = false;
 
+    private DnsPrefetchTransaction() {
+    }
+
     /**
      * 将 SDK 内部使用域名的 Dns 预解析操作添加到周期性的事务中
      *

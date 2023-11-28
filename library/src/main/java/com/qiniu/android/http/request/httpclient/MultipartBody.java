@@ -34,7 +34,9 @@ import okio.Buffer;
 import okio.BufferedSink;
 import okio.ByteString;
 
-/** An <a href="http://www.ietf.org/rfc/rfc2387.txt">RFC 2387</a>-compliant request body. */
+/**
+ * An <a href="http://www.ietf.org/rfc/rfc2387.txt">RFC 2387</a>-compliant request body.
+ */
 public final class MultipartBody extends RequestBody {
     /**
      * The "mixed" subtype of "multipart" is intended for use when the body parts are independent and
@@ -120,28 +122,55 @@ public final class MultipartBody extends RequestBody {
         return target;
     }
 
+    /**
+     * 获取 type
+     *
+     * @return MediaType
+     */
     public MediaType type() {
         return originalType;
     }
 
+    /**
+     * 获取 boundary
+     *
+     * @return boundary
+     */
     public String boundary() {
         return boundary.utf8();
     }
 
-    /** The number of parts in this multipart body. */
+    /**
+     * The number of parts in this multipart body.
+     *
+     * @return size
+     */
     public int size() {
         return parts.size();
     }
 
+    /**
+     * 获取 parts
+     *
+     * @return parts
+     */
     public List<Part> parts() {
         return parts;
     }
 
+    /**
+     * 构造函数
+     *
+     * @param index index
+     * @return Part
+     */
     public Part part(int index) {
         return parts.get(index);
     }
 
-    /** A combination of {@link #type()} and {@link #boundary()}. */
+    /**
+     * A combination of {@link #type()} and {@link #boundary()}.
+     */
     @Override
     public MediaType contentType() {
         return contentType;
@@ -233,6 +262,9 @@ public final class MultipartBody extends RequestBody {
         return byteCount;
     }
 
+    /**
+     * Part
+     */
     public static final class Part {
         final Headers headers;
         final RequestBody body;
@@ -242,10 +274,23 @@ public final class MultipartBody extends RequestBody {
             this.body = body;
         }
 
+        /**
+         * 构造函数
+         *
+         * @param body body
+         * @return Part
+         */
         public static Part create(RequestBody body) {
             return create(null, body);
         }
 
+        /**
+         * 构造函数
+         *
+         * @param headers headers
+         * @param body    body
+         * @return Part
+         */
         public static Part create(Headers headers, RequestBody body) {
             if (body == null) {
                 throw new NullPointerException("body == null");
@@ -259,10 +304,25 @@ public final class MultipartBody extends RequestBody {
             return new Part(headers, body);
         }
 
+        /**
+         * 构造函数
+         *
+         * @param name  name
+         * @param value value
+         * @return Part
+         */
         public static Part createFormData(String name, String value) {
             return createFormData(name, null, RequestBody.create(null, value));
         }
 
+        /**
+         * 构造函数
+         *
+         * @param name     name
+         * @param filename filename
+         * @param body     body
+         * @return Part
+         */
         public static Part createFormData(String name, String filename, RequestBody body) {
             if (name == null) {
                 throw new NullPointerException("name == null");
@@ -278,24 +338,45 @@ public final class MultipartBody extends RequestBody {
             return create(Headers.of("Content-Disposition", disposition.toString()), body);
         }
 
+        /**
+         * header
+         *
+         * @return header
+         */
         public Headers headers() {
             return headers;
         }
 
+        /**
+         * body
+         *
+         * @return body
+         */
         public RequestBody body() {
             return body;
         }
     }
 
+    /**
+     * Builder
+     */
     public static final class Builder {
         private final ByteString boundary;
         private final List<Part> parts = new ArrayList<>();
         private MediaType type = MIXED;
 
+        /**
+         * 构造方法
+         */
         public Builder() {
             this(UUID.randomUUID().toString());
         }
 
+        /**
+         * 构造方法
+         *
+         * @param boundary boundary
+         */
         public Builder(String boundary) {
             this.boundary = ByteString.encodeUtf8(boundary);
         }
@@ -303,6 +384,9 @@ public final class MultipartBody extends RequestBody {
         /**
          * Set the MIME type. Expected values for {@code type} are {@link #MIXED} (the default), {@link
          * #ALTERNATIVE}, {@link #DIGEST}, {@link #PARALLEL} and {@link #FORM}.
+         *
+         * @param type MediaType
+         * @return Builder
          */
         public Builder setType(MediaType type) {
             if (type == null) {
@@ -315,34 +399,67 @@ public final class MultipartBody extends RequestBody {
             return this;
         }
 
-        /** Add a part to the body. */
+        /**
+         * Add a part to the body.
+         *
+         * @param body body
+         * @return Builder
+         */
         public Builder addPart(RequestBody body) {
             return addPart(Part.create(body));
         }
 
-        /** Add a part to the body. */
+        /**
+         * Add a part to the body.
+         *
+         * @param headers headers
+         * @param body    body
+         * @return Builder
+         */
         public Builder addPart(Headers headers, RequestBody body) {
             return addPart(Part.create(headers, body));
         }
 
-        /** Add a form data part to the body. */
+        /**
+         * Add a form data part to the body.
+         *
+         * @param name  name
+         * @param value value
+         * @return Builder
+         */
         public Builder addFormDataPart(String name, String value) {
             return addPart(Part.createFormData(name, value));
         }
 
-        /** Add a form data part to the body. */
+        /**
+         * Add a form data part to the body.
+         *
+         * @param name     name
+         * @param filename filename
+         * @param body     body
+         * @return Builder
+         */
         public Builder addFormDataPart(String name, String filename, RequestBody body) {
             return addPart(Part.createFormData(name, filename, body));
         }
 
-        /** Add a part to the body. */
+        /**
+         * Add a part to the body.
+         *
+         * @param part part
+         * @return Builder
+         */
         public Builder addPart(Part part) {
             if (part == null) throw new NullPointerException("part == null");
             parts.add(part);
             return this;
         }
 
-        /** Assemble the specified parts into a request body. */
+        /**
+         * Assemble the specified parts into a request body.
+         *
+         * @return MultipartBody
+         */
         public MultipartBody build() {
             if (parts.isEmpty()) {
                 throw new IllegalStateException("Multipart body must have at least one part.");

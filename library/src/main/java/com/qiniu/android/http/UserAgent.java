@@ -18,7 +18,15 @@ import static java.lang.String.format;
  */
 public final class UserAgent {
     private static UserAgent _instance = new UserAgent();
+
+    /**
+     * id
+     */
     public final String id;
+
+    /**
+     * UserAgent
+     */
     public final String ua;
 
     private UserAgent() {
@@ -26,6 +34,11 @@ public final class UserAgent {
         ua = getUserAgent(id);
     }
 
+    /**
+     * UserAgent
+     *
+     * @return UserAgent
+     */
     public static UserAgent instance() {
         return _instance;
     }
@@ -37,10 +50,16 @@ public final class UserAgent {
 
     static String getUserAgent(String id) {
         String addition = Utils.isDebug() ? "_Debug" : "";
-        return format("QiniuAndroid%s/%s (%s; %s; %s",addition, Constants.VERSION,
+        return format("QiniuAndroid%s/%s (%s; %s; %s", addition, Constants.VERSION,
                 Utils.systemVersion(), Utils.systemName(), id);
     }
 
+    /**
+     * UserAgent
+     *
+     * @param part part
+     * @return UserAgent
+     */
     public String getUa(String part) {
         String _part = ("" + part).trim();
         if (_part.length() > 15) {

@@ -41,6 +41,12 @@ public final class AutoZone extends Zone {
             .builder();
 
     /**
+     * 构造函数
+     */
+    public AutoZone() {
+    }
+
+    /**
      * 配置 UC 域名，此 UC 域名用于根据上传 bucket 查询对应的区域。
      * 公有云不用配置
      *

@@ -306,7 +306,7 @@ public final class Headers {
     /**
      * toMultimap
      *
-     * @return Map<String, List < String>>
+     * @return Map
      */
     public Map<String, List<String>> toMultimap() {
         Map<String, List<String>> result = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
@@ -327,6 +327,12 @@ public final class Headers {
      */
     public static final class Builder {
         final List<String> namesAndValues = new ArrayList<>(20);
+
+        /**
+         * 构造函数
+         */
+        public Builder() {
+        }
 
         /**
          * Add a header line without any validation. Only appropriate for headers from the remote peer

@@ -14,8 +14,19 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DnsCacheInfo implements java.io.Serializable {
 
+    /**
+     * DNS 缓存时间
+     */
     private String currentTime;
+
+    /**
+     * 本地 IP
+     */
     private String localIp;
+
+    /**
+     * DNS 解析结果
+     */
     private ConcurrentHashMap<String, List<IDnsNetworkAddress>> info;
 
     /**

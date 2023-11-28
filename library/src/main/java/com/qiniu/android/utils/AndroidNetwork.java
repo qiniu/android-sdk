@@ -29,6 +29,9 @@ import java.util.List;
  */
 public final class AndroidNetwork {
 
+    private AndroidNetwork() {
+    }
+
     /**
      * 网络是否正常连接
      *

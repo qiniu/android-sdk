@@ -24,7 +24,14 @@ public abstract class IUploadServer {
     public static String HttpVersion3 = "http_version_3";
 
     /**
+     * 构造函数
+     */
+    protected IUploadServer() {
+    }
+
+    /**
      * 是否使用 HTTP/3
+     *
      * @return 是否使用 HTTP/3
      */
     public boolean isHttp3() {
@@ -37,6 +44,7 @@ public abstract class IUploadServer {
 
     /**
      * 是否使用 HTTP/2
+     *
      * @return 是否使用 HTTP/2
      */
     public boolean isHttp2() {
@@ -49,45 +57,52 @@ public abstract class IUploadServer {
 
     /**
      * 获取 ServerId
+     *
      * @return ServerId
      */
     public abstract String getServerId();
 
     /**
      * 获取 HttpVersion
+     *
      * @return HttpVersion
      */
     public abstract String getHttpVersion();
 
     /**
      * 获取 Host
+     *
      * @return Host
      */
     public abstract String getHost();
 
     /**
      * 获取 IP
+     *
      * @return IP
      */
     public abstract String getIp();
 
     /**
      * 获取 DNS 解析 Source
+     *
      * @return DNS 解析 Source
      */
     public abstract String getSource();
 
     /**
      * 获取 DNS 解析时间戳
+     *
      * @return DNS 解析时间戳
      */
     public abstract Long getIpPrefetchedTime();
 
     /**
      * 获取 DNS 解析信息
+     *
      * @return DNS 解析信息
      */
-    public InetAddress getInetAddress(){
+    public InetAddress getInetAddress() {
         String ip = getIp();
         String host = getHost();
         if (getHost() == null || ip == null || ip.length() == 0) {

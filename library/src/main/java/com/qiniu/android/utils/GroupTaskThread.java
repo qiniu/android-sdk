@@ -106,14 +106,29 @@ public class GroupTaskThread extends Thread {
      */
     public abstract static class GroupTask {
 
+        /**
+         * task 状态
+         */
         protected enum State {
+            /**
+             * 等待执行
+             */
             Waiting,
+
+            /**
+             * 执行中
+             */
             Running,
+
+            /**
+             * 执行完成
+             */
             Complete
         }
 
-        ;
-
+        /**
+         * task 状态
+         */
         protected State state = State.Waiting;
 
         /**

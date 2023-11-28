@@ -61,6 +61,9 @@ public final class HttpDate {
 
     /**
      * Returns the date for {@code value}. Returns null if the value couldn't be parsed.
+     *
+     * @param value value
+     * @return Date
      */
     public static Date parse(String value) {
         if (TextUtils.isEmpty(value)) {
@@ -102,6 +105,7 @@ public final class HttpDate {
     /**
      * Returns the string for {@code value}.
      *
+     * @param value Date
      * @return the string for {@code value}.
      */
     public static String format(Date value) {
