@@ -222,7 +222,7 @@ public class GlobalConfiguration {
     }
 
     /**
-     * 获取 Doh 方式进行 Dns 预解析使用的 Server
+     * 获取 Doh 方式进行 Dns 预解析使用的 IPv6 Server
      *
      * @return Server 列表
      */

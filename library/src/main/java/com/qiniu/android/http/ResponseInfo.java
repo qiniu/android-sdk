@@ -428,7 +428,7 @@ public final class ResponseInfo {
     }
 
     /**
-     * 价差是否是异常请求
+     * 检查是否是异常请求
      *
      * @return ResponseInfo
      */

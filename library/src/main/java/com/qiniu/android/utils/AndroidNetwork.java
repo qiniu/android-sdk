@@ -1,6 +1,7 @@
 package com.qiniu.android.utils;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
@@ -162,6 +163,10 @@ public final class AndroidNetwork {
 
             case TelephonyManager.NETWORK_TYPE_LTE:
                 return Constants.NETWORK_CLASS_4_G;
+
+
+            case TelephonyManager.NETWORK_TYPE_NR:
+                return Constants.NETWORK_CLASS_5_G;
 
             default:
                 return Constants.NETWORK_CLASS_UNKNOWN;

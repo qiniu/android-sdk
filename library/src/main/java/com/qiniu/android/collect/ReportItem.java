@@ -20,7 +20,7 @@ public class ReportItem {
     }
 
     /**
-     * 天机记录内容
+     * 添加记录内容
      *
      * @param value 记录的内容
      * @param key   记录的 key

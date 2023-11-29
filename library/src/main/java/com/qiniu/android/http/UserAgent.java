@@ -35,9 +35,9 @@ public final class UserAgent {
     }
 
     /**
-     * UserAgent
+     * 获取 UserAgent 单例
      *
-     * @return UserAgent
+     * @return UserAgent 单例
      */
     public static UserAgent instance() {
         return _instance;
@@ -55,10 +55,10 @@ public final class UserAgent {
     }
 
     /**
-     * UserAgent
+     * 获取 UserAgent 字符串
      *
      * @param part part
-     * @return UserAgent
+     * @return UserAgent 字符串
      */
     public String getUa(String part) {
         String _part = ("" + part).trim();

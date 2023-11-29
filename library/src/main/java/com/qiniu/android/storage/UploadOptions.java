@@ -53,7 +53,7 @@ public final class UploadOptions {
      *
      * @param params             参数
      * @param mimeType           mime type
-     * @param checkCrc           是否上传前后文件验证一致性
+     * @param checkCrc           是否验证文件上传前后的一致性
      * @param progressHandler    进度回调
      * @param cancellationSignal 取消函数
      */
@@ -70,7 +70,7 @@ public final class UploadOptions {
      *
      * @param params             参数
      * @param mimeType           mime type
-     * @param checkCrc           是否上传前后文件验证一致性
+     * @param checkCrc           是否验证文件上传前后的一致性
      * @param progressHandler    进度回调
      * @param cancellationSignal 取消函数
      * @param netReadyHandler    网络准备回调
@@ -90,7 +90,7 @@ public final class UploadOptions {
      * @param params             参数
      * @param metaDataParam      meta data
      * @param mimeType           mime type
-     * @param checkCrc           是否上传前后文件验证一致性
+     * @param checkCrc           是否验证文件上传前后的一致性
      * @param progressHandler    进度回调
      * @param cancellationSignal 取消函数
      * @param netReadyHandler    网络准备回调
