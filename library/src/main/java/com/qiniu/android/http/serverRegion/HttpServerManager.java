@@ -50,7 +50,7 @@ public class HttpServerManager {
      *
      * @param host host
      * @param ip   ip
-     * @return 否支持 http3
+     * @return 是否支持 http3
      */
     public boolean isServerSupportHttp3(String host, String ip) {
         if (host == null || host.length() == 0 || ip == null || ip.length() == 0) {
