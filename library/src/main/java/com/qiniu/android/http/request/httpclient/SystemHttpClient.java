@@ -15,7 +15,6 @@ import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.StringUtils;
 
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 import java.io.IOException;
