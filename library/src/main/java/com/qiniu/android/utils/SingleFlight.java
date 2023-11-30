@@ -9,6 +9,7 @@ import java.util.Map;
  * single flight
  *
  * @param <T> T
+ * @hidden
  */
 public class SingleFlight<T> {
 
@@ -140,6 +141,7 @@ public class SingleFlight<T> {
      * 结束回调
      *
      * @param <T> T
+     * @hidden
      */
     public interface CompleteHandler<T> {
 
@@ -155,6 +157,7 @@ public class SingleFlight<T> {
      * action 回调
      *
      * @param <T> T
+     * @hidden
      */
     public interface ActionHandler<T> {
 

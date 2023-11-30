@@ -4,6 +4,8 @@ import com.qiniu.android.http.request.IUploadServer;
 
 /**
  * UploadServerNetworkStatus
+ *
+ * @hidden
  */
 public class UploadServerNetworkStatus {
 

@@ -9,6 +9,8 @@ import okio.BufferedSink;
 
 /**
  * Created by yangsen on 2020/6/10
+ *
+ * @hidden
  */
 public class ByteBody extends RequestBody {
 

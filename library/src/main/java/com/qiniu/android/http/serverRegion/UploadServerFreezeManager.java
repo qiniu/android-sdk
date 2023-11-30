@@ -7,6 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by yangsen on 2020/6/3
+ *
+ * @hidden
  */
 public class UploadServerFreezeManager {
 

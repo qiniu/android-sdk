@@ -15,6 +15,8 @@ import static java.lang.String.format;
 
 /**
  * Created by bailong on 15/6/23.
+ *
+ * @hidden
  */
 public final class UserAgent {
     private static UserAgent _instance = new UserAgent();

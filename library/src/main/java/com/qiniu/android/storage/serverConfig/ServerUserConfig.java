@@ -8,6 +8,8 @@ import org.json.JSONObject;
 
 /**
  * server user config
+ *
+ * @hidden
  */
 public class ServerUserConfig implements Cache.Object {
 

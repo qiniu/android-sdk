@@ -36,6 +36,8 @@ import okio.ByteString;
 
 /**
  * An <a href="http://www.ietf.org/rfc/rfc2387.txt">RFC 2387</a>-compliant request body.
+ *
+ * @hidden
  */
 public final class MultipartBody extends RequestBody {
     /**
@@ -264,6 +266,8 @@ public final class MultipartBody extends RequestBody {
 
     /**
      * Part
+     *
+     * @hidden
      */
     public static final class Part {
         final Headers headers;
@@ -359,6 +363,8 @@ public final class MultipartBody extends RequestBody {
 
     /**
      * Builder
+     *
+     * @hidden
      */
     public static final class Builder {
         private final ByteString boundary;

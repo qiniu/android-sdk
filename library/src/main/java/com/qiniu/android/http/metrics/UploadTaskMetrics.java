@@ -12,6 +12,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * upload task metrics
+ *
+ * @hidden
  */
 public class UploadTaskMetrics extends UploadMetrics {
 

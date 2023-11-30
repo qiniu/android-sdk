@@ -12,6 +12,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 缓存对象
+ *
+ * @hidden
  */
 public class Cache {
 
@@ -80,6 +82,8 @@ public class Cache {
 
     /**
      * 缓存的 Object 协议定义
+     *
+     * @hidden
      */
     public interface Object {
 
@@ -210,6 +214,8 @@ public class Cache {
 
     /**
      * Cache Builder
+     *
+     * @hidden
      */
     public static class Builder {
         // 当 cache 修改数量到达这个值时，就会 flush，默认是 1

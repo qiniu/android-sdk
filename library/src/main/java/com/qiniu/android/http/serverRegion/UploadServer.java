@@ -4,6 +4,8 @@ import com.qiniu.android.http.request.IUploadServer;
 
 /**
  * 上传服务
+ *
+ * @hidden
  */
 public class UploadServer extends IUploadServer {
 

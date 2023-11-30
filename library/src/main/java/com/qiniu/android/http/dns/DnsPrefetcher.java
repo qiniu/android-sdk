@@ -22,6 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by yangsen on 2020/5/28
+ *
+ * @hidden
  */
 public class DnsPrefetcher {
 

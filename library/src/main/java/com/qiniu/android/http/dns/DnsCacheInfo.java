@@ -11,6 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by jemy on 2019/9/23.
+ *
+ * @hidden
  */
 public class DnsCacheInfo implements java.io.Serializable {
 

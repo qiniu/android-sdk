@@ -6,6 +6,8 @@ import com.qiniu.android.dns.util.Hex;
 
 /**
  * MD5 util
+ *
+ * @hidden
  */
 public class MD5 {
 

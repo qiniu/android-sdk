@@ -2,6 +2,8 @@ package com.qiniu.android.http.request.handler;
 
 /**
  * CheckCancelHandler
+ *
+ * @hidden
  */
 public interface CheckCancelHandler {
 

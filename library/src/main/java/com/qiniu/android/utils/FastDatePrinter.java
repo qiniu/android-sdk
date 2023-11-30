@@ -60,6 +60,7 @@ import java.util.TimeZone;
  * 'YYY' will be formatted as '2003', while it was '03' in former Java
  * versions. FastDatePrinter implements the behavior of Java 7.</p>
  *
+ * @hidden
  * @since 3.2
  */
 public final class FastDatePrinter {

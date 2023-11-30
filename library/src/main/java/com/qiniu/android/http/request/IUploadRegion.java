@@ -4,7 +4,9 @@ import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.http.ResponseInfo;
 
 /**
- * 上传区域仇晓
+ * 上传区域
+ *
+ * @hidden
  */
 public interface IUploadRegion {
 

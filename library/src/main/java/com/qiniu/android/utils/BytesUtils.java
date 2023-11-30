@@ -4,6 +4,8 @@ import java.io.IOException;
 
 /**
  * Bytes 工具
+ *
+ * @hidden
  */
 public class BytesUtils {
 

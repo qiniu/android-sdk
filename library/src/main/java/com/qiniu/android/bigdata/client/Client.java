@@ -41,6 +41,8 @@ import static com.qiniu.android.http.ResponseInfo.NetworkError;
 
 /**
  * Created by bailong on 15/11/12.
+ *
+ * @hidden
  */
 public final class Client {
     /**

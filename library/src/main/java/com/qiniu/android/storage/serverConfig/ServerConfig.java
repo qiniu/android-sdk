@@ -12,6 +12,8 @@ import java.util.List;
 
 /**
  * server config
+ *
+ * @hidden
  */
 public class ServerConfig implements Cache.Object {
 
@@ -113,6 +115,8 @@ public class ServerConfig implements Cache.Object {
 
     /**
      * 区域配置
+     *
+     * @hidden
      */
     public static class RegionConfig {
         private long clearId;
@@ -148,6 +152,8 @@ public class ServerConfig implements Cache.Object {
 
     /**
      * DNS 配置
+     *
+     * @hidden
      */
     public static class DnsConfig {
         private Boolean enable;
@@ -218,6 +224,8 @@ public class ServerConfig implements Cache.Object {
 
     /**
      * dns server
+     *
+     * @hidden
      */
     public static class DnsServer {
         private boolean isOverride;
@@ -268,6 +276,8 @@ public class ServerConfig implements Cache.Object {
 
     /**
      * udp dns 配置
+     *
+     * @hidden
      */
     public static class UdpDnsConfig {
         private Boolean enable;
@@ -317,6 +327,8 @@ public class ServerConfig implements Cache.Object {
 
     /**
      * doh 配置
+     *
+     * @hidden
      */
     public static class DohDnsConfig {
         private Boolean enable;
@@ -366,6 +378,8 @@ public class ServerConfig implements Cache.Object {
 
     /**
      * connect check config
+     *
+     * @hidden
      */
     public static class ConnectCheckConfig {
         private Boolean isOverride;

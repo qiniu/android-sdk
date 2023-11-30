@@ -2,6 +2,8 @@ package com.qiniu.android.http.request;
 
 /**
  * 上传状态
+ *
+ * @hidden
  */
 public class UploadRequestState {
 

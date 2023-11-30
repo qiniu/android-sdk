@@ -31,6 +31,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 记录上报
+ *
+ * @hidden
  */
 public class UploadInfoReporter {
     private static final String DelayReportTransactionName = "com.qiniu.uplog";

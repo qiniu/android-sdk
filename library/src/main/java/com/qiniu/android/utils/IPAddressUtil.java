@@ -2,6 +2,8 @@ package com.qiniu.android.utils;
 
 /**
  * ip util
+ *
+ * @hidden
  */
 public class IPAddressUtil {
     private final static int INADDR4SZ = 4;

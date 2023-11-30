@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 /**
  * 组任务线程
+ *
+ * @hidden
  */
 public class GroupTaskThread extends Thread {
 
@@ -103,11 +105,15 @@ public class GroupTaskThread extends Thread {
 
     /**
      * 组任务
+     *
+     * @hidden
      */
     public abstract static class GroupTask {
 
         /**
          * task 状态
+         *
+         * @hidden
          */
         protected enum State {
             /**
@@ -170,6 +176,8 @@ public class GroupTaskThread extends Thread {
 
     /**
      * 任务执行结束回调
+     *
+     * @hidden
      */
     public interface GroupTaskCompleteHandler {
 

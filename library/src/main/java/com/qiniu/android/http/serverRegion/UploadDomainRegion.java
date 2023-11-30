@@ -19,6 +19,8 @@ import java.util.List;
 
 /**
  * region domain 管理对象
+ *
+ * @hidden
  */
 public class UploadDomainRegion implements IUploadRegion {
     private final static int Http3FrozenTime = 3600 * 24;

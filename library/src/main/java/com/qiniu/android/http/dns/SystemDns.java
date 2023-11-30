@@ -18,6 +18,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Created by yangsen on 2020/5/28
+ *
+ * @hidden
  */
 public class SystemDns extends BaseDns implements Dns {
 

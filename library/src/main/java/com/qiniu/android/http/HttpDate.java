@@ -12,6 +12,8 @@ import static okhttp3.internal.Util.UTC;
 
 /**
  * Best-effort parser for HTTP dates.
+ *
+ * @hidden
  */
 public final class HttpDate {
 

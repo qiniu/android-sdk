@@ -49,6 +49,8 @@ import okhttp3.internal.Util;
  * whitespace.
  *
  * <p>Instances of this class are immutable. Use {@link Builder} to create instances.
+ *
+ * @hidden
  */
 public final class Headers {
     private final String[] namesAndValues;
@@ -324,6 +326,8 @@ public final class Headers {
 
     /**
      * Builder
+     *
+     * @hidden
      */
     public static final class Builder {
         final List<String> namesAndValues = new ArrayList<>(20);

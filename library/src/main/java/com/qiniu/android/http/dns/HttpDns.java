@@ -17,6 +17,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Http Dns
+ *
+ * @hidden
  */
 public class HttpDns extends BaseDns implements Dns {
 

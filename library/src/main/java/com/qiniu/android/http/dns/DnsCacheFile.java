@@ -9,6 +9,8 @@ import java.io.IOException;
 
 /**
  * Created by jemy on 2019/9/17.
+ *
+ * @hidden
  */
 
 public class DnsCacheFile implements Recorder {

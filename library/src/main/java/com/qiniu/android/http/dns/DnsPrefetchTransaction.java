@@ -6,6 +6,8 @@ import com.qiniu.android.transaction.TransactionManager;
 
 /**
  * Created by yangsen on 2020/6/4
+ *
+ * @hidden
  */
 public class DnsPrefetchTransaction {
 

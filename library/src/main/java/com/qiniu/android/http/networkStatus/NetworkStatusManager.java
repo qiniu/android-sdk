@@ -8,6 +8,8 @@ import org.json.JSONObject;
 
 /**
  * 网络状态管理器
+ *
+ * @hidden
  */
 public class NetworkStatusManager {
 
@@ -96,6 +98,8 @@ public class NetworkStatusManager {
 
     /**
      * 网络状态
+     *
+     * @hidden
      */
     public static class NetworkStatus implements Cache.Object {
 

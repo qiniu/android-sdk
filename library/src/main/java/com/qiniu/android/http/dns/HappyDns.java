@@ -9,6 +9,8 @@ import java.util.List;
 
 /**
  * Created by yangsen on 2020/6/8
+ *
+ * @hidden
  */
 @Deprecated
 public class HappyDns implements Dns {

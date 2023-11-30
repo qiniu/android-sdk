@@ -13,6 +13,8 @@ import java.security.NoSuchAlgorithmException;
 /**
  * 计算文件内容或者二进制数据的etag, etag算法是七牛用来标志数据唯一性的算法。
  * 文档：<a href="https://github.com/qiniu/qetag">etag算法</a>
+ *
+ * @hidden
  */
 public final class Etag {
 

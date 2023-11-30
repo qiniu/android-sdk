@@ -20,11 +20,15 @@ public class ZoneInfo implements Cloneable {
     /**
      * 默认 io host
      * 只允许内部使用
+     *
+     * @hidden
      */
     public final static String SDKDefaultIOHost = "sdkDefaultIOHost";
 
     /**
      * 未知 region id
+     *
+     * @hidden
      */
     public final static String EmptyRegionId = "unknown";
 

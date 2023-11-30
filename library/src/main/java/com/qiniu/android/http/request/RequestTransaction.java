@@ -28,6 +28,8 @@ import java.util.Set;
 
 /**
  * 请求事务
+ *
+ * @hidden
  */
 public class RequestTransaction {
 
@@ -732,6 +734,8 @@ public class RequestTransaction {
 
     /**
      * 请求结束回调
+     *
+     * @hidden
      */
     public interface RequestCompleteHandler {
 

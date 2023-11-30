@@ -6,6 +6,8 @@ import org.json.JSONObject;
 
 /**
  * 请求重试回调
+ *
+ * @hidden
  */
 public interface RequestShouldRetryHandler {
 

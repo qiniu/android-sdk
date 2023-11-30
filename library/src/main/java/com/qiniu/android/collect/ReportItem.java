@@ -8,6 +8,8 @@ import java.util.HashMap;
 
 /**
  * 记录信息
+ *
+ * @hidden
  */
 public class ReportItem {
 

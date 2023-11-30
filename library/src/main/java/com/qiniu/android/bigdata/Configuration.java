@@ -4,6 +4,8 @@ import com.qiniu.android.http.ProxyConfiguration;
 
 /**
  * Created by long on 2017/7/25.
+ *
+ * @hidden
  */
 
 public final class Configuration implements Cloneable {

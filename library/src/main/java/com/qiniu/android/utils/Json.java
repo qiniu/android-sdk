@@ -8,6 +8,8 @@ import java.util.Map;
 
 /**
  * Created by long on 2017/7/25.
+ *
+ * @hidden
  */
 public final class Json {
 

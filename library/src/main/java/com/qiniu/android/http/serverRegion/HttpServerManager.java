@@ -7,6 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * HttpServerManager
+ *
+ * @hidden
  */
 public class HttpServerManager {
     private ConcurrentHashMap<String, Long> serversInfo = new ConcurrentHashMap<>();

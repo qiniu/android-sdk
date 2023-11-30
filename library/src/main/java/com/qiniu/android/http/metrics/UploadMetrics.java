@@ -6,6 +6,8 @@ import java.util.Date;
 
 /**
  * 上传指标
+ *
+ * @hidden
  */
 public class UploadMetrics {
 

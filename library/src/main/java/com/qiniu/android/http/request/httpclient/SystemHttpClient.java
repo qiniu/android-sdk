@@ -53,6 +53,8 @@ import static com.qiniu.android.http.ResponseInfo.NetworkError;
 
 /**
  * system client
+ *
+ * @hidden
  */
 public class SystemHttpClient extends IRequestClient {
 

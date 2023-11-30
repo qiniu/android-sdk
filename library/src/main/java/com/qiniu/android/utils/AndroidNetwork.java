@@ -27,6 +27,8 @@ import java.util.List;
 
 /**
  * Created by bailong on 16/9/7.
+ *
+ * @hidden
  */
 public final class AndroidNetwork {
 

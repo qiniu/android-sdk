@@ -16,6 +16,8 @@ import okio.Sink;
 
 /**
  * Created by bailong on 16/1/8.
+ *
+ * @hidden
  */
 public final class CountingRequestBody extends RequestBody {
     private static final int SEGMENT_SIZE = 2048; // okio.Segment.SIZE
@@ -83,6 +85,8 @@ public final class CountingRequestBody extends RequestBody {
 
     /**
      * 请求进度 Sink
+     *
+     * @hidden
      */
     protected final class CountingSink extends ForwardingSink {
 

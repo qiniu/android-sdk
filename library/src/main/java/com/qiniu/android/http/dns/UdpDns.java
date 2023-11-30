@@ -17,6 +17,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * udp dns
+ *
+ * @hidden
  */
 public class UdpDns extends BaseDns implements Dns {
     private IResolver udpIpv4Resolver;

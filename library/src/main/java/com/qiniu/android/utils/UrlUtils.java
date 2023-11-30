@@ -2,6 +2,8 @@ package com.qiniu.android.utils;
 
 /**
  * UrlUtils
+ *
+ * @hidden
  */
 public class UrlUtils {
 

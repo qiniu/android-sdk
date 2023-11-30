@@ -10,6 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * ListVector
  *
  * @param <E> 元素类型
+ * @hidden
  */
 public class ListVector<E> extends Vector<E> {
 
@@ -74,6 +75,7 @@ public class ListVector<E> extends Vector<E> {
      * EnumeratorHandler
      *
      * @param <T> enumerate 对象的类型
+     * @hidden
      */
     public interface EnumeratorHandler<T> {
 

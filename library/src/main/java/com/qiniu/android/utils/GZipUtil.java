@@ -8,6 +8,8 @@ import java.util.zip.GZIPOutputStream;
 
 /**
  * GZip 工具
+ *
+ * @hidden
  */
 public class GZipUtil {
 

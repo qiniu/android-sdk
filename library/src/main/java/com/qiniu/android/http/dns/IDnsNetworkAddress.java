@@ -3,6 +3,8 @@ package com.qiniu.android.http.dns;
 
 /**
  * Dns 预解析信息
+ *
+ * @hidden
  */
 public interface IDnsNetworkAddress {
 

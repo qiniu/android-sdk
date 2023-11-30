@@ -2,6 +2,8 @@ package com.qiniu.android.http.request.handler;
 
 /**
  * 请求进度回调
+ *
+ * @hidden
  */
 public interface RequestProgressHandler {
 

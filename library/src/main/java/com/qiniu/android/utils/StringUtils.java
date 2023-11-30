@@ -12,6 +12,8 @@ import java.io.UnsupportedEncodingException;
 
 /**
  * 字符串连接工具类
+ *
+ * @hidden
  */
 public final class StringUtils {
 

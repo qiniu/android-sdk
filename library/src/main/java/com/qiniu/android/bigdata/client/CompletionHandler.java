@@ -6,6 +6,8 @@ import org.json.JSONObject;
 
 /**
  * 定义请求完成后续动作的处理接口
+ *
+ * @hidden
  */
 public interface CompletionHandler {
     /**

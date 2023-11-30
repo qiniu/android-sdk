@@ -4,6 +4,8 @@ import java.net.UnknownHostException;
 import java.util.List;
 
 /**
+ * Dns 解析器
+ *
  * Created by sxci on 03/04/2018.
  */
 public interface Dns {

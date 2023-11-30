@@ -14,6 +14,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Created by bailong on 14/10/22.
+ *
+ * @hidden
  */
 public final class AsyncRun {
 

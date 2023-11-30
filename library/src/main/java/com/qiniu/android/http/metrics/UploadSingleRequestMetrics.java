@@ -10,6 +10,8 @@ import java.util.Date;
 
 /**
  * 单请求的指标
+ *
+ * @hidden
  */
 public class UploadSingleRequestMetrics extends UploadMetrics {
 

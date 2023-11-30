@@ -4,6 +4,8 @@ import com.qiniu.android.utils.Utils;
 
 /**
  * UploadServerFreezeUtil
+ *
+ * @hidden
  */
 public class UploadServerFreezeUtil {
     private final static UploadServerFreezeManager globalHttp3Freezer = new UploadServerFreezeManager();

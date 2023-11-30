@@ -17,6 +17,8 @@ import java.util.Map;
 
 /**
  * 数据点
+ *
+ * @hidden
  */
 public final class Points {
 

@@ -6,6 +6,8 @@ import java.io.File;
 
 /**
  * 定义请求参数列表
+ *
+ * @hidden
  */
 public final class PostArgs {
     /**

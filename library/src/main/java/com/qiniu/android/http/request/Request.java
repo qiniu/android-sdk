@@ -5,6 +5,8 @@ import java.util.Map;
 
 /**
  * request
+ *
+ * @hidden
  */
 public class Request {
 

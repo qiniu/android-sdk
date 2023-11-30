@@ -4,6 +4,8 @@ import java.util.concurrent.CountDownLatch;
 
 /**
  * wait
+ *
+ * @hidden
  */
 public class Wait {
 

@@ -8,6 +8,8 @@ import java.io.UnsupportedEncodingException;
 
 /**
  * URL安全的Base64编码和解码
+ *
+ * @hidden
  */
 public final class UrlSafeBase64 {
 

@@ -5,6 +5,8 @@ import java.net.InetAddress;
 
 /**
  * upload server 信息
+ *
+ * @hidden
  */
 public abstract class IUploadServer {
 

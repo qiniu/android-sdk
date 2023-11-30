@@ -19,6 +19,8 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 网络连接检查器
+ *
+ * @hidden
  */
 public class ConnectChecker {
 

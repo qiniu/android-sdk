@@ -9,6 +9,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * 区域上传事务
+ *
+ * @hidden
  */
 public class UploadRegionRequestMetrics extends UploadMetrics {
 

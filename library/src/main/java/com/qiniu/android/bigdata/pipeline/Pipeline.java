@@ -14,6 +14,8 @@ import java.util.Map;
 
 /**
  * Created by long on 2017/7/25.
+ *
+ * @hidden
  */
 public final class Pipeline {
     private static final String HTTPHeaderAuthorization = "Authorization";
@@ -144,6 +146,8 @@ public final class Pipeline {
 
     /**
      * Pump 完成回调
+     *
+     * @hidden
      */
     public interface PumpCompleteHandler {
 

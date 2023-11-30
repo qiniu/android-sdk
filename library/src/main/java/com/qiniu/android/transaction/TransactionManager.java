@@ -9,6 +9,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by yangsen on 2020/6/9
+ *
+ * @hidden
  */
 public class TransactionManager {
 
@@ -163,6 +165,8 @@ public class TransactionManager {
 
     /**
      * Transaction
+     *
+     * @hidden
      */
     public static class Transaction {
 
