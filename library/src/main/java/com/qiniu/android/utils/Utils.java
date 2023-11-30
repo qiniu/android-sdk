@@ -67,6 +67,7 @@ public class Utils {
      * 获取 PID
      *
      * @return PID
+     * @hidden
      */
     public static Integer getCurrentProcessID() {
         return android.os.Process.myPid();
@@ -76,6 +77,7 @@ public class Utils {
      * 获取 TID
      *
      * @return TID
+     * @hidden
      */
     public static Long getCurrentThreadID() {
         Thread thread = Thread.currentThread();
@@ -86,6 +88,7 @@ public class Utils {
      * 获取系统名
      *
      * @return 系统名
+     * @hidden
      */
     public static String systemName() {
         try {
@@ -119,6 +122,7 @@ public class Utils {
      * 获取系统版本
      *
      * @return 系统版本
+     * @hidden
      */
     public static String systemVersion() {
         try {
@@ -136,6 +140,7 @@ public class Utils {
      * 获取信号强度
      *
      * @return 信号强度
+     * @hidden
      */
     @Deprecated
     public static Integer getCurrentSignalStrength() {
@@ -146,6 +151,7 @@ public class Utils {
      * 获取网络类型
      *
      * @return 网络类型
+     * @hidden
      */
     public static String getCurrentNetworkType() {
         Context context = ContextGetter.applicationContext();
@@ -160,6 +166,7 @@ public class Utils {
      * 单位：毫秒
      *
      * @return 当前时间戳
+     * @hidden
      */
     public static long currentTimestamp() {
         return new Date().getTime();
@@ -170,6 +177,7 @@ public class Utils {
      * 单位：秒
      *
      * @return 当前时间戳
+     * @hidden
      */
     public static long currentSecondTimestamp() {
         return currentTimestamp() / 1000;
@@ -181,6 +189,7 @@ public class Utils {
      * @param startDate 开始时间
      * @param endDate   结束时间
      * @return 时间间隔
+     * @hidden
      */
     public static long dateDuration(Date startDate, Date endDate) {
         if (startDate != null && endDate != null) {
@@ -196,6 +205,7 @@ public class Utils {
      * @param bytes     单位： B
      * @param totalTime 单位：ms
      * @return 速度
+     * @hidden
      */
     public static Long calculateSpeed(Long bytes, Long totalTime) {
         if (bytes == null || bytes < 0 || totalTime == null || totalTime == 0) {
@@ -223,6 +233,7 @@ public class Utils {
      *
      * @param string 字符串
      * @return Escape 后的字符串
+     * @hidden
      */
     public static String formEscape(String string) {
         if (string == null) {
@@ -240,6 +251,7 @@ public class Utils {
      * @param ip   ip
      * @param host host
      * @return ip 类型
+     * @hidden
      */
     @Deprecated
     public static String getIpType(String ip, String host) {
@@ -262,6 +274,7 @@ public class Utils {
      * @param ip          ip
      * @param host        host
      * @return ip 类型
+     * @hidden
      */
     public static String getIpType(String httpVersion, String ip, String host) {
         if (httpVersion == null) {
@@ -285,6 +298,7 @@ public class Utils {
      *
      * @param ip ip
      * @return 是否为 IPv6
+     * @hidden
      */
     public static boolean isIpv6(String ip) {
         if (StringUtils.isNullOrEmpty(ip)) {

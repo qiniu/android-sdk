@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * server config monitor
+ * 服务控制监控
  */
 public class ServerConfigMonitor {
     private static final String TransactionKey = "ServerConfig";
