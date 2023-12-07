@@ -13,6 +13,8 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.Map;
 
+import kotlin.jvm.Synchronized;
+
 class PartsUploadPerformerV2 extends PartsUploadPerformer {
 
     PartsUploadPerformerV2(UploadSource uploadSource,
@@ -79,7 +81,7 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
         final UploadInfoV2 info = (UploadInfoV2) uploadInfo;
 
         UploadData data = null;
-        synchronized (this) {
+        synchronized (uploadSource) {
             try {
                 data = info.nextUploadData();
                 if (data != null) {
@@ -134,12 +136,16 @@ class PartsUploadPerformerV2 extends PartsUploadPerformer {
                     }
                 }
                 if (responseInfo.isOK() && etag != null && md5 != null) {
-                    uploadData.etag = etag;
-                    uploadData.updateState(UploadData.State.Complete);
+                    synchronized (uploadSource) {
+                        uploadData.etag = etag;
+                        uploadData.updateState(UploadData.State.Complete);
+                    }
                     recordUploadInfo();
                     notifyProgress(false);
                 } else {
-                    uploadData.updateState(UploadData.State.WaitToUpload);
+                    synchronized (uploadSource) {
+                        uploadData.updateState(UploadData.State.WaitToUpload);
+                    }
                 }
                 completeHandler.complete(false, responseInfo, requestMetrics, response);
             }
