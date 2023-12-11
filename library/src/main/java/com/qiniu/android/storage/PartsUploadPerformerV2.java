@@ -13,8 +13,6 @@ import org.json.JSONObject;
 import java.util.List;
 import java.util.Map;
 
-import kotlin.jvm.Synchronized;
-
 class PartsUploadPerformerV2 extends PartsUploadPerformer {
 
     PartsUploadPerformerV2(UploadSource uploadSource,
