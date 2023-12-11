@@ -18,8 +18,17 @@ import java.util.stream.Stream;
  */
 public final class FileRecorder implements Recorder {
 
+    /**
+     * 记录路径
+     */
     public String directory;
 
+    /**
+     * 构造方法
+     *
+     * @param directory 记录路径
+     * @throws IOException 异常
+     */
     public FileRecorder(String directory) throws IOException {
         this.directory = directory;
         File f = new File(directory);
@@ -129,6 +138,9 @@ public final class FileRecorder implements Recorder {
         f.delete();
     }
 
+    /**
+     * 删除所有路径
+     */
     public void deleteAll() {
         try {
             File folder = new File(directory);
@@ -157,6 +169,11 @@ public final class FileRecorder implements Recorder {
         file.delete();
     }
 
+    /**
+     * 获取文件名
+     *
+     * @return 文件名
+     */
     @Override
     public String getFileName() {
         return null;

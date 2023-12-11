@@ -1,6 +1,10 @@
 package com.qiniu.android.utils;
 
+/**
+ * 常量定义
+ */
 public class Constants {
+
     /**
      * Unknown network class
      */
@@ -26,5 +30,11 @@ public class Constants {
      */
     public static final String NETWORK_CLASS_4_G = "4g";
 
+    /**
+     * "5G" networks
+     */
+    public static final String NETWORK_CLASS_5_G = "5g";
 
+    private Constants() {
+    }
 }

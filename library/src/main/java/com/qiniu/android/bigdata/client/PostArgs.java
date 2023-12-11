@@ -6,6 +6,8 @@ import java.io.File;
 
 /**
  * 定义请求参数列表
+ *
+ * @hidden
  */
 public final class PostArgs {
     /**
@@ -28,5 +30,11 @@ public final class PostArgs {
      * 上传文件或数据的MimeType
      */
     public String mimeType;
+
+    /**
+     * 构造函数
+     */
+    public PostArgs() {
+    }
 
 }

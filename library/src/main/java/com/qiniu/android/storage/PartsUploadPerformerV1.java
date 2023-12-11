@@ -49,7 +49,7 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
         UploadBlock block = null;
         UploadData chunk = null;
 
-        synchronized (this) {
+        synchronized (uploadSource) {
             try {
                 block = info.nextUploadBlock();
                 chunk = info.nextUploadData(block);
@@ -108,13 +108,17 @@ class PartsUploadPerformerV1 extends PartsUploadPerformer {
                     }
                 }
                 if (responseInfo.isOK() && ctx != null && expiredAt != null) {
-                    uploadBlock.ctx = ctx;
-                    uploadBlock.expireAt = expiredAt;
-                    uploadChunk.updateState(UploadData.State.Complete);
+                    synchronized (uploadSource) {
+                        uploadBlock.ctx = ctx;
+                        uploadBlock.expireAt = expiredAt;
+                        uploadChunk.updateState(UploadData.State.Complete);
+                    }
                     recordUploadInfo();
                     notifyProgress(false);
                 } else {
-                    uploadChunk.updateState(UploadData.State.WaitToUpload);
+                    synchronized (uploadSource) {
+                        uploadChunk.updateState(UploadData.State.WaitToUpload);
+                    }
                 }
                 completeHandler.complete(false, responseInfo, requestMetrics, response);
             }

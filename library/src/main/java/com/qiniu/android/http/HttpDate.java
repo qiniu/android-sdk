@@ -12,6 +12,8 @@ import static okhttp3.internal.Util.UTC;
 
 /**
  * Best-effort parser for HTTP dates.
+ *
+ * @hidden
  */
 public final class HttpDate {
 
@@ -61,6 +63,9 @@ public final class HttpDate {
 
     /**
      * Returns the date for {@code value}. Returns null if the value couldn't be parsed.
+     *
+     * @param value value
+     * @return Date
      */
     public static Date parse(String value) {
         if (TextUtils.isEmpty(value)) {
@@ -99,7 +104,12 @@ public final class HttpDate {
         return null;
     }
 
-    /** Returns the string for {@code value}. */
+    /**
+     * Returns the string for {@code value}.
+     *
+     * @param value Date
+     * @return the string for {@code value}.
+     */
     public static String format(Date value) {
         return STANDARD_DATE_FORMAT.get().format(value);
     }

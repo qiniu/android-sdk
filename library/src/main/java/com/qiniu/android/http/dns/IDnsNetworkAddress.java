@@ -1,19 +1,45 @@
 package com.qiniu.android.http.dns;
 
 
+/**
+ * Dns 预解析信息
+ *
+ * @hidden
+ */
 public interface IDnsNetworkAddress {
-    /// 域名
+
+    /**
+     * 预解析的域名
+     *
+     * @return 预解析的域名
+     */
     String getHostValue();
 
-    /// 地址IP信息
+    /**
+     * 预解析域名的 IP 信息
+     *
+     * @return 预解析域名的 IP 信息
+     */
     String getIpValue();
 
-    /// ip有效时间 单位：秒
+    /**
+     * 预解析域名的 IP 有效时间 单位：秒
+     *
+     * @return 预解析域名的 IP 有效时间
+     */
     Long getTtlValue();
 
-    /// ip预取来源, 自定义dns返回 "customized"
+    /**
+     * 预解析的源，自定义dns返回 "customized"
+     *
+     * @return 预解析的源
+     */
     String getSourceValue();
 
-    /// 解析到host时的时间戳 单位：秒
+    /**
+     * 解析到 host 时的时间戳，单位：秒
+     *
+     * @return 解析到 host 时的时间戳
+     */
     Long getTimestampValue();
 }

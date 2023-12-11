@@ -15,10 +15,20 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * udp dns
+ *
+ * @hidden
+ */
 public class UdpDns extends BaseDns implements Dns {
     private IResolver udpIpv4Resolver;
     private IResolver udpIpv6Resolver;
 
+    /**
+     * 构造函数
+     *
+     * @param timeout 超时时间，单位：秒
+     */
     public UdpDns(int timeout) {
         String[] udpIpv4Servers = GlobalConfiguration.getInstance().getUdpDnsIpv4Servers();
         if (udpIpv4Servers != null && udpIpv4Servers.length > 0) {
@@ -31,6 +41,13 @@ public class UdpDns extends BaseDns implements Dns {
         }
     }
 
+    /**
+     * 解析域名
+     *
+     * @param hostname host 域名
+     * @return 解析结果
+     * @throws UnknownHostException 异常
+     */
     @Override
     public List<IDnsNetworkAddress> lookup(String hostname) throws UnknownHostException {
         if (!GlobalConfiguration.getInstance().udpDnsEnable) {

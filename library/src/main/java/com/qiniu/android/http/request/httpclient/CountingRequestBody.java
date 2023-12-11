@@ -16,6 +16,8 @@ import okio.Sink;
 
 /**
  * Created by bailong on 16/1/8.
+ *
+ * @hidden
  */
 public final class CountingRequestBody extends RequestBody {
     private static final int SEGMENT_SIZE = 2048; // okio.Segment.SIZE
@@ -26,6 +28,14 @@ public final class CountingRequestBody extends RequestBody {
     private final long totalSize;
     private final CancellationHandler cancellationHandler;
 
+    /**
+     * CountingRequestBody 构造函数
+     *
+     * @param body                请求体
+     * @param progress            请求进度回调
+     * @param totalSize           请求体总大小
+     * @param cancellationHandler 取消函数
+     */
     public CountingRequestBody(RequestBody body, ProgressHandler progress, long totalSize,
                                CancellationHandler cancellationHandler) {
         this.body = body;
@@ -34,16 +44,33 @@ public final class CountingRequestBody extends RequestBody {
         this.cancellationHandler = cancellationHandler;
     }
 
+    /**
+     * 获取请求体大小
+     *
+     * @return 请求体大小
+     * @throws IOException 异常
+     */
     @Override
     public long contentLength() throws IOException {
         return body.contentLength();
     }
 
+    /**
+     * 获取请求 ContentType
+     *
+     * @return 请求 ContentType
+     */
     @Override
     public MediaType contentType() {
         return body.contentType();
     }
 
+    /**
+     * 写入数据
+     *
+     * @param sink BufferedSink
+     * @throws IOException 异常
+     */
     @Override
     public void writeTo(BufferedSink sink) throws IOException {
         BufferedSink bufferedSink;
@@ -56,14 +83,31 @@ public final class CountingRequestBody extends RequestBody {
         bufferedSink.flush();
     }
 
+    /**
+     * 请求进度 Sink
+     *
+     * @hidden
+     */
     protected final class CountingSink extends ForwardingSink {
 
         private int bytesWritten = 0;
 
+        /**
+         * 构造方法
+         *
+         * @param delegate Sink
+         */
         public CountingSink(Sink delegate) {
             super(delegate);
         }
 
+        /**
+         * 写入数据
+         *
+         * @param source    Buffer
+         * @param byteCount byteCount
+         * @throws IOException 异常
+         */
         @Override
         public void write(Buffer source, long byteCount) throws IOException {
             if (cancellationHandler == null && progress == null) {

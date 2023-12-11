@@ -89,6 +89,11 @@ public final class FixedZone extends Zone {
 
     private ZonesInfo zonesInfo;
 
+    /**
+     * 获取 SDK 中使用的 zone，用于重试，外部不可使用
+     *
+     * @return FixedZone
+     */
     @Deprecated
     public static FixedZone localsZoneInfo() {
         FixedZone[] localsZone = new FixedZone[]{
@@ -105,6 +110,12 @@ public final class FixedZone extends Zone {
         return zone;
     }
 
+    /**
+     * 把多个 Zone 合并成一个 Zone Group，重试时会依次切换不同 Zone 进行重试
+     *
+     * @param zones zones
+     * @return Zone Group
+     */
     public static FixedZone combineZones(FixedZone[] zones) {
         if (zones == null || zones.length == 0) {
             return null;
@@ -121,20 +132,41 @@ public final class FixedZone extends Zone {
         return new FixedZone(zonesInfo);
     }
 
+    /**
+     * 构造方法
+     *
+     * @param zoneInfo zone 信息
+     */
     public FixedZone(ZoneInfo zoneInfo) {
         ArrayList<ZoneInfo> zoneInfoList = new ArrayList<>();
         zoneInfoList.add(zoneInfo);
         this.zonesInfo = new ZonesInfo(zoneInfoList);
     }
 
+    /**
+     * 构造方法
+     *
+     * @param zonesInfo zones 信息
+     */
     public FixedZone(ZonesInfo zonesInfo) {
         this.zonesInfo = zonesInfo;
     }
 
+    /**
+     * 构造方法
+     *
+     * @param upDomains 上传域名
+     */
     public FixedZone(String[] upDomains) {
         this(upDomains, null);
     }
 
+    /**
+     * 构造方法
+     *
+     * @param upDomains 上传域名
+     * @param regionId  区域 ID
+     */
     public FixedZone(String[] upDomains, String regionId) {
         this(upDomains, null, regionId);
     }

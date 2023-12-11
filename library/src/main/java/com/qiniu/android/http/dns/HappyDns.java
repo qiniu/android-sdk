@@ -9,6 +9,8 @@ import java.util.List;
 
 /**
  * Created by yangsen on 2020/6/8
+ *
+ * @hidden
  */
 @Deprecated
 public class HappyDns implements Dns {
@@ -18,13 +20,16 @@ public class HappyDns implements Dns {
 
     private DnsQueryErrorHandler errorHandler;
 
-    public HappyDns(){
+    /**
+     * 构造函数
+     */
+    public HappyDns() {
         int dnsTimeout = GlobalConfiguration.getInstance().dnsResolveTimeout;
         systemDns = new SystemDns(dnsTimeout);
         customDns = GlobalConfiguration.getInstance().dns;
     }
 
-    void setQueryErrorHandler(DnsQueryErrorHandler handler){
+    void setQueryErrorHandler(DnsQueryErrorHandler handler) {
         errorHandler = handler;
     }
 

@@ -10,6 +10,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * 上传全局配置
+ */
 public class GlobalConfiguration {
 
     /**
@@ -170,10 +173,20 @@ public class GlobalConfiguration {
     private GlobalConfiguration() {
     }
 
+    /**
+     * 获取全局配置单例
+     *
+     * @return 单例
+     */
     public static GlobalConfiguration getInstance() {
         return configuration;
     }
 
+    /**
+     * 获取 UDP dns ipv4 server 列表
+     *
+     * @return server 列表
+     */
     public String[] getUdpDnsIpv4Servers() {
         if (udpDnsIpv4Servers != null) {
             return udpDnsIpv4Servers;
@@ -182,6 +195,11 @@ public class GlobalConfiguration {
         }
     }
 
+    /**
+     * 获取 UDP dns ipv6 server 列表
+     *
+     * @return server 列表
+     */
     public String[] getUdpDnsIpv6Servers() {
         if (udpDnsIpv6Servers != null) {
             return udpDnsIpv6Servers;
@@ -190,6 +208,11 @@ public class GlobalConfiguration {
         }
     }
 
+    /**
+     * 获取 Doh ipv4 server 列表
+     *
+     * @return server 列表
+     */
     public String[] getDohIpv4Servers() {
         if (dohIpv4Servers != null) {
             return dohIpv4Servers;
@@ -198,6 +221,11 @@ public class GlobalConfiguration {
         }
     }
 
+    /**
+     * 获取 Doh 方式进行 Dns 预解析使用的 IPv6 Server
+     *
+     * @return Server 列表
+     */
     public String[] getDohIpv6Servers() {
         if (dohIpv6Servers != null) {
             return dohIpv6Servers;
@@ -206,6 +234,11 @@ public class GlobalConfiguration {
         }
     }
 
+    /**
+     * 获取网络状态检测使用的 Url
+     *
+     * @return Url 列表
+     */
     public String[] getConnectCheckUrls() {
         if (connectCheckURLStrings != null) {
             return connectCheckURLStrings;
@@ -214,6 +247,12 @@ public class GlobalConfiguration {
         }
     }
 
+    /**
+     * 解析 Base64 数据为字符串数组
+     *
+     * @param data base64 data
+     * @return 字符串数组
+     */
     public static String[] parseBase64Array(String data) {
         try {
             byte[] jsonBytes = UrlSafeBase64.decode(data);

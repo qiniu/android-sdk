@@ -1,6 +1,7 @@
 package com.qiniu.android.utils;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
@@ -26,8 +27,19 @@ import java.util.List;
 
 /**
  * Created by bailong on 16/9/7.
+ *
+ * @hidden
  */
 public final class AndroidNetwork {
+
+    private AndroidNetwork() {
+    }
+
+    /**
+     * 网络是否正常连接
+     *
+     * @return 网络是否连接
+     */
     public static boolean isNetWorkReady() {
         Context c = ContextGetter.applicationContext();
         if (c == null) {
@@ -48,7 +60,7 @@ public final class AndroidNetwork {
      * 使用DNS解析某地址时，可能会同时返回IPv4和IPv6的地址。
      * 如果同时拥有IPv4和IPv6的地址，是会默认优先上报IPv6的地址
      *
-     * @return
+     * @return IP
      */
     public static String getHostIP() {
         String hostIp = null;
@@ -77,6 +89,18 @@ public final class AndroidNetwork {
         return hostIp;
     }
 
+    /**
+     * 网络类型
+     * {@link  Constants#NETWORK_CLASS_UNKNOWN}
+     * {@link  Constants#NETWORK_WIFI}
+     * {@link  Constants#NETWORK_CLASS_2_G}
+     * {@link  Constants#NETWORK_CLASS_3_G}
+     * {@link  Constants#NETWORK_CLASS_4_G}
+     * ...
+     *
+     * @param context context
+     * @return 网络类型
+     */
     public static String networkType(Context context) {
         try {
             return networkTypeWithException(context);
@@ -87,7 +111,7 @@ public final class AndroidNetwork {
     }
 
     private static String networkTypeWithException(Context context) throws Exception {
-        if (context == null){
+        if (context == null) {
             return Constants.NETWORK_CLASS_UNKNOWN;
         }
 
@@ -116,7 +140,7 @@ public final class AndroidNetwork {
         }
 
         TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
-        if (telephonyManager == null){
+        if (telephonyManager == null) {
             return Constants.NETWORK_CLASS_UNKNOWN;
         }
 
@@ -141,6 +165,10 @@ public final class AndroidNetwork {
 
             case TelephonyManager.NETWORK_TYPE_LTE:
                 return Constants.NETWORK_CLASS_4_G;
+
+
+            case TelephonyManager.NETWORK_TYPE_NR:
+                return Constants.NETWORK_CLASS_5_G;
 
             default:
                 return Constants.NETWORK_CLASS_UNKNOWN;

@@ -41,19 +41,49 @@ import static com.qiniu.android.http.ResponseInfo.NetworkError;
 
 /**
  * Created by bailong on 15/11/12.
+ *
+ * @hidden
  */
 public final class Client {
+    /**
+     * HTTP 请求头：Content-Type
+     */
     public static final String ContentTypeHeader = "Content-Type";
+
+    /**
+     * HTTP 请求默认的 MimeType
+     */
     public static final String DefaultMime = "application/octet-stream";
+
+    /**
+     * HTTP 请求 Json 的 MimeType
+     */
     public static final String JsonMime = "application/json";
+
+    /**
+     * HTTP 请求 FormMime 的 MimeType
+     */
     public static final String FormMime = "application/x-www-form-urlencoded";
+
     private final UrlConverter converter;
     private OkHttpClient httpClient;
 
+    /**
+     * 构造方法
+     */
     public Client() {
         this(null, 10, 30, null, null);
     }
 
+    /**
+     * 构造函数
+     *
+     * @param proxy           请求代理
+     * @param connectTimeout  请求建立连接超时时间
+     * @param responseTimeout 请求接收数据超时时间
+     * @param converter       请求 Url 拦截器
+     * @param dns             请求的 Dns 解析器
+     */
     public Client(ProxyConfiguration proxy, int connectTimeout, int responseTimeout, UrlConverter converter, final Dns dns) {
         this.converter = converter;
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
@@ -71,9 +101,9 @@ public final class Client {
                 List<IDnsNetworkAddress> networkAddressList = DnsPrefetcher.getInstance().getInetAddressByHost(hostname);
                 if (networkAddressList != null && networkAddressList.size() > 0) {
                     List<InetAddress> inetAddressList = new ArrayList<>();
-                    for (IDnsNetworkAddress networkAddress : networkAddressList){
+                    for (IDnsNetworkAddress networkAddress : networkAddressList) {
                         InetAddress address = null;
-                        if (networkAddress.getIpValue() != null && (address = InetAddress.getByName(networkAddress.getIpValue())) != null){
+                        if (networkAddress.getIpValue() != null && (address = InetAddress.getByName(networkAddress.getIpValue())) != null) {
                             inetAddressList.add(address);
                         }
                     }
@@ -210,6 +240,15 @@ public final class Client {
         });
     }
 
+    /**
+     * 异步请求
+     *
+     * @param requestBuilder 请求构造器
+     * @param headers        请求头
+     * @param upToken        上传 Token
+     * @param totalSize      请求体大小
+     * @param complete       结束回调
+     */
     public void asyncSend(final Request.Builder requestBuilder, StringMap headers, final UpToken upToken,
                           final long totalSize, final CompletionHandler complete) {
         if (headers != null) {
@@ -259,6 +298,18 @@ public final class Client {
         });
     }
 
+    /**
+     * 异步 POST 请求
+     *
+     * @param url               请求 url
+     * @param body              请求 body
+     * @param headers           请求 header
+     * @param upToken           上传 token
+     * @param totalSize         请求总大小
+     * @param progressHandler   请求进度回调
+     * @param completionHandler 结束回调
+     * @param c                 取消回调
+     */
     public void asyncPost(String url, byte[] body,
                           StringMap headers, final UpToken upToken,
                           final long totalSize, ProgressHandler progressHandler,
@@ -266,6 +317,20 @@ public final class Client {
         asyncPost(url, body, 0, body.length, headers, upToken, totalSize, progressHandler, completionHandler, c);
     }
 
+    /**
+     * 异步 POST 请求
+     *
+     * @param url               请求 Url
+     * @param body              请求体
+     * @param offset            请求体偏移量
+     * @param size              请求体大小
+     * @param headers           请求 Header
+     * @param upToken           上传 Token
+     * @param totalSize         请求体总大小
+     * @param progressHandler   进度回调
+     * @param completionHandler 完成回调
+     * @param c                 取消回调
+     */
     public void asyncPost(String url, byte[] body, int offset, int size,
                           StringMap headers, final UpToken upToken,
                           final long totalSize, ProgressHandler progressHandler,
@@ -295,6 +360,16 @@ public final class Client {
         asyncSend(requestBuilder, headers, upToken, totalSize, completionHandler);
     }
 
+    /**
+     * 异步表单请求
+     *
+     * @param url               请求 Url
+     * @param args              请求参数
+     * @param upToken           上传的 Token
+     * @param progressHandler   进度回调
+     * @param completionHandler 完成回答
+     * @param c                 取消回调
+     */
     public void asyncMultipartPost(String url,
                                    PostArgs args,
                                    final UpToken upToken,
@@ -343,12 +418,27 @@ public final class Client {
         asyncSend(requestBuilder, null, upToken, totalSize, completionHandler);
     }
 
+    /**
+     * 异步 GET 请求
+     *
+     * @param url               请求 Url
+     * @param headers           请求 Header
+     * @param upToken           上传的 Token
+     * @param completionHandler 请求完成回调
+     */
     public void asyncGet(String url, StringMap headers, final UpToken upToken,
                          CompletionHandler completionHandler) {
         Request.Builder requestBuilder = new Request.Builder().get().url(url);
         asyncSend(requestBuilder, headers, upToken, 0, completionHandler);
     }
 
+    /**
+     * 同步 GET 请求
+     *
+     * @param url     请求 Url
+     * @param headers 请求 Header
+     * @return ResponseInfo
+     */
     public ResponseInfo syncGet(String url, StringMap headers) {
         Request.Builder requestBuilder = new Request.Builder().get().url(url);
         return send(requestBuilder, headers);
@@ -379,8 +469,15 @@ public final class Client {
         return buildResponseInfo(res, tag.ip, tag.duration, null, 0);
     }
 
-    public ResponseInfo syncMultipartPost(String url, PostArgs args,
-                                          final UpToken upToken) {
+    /**
+     * 同步表单请求
+     *
+     * @param url     请求 Url
+     * @param args    请求参数
+     * @param upToken 上传 Token
+     * @return ResponseInfo
+     */
+    public ResponseInfo syncMultipartPost(String url, PostArgs args, final UpToken upToken) {
         RequestBody file;
         long totalSize;
         if (args.file != null) {
@@ -414,6 +511,15 @@ public final class Client {
         return syncSend(requestBuilder, null, upToken, totalSize);
     }
 
+    /**
+     * 同步请求
+     *
+     * @param requestBuilder 请求构造器
+     * @param headers        请求 Header
+     * @param upToken        上传的 Token
+     * @param totalSize      请求体大小
+     * @return ResponseInfo
+     */
     public ResponseInfo syncSend(final Request.Builder requestBuilder, StringMap headers,
                                  final UpToken upToken, final long totalSize) {
         if (headers != null) {

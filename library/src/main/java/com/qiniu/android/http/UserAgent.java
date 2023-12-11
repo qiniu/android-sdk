@@ -15,10 +15,20 @@ import static java.lang.String.format;
 
 /**
  * Created by bailong on 15/6/23.
+ *
+ * @hidden
  */
 public final class UserAgent {
     private static UserAgent _instance = new UserAgent();
+
+    /**
+     * id
+     */
     public final String id;
+
+    /**
+     * UserAgent
+     */
     public final String ua;
 
     private UserAgent() {
@@ -26,6 +36,11 @@ public final class UserAgent {
         ua = getUserAgent(id);
     }
 
+    /**
+     * 获取 UserAgent 单例
+     *
+     * @return UserAgent 单例
+     */
     public static UserAgent instance() {
         return _instance;
     }
@@ -37,10 +52,16 @@ public final class UserAgent {
 
     static String getUserAgent(String id) {
         String addition = Utils.isDebug() ? "_Debug" : "";
-        return format("QiniuAndroid%s/%s (%s; %s; %s",addition, Constants.VERSION,
+        return format("QiniuAndroid%s/%s (%s; %s; %s", addition, Constants.VERSION,
                 Utils.systemVersion(), Utils.systemName(), id);
     }
 
+    /**
+     * 获取 UserAgent 字符串
+     *
+     * @param part part
+     * @return UserAgent 字符串
+     */
     public String getUa(String part) {
         String _part = ("" + part).trim();
         if (_part.length() > 15) {

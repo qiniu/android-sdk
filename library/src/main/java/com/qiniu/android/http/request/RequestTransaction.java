@@ -26,6 +26,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * 请求事务
+ *
+ * @hidden
+ */
 public class RequestTransaction {
 
     private final Configuration config;
@@ -39,17 +44,40 @@ public class RequestTransaction {
     private HttpRegionRequest regionRequest;
 
 
+    /**
+     * 构造函数
+     *
+     * @param hosts hosts
+     * @param token token
+     */
     public RequestTransaction(List<String> hosts,
                               UpToken token) {
         this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, null, null, token);
     }
 
+    /**
+     * 构造函数
+     *
+     * @param hosts    hosts
+     * @param regionId 区域 ID
+     * @param token    上传 Token
+     */
     public RequestTransaction(List<String> hosts,
                               String regionId,
                               UpToken token) {
         this(new Configuration.Builder().build(), UploadOptions.defaultOptions(), hosts, regionId, null, token);
     }
 
+    /**
+     * 构造函数
+     *
+     * @param config       配置信息
+     * @param uploadOption 上传选项
+     * @param hosts        hosts
+     * @param regionId     区域 ID
+     * @param key          上传保存的  key
+     * @param token        上传的 Token
+     */
     public RequestTransaction(Configuration config,
                               UploadOptions uploadOption,
                               List<String> hosts,
@@ -62,6 +90,16 @@ public class RequestTransaction {
         this.initData(region, region);
     }
 
+    /**
+     * 构造函数
+     *
+     * @param config        请求事务配置
+     * @param uploadOption  请求选项
+     * @param targetRegion  请求的区域
+     * @param currentRegion 当前的区域
+     * @param key           保存的 key
+     * @param token         上传的 token
+     */
     public RequestTransaction(Configuration config,
                               UploadOptions uploadOption,
                               IUploadRegion targetRegion,
@@ -101,6 +139,12 @@ public class RequestTransaction {
     }
 
 
+    /**
+     * 查询上传域名
+     *
+     * @param isAsync         是否为同步请求
+     * @param completeHandler 请求结束回调
+     */
     public void queryUploadHosts(boolean isAsync,
                                  final RequestCompleteHandler completeHandler) {
         requestInfo.requestType = UploadRequestInfo.RequestTypeUCQuery;
@@ -123,6 +167,15 @@ public class RequestTransaction {
         });
     }
 
+    /**
+     * 上传表单接口
+     *
+     * @param data            上传数据
+     * @param fileName        文件名
+     * @param isAsync         是否为同步
+     * @param progressHandler 进度回调
+     * @param completeHandler 结束回调
+     */
     public void uploadFormData(byte[] data,
                                String fileName,
                                boolean isAsync,
@@ -194,6 +247,16 @@ public class RequestTransaction {
         });
     }
 
+    /**
+     * make block api
+     *
+     * @param blockOffset     block offset
+     * @param blockSize       block 大小
+     * @param firstChunkData  第一块数据
+     * @param isAsync         是否为异步
+     * @param progressHandler 进度回调
+     * @param completeHandler 结束回调
+     */
     public void makeBlock(long blockOffset,
                           long blockSize,
                           byte[] firstChunkData,
@@ -239,6 +302,17 @@ public class RequestTransaction {
         });
     }
 
+    /**
+     * upload chunk api
+     *
+     * @param blockContext    block ctx
+     * @param blockOffset     block offset
+     * @param chunkData       chunk data
+     * @param chunkOffset     chunk offset
+     * @param isAsync         是佛为异步
+     * @param progressHandler 进度回调
+     * @param completeHandler 结束回调
+     */
     public void uploadChunk(String blockContext,
                             long blockOffset,
                             byte[] chunkData,
@@ -286,6 +360,15 @@ public class RequestTransaction {
         });
     }
 
+    /**
+     * make file api
+     *
+     * @param fileSize        文件大小
+     * @param fileName        文件名
+     * @param blockContexts   block ctxs
+     * @param isAsync         是否为异步
+     * @param completeHandler 结束回调
+     */
     public void makeFile(long fileSize,
                          String fileName,
                          String[] blockContexts,
@@ -355,6 +438,12 @@ public class RequestTransaction {
     }
 
 
+    /**
+     * init part api
+     *
+     * @param isAsync         是否为异步
+     * @param completeHandler 结束回调
+     */
     public void initPart(boolean isAsync, final RequestCompleteHandler completeHandler) {
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeInitParts;
@@ -385,6 +474,16 @@ public class RequestTransaction {
     }
 
 
+    /**
+     * upload part api
+     *
+     * @param isAsync         是否为异步
+     * @param uploadId        上传 ID
+     * @param partIndex       part index
+     * @param partData        part data
+     * @param progressHandler 进度回调
+     * @param completeHandler 完成回调
+     */
     public void uploadPart(boolean isAsync,
                            String uploadId,
                            int partIndex,
@@ -437,6 +536,15 @@ public class RequestTransaction {
         });
     }
 
+    /**
+     * complete part api
+     *
+     * @param isAsync         是否为同步
+     * @param fileName        文件名
+     * @param uploadId        上传 ID
+     * @param partInfoArray   part info
+     * @param completeHandler 结束回调
+     */
     public void completeParts(boolean isAsync,
                               String fileName,
                               String uploadId,
@@ -501,6 +609,14 @@ public class RequestTransaction {
         });
     }
 
+    /**
+     * report log api
+     *
+     * @param logData         日志数据
+     * @param logClientId     日志 client id
+     * @param isAsync         是否为同步
+     * @param completeHandler 结束回调
+     */
     public void reportLog(byte[] logData,
                           String logClientId,
                           boolean isAsync,
@@ -533,6 +649,12 @@ public class RequestTransaction {
         });
     }
 
+    /**
+     * server config
+     *
+     * @param isAsync         是否为异步
+     * @param completeHandler 结束回调
+     */
     public void serverConfig(boolean isAsync, final RequestCompleteHandler completeHandler) {
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeServerConfig;
@@ -556,6 +678,12 @@ public class RequestTransaction {
         });
     }
 
+    /**
+     * server user config
+     *
+     * @param isAsync         是否为异步
+     * @param completeHandler 完成回调
+     */
     public void serverUserConfig(boolean isAsync, final RequestCompleteHandler completeHandler) {
 
         requestInfo.requestType = UploadRequestInfo.RequestTypeServerUserConfig;
@@ -604,7 +732,20 @@ public class RequestTransaction {
         }
     }
 
+    /**
+     * 请求结束回调
+     *
+     * @hidden
+     */
     public interface RequestCompleteHandler {
+
+        /**
+         * 请求结束回调
+         *
+         * @param responseInfo   请求响应信息
+         * @param requestMetrics 请求指标
+         * @param response       请求响应
+         */
         void complete(ResponseInfo responseInfo,
                       UploadRegionRequestMetrics requestMetrics,
                       JSONObject response);

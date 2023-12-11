@@ -20,7 +20,7 @@ public class CollectConfigTest {
     @Test
     public void testNormal(){
         Config.normal();
-        assertTrue(Config.uploadThreshold == 4*1024);
+        assertTrue(Config.uploadThreshold == 16*1024);
         assertTrue(Config.interval == 10);
     }
 

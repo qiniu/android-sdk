@@ -6,6 +6,11 @@ import com.qiniu.android.utils.Utils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * server user config
+ *
+ * @hidden
+ */
 public class ServerUserConfig implements Cache.Object {
 
     private long timestamp;
@@ -15,6 +20,11 @@ public class ServerUserConfig implements Cache.Object {
 
     private JSONObject info;
 
+    /**
+     * 构造函数
+     *
+     * @param info json 数据
+     */
     public ServerUserConfig(JSONObject info) {
         if (info == null) {
             return;
@@ -46,23 +56,48 @@ public class ServerUserConfig implements Cache.Object {
         }
     }
 
+    /**
+     * 获取 json 数据
+     *
+     * @return json 数据
+     */
     @Override
     public JSONObject toJson() {
         return info;
     }
 
+    /**
+     * HTTP/3 是否开启
+     *
+     * @return HTTP/3 是否开启
+     */
     public Boolean getHttp3Enable() {
         return http3Enable;
     }
 
+    /**
+     * 网络检测是否开启
+     *
+     * @return 网络检测是否开启
+     */
     public Boolean getNetworkCheckEnable() {
         return networkCheckEnable;
     }
 
+    /**
+     * 获取 json 信息
+     *
+     * @return json 信息
+     */
     public JSONObject getInfo() {
         return toJson();
     }
 
+    /**
+     * 配置是否有效
+     *
+     * @return 配置是否有效
+     */
     public boolean isValid() {
         return Utils.currentSecondTimestamp() < (this.timestamp + this.ttl);
     }

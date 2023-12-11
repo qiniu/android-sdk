@@ -17,8 +17,14 @@ import java.util.Map;
 
 /**
  * 数据点
+ *
+ * @hidden
  */
 public final class Points {
+
+    private Points() {
+    }
+
     private static String buildString(Object v) {
         if (v == null) {
             return null;
@@ -41,6 +47,14 @@ public final class Points {
         return str;
     }
 
+    /**
+     * formatPoint
+     *
+     * @param data data
+     * @param builder builder
+     * @return StringBuilder
+     * @param <V> V
+     */
     public static <V> StringBuilder formatPoint(Map<String, V> data, StringBuilder builder) {
         for (Map.Entry<String, V> it : data.entrySet()) {
             builder.append(it.getKey()).append("=").append(buildString(it.getValue())).append("\t");
@@ -49,6 +63,13 @@ public final class Points {
         return builder;
     }
 
+    /**
+     * formatPoint
+     *
+     * @param obj obj
+     * @param builder builder
+     * @return StringBuilder
+     */
     public static StringBuilder formatPoint(Object obj, StringBuilder builder) {
         Class cls = obj.getClass();
         java.lang.reflect.Field[] fields = cls.getDeclaredFields();
@@ -67,6 +88,13 @@ public final class Points {
         return formatPoint(map, builder);
     }
 
+    /**
+     * formatPoint
+     *
+     * @param data data
+     * @return StringBuilder
+     * @param <V> V
+     */
     public static <V> StringBuilder formatPoints(Map<String, V>[] data) {
         StringBuilder builder = new StringBuilder();
         for (Map<String, V> aData : data) {
@@ -75,7 +103,12 @@ public final class Points {
         return builder;
     }
 
-
+    /**
+     * formatPoint
+     *
+     * @param data data
+     * @return StringBuilder
+     */
     public static StringBuilder formatPoints(Object[] data) {
         StringBuilder builder = new StringBuilder();
         for (Object aData : data) {
@@ -84,6 +117,13 @@ public final class Points {
         return builder;
     }
 
+    /**
+     * formatPoints
+     *
+     * @param data data
+     * @return StringBuilder
+     * @param <V> V
+     */
     public static <V> StringBuilder formatPoints(List<Map<String, V>> data) {
         StringBuilder builder = new StringBuilder();
         for (Map<String, V> aData : data) {
@@ -93,6 +133,13 @@ public final class Points {
     }
 
 
+    /**
+     * formatPointsObjects
+     *
+     * @param data data
+     * @return StringBuilder
+     * @param <V> V
+     */
     public static <V> StringBuilder formatPointsObjects(List<V> data) {
         StringBuilder builder = new StringBuilder();
         for (Object aData : data) {

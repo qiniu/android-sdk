@@ -8,15 +8,26 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * ZonesInfo
+ */
 public class ZonesInfo implements Cloneable, Cache.Object {
 
     // 临时 zone，不建议长期使用
     private boolean isTemporary;
 
+    /**
+     * zonesInfo
+     */
     public final ArrayList<ZoneInfo> zonesInfo = new ArrayList<>();
 
     private JSONObject jsonInfo;
 
+    /**
+     * 构造函数
+     *
+     * @param jsonObject jsonObject
+     */
     public ZonesInfo(JSONObject jsonObject) {
         if (jsonObject == null) {
             return;
@@ -40,19 +51,41 @@ public class ZonesInfo implements Cloneable, Cache.Object {
         }
     }
 
+    /**
+     * 构造函数
+     *
+     * @param zonesInfo zonesInfo
+     */
     public ZonesInfo(List<ZoneInfo> zonesInfo) {
         this(zonesInfo, false);
     }
 
+    /**
+     * 构造函数，内部使用
+     *
+     * @param zonesInfo   zonesInfo
+     * @param isTemporary 是否临时对象
+     */
     public ZonesInfo(List<ZoneInfo> zonesInfo, boolean isTemporary) {
         this(createJsonWithZoneInfoList(zonesInfo));
         this.isTemporary = isTemporary;
     }
 
+    /**
+     * 构造函数
+     *
+     * @param jsonObject json
+     * @return ZonesInfo
+     */
     public static ZonesInfo createZonesInfo(JSONObject jsonObject) {
         return new ZonesInfo(jsonObject);
     }
 
+    /**
+     * 是否有效
+     *
+     * @return 是否有效
+     */
     public boolean isValid() {
         if (zonesInfo == null || zonesInfo.isEmpty()) {
             return false;
@@ -68,17 +101,31 @@ public class ZonesInfo implements Cloneable, Cache.Object {
         return valid;
     }
 
+    /**
+     * 是否是临时对象
+     *
+     * @return 是否是临时对象
+     */
     @Deprecated
     // 是否为临时 zone, 临时 zone，不建议长期使用
     public boolean isTemporary() {
         return isTemporary;
     }
 
+    /**
+     * 转为临时对象
+     */
     @Deprecated
     public void toTemporary() {
         isTemporary = true;
     }
 
+    /**
+     * clone
+     *
+     * @return Object
+     * @throws CloneNotSupportedException 异常
+     */
     @Override
     protected Object clone() throws CloneNotSupportedException {
         ArrayList<ZoneInfo> infos = new ArrayList<>();
@@ -92,6 +139,11 @@ public class ZonesInfo implements Cloneable, Cache.Object {
         return info;
     }
 
+    /**
+     * 转 json
+     *
+     * @return json
+     */
     @Override
     public JSONObject toJson() {
         return jsonInfo;

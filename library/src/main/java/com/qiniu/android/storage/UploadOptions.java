@@ -48,6 +48,15 @@ public final class UploadOptions {
      */
     public final NetReadyHandler netReadyHandler;
 
+    /**
+     * 构造函数
+     *
+     * @param params             参数
+     * @param mimeType           mime type
+     * @param checkCrc           是否验证文件上传前后的一致性
+     * @param progressHandler    进度回调
+     * @param cancellationSignal 取消函数
+     */
     public UploadOptions(Map<String, String> params,
                          String mimeType,
                          boolean checkCrc,
@@ -56,15 +65,36 @@ public final class UploadOptions {
         this(params, mimeType, checkCrc, progressHandler, cancellationSignal, null);
     }
 
+    /**
+     * 构造函数
+     *
+     * @param params             参数
+     * @param mimeType           mime type
+     * @param checkCrc           是否验证文件上传前后的一致性
+     * @param progressHandler    进度回调
+     * @param cancellationSignal 取消函数
+     * @param netReadyHandler    网络准备回调
+     */
     public UploadOptions(final Map<String, String> params,
                          String mimeType,
                          boolean checkCrc,
                          UpProgressHandler progressHandler,
                          UpCancellationSignal cancellationSignal,
                          NetReadyHandler netReadyHandler) {
-            this(params, null, mimeType, checkCrc, progressHandler, cancellationSignal, netReadyHandler);
+        this(params, null, mimeType, checkCrc, progressHandler, cancellationSignal, netReadyHandler);
     }
 
+    /**
+     * 构造函数
+     *
+     * @param params             参数
+     * @param metaDataParam      meta data
+     * @param mimeType           mime type
+     * @param checkCrc           是否验证文件上传前后的一致性
+     * @param progressHandler    进度回调
+     * @param cancellationSignal 取消函数
+     * @param netReadyHandler    网络准备回调
+     */
     public UploadOptions(final Map<String, String> params,
                          final Map<String, String> metaDataParam,
                          String mimeType,
@@ -79,7 +109,8 @@ public final class UploadOptions {
             if (netCheckTime != null) {
                 netReadyCheckTime = Integer.parseInt(netCheckTime);
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
         this.params = filterParam(params);
         this.metaDataParam = filterMetaDataParam(metaDataParam);
         this.mimeType = mime(mimeType);
@@ -157,7 +188,11 @@ public final class UploadOptions {
         return ret;
     }
 
-
+    /**
+     * 默认可选属性
+     *
+     * @return UploadOptions
+     */
     public static UploadOptions defaultOptions() {
         return new UploadOptions(null, null, false, null, null);
     }

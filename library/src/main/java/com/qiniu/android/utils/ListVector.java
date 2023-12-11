@@ -6,16 +6,36 @@ import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+/**
+ * ListVector
+ *
+ * @param <E> 元素类型
+ * @hidden
+ */
 public class ListVector<E> extends Vector<E> {
 
+    /**
+     * 构造函数
+     */
     public ListVector() {
         super();
     }
 
+    /**
+     * 构造函数
+     *
+     * @param initialCapacity   initialCapacity
+     * @param capacityIncrement capacityIncrement
+     */
     public ListVector(int initialCapacity, int capacityIncrement) {
         super(initialCapacity, capacityIncrement);
     }
 
+    /**
+     * 对象遍历
+     *
+     * @param handler handler
+     */
     public synchronized void enumerateObjects(EnumeratorHandler<? super E> handler) {
         if (handler == null) {
             return;
@@ -30,6 +50,13 @@ public class ListVector<E> extends Vector<E> {
         }
     }
 
+    /**
+     * create subList
+     *
+     * @param fromIndex low endpoint (inclusive) of the subList
+     * @param toIndex   high endpoint (exclusive) of the subList
+     * @return subList
+     */
     @Override
     public synchronized ListVector<E> subList(int fromIndex, int toIndex) {
         ListVector listVector = new ListVector<E>();
@@ -44,7 +71,20 @@ public class ListVector<E> extends Vector<E> {
         return listVector;
     }
 
+    /**
+     * EnumeratorHandler
+     *
+     * @param <T> enumerate 对象的类型
+     * @hidden
+     */
     public interface EnumeratorHandler<T> {
+
+        /**
+         * enumerate
+         *
+         * @param t T
+         * @return stop
+         */
         boolean enumerate(T t);
     }
 }

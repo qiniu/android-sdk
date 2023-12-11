@@ -15,22 +15,50 @@ public class LogUtil {
     private static boolean enableFile = true;
     private static boolean enableFunction = false;
 
+    private LogUtil() {
+    }
+
+    /**
+     * 开启日志
+     *
+     * @param enable 是否开启日志
+     */
     public static void enableLog(boolean enable) {
         enableLog = enable;
     }
 
+    /**
+     * 日志中是否包含 Date
+     *
+     * @param enable 是否包含 Date
+     */
     public static void enableDate(boolean enable) {
         enableDate = enable;
     }
 
+    /**
+     * 日志中是否包含 File
+     *
+     * @param enable 是否包含 File
+     */
     public static void enableFile(boolean enable) {
         enableFile = enable;
     }
 
+    /**
+     * 日志中是否包含 Function
+     *
+     * @param enable 是否包含 Function
+     */
     public static void enableFunction(boolean enable) {
         enableFunction = enable;
     }
 
+    /**
+     * 设置日志等级
+     *
+     * @param level 日志等级
+     */
     public static void setLogLevel(int level) {
         logLevel = level;
     }
@@ -39,6 +67,7 @@ public class LogUtil {
      * Send a VERBOSE log message.
      *
      * @param msg The message you would like logged.
+     * @return int
      */
     public static int v(String msg) {
         return println(Log.VERBOSE, null, msg, null);
@@ -50,6 +79,7 @@ public class LogUtil {
      * @param tag Used to identify the source of a log message.  It usually identifies
      *            the class or activity where the log call occurs.
      * @param msg The message you would like logged.
+     * @return int
      */
     public static int v(String tag, String msg) {
         return println(Log.VERBOSE, tag, msg, null);
@@ -62,6 +92,7 @@ public class LogUtil {
      *            the class or activity where the log call occurs.
      * @param msg The message you would like logged.
      * @param tr  An exception to log
+     * @return int
      */
     public static int v(String tag, String msg, Throwable tr) {
         return println(Log.VERBOSE, tag, msg, tr);
@@ -71,6 +102,7 @@ public class LogUtil {
      * Send a DEBUG log message.
      *
      * @param msg The message you would like logged.
+     * @return int
      */
     public static int d(String msg) {
         return println(Log.DEBUG, null, msg, null);
@@ -82,6 +114,7 @@ public class LogUtil {
      * @param tag Used to identify the source of a log message.  It usually identifies
      *            the class or activity where the log call occurs.
      * @param msg The message you would like logged.
+     * @return int
      */
     public static int d(String tag, String msg) {
         return println(Log.DEBUG, tag, msg, null);
@@ -94,6 +127,7 @@ public class LogUtil {
      *            the class or activity where the log call occurs.
      * @param msg The message you would like logged.
      * @param tr  An exception to log
+     * @return int
      */
     public static int d(String tag, String msg, Throwable tr) {
         return println(Log.DEBUG, tag, msg, tr);
@@ -103,6 +137,7 @@ public class LogUtil {
      * Send an INFO log message.
      *
      * @param msg The message you would like logged.
+     * @return int
      */
     public static int i(String msg) {
         return println(Log.INFO, null, msg, null);
@@ -114,6 +149,7 @@ public class LogUtil {
      * @param tag Used to identify the source of a log message.  It usually identifies
      *            the class or activity where the log call occurs.
      * @param msg The message you would like logged.
+     * @return int
      */
     public static int i(String tag, String msg) {
         return println(Log.INFO, tag, msg, null);
@@ -126,6 +162,7 @@ public class LogUtil {
      *            the class or activity where the log call occurs.
      * @param msg The message you would like logged.
      * @param tr  An exception to log
+     * @return int
      */
     public static int i(String tag, String msg, Throwable tr) {
         return println(Log.INFO, tag, msg, tr);
@@ -135,6 +172,7 @@ public class LogUtil {
      * Send a WARN log message.
      *
      * @param msg The message you would like logged.
+     * @return int
      */
     public static int w(String msg) {
         return println(Log.WARN, null, msg, null);
@@ -146,6 +184,7 @@ public class LogUtil {
      * @param tag Used to identify the source of a log message.  It usually identifies
      *            the class or activity where the log call occurs.
      * @param msg The message you would like logged.
+     * @return int
      */
     public static int w(String tag, String msg) {
         return println(Log.WARN, tag, msg, null);
@@ -158,16 +197,19 @@ public class LogUtil {
      *            the class or activity where the log call occurs.
      * @param msg The message you would like logged.
      * @param tr  An exception to log
+     * @return int
      */
     public static int w(String tag, String msg, Throwable tr) {
         return println(Log.WARN, tag, msg, tr);
     }
 
-    /*
+    /**
      * Send a WARN log message and log the exception.
+     *
      * @param tag Used to identify the source of a log message.  It usually identifies
-     *        the class or activity where the log call occurs.
-     * @param tr An exception to log
+     *            the class or activity where the log call occurs.
+     * @param tr  An exception to log
+     * @return int
      */
     public static int w(String tag, Throwable tr) {
         return println(Log.WARN, tag, null, tr);
@@ -177,6 +219,7 @@ public class LogUtil {
      * Send an ERROR log message.
      *
      * @param msg The message you would like logged.
+     * @return int
      */
     public static int e(String msg) {
         return println(Log.ERROR, null, msg, null);
@@ -188,6 +231,7 @@ public class LogUtil {
      * @param tag Used to identify the source of a log message.  It usually identifies
      *            the class or activity where the log call occurs.
      * @param msg The message you would like logged.
+     * @return int
      */
     public static int e(String tag, String msg) {
         return println(Log.ERROR, tag, msg, null);
@@ -200,6 +244,7 @@ public class LogUtil {
      *            the class or activity where the log call occurs.
      * @param msg The message you would like logged.
      * @param tr  An exception to log
+     * @return int
      */
     public static int e(String tag, String msg, Throwable tr) {
         return println(Log.ERROR, tag, msg, tr);

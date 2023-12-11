@@ -26,29 +26,44 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
-
+/**
+ * 上传类
+ */
 public class UploadManager {
 
     private final Configuration config;
 
-
+    /**
+     * 构造函数
+     *
+     * @param recorder 文件上传进度记录，可实现断点续传
+     */
     public UploadManager(Recorder recorder) {
         this(recorder, null);
     }
 
+    /**
+     * 构造函数
+     *
+     * @param recorder 文件上传进度记录，可实现断点续传
+     * @param keyGen   上传文件上传进度对应记录缓存的 key 生成器
+     */
     public UploadManager(Recorder recorder, KeyGenerator keyGen) {
         this(new Configuration.Builder().recorder(recorder, keyGen).build());
     }
 
     /**
-     * default 1 Threads
+     * 构造函数
+     * 默认为串行
      */
     public UploadManager() {
         this(new Configuration.Builder().build());
     }
 
     /**
-     * @param config Configuration, default 1 Thread
+     * 构造函数
+     *
+     * @param config Configuration, 默认为串行
      */
     public UploadManager(Configuration config) {
         this.config = config != null ? config : new Configuration.Builder().build();
@@ -174,7 +189,7 @@ public class UploadManager {
     }
 
     /**
-     * 同步上传文件。使用 form 表单方式上传，建议只在数据较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     * 同步上传文件。使用 form 表单方式上传，建议只在数据较小情况下使用此方式，如 file.size() 小于 1024 * 1024。
      * 注：切勿在主线程调用
      *
      * @param data    上传的数据
@@ -215,7 +230,7 @@ public class UploadManager {
     }
 
     /**
-     * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() 小于 1024 * 1024。
      * 注：切勿在主线程调用
      *
      * @param file    上传的文件绝对路径
@@ -229,7 +244,7 @@ public class UploadManager {
     }
 
     /**
-     * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() 小于 1024 * 1024。
      * 注：切勿在主线程调用
      *
      * @param file    上传的文件对象
@@ -243,7 +258,7 @@ public class UploadManager {
     }
 
     /**
-     * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() 小于 1024 * 1024。
      * 注：切勿在主线程调用
      *
      * @param uri      上传的文件对象 Uri
@@ -265,7 +280,7 @@ public class UploadManager {
     }
 
     /**
-     * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() < 1024 * 1024。
+     * 同步上传文件。使用 form 表单方式上传，建议只在文件较小情况下使用此方式，如 file.size() 小于 1024 * 1024。
      * 注：切勿在主线程调用
      *
      * @param inputStream 上传的资源流
@@ -522,7 +537,7 @@ public class UploadManager {
         } else if (source instanceof byte[]) {
             fileSize = ((byte[]) source).length;
         }
-        item.setReport((Long)fileSize, ReportItem.QualityKeyFileSize);
+        item.setReport((Long) fileSize, ReportItem.QualityKeyFileSize);
 
         // 统计当前文件上传速度，也即用户感知速度： 总文件大小 / 总耗时
         if (source != null && responseInfo.isOK() && taskMetrics.totalElapsedTime() > 0) {

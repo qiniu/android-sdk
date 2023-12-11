@@ -40,23 +40,50 @@ public final class AutoZone extends Zone {
             .setVersion("v1")
             .builder();
 
-    //私有云可能改变ucServer
+    /**
+     * 构造函数
+     */
+    public AutoZone() {
+    }
+
+    /**
+     * 配置 UC 域名，此 UC 域名用于根据上传 bucket 查询对应的区域。
+     * 公有云不用配置
+     *
+     * @param ucServer UC 域名
+     */
     public void setUcServer(String ucServer) {
         if (ucServer != null) {
             this.ucServers = new String[]{ucServer};
         }
     }
 
+    /**
+     * 配置 UC 域名，此 UC 域名用于根据上传 bucket 查询对应的区域。
+     * 公有云不用配置
+     *
+     * @param ucServers UC 域名，可以是多个，多个会进行主备重试
+     */
     public void setUcServers(String[] ucServers) {
         if (ucServers != null && ucServers.length > 0) {
             this.ucServers = ucServers;
         }
     }
 
+    /**
+     * 配置默认区域，在使用 AutoZone 进行上传时，当根据 bucket 查询 Zone 信息失败时如果默认区域存在会尝试使用默认区域进行上传。
+     *
+     * @param zones 默认区域，可以是多个
+     */
     public void setDefaultZones(FixedZone[] zones) {
         defaultZone = FixedZone.combineZones(zones);
     }
 
+    /**
+     * 获取 UC 域名列表
+     *
+     * @return UC 域名列表
+     */
     public List<String> getUcServerList() {
         if (ucServers != null && ucServers.length > 0) {
             ArrayList<String> serverList = new ArrayList<>();
@@ -67,6 +94,9 @@ public final class AutoZone extends Zone {
         }
     }
 
+    /**
+     * 清除区域存储缓存
+     */
     public static void clearCache() {
         zoneCache.clearMemoryCache();
         zoneCache.clearDiskCache();
@@ -106,7 +136,7 @@ public final class AutoZone extends Zone {
         UploadRegionRequestMetrics localMetrics = new UploadRegionRequestMetrics(null);
         localMetrics.start();
 
-        final String cacheKey = makeCacheKey(token.index()) ;
+        final String cacheKey = makeCacheKey(token.index());
 
         ZonesInfo zonesInfo = null;
         Cache.Object object = zoneCache.cacheForKey(cacheKey);
@@ -197,7 +227,7 @@ public final class AutoZone extends Zone {
             hosts.append(host).append(":");
         }
 
-        return UrlSafeBase64.encodeToString(hosts+akAndBucket);
+        return UrlSafeBase64.encodeToString(hosts + akAndBucket);
     }
 
     private RequestTransaction createUploadRequestTransaction(UpToken token) {

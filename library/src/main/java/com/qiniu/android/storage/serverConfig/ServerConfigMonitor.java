@@ -8,6 +8,9 @@ import com.qiniu.android.transaction.TransactionManager;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * 服务控制监控
+ */
 public class ServerConfigMonitor {
     private static final String TransactionKey = "ServerConfig";
 
@@ -15,23 +18,46 @@ public class ServerConfigMonitor {
     private final ServerConfigCache cache = new ServerConfigCache();
     private static final ServerConfigMonitor configMonitor = new ServerConfigMonitor();
 
+    private ServerConfigMonitor() {
+    }
+
+    /**
+     * 是否开启
+     *
+     * @param enable 是否开启
+     */
     public static void setEnable(boolean enable) {
         configMonitor.enable = enable;
     }
 
+    /**
+     * 配置上传 Token，SDK 会在上传文件时自动配置
+     *
+     * @param token 上传 Token
+     */
     public static void setToken(String token) {
         ServerConfigSynchronizer.setToken(token);
     }
 
+    /**
+     * 配置 server hosts
+     *
+     * @param hosts hosts
+     */
     public static void setServerHosts(String[] hosts) {
         ServerConfigSynchronizer.setHosts(hosts);
     }
 
+    /**
+     * 清理配置缓存
+     */
     public static void removeConfigCache() {
         configMonitor.cache.removeConfigCache();
     }
 
-    // 开始监控
+    /**
+     * 开始监控
+     */
     public synchronized static void startMonitor() {
         if (!configMonitor.enable) {
             return;
@@ -54,7 +80,9 @@ public class ServerConfigMonitor {
         transactionManager.addTransaction(transaction);
     }
 
-    // 停止监控
+    /**
+     * 停止监控
+     */
     public synchronized static void endMonitor() {
         TransactionManager transactionManager = TransactionManager.getInstance();
         List<TransactionManager.Transaction> transactions = transactionManager.transactionsForName(TransactionKey);

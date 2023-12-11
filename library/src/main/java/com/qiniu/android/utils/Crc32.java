@@ -7,8 +7,13 @@ import java.util.zip.CRC32;
 
 /**
  * 计算文件或二进制数据的crc32校验码
+ *
+ * @hidden
  */
 public final class Crc32 {
+
+    private Crc32() {
+    }
 
     /**
      * 计算二进制字节校验码

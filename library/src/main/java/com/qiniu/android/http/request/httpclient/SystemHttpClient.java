@@ -50,11 +50,31 @@ import okhttp3.Response;
 
 import static com.qiniu.android.http.ResponseInfo.NetworkError;
 
+/**
+ * system client
+ *
+ * @hidden
+ */
 public class SystemHttpClient extends IRequestClient {
 
+    /**
+     * 请求头 key：Content-Type
+     */
     public static final String ContentTypeHeader = "Content-Type";
+
+    /**
+     * 默认请求的 Content-Type
+     */
     public static final String DefaultMime = "application/octet-stream";
+
+    /**
+     * 请求体为 Json 的 Content-Type
+     */
     public static final String JsonMime = "application/json";
+
+    /**
+     * 表单请求的 Content-Type
+     */
     public static final String FormMime = "application/x-www-form-urlencoded";
 
     private boolean hasHandleComplete = false;
@@ -68,6 +88,22 @@ public class SystemHttpClient extends IRequestClient {
     private Progress requestProgress;
     private CompleteHandler completeHandler;
 
+    /**
+     * 构造函数
+     * 内部使用，禁止外部调用
+     */
+    public SystemHttpClient() {
+    }
+
+    /**
+     * 构造函数
+     *
+     * @param request         请求
+     * @param isAsync         是否异步
+     * @param connectionProxy 代理
+     * @param progress        进度回调
+     * @param complete        完成回调
+     */
     public void request(Request request,
                         boolean isAsync,
                         ProxyConfiguration connectionProxy,
@@ -76,6 +112,14 @@ public class SystemHttpClient extends IRequestClient {
         request(request, new Options(null, isAsync, connectionProxy), progress, complete);
     }
 
+    /**
+     * 构造函数
+     *
+     * @param request  请求信息
+     * @param options  可选信息
+     * @param progress 进度回调
+     * @param complete 完成回调
+     */
     @Override
     public void request(Request request,
                         Options options,
@@ -156,6 +200,9 @@ public class SystemHttpClient extends IRequestClient {
         }
     }
 
+    /**
+     * 取消请求
+     */
     @Override
     public synchronized void cancel() {
         if (call != null && !call.isCanceled()) {
@@ -163,6 +210,11 @@ public class SystemHttpClient extends IRequestClient {
         }
     }
 
+    /**
+     * client id
+     *
+     * @return client id
+     */
     @Override
     public String getClientId() {
         return "okhttp";

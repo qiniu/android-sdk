@@ -5,19 +5,34 @@ import com.qiniu.android.utils.Utils;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * HttpServerManager
+ *
+ * @hidden
+ */
 public class HttpServerManager {
     private ConcurrentHashMap<String, Long> serversInfo = new ConcurrentHashMap<>();
     private final static HttpServerManager manager = new HttpServerManager();
 
+    private HttpServerManager() {
+    }
+
+    /**
+     * 单例对象
+     *
+     * @return 单例对象
+     */
     public static HttpServerManager getInstance() {
         return manager;
     }
 
     /**
      * 添加支持 http3 的 Host/ip 组合
-     * @param host 支持 http3 的 Host
-     * @param ip 支持 http3 Host 对应的 ip
+     *
+     * @param host         支持 http3 的 Host
+     * @param ip           支持 http3 Host 对应的 ip
      * @param liveDuration 有效时间 单位: 秒
+     * @return 是否添加
      */
     public boolean addHttp3Server(String host, String ip, int liveDuration) {
         if (host == null || host.length() == 0 || ip == null || ip.length() == 0 || liveDuration < 0) {
@@ -32,8 +47,10 @@ public class HttpServerManager {
 
     /**
      * Host/ip 组合是否支持 http3
+     *
      * @param host host
-     * @param ip ip
+     * @param ip   ip
+     * @return 是否支持 http3
      */
     public boolean isServerSupportHttp3(String host, String ip) {
         if (host == null || host.length() == 0 || ip == null || ip.length() == 0) {

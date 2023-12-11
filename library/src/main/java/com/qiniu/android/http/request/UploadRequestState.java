@@ -1,12 +1,28 @@
 package com.qiniu.android.http.request;
 
+/**
+ * 上传状态
+ *
+ * @hidden
+ */
 public class UploadRequestState {
 
     private boolean couldUseHttp3;
     private boolean isUseOldServer;
     private boolean isUserCancel;
 
-    public boolean couldUseHttp3(){
+    /**
+     * 构造函数
+     */
+    public UploadRequestState() {
+    }
+
+    /**
+     * 是否可以使用 HTTP/3
+     *
+     * @return 是否可以使用 HTTP/3
+     */
+    public boolean couldUseHttp3() {
         return couldUseHttp3;
     }
 
@@ -14,7 +30,7 @@ public class UploadRequestState {
         this.couldUseHttp3 = couldUseHttp3;
     }
 
-    boolean isUserCancel(){
+    boolean isUserCancel() {
         return isUserCancel;
     }
 
@@ -22,14 +38,29 @@ public class UploadRequestState {
         this.isUserCancel = isUserCancel;
     }
 
+    /**
+     * 是否使用支持 sni 的域名
+     *
+     * @return 是否使用支持 sni 的域名
+     */
     public boolean isUseOldServer() {
         return isUseOldServer;
     }
 
+    /**
+     * 设置是否使用支持 sni 的域名
+     *
+     * @param useOldServer 是否使用支持 sni 的域名
+     */
     public void setUseOldServer(boolean useOldServer) {
         isUseOldServer = useOldServer;
     }
 
+    /**
+     * clone
+     *
+     * @return clone 后的对象
+     */
     protected UploadRequestState clone() {
         UploadRequestState state = new UploadRequestState();
         state.isUseOldServer = isUseOldServer;

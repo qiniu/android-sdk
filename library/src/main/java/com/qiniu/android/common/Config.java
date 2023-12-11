@@ -6,10 +6,12 @@ import com.qiniu.android.utils.ContextGetter;
  * Created by Simon on 11/22/16.
  */
 public final class Config {
+
     /**
      * 上传信息收集文件的地址 只保留域名部分 eg：uplog.qbox.me
      */
     public final static String upLogURL = "uplog.qbox.me";
+
     /**
      * 是否记录上传状态信息。 true 表示记录，false 表示不记录。
      * <p>
@@ -20,6 +22,7 @@ public final class Config {
      * 记录文件大小 大于 maxRecordFileSize 时, 则暂停记录信息。
      */
     public static boolean isRecord = true;
+
     /**
      * 是否上传记录的上传状态信息。true 表示上传，false 表示不上传。
      * <p>
@@ -32,6 +35,7 @@ public final class Config {
      * 上传成功后，清空记录文件文件
      */
     public static boolean isUpload = true;
+
     /**
      * 上传信息记录文件保存的目录， 绝对路径。
      * 默认使用当前应用的缓存目录： getCacheDir()
@@ -49,7 +53,7 @@ public final class Config {
 
     /**
      * 记录上传信息文件最大值，单位：字节。
-     *
+     * <p>
      * 记录文件大于此值后暂停记录上传信息。
      */
     public static int maxRecordFileSize = 20 * 1024 * 1024;
@@ -69,10 +73,27 @@ public final class Config {
      * preQuery host
      */
     public static String preQueryHost00 = "uc.qiniuapi.com";
+
+    /**
+     * preQuery host
+     */
     public static String preQueryHost01 = "kodo-config.qiniuapi.com";
+
+    /**
+     * preQuery host
+     */
     public static String preQueryHost02 = "uc.qbox.me";
+
+    /**
+     * preQuery host
+     */
     public static String preQueryHost03 = "api.qiniu.com";
 
+    /**
+     * 获取 preQuery hosts
+     *
+     * @return preQuery hosts
+     */
     public static String[] preQueryHosts() {
         return new String[]{preQueryHost00, preQueryHost01, preQueryHost02, preQueryHost03};
     }
@@ -85,8 +106,11 @@ public final class Config {
         interval = 2;
     }
 
+    /**
+     * 标准设置
+     */
     public static void normal() {
-        uploadThreshold = 4 * 1024;
+        uploadThreshold = 16 * 1024;
         interval = 10;
     }
 
@@ -96,5 +120,8 @@ public final class Config {
     public static void slow() {
         uploadThreshold = 150 * 1024;
         interval = 300;
+    }
+
+    private Config() {
     }
 }

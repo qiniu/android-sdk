@@ -11,13 +11,32 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Created by jemy on 2019/9/23.
+ *
+ * @hidden
  */
 public class DnsCacheInfo implements java.io.Serializable {
 
+    /**
+     * DNS 缓存时间
+     */
     private String currentTime;
+
+    /**
+     * 本地 IP
+     */
     private String localIp;
+
+    /**
+     * DNS 解析结果
+     */
     private ConcurrentHashMap<String, List<IDnsNetworkAddress>> info;
 
+    /**
+     * 根据 json 数据构造 DnsCacheInfo
+     *
+     * @param jsonData json 数据
+     * @return DnsCacheInfo
+     */
     public static DnsCacheInfo createDnsCacheInfoByData(byte[] jsonData) {
         if (jsonData == null) {
             return null;
@@ -49,7 +68,7 @@ public class DnsCacheInfo implements java.io.Serializable {
         } catch (Exception ignored) {
         }
 
-        if (currentTime == null || localIp == null || infoMapJSONObject == null){
+        if (currentTime == null || localIp == null || infoMapJSONObject == null) {
             return null;
         }
 
@@ -62,7 +81,7 @@ public class DnsCacheInfo implements java.io.Serializable {
                     DnsNetworkAddress address = DnsNetworkAddress.address(addressJSONArray.getJSONObject(i));
                     addressList.add(address);
                 }
-                if (addressList.size() > 0){
+                if (addressList.size() > 0) {
                     info.put(key, addressList);
                 }
             } catch (Exception ignored) {
@@ -72,9 +91,19 @@ public class DnsCacheInfo implements java.io.Serializable {
         return new DnsCacheInfo(currentTime, localIp, info);
     }
 
+    /**
+     * 构造方法
+     */
     public DnsCacheInfo() {
     }
 
+    /**
+     * 构造方法
+     *
+     * @param currentTime 当前时间
+     * @param localIp     本地 IP
+     * @param info        DNS 缓存数据
+     */
     public DnsCacheInfo(String currentTime, String localIp, ConcurrentHashMap<String, List<IDnsNetworkAddress>> info) {
         this.currentTime = currentTime;
         this.localIp = localIp;
@@ -89,6 +118,11 @@ public class DnsCacheInfo implements java.io.Serializable {
         return localIp;
     }
 
+    /**
+     * 获取缓存数据
+     *
+     * @return 缓存数据
+     */
     public ConcurrentHashMap<String, List<IDnsNetworkAddress>> getInfo() {
         return info;
     }
@@ -101,14 +135,29 @@ public class DnsCacheInfo implements java.io.Serializable {
         this.localIp = localIp;
     }
 
+    /**
+     * 设置缓存数据
+     *
+     * @param info 缓存数据
+     */
     public void setInfo(ConcurrentHashMap<String, List<IDnsNetworkAddress>> info) {
         this.info = info;
     }
 
+    /**
+     * 获取缓存的 key
+     *
+     * @return 缓存的 key
+     */
     public String cacheKey() {
         return localIp;
     }
 
+    /**
+     * 获取缓存的 json byte 数据
+     *
+     * @return 缓存的 json byte 数据
+     */
     public byte[] toJsonData() {
         JSONObject cacheInfoJSONObject = new JSONObject();
         try {
@@ -150,6 +199,11 @@ public class DnsCacheInfo implements java.io.Serializable {
         return cacheInfoJSONObject.toString().getBytes();
     }
 
+    /**
+     * toString
+     *
+     * @return String 信息
+     */
     @Override
     public String toString() {
         return "{\"currentTime\":\"" + currentTime + "\", \"localIp\":\"" + localIp + "\"}";

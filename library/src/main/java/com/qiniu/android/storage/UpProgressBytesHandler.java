@@ -1,6 +1,10 @@
 package com.qiniu.android.storage;
 
+/**
+ * UpProgressBytesHandler
+ */
 public interface UpProgressBytesHandler extends UpProgressHandler {
+
     /**
      * 用户自定义进度处理类必须实现的方法
      * 注：
