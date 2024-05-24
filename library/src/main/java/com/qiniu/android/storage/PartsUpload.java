@@ -84,7 +84,7 @@ class PartsUpload extends BaseUpload {
             LogUtil.i("key:" + StringUtils.toNonnullString(key) + " region:" + StringUtils.toNonnullString(uploadPerformer.currentRegion.getZoneInfo().regionId));
         }
 
-        if (!uploadPerformer.canReadFile()) {
+        if (uploadPerformer == null || !uploadPerformer.canReadFile()) {
             code = ResponseInfo.LocalIOError;
         }
 

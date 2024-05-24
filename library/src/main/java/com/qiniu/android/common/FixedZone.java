@@ -1,5 +1,8 @@
 package com.qiniu.android.common;
 
+import com.qiniu.android.http.ResponseInfo;
+import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 
 import java.util.ArrayList;
@@ -210,6 +213,13 @@ public final class FixedZone extends Zone {
     public void preQuery(UpToken token, QueryHandler completeHandler) {
         if (completeHandler != null) {
             completeHandler.complete(0, null, null);
+        }
+    }
+
+    @Override
+    public void preQuery(Configuration configuration, UpToken token, QueryHandlerV2 completeHandler) {
+        if (completeHandler != null) {
+            completeHandler.complete(null, null, zonesInfo);
         }
     }
 }

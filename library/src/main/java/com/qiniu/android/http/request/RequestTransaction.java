@@ -85,7 +85,7 @@ public class RequestTransaction {
                               String key,
                               UpToken token) {
         this(config, uploadOption, key, token);
-        IUploadRegion region = new UploadDomainRegion();
+        IUploadRegion region = new UploadDomainRegion(config);
         region.setupRegionData(ZoneInfo.buildInfo(hosts, regionId));
         this.initData(region, region);
     }

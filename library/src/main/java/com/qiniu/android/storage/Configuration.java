@@ -93,6 +93,11 @@ public final class Configuration {
     public final int concurrentTaskCount;
 
     /**
+     * 是否允许使用加速域名，默认为 false
+     */
+    public final boolean accelerateUploading;
+
+    /**
      * 重试时是否允许使用备用上传域名，默认为true
      */
     public final boolean allowBackupHost;
@@ -152,6 +157,7 @@ public final class Configuration {
         retryInterval = builder.retryInterval;
 
         allowBackupHost = builder.allowBackupHost;
+        accelerateUploading = builder.accelerateUploading;
 
         proxy = builder.proxy;
 
@@ -200,6 +206,7 @@ public final class Configuration {
         private int responseTimeout = 10;
         private int retryMax = 1;
         private int retryInterval = 500;
+        private boolean accelerateUploading = false;
         private boolean allowBackupHost = true;
         private UrlConverter urlConverter = null;
         private boolean useConcurrentResumeUpload = false;
@@ -343,6 +350,18 @@ public final class Configuration {
          */
         public Builder retryInterval(int retryInterval) {
             this.retryInterval = retryInterval;
+            return this;
+        }
+
+        /**
+         * 配置是否允许使用加速域名
+         * 注：加速域名会额外收费
+         *
+         * @param isAllow 是否允许使用加速域名
+         * @return Builder
+         */
+        public Builder accelerateUploading(boolean isAllow) {
+            this.accelerateUploading = isAllow;
             return this;
         }
 

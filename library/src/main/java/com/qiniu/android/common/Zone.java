@@ -2,6 +2,7 @@ package com.qiniu.android.common;
 
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 
 /**
@@ -29,7 +30,17 @@ public abstract class Zone {
      * @param token           上传 token
      * @param completeHandler 预查询结束回调
      */
+    @Deprecated
     public abstract void preQuery(UpToken token, QueryHandler completeHandler);
+
+    /**
+     * 根据上传 token 对区域进行预查询
+     *
+     * @param configuration   配置信息
+     * @param token           上传 token
+     * @param completeHandler 预查询结束回调
+     */
+    public abstract void preQuery(Configuration configuration, UpToken token, final QueryHandlerV2 completeHandler);
 
     /**
      * 预查询结束回调
@@ -43,5 +54,18 @@ public abstract class Zone {
          * @param metrics      查询指标
          */
         void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics);
+    }
+
+    /**
+     * 预查询结束回调
+     */
+    public interface QueryHandlerV2 {
+        /**
+         * 预查询结束回调
+         *
+         * @param responseInfo 查询响应
+         * @param metrics      查询指标
+         */
+        void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics metrics, ZonesInfo zonesInfo);
     }
 }

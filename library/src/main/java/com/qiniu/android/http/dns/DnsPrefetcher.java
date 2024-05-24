@@ -6,9 +6,11 @@ import com.qiniu.android.common.ZoneInfo;
 import com.qiniu.android.common.ZonesInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
+import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.GlobalConfiguration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.AndroidNetwork;
+import com.qiniu.android.utils.ListUtils;
 import com.qiniu.android.utils.Utils;
 import com.qiniu.android.utils.Wait;
 
@@ -95,8 +97,13 @@ public class DnsPrefetcher {
      * @param token       上传 Token
      * @return 是否配置成功
      */
+    @Deprecated
     public boolean checkAndPrefetchDnsIfNeed(Zone currentZone, UpToken token) {
-        return addPreFetchHosts(getCurrentZoneHosts(currentZone, token));
+        return checkAndPrefetchDnsIfNeed(null, currentZone, token);
+    }
+
+    public boolean checkAndPrefetchDnsIfNeed(Configuration configuration, Zone currentZone, UpToken token) {
+        return addPreFetchHosts(getCurrentZoneHosts(configuration, currentZone, token));
     }
 
     /**
@@ -440,25 +447,31 @@ public class DnsPrefetcher {
         return new String[]{Config.upLogURL};
     }
 
-    private String[] getCurrentZoneHosts(Zone currentZone, UpToken token) {
+    private String[] getCurrentZoneHosts(Configuration configuration, Zone currentZone, UpToken token) {
         if (currentZone == null || token == null) {
             return null;
         }
 
         final Wait wait = new Wait();
 
-        currentZone.preQuery(token, new Zone.QueryHandler() {
+        final ZonesInfo[] zonesInfoArray = {null};
+        currentZone.preQuery(configuration, token, new Zone.QueryHandlerV2() {
             @Override
-            public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics metrics) {
+            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics metrics, ZonesInfo zonesInfo) {
+                zonesInfoArray[0] = zonesInfo;
                 wait.stopWait();
             }
         });
 
         wait.startWait();
 
-        ZonesInfo autoZonesInfo = currentZone.getZonesInfo(token);
+        if (zonesInfoArray[0] == null) {
+            return new String[]{};
+        }
+
+        ZonesInfo autoZonesInfo = zonesInfoArray[0];
         ArrayList<String> autoHosts = new ArrayList<>();
-        if (autoZonesInfo != null && autoZonesInfo.zonesInfo != null && autoZonesInfo.zonesInfo.size() > 0) {
+        if (!ListUtils.isEmpty(autoZonesInfo.zonesInfo)) {
             for (ZoneInfo zoneInfo : autoZonesInfo.zonesInfo) {
                 if (zoneInfo != null && zoneInfo.allHosts != null) {
                     autoHosts.addAll(zoneInfo.allHosts);
@@ -474,6 +487,7 @@ public class DnsPrefetcher {
 
     /**
      * 获取 Dns 配置是否打开
+     *
      * @return Dns 配置是否打开
      */
     public boolean isDnsOpen() {

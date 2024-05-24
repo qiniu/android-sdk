@@ -181,7 +181,7 @@ abstract class PartsUploadPerformer {
 
                 recoverUploadInfo.checkInfoStateAndUpdate();
                 uploadInfo = recoverUploadInfo;
-                UploadDomainRegion region = new UploadDomainRegion();
+                UploadDomainRegion region = new UploadDomainRegion(config);
                 region.setupRegionData(zoneInfo);
                 currentRegion = region;
                 targetRegion = region;

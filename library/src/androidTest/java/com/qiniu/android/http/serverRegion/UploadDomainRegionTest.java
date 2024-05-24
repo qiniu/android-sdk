@@ -21,7 +21,7 @@ public class UploadDomainRegionTest extends BaseTest {
         String type = Utils.getIpType(null, host);
         FixedZone zone = new FixedZone(new String[]{host});
 
-        UploadDomainRegion region = new UploadDomainRegion();
+        UploadDomainRegion region = new UploadDomainRegion(null);
         region.setupRegionData(zone.getZonesInfo(null).zonesInfo.get(0));
 
         UploadServerFreezeManager.getInstance().freezeType(type, 100);

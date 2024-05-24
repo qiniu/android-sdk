@@ -8,14 +8,18 @@ import com.qiniu.android.http.networkStatus.UploadServerNetworkStatus;
 import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.request.IUploadServer;
 import com.qiniu.android.http.request.UploadRequestState;
+import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.GlobalConfiguration;
+import com.qiniu.android.utils.ListUtils;
 import com.qiniu.android.utils.LogUtil;
+import com.qiniu.android.utils.MapUtils;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * region domain 管理对象
@@ -37,16 +41,31 @@ public class UploadDomainRegion implements IUploadRegion {
     private final UploadServerFreezeManager partialHttp2Freezer = new UploadServerFreezeManager();
     private final UploadServerFreezeManager partialHttp3Freezer = new UploadServerFreezeManager();
 
+    // 是否使用加速上传域名
+    private boolean enableAccelerateUpload = false;
+
+    // 非加速域名
     private ArrayList<String> domainHostList;
     private HashMap<String, UploadServerDomain> domainHashMap;
     private ArrayList<String> oldDomainHostList;
     private HashMap<String, UploadServerDomain> oldDomainHashMap;
+    private ArrayList<String> accelerateDomainHostList;
+    private HashMap<String, UploadServerDomain> accelerateDomainHashMap;
+
     private ZoneInfo zoneInfo;
 
     /**
      * 构造函数
      */
+    @Deprecated
     public UploadDomainRegion() {
+        this(null);
+    }
+
+    public UploadDomainRegion(Configuration configuration) {
+        if (configuration != null) {
+            this.enableAccelerateUpload = configuration.accelerateUploading;
+        }
     }
 
     /**
@@ -91,7 +110,9 @@ public class UploadDomainRegion implements IUploadRegion {
      */
     @Override
     public boolean isValid() {
-        return !isAllFrozen && (domainHostList.size() > 0 || oldDomainHostList.size() > 0);
+        return !isAllFrozen &&
+                (!domainHostList.isEmpty() || !oldDomainHostList.isEmpty() ||
+                        (enableAccelerateUpload && !accelerateDomainHostList.isEmpty()));
     }
 
     /**
@@ -118,8 +139,14 @@ public class UploadDomainRegion implements IUploadRegion {
         this.zoneInfo = zoneInfo;
 
         isAllFrozen = false;
-
         ipv6Enabled = zoneInfo.ipv6;
+
+        ArrayList<String> accDomainHostList = new ArrayList<>();
+        if (zoneInfo.accelerateDomains != null) {
+            accDomainHostList.addAll(zoneInfo.accelerateDomains);
+        }
+        this.accelerateDomainHostList = accDomainHostList;
+        this.accelerateDomainHashMap = createDomainDictionary(accDomainHostList);
 
         ArrayList<String> domainHostList = new ArrayList<>();
         if (zoneInfo.domains != null) {
@@ -165,13 +192,43 @@ public class UploadDomainRegion implements IUploadRegion {
 
         freezeServerIfNeed(responseInfo, freezeServer);
 
-        ArrayList<String> hostList = domainHostList;
-        HashMap<String, UploadServerDomain> domainInfo = domainHashMap;
-        if (requestState.isUseOldServer()
-                && oldDomainHostList != null && oldDomainHostList.size() > 0
-                && oldDomainHashMap != null && oldDomainHashMap.size() > 0) {
-            hostList = oldDomainHostList;
-            domainInfo = oldDomainHashMap;
+        boolean accelerate = true;
+        synchronized (this) {
+            if (enableAccelerateUpload && responseInfo.error != null &&
+                    responseInfo.error.equals("transfer acceleration is not configured on this bucket")) {
+                enableAccelerateUpload = false;
+            }
+            accelerate = enableAccelerateUpload;
+        }
+
+        List<String> hostList = new ArrayList<>();
+        Map<String, UploadServerDomain> domainInfo = new HashMap<>();
+
+        if (requestState.isUseOldServer()) {
+            // SNI
+            if (!ListUtils.isEmpty(oldDomainHostList) &&
+                    !MapUtils.isEmpty(oldDomainHashMap)) {
+                hostList = oldDomainHostList;
+                domainInfo = oldDomainHashMap;
+            }
+        } else {
+            // 如果
+            if (accelerate &&
+                    !ListUtils.isEmpty(accelerateDomainHostList) &&
+                    !MapUtils.isEmpty(accelerateDomainHashMap)) {
+                hostList.addAll(accelerateDomainHostList);
+                domainInfo.putAll(accelerateDomainHashMap);
+            }
+
+            if (!ListUtils.isEmpty(domainHostList) &&
+                    !MapUtils.isEmpty(domainHashMap)) {
+                hostList = domainHostList;
+                domainInfo = domainHashMap;
+            }
+        }
+
+        if (ListUtils.isEmpty(hostList) || MapUtils.isEmpty(domainHashMap)) {
+            return null;
         }
 
         // 1. 优先选择http3
@@ -257,7 +314,7 @@ public class UploadDomainRegion implements IUploadRegion {
         }
 
         UploadServer server = (UploadServer) UploadServerNetworkStatus.getBetterNetworkServer(http3Server, http2Server);
-        if (server == null && !hasFreezeHost && hostList.size() > 0) {
+        if (server == null && !hasFreezeHost && !hostList.isEmpty()) {
             int index = (int) (Math.random() * hostList.size());
             String host = hostList.get(index);
             UploadServerDomain domain = domainInfo.get(host);

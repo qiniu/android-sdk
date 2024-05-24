@@ -4,8 +4,10 @@ import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.http.dns.DnsPrefetchTransaction;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.request.RequestTransaction;
+import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.utils.Cache;
+import com.qiniu.android.utils.ListUtils;
 import com.qiniu.android.utils.SingleFlight;
 import com.qiniu.android.utils.UrlSafeBase64;
 
@@ -111,11 +113,12 @@ public final class AutoZone extends Zone {
     }
 
     @Override
+    @Deprecated
     public ZonesInfo getZonesInfo(UpToken token) {
         if (token == null) {
             return null;
         }
-        String cacheKey = makeCacheKey(token.index());
+        String cacheKey = makeCacheKey(null, token.index());
         ZonesInfo zonesInfo = zonesInfoMap.get(cacheKey);
         if (zonesInfo != null) {
             try {
@@ -128,15 +131,27 @@ public final class AutoZone extends Zone {
 
     @Override
     public void preQuery(final UpToken token, final QueryHandler completeHandler) {
+        preQuery(null, token, new QueryHandlerV2() {
+            @Override
+            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics metrics, ZonesInfo zonesInfo) {
+                if (completeHandler != null) {
+                    completeHandler.complete(responseInfo != null ? responseInfo.statusCode : ResponseInfo.NetworkError, responseInfo, metrics);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void preQuery(Configuration configuration, UpToken token, QueryHandlerV2 completeHandler) {
         if (token == null || !token.isValid()) {
-            completeHandler.complete(-1, ResponseInfo.invalidToken("invalid token"), null);
+            completeHandler.complete(ResponseInfo.invalidToken("invalid token"), null, null);
             return;
         }
 
         UploadRegionRequestMetrics localMetrics = new UploadRegionRequestMetrics(null);
         localMetrics.start();
 
-        final String cacheKey = makeCacheKey(token.index());
+        final String cacheKey = makeCacheKey(configuration, token.index());
 
         ZonesInfo zonesInfo = null;
         Cache.Object object = zoneCache.cacheForKey(cacheKey);
@@ -147,7 +162,7 @@ public final class AutoZone extends Zone {
         if (zonesInfo != null && zonesInfo.isValid()) {
             localMetrics.end();
             zonesInfoMap.put(cacheKey, zonesInfo);
-            completeHandler.complete(0, ResponseInfo.successResponse(), localMetrics);
+            completeHandler.complete(ResponseInfo.successResponse(), localMetrics, zonesInfo);
             return;
         }
 
@@ -159,7 +174,7 @@ public final class AutoZone extends Zone {
                 @Override
                 public void action(final com.qiniu.android.utils.SingleFlight.CompleteHandler<SingleFlightValue> completeHandler) throws Exception {
 
-                    final RequestTransaction transaction = createUploadRequestTransaction(token);
+                    final RequestTransaction transaction = createUploadRequestTransaction(configuration, token);
                     transaction.queryUploadHosts(true, new RequestTransaction.RequestCompleteHandler() {
                         @Override
                         public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, JSONObject response) {
@@ -186,22 +201,29 @@ public final class AutoZone extends Zone {
                         if (zonesInfoP.isValid()) {
                             zoneCache.cache(cacheKey, zonesInfoP, true);
                             zonesInfoMap.put(cacheKey, zonesInfoP);
-                            completeHandler.complete(0, responseInfo, requestMetrics);
+                            completeHandler.complete(responseInfo, requestMetrics, zonesInfoP);
                         } else {
-                            completeHandler.complete(ResponseInfo.ParseError, responseInfo, requestMetrics);
+                            responseInfo = ResponseInfo.parseError("origin response:" + responseInfo);
+                            completeHandler.complete(responseInfo, requestMetrics, null);
                         }
                     } else {
                         if (defaultZone != null) {
                             // 备用只能用一次
                             ZonesInfo defaultZoneZonesInfo = defaultZone.getZonesInfo(token);
                             zonesInfoMap.put(cacheKey, defaultZoneZonesInfo);
-                            completeHandler.complete(0, responseInfo, requestMetrics);
+                            String message = "origin response:" + responseInfo;
+                            responseInfo = ResponseInfo.successResponse();
+                            responseInfo.message = message;
+                            completeHandler.complete(responseInfo, requestMetrics, defaultZoneZonesInfo);
                         } else if (finalZonesInfo != null) {
                             // 缓存有，但是失效也可使用
                             zonesInfoMap.put(cacheKey, finalZonesInfo);
-                            completeHandler.complete(0, responseInfo, requestMetrics);
+                            String message = "origin response:" + responseInfo;
+                            responseInfo = ResponseInfo.successResponse();
+                            responseInfo.message = message;
+                            completeHandler.complete(responseInfo, requestMetrics, finalZonesInfo);
                         } else {
-                            completeHandler.complete(ResponseInfo.NetworkError, responseInfo, requestMetrics);
+                            completeHandler.complete(responseInfo, requestMetrics, null);
                         }
                     }
                 }
@@ -209,13 +231,17 @@ public final class AutoZone extends Zone {
 
         } catch (Exception e) {
             /// 此处永远不会执行，回调只为占位
-            completeHandler.complete(ResponseInfo.NetworkError, ResponseInfo.localIOError(e.toString()), null);
+            completeHandler.complete(ResponseInfo.localIOError(e.toString()), null, null);
         }
     }
 
-    private String makeCacheKey(String akAndBucket) {
+    private String makeCacheKey(Configuration configuration, String akAndBucket) {
+        String key = akAndBucket;
+        if (configuration != null) {
+            key += akAndBucket + ":" + configuration.accelerateUploading;
+        }
         List<String> ucHosts = getUcServerList();
-        if (ucHosts == null || ucHosts.isEmpty()) {
+        if (ListUtils.isEmpty(ucHosts)) {
             return akAndBucket;
         }
 
@@ -227,13 +253,14 @@ public final class AutoZone extends Zone {
             hosts.append(host).append(":");
         }
 
-        return UrlSafeBase64.encodeToString(hosts + akAndBucket);
+        return UrlSafeBase64.encodeToString(hosts + key);
     }
 
-    private RequestTransaction createUploadRequestTransaction(UpToken token) {
+    private RequestTransaction createUploadRequestTransaction(Configuration configuration, UpToken token) {
         List<String> hosts = getUcServerList();
 
-        RequestTransaction transaction = new RequestTransaction(hosts, ZoneInfo.EmptyRegionId, token);
+        RequestTransaction transaction = new RequestTransaction(configuration, null,
+                hosts, ZoneInfo.EmptyRegionId, null, token);
         transactions.add(transaction);
         return transaction;
     }

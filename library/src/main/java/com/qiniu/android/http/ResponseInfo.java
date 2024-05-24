@@ -93,7 +93,6 @@ public final class ResponseInfo {
     /**
      * 未知错误
      */
-    @Deprecated
     public static final int UnknownError = 10000;
 
     // <-- error code copy from ios
@@ -347,6 +346,16 @@ public final class ResponseInfo {
      */
     public static ResponseInfo sdkInteriorError(String desc) {
         return errorInfo(SDKInteriorError, desc);
+    }
+
+    /**
+     * 解析错误
+     *
+     * @param desc 描述信息
+     * @return ResponseInfo
+     */
+    public static ResponseInfo parseError(String desc) {
+        return errorInfo(ParseError, desc);
     }
 
     /**

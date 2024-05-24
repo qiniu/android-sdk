@@ -7,7 +7,6 @@ import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.transaction.TransactionManager;
-import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.LogUtil;
 import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.Utils;
@@ -24,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -254,7 +252,7 @@ public class UploadInfoReporter {
             randomAccessFile = new RandomAccessFile(recorderTempFile, "r");
             ByteArrayOutputStream out = new ByteArrayOutputStream(fileSize);
             int len = 0;
-            byte[] buff = new byte[fileSize];
+            byte[] buff = new byte[32*1024];
             while ((len = randomAccessFile.read(buff)) >= 0) {
                 out.write(buff, 0, len);
             }

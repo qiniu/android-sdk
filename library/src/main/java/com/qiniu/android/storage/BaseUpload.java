@@ -8,6 +8,7 @@ import com.qiniu.android.http.request.IUploadRegion;
 import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
 import com.qiniu.android.http.serverRegion.UploadDomainRegion;
+import com.qiniu.android.utils.ListUtils;
 
 import org.json.JSONObject;
 
@@ -96,12 +97,17 @@ abstract class BaseUpload implements Runnable {
     private void innerRun() {
         metrics.start();
 
-        config.zone.preQuery(token, new Zone.QueryHandler() {
+        config.zone.preQuery(config, token, new Zone.QueryHandlerV2() {
             @Override
-            public void complete(int code, ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics) {
+            public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, ZonesInfo zonesInfo) {
                 metrics.setUcQueryMetrics(requestMetrics);
 
-                if (code == 0) {
+                if (zonesInfo != null) {
+                    if (!setupRegions(zonesInfo)) {
+                        completeAction(responseInfo, null);
+                        return;
+                    }
+
                     int prepareCode = prepareToUpload();
                     if (prepareCode == 0) {
                         startToUpload();
@@ -110,6 +116,10 @@ abstract class BaseUpload implements Runnable {
                         completeAction(responseInfoP, null);
                     }
                 } else {
+                    if (responseInfo == null) {
+                        // responseInfo 一定会有值
+                        responseInfo = ResponseInfo.errorInfo(ResponseInfo.UnknownError, "");
+                    }
                     completeAction(responseInfo, responseInfo.response);
                 }
             }
@@ -121,11 +131,7 @@ abstract class BaseUpload implements Runnable {
     }
 
     protected int prepareToUpload() {
-        int ret = 0;
-        if (!setupRegions()) {
-            ret = -1;
-        }
-        return ret;
+        return 0;
     }
 
     protected void startToUpload() {
@@ -165,19 +171,15 @@ abstract class BaseUpload implements Runnable {
         }
     }
 
-    private boolean setupRegions() {
-        if (config == null || config.zone == null) {
-            return false;
-        }
-        ZonesInfo zonesInfo = config.zone.getZonesInfo(token);
-        if (zonesInfo == null || zonesInfo.zonesInfo == null || zonesInfo.zonesInfo.size() == 0) {
+    private boolean setupRegions(ZonesInfo zonesInfo) {
+        if (zonesInfo == null || ListUtils.isEmpty(zonesInfo.zonesInfo)) {
             return false;
         }
         ArrayList<ZoneInfo> zoneInfos = zonesInfo.zonesInfo;
 
         ArrayList<IUploadRegion> defaultRegions = new ArrayList<>();
         for (ZoneInfo zoneInfo : zoneInfos) {
-            UploadDomainRegion region = new UploadDomainRegion();
+            UploadDomainRegion region = new UploadDomainRegion(config);
             region.setupRegionData(zoneInfo);
             if (region.isValid()) {
                 defaultRegions.add(region);
@@ -185,7 +187,7 @@ abstract class BaseUpload implements Runnable {
         }
         regions = defaultRegions;
         metrics.regions = defaultRegions;
-        return defaultRegions.size() > 0;
+        return !defaultRegions.isEmpty();
     }
 
     protected void insertRegionAtFirst(IUploadRegion region) {
