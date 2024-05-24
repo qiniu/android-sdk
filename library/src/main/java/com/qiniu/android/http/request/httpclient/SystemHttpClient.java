@@ -501,7 +501,7 @@ public class SystemHttpClient extends IRequestClient {
 
         if (responseBody == null) {
             errorMessage = response.message();
-        } else if (responseContentType(response) != "application/json") {
+        } else if (!responseContentType(response).equals("application/json")) {
             String responseString = new String(responseBody);
             if (!responseString.isEmpty()) {
                 try {

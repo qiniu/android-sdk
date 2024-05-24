@@ -129,7 +129,7 @@ public class RequestTransaction {
                           IUploadRegion currentRegion) {
 
         this.requestState = new UploadRequestState();
-        this.requestState.setCouldUseHttp3(config.requestClient != null);
+        this.requestState.setCouldUseHttp3(config != null && config.requestClient != null);
         this.requestInfo = new UploadRequestInfo();
         this.requestInfo.targetRegionId = targetRegion.getZoneInfo().getRegionId();
         this.requestInfo.currentRegionId = currentRegion.getZoneInfo().getRegionId();

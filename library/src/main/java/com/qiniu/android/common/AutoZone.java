@@ -6,6 +6,7 @@ import com.qiniu.android.http.metrics.UploadRegionRequestMetrics;
 import com.qiniu.android.http.request.RequestTransaction;
 import com.qiniu.android.storage.Configuration;
 import com.qiniu.android.storage.UpToken;
+import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.Cache;
 import com.qiniu.android.utils.ListUtils;
 import com.qiniu.android.utils.SingleFlight;
@@ -135,7 +136,15 @@ public final class AutoZone extends Zone {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics metrics, ZonesInfo zonesInfo) {
                 if (completeHandler != null) {
-                    completeHandler.complete(responseInfo != null ? responseInfo.statusCode : ResponseInfo.NetworkError, responseInfo, metrics);
+                    int code = ResponseInfo.NetworkError;
+                    if (responseInfo != null) {
+                        if (responseInfo.isOK()) {
+                            code = 0;
+                        } else {
+                            code = responseInfo.statusCode;
+                        }
+                    }
+                    completeHandler.complete(code, responseInfo, metrics);
                 }
             }
         });
@@ -258,8 +267,10 @@ public final class AutoZone extends Zone {
 
     private RequestTransaction createUploadRequestTransaction(Configuration configuration, UpToken token) {
         List<String> hosts = getUcServerList();
-
-        RequestTransaction transaction = new RequestTransaction(configuration, null,
+        if (configuration == null) {
+            configuration = new Configuration.Builder().build();
+        }
+        RequestTransaction transaction = new RequestTransaction(configuration, UploadOptions.defaultOptions(),
                 hosts, ZoneInfo.EmptyRegionId, null, token);
         transactions.add(transaction);
         return transaction;

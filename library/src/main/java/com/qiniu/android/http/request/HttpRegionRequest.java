@@ -91,7 +91,7 @@ class HttpRegionRequest {
                                 final RequestProgressHandler progressHandler,
                                 final RequestCompleteHandler completeHandler) {
 
-        if (server == null || server.getHost() == null || server.getHost().length() == 0) {
+        if (server == null || StringUtils.isNullOrEmpty(server.getHost())) {
             ResponseInfo responseInfo = ResponseInfo.sdkInteriorError("server error");
             completeAction(responseInfo, null, completeHandler);
             return;
