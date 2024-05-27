@@ -32,7 +32,7 @@ public class SystemDnsTest extends BaseTest {
         int timeout = 5;
         SystemDns dns = new SystemDns(timeout);
         try {
-            List<IDnsNetworkAddress> result = dns.lookup("a.a.a.cn");
+            List<IDnsNetworkAddress> result = dns.lookup("abc.mock.cn");
             assertTrue("testDnsTimeout fail:", result == null || result.size() == 0);
         } catch (UnknownHostException e) {
             e.printStackTrace();

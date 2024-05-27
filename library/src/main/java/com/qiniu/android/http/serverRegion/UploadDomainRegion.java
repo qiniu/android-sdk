@@ -195,7 +195,7 @@ public class UploadDomainRegion implements IUploadRegion {
         boolean accelerate = true;
         synchronized (this) {
             if (enableAccelerateUpload && responseInfo.error != null &&
-                    responseInfo.error.equals("transfer acceleration is not configured on this bucket")) {
+                    responseInfo.error.contains("transfer acceleration is not configured on this bucket")) {
                 enableAccelerateUpload = false;
             }
             accelerate = enableAccelerateUpload;
@@ -218,9 +218,7 @@ public class UploadDomainRegion implements IUploadRegion {
                     !MapUtils.isEmpty(accelerateDomainHashMap)) {
                 hostList.addAll(accelerateDomainHostList);
                 domainInfo.putAll(accelerateDomainHashMap);
-            }
-
-            if (!ListUtils.isEmpty(domainHostList) &&
+            } else if (!ListUtils.isEmpty(domainHostList) &&
                     !MapUtils.isEmpty(domainHashMap)) {
                 hostList = domainHostList;
                 domainInfo = domainHashMap;

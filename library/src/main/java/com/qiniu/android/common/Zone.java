@@ -40,7 +40,7 @@ public abstract class Zone {
      * @param token           上传 token
      * @param completeHandler 预查询结束回调
      */
-    public abstract void preQuery(Configuration configuration, UpToken token, final QueryHandlerV2 completeHandler);
+    public abstract void query(Configuration configuration, UpToken token, final QueryHandlerV2 completeHandler);
 
     /**
      * 预查询结束回调

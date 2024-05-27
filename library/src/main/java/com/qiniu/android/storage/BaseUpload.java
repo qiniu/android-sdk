@@ -97,12 +97,12 @@ abstract class BaseUpload implements Runnable {
     private void innerRun() {
         metrics.start();
 
-        config.zone.preQuery(config, token, new Zone.QueryHandlerV2() {
+        config.zone.query(config, token, new Zone.QueryHandlerV2() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics requestMetrics, ZonesInfo zonesInfo) {
                 metrics.setUcQueryMetrics(requestMetrics);
 
-                if (zonesInfo != null) {
+                if (responseInfo != null && responseInfo.isOK() && zonesInfo != null) {
                     if (!setupRegions(zonesInfo)) {
                         completeAction(responseInfo, null);
                         return;
@@ -118,7 +118,7 @@ abstract class BaseUpload implements Runnable {
                 } else {
                     if (responseInfo == null) {
                         // responseInfo 一定会有值
-                        responseInfo = ResponseInfo.errorInfo(ResponseInfo.UnknownError, "");
+                        responseInfo = ResponseInfo.sdkInteriorError("can't get regions");
                     }
                     completeAction(responseInfo, responseInfo.response);
                 }

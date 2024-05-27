@@ -217,9 +217,9 @@ public final class FixedZone extends Zone {
     }
 
     @Override
-    public void preQuery(Configuration configuration, UpToken token, QueryHandlerV2 completeHandler) {
+    public void query(Configuration configuration, UpToken token, QueryHandlerV2 completeHandler) {
         if (completeHandler != null) {
-            completeHandler.complete(null, null, zonesInfo);
+            completeHandler.complete(ResponseInfo.successResponse(), null, zonesInfo);
         }
     }
 }

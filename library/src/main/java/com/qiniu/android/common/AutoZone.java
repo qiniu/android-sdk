@@ -17,7 +17,6 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -132,7 +131,7 @@ public final class AutoZone extends Zone {
 
     @Override
     public void preQuery(final UpToken token, final QueryHandler completeHandler) {
-        preQuery(null, token, new QueryHandlerV2() {
+        query(null, token, new QueryHandlerV2() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics metrics, ZonesInfo zonesInfo) {
                 if (completeHandler != null) {
@@ -151,7 +150,7 @@ public final class AutoZone extends Zone {
     }
 
     @Override
-    public void preQuery(Configuration configuration, UpToken token, QueryHandlerV2 completeHandler) {
+    public void query(Configuration configuration, UpToken token, QueryHandlerV2 completeHandler) {
         if (token == null || !token.isValid()) {
             completeHandler.complete(ResponseInfo.invalidToken("invalid token"), null, null);
             return;

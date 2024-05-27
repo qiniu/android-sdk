@@ -455,7 +455,7 @@ public class DnsPrefetcher {
         final Wait wait = new Wait();
 
         final ZonesInfo[] zonesInfoArray = {null};
-        currentZone.preQuery(configuration, token, new Zone.QueryHandlerV2() {
+        currentZone.query(configuration, token, new Zone.QueryHandlerV2() {
             @Override
             public void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics metrics, ZonesInfo zonesInfo) {
                 zonesInfoArray[0] = zonesInfo;
