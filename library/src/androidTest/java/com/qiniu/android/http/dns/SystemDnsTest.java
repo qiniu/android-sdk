@@ -16,9 +16,9 @@ public class SystemDnsTest extends BaseTest {
 
     @Test
     public void testDnsLookup() {
-        SystemDns dns = new SystemDns(5);
+        SystemDns dns = new SystemDns(10);
         try {
-            List<IDnsNetworkAddress> result = dns.lookup("upload.qiniup.com");
+            List<IDnsNetworkAddress> result = dns.lookup("uplog.qbox.me");
             assertTrue("testDnsLookup fail:", result != null && result.size() > 0);
         } catch (UnknownHostException e) {
             e.printStackTrace();

@@ -178,23 +178,40 @@ public final class FixedZone extends Zone {
         this.zonesInfo = createZonesInfo(upDomains, oldUpDomains, regionId);
     }
 
+    public FixedZone(String[] accUpDomains,String[] upDomains, String[] oldUpDomains, String regionId) {
+        this.zonesInfo = createZonesInfo(accUpDomains, upDomains, oldUpDomains, regionId);
+    }
+
     private ZonesInfo createZonesInfo(String[] upDomains,
                                       String[] oldUpDomains,
                                       String regionId) {
+        return createZonesInfo(null, upDomains, oldUpDomains, regionId);
+    }
 
-        if (upDomains == null || upDomains.length == 0) {
+    private ZonesInfo createZonesInfo(String[] accDomains,
+                                      String[] upDomains,
+                                      String[] oldUpDomains,
+                                      String regionId) {
+
+        if ((accDomains == null || accDomains.length == 0) &&
+                (upDomains == null || upDomains.length == 0)) {
             return null;
         }
 
-        List<String> upDomainsList = new ArrayList<String>(Arrays.asList(upDomains));
-        List<String> oldUpDomainsList = null;
+        List<String> accDomainsList = new ArrayList<>();
+        List<String> upDomainsList = new ArrayList<>();
+        List<String> oldUpDomainsList = new ArrayList<>();
+        if (accDomains != null && accDomains.length > 0) {
+            accDomainsList = new ArrayList<>(Arrays.asList(accDomains));
+        }
+        if (upDomains != null && upDomains.length > 0) {
+            upDomainsList = new ArrayList<>(Arrays.asList(upDomains));
+        }
         if (oldUpDomains != null && oldUpDomains.length > 0) {
-            oldUpDomainsList = new ArrayList<String>(Arrays.asList(oldUpDomains));
-        } else {
-            oldUpDomainsList = new ArrayList<>();
+            oldUpDomainsList = new ArrayList<>(Arrays.asList(oldUpDomains));
         }
 
-        ZoneInfo zoneInfo = ZoneInfo.buildInfo(upDomainsList, oldUpDomainsList, regionId);
+        ZoneInfo zoneInfo = ZoneInfo.buildInfo(accDomainsList, upDomainsList, oldUpDomainsList, regionId);
         if (zoneInfo == null) {
             return null;
         }

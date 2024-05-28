@@ -112,23 +112,23 @@ public class ZoneInfo implements Cloneable {
     /**
      * 构造函数
      *
-     * @param accelerateDomains 加速域名
+     * @param accelerateHosts 加速域名
      * @param mainHosts         主要域名
      * @param oldHosts          备用域名
      * @param regionId          区域 ID
      * @return ZoneInfo
      */
-    public static ZoneInfo buildInfo(List<String> accelerateDomains,
+    public static ZoneInfo buildInfo(List<String> accelerateHosts,
                                      List<String> mainHosts,
                                      List<String> oldHosts,
                                      String regionId) {
-        if (accelerateDomains == null && mainHosts == null) {
+        if (accelerateHosts == null && mainHosts == null) {
             return null;
         }
 
         HashMap<String, Object> up = new HashMap<>();
-        if (accelerateDomains != null) {
-            up.put("acc_domains", new JSONArray(accelerateDomains));
+        if (accelerateHosts != null) {
+            up.put("acc_domains", new JSONArray(accelerateHosts));
         }
         if (mainHosts != null) {
             up.put("domains", new JSONArray(mainHosts));
@@ -260,7 +260,7 @@ public class ZoneInfo implements Cloneable {
             }
         }
 
-        if (ListUtils.isEmpty(domains)) {
+        if (ListUtils.isEmpty(accelerateDomains) && ListUtils.isEmpty(domains)) {
             return null;
         }
 

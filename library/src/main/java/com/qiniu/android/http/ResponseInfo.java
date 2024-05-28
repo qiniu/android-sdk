@@ -493,6 +493,10 @@ public final class ResponseInfo {
             return true;
         }
 
+        if (isTransferAccelerationConfigureError()) {
+            return true;
+        }
+
         if (isCancelled()
                 || statusCode == 100
                 || (statusCode > 300 && statusCode < 400)
@@ -514,6 +518,10 @@ public final class ResponseInfo {
      */
     public boolean couldRegionRetry() {
         if (isNotQiniu()) {
+            return true;
+        }
+
+        if (isTransferAccelerationConfigureError()) {
             return true;
         }
 
@@ -539,6 +547,10 @@ public final class ResponseInfo {
     public boolean couldHostRetry() {
         if (isNotQiniu()) {
             return true;
+        }
+
+        if (isTransferAccelerationConfigureError()) {
+            return false;
         }
 
         if (isCancelled()
@@ -589,7 +601,8 @@ public final class ResponseInfo {
      */
     public boolean isHostUnavailable() {
         // 基本不可恢复，注：会影响下次请求，范围太大可能会造成大量的timeout
-        if (statusCode == 502 || statusCode == 503 || statusCode == 504 || statusCode == 599) {
+        if (isTransferAccelerationConfigureError() ||
+                statusCode == 502 || statusCode == 503 || statusCode == 504 || statusCode == 599) {
             return true;
         } else {
             return false;
@@ -603,6 +616,13 @@ public final class ResponseInfo {
      */
     public boolean isCtxExpiredError() {
         return statusCode == 701 || (statusCode == 612 && error != null && error.contains("no such uploadId"));
+    }
+
+    public boolean isTransferAccelerationConfigureError() {
+        if (error == null) {
+            return false;
+        }
+        return error.contains("transfer acceleration is not configured on this bucket");
     }
 
     /**

@@ -104,7 +104,8 @@ abstract class BaseUpload implements Runnable {
 
                 if (responseInfo != null && responseInfo.isOK() && zonesInfo != null) {
                     if (!setupRegions(zonesInfo)) {
-                        completeAction(responseInfo, null);
+                        responseInfo = ResponseInfo.invalidArgument("setup regions host fail, origin response:" + responseInfo);
+                        completeAction(responseInfo, responseInfo.response);
                         return;
                     }
 

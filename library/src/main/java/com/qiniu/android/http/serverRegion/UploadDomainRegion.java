@@ -194,38 +194,41 @@ public class UploadDomainRegion implements IUploadRegion {
 
         boolean accelerate = true;
         synchronized (this) {
-            if (enableAccelerateUpload && responseInfo.error != null &&
-                    responseInfo.error.contains("transfer acceleration is not configured on this bucket")) {
+            if (enableAccelerateUpload &&
+                    responseInfo != null &&
+                    responseInfo.isTransferAccelerationConfigureError()) {
                 enableAccelerateUpload = false;
             }
             accelerate = enableAccelerateUpload;
         }
 
-        List<String> hostList = new ArrayList<>();
-        Map<String, UploadServerDomain> domainInfo = new HashMap<>();
+        ArrayList<String> hostList = new ArrayList<>();
+        HashMap<String, UploadServerDomain> domainInfo = new HashMap<>();
 
         if (requestState.isUseOldServer()) {
             // SNI
             if (!ListUtils.isEmpty(oldDomainHostList) &&
                     !MapUtils.isEmpty(oldDomainHashMap)) {
-                hostList = oldDomainHostList;
-                domainInfo = oldDomainHashMap;
+                hostList.addAll(oldDomainHostList);
+                domainInfo.putAll(oldDomainHashMap);
             }
         } else {
-            // 如果
+            // 优先使用 acc
             if (accelerate &&
                     !ListUtils.isEmpty(accelerateDomainHostList) &&
                     !MapUtils.isEmpty(accelerateDomainHashMap)) {
                 hostList.addAll(accelerateDomainHostList);
                 domainInfo.putAll(accelerateDomainHashMap);
-            } else if (!ListUtils.isEmpty(domainHostList) &&
+            }
+
+            if (!ListUtils.isEmpty(domainHostList) &&
                     !MapUtils.isEmpty(domainHashMap)) {
-                hostList = domainHostList;
-                domainInfo = domainHashMap;
+                hostList.addAll(domainHostList);
+                domainInfo.putAll(domainHashMap);
             }
         }
 
-        if (ListUtils.isEmpty(hostList) || MapUtils.isEmpty(domainHashMap)) {
+        if (ListUtils.isEmpty(hostList) || MapUtils.isEmpty(domainInfo)) {
             return null;
         }
 
