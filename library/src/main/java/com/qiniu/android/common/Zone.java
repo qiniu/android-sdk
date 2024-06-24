@@ -65,6 +65,7 @@ public abstract class Zone {
          *
          * @param responseInfo 查询响应
          * @param metrics      查询指标
+         * @param zonesInfo    区域信息
          */
         void complete(ResponseInfo responseInfo, UploadRegionRequestMetrics metrics, ZonesInfo zonesInfo);
     }

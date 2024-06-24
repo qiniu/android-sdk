@@ -178,6 +178,14 @@ public final class FixedZone extends Zone {
         this.zonesInfo = createZonesInfo(upDomains, oldUpDomains, regionId);
     }
 
+    /**
+     * 构造方法
+     *
+     * @param accUpDomains 加速域名
+     * @param upDomains 上传域名
+     * @param oldUpDomains 支持 SNI 的域名
+     * @param regionId 区域 ID
+     */
     public FixedZone(String[] accUpDomains,String[] upDomains, String[] oldUpDomains, String regionId) {
         this.zonesInfo = createZonesInfo(accUpDomains, upDomains, oldUpDomains, regionId);
     }
