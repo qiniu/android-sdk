@@ -87,6 +87,7 @@ public final class Config {
     /**
      * preQuery host
      */
+    @Deprecated
     public static String preQueryHost03 = "api.qiniu.com";
 
     /**
@@ -95,7 +96,7 @@ public final class Config {
      * @return preQuery hosts
      */
     public static String[] preQueryHosts() {
-        return new String[]{preQueryHost00, preQueryHost01, preQueryHost02, preQueryHost03};
+        return new String[]{preQueryHost00, preQueryHost01, preQueryHost02};
     }
 
     /**

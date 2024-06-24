@@ -362,7 +362,7 @@ public class UploadManager {
             return;
         }
 
-        DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(config.zone, t);
+        DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(config, config.zone, t);
         ServerConfigMonitor.setToken(token);
 
         BaseUpload.UpTaskCompletionHandler completionHandlerP = new BaseUpload.UpTaskCompletionHandler() {
@@ -392,7 +392,7 @@ public class UploadManager {
             return;
         }
 
-        DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(config.zone, t);
+        DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(config, config.zone, t);
         ServerConfigMonitor.setToken(token);
 
         if (source.getSize() > 0 && source.getSize() <= config.putThreshold) {

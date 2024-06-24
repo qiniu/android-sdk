@@ -68,7 +68,7 @@ public class DnsTransactionTest extends BaseTest {
                 @Override
                 public void run() {
 
-                    boolean isSuccess = DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(zone, UpToken.parse(TestConfig.token_z0));
+                    boolean isSuccess = DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(null, zone, UpToken.parse(TestConfig.token_z0));
                     synchronized (this) {
                         if (isSuccess) {
                             successCount += 1;

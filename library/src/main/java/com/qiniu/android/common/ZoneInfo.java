@@ -1,5 +1,7 @@
 package com.qiniu.android.common;
 
+import com.qiniu.android.utils.ListUtils;
+import com.qiniu.android.utils.StringUtils;
 import com.qiniu.android.utils.Utils;
 
 import org.json.JSONArray;
@@ -50,9 +52,14 @@ public class ZoneInfo implements Cloneable {
     public final boolean ipv6;
 
     /**
-     * 主要域名
+     * 加速域名
      */
     public final List<String> domains;
+
+    /**
+     * 主要域名
+     */
+    public final List<String> accelerateDomains;
 
     /**
      * 备用域名
@@ -85,7 +92,7 @@ public class ZoneInfo implements Cloneable {
      */
     public static ZoneInfo buildInfo(List<String> mainHosts,
                                      String regionId) {
-        return buildInfo(mainHosts, null, regionId);
+        return buildInfo(null, mainHosts, null, regionId);
     }
 
     /**
@@ -99,15 +106,37 @@ public class ZoneInfo implements Cloneable {
     public static ZoneInfo buildInfo(List<String> mainHosts,
                                      List<String> oldHosts,
                                      String regionId) {
-        if (mainHosts == null) {
+        return buildInfo(null, mainHosts, oldHosts, regionId);
+    }
+
+    /**
+     * 构造函数
+     *
+     * @param accelerateHosts 加速域名
+     * @param mainHosts         主要域名
+     * @param oldHosts          备用域名
+     * @param regionId          区域 ID
+     * @return ZoneInfo
+     */
+    public static ZoneInfo buildInfo(List<String> accelerateHosts,
+                                     List<String> mainHosts,
+                                     List<String> oldHosts,
+                                     String regionId) {
+        if (accelerateHosts == null && mainHosts == null) {
             return null;
         }
 
         HashMap<String, Object> up = new HashMap<>();
-        up.put("domains", new JSONArray(mainHosts));
+        if (accelerateHosts != null) {
+            up.put("acc_domains", new JSONArray(accelerateHosts));
+        }
+        if (mainHosts != null) {
+            up.put("domains", new JSONArray(mainHosts));
+        }
         if (oldHosts != null) {
             up.put("old", new JSONArray(oldHosts));
         }
+
         JSONObject upJson = new JSONObject(up);
 
         if (regionId == null) {
@@ -132,6 +161,7 @@ public class ZoneInfo implements Cloneable {
                      boolean http3Enabled,
                      boolean ipv6,
                      String regionId,
+                     List<String> accelerateDomains,
                      List<String> domains,
                      List<String> old_domains,
                      Date buildDate) {
@@ -140,9 +170,13 @@ public class ZoneInfo implements Cloneable {
         this.ipv6 = ipv6;
         this.regionId = regionId;
         this.domains = domains;
+        this.accelerateDomains = accelerateDomains;
         this.old_domains = old_domains;
         this.buildDate = buildDate != null ? buildDate : new Date();
         List<String> allHosts = new ArrayList<>();
+        if (accelerateDomains != null) {
+            allHosts.addAll(accelerateDomains);
+        }
         if (domains != null) {
             allHosts.addAll(domains);
         }
@@ -198,8 +232,19 @@ public class ZoneInfo implements Cloneable {
         if (domainsJson != null && domainsJson.length() > 0) {
             for (int i = 0; i < domainsJson.length(); i++) {
                 String domain = domainsJson.optString(i);
-                if (domain != null && domain.length() > 0) {
+                if (!StringUtils.isNullOrEmpty(domain)) {
                     domains.add(domain);
+                }
+            }
+        }
+
+        List<String> accelerateDomains = new ArrayList<>();
+        JSONArray accelerateDomainsJson = up.optJSONArray("acc_domains");
+        if (accelerateDomainsJson != null && accelerateDomainsJson.length() > 0) {
+            for (int i = 0; i < accelerateDomainsJson.length(); i++) {
+                String domain = accelerateDomainsJson.optString(i);
+                if (!StringUtils.isNullOrEmpty(domain)) {
+                    accelerateDomains.add(domain);
                 }
             }
         }
@@ -209,18 +254,19 @@ public class ZoneInfo implements Cloneable {
         if (old_domainsJson != null && old_domainsJson.length() > 0) {
             for (int i = 0; i < old_domainsJson.length(); i++) {
                 String domain = old_domainsJson.optString(i);
-                if (domain != null && domain.length() > 0) {
+                if (!StringUtils.isNullOrEmpty(domain)) {
                     old_domains.add(domain);
                 }
             }
         }
 
-        if (domains.size() == 0 && old_domains.size() == 0) {
+        if (ListUtils.isEmpty(accelerateDomains) && ListUtils.isEmpty(domains)) {
             return null;
         }
 
         Date buildDate = new Date(timestamp * 1000);
-        ZoneInfo zoneInfo = new ZoneInfo(ttl, http3Enabled, ipv6Enabled, regionId, domains, old_domains, buildDate);
+        ZoneInfo zoneInfo = new ZoneInfo(ttl, http3Enabled, ipv6Enabled, regionId,
+                accelerateDomains, domains, old_domains, buildDate);
         zoneInfo.detailInfo = obj;
 
         return zoneInfo;
@@ -271,7 +317,8 @@ public class ZoneInfo implements Cloneable {
      */
     @Override
     protected Object clone() throws CloneNotSupportedException {
-        ZoneInfo info = new ZoneInfo(ttl, http3Enabled, ipv6, regionId, domains, old_domains, buildDate);
+        ZoneInfo info = new ZoneInfo(ttl, http3Enabled, ipv6, regionId,
+                accelerateDomains, domains, old_domains, buildDate);
         info.detailInfo = detailInfo;
         return info;
     }

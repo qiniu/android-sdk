@@ -85,7 +85,7 @@ public class RequestTransaction {
                               String key,
                               UpToken token) {
         this(config, uploadOption, key, token);
-        IUploadRegion region = new UploadDomainRegion();
+        IUploadRegion region = new UploadDomainRegion(config);
         region.setupRegionData(ZoneInfo.buildInfo(hosts, regionId));
         this.initData(region, region);
     }
@@ -129,7 +129,7 @@ public class RequestTransaction {
                           IUploadRegion currentRegion) {
 
         this.requestState = new UploadRequestState();
-        this.requestState.setCouldUseHttp3(config.requestClient != null);
+        this.requestState.setCouldUseHttp3(config != null && config.requestClient != null);
         this.requestInfo = new UploadRequestInfo();
         this.requestInfo.targetRegionId = targetRegion.getZoneInfo().getRegionId();
         this.requestInfo.currentRegionId = currentRegion.getZoneInfo().getRegionId();

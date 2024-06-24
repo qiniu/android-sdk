@@ -86,7 +86,7 @@ class HttpSingleRequest {
             @Override
             public boolean checkCancel() {
                 boolean isCancelled = requestState.isUserCancel();
-                if (!isCancelled && uploadOption.cancellationSignal != null) {
+                if (!isCancelled && uploadOption != null && uploadOption.cancellationSignal != null) {
                     isCancelled = uploadOption.cancellationSignal.isCancelled();
                 }
                 return isCancelled;
