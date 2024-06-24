@@ -618,6 +618,11 @@ public final class ResponseInfo {
         return statusCode == 701 || (statusCode == 612 && error != null && error.contains("no such uploadId"));
     }
 
+    /**
+     * 是否是加速配置错误
+     *
+     * @return 是否是加速配置错误
+     */
     public boolean isTransferAccelerationConfigureError() {
         if (error == null) {
             return false;
