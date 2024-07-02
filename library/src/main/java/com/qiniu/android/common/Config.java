@@ -56,7 +56,7 @@ public final class Config {
      * <p>
      * 记录文件大于此值后暂停记录上传信息。
      */
-    public static int maxRecordFileSize = 20 * 1024 * 1024;
+    public static int maxRecordFileSize = 4 * 1024 * 1024;
 
     /**
      * 记录文件大于 uploadThreshold 后才可能触发上传，单位：字节。
