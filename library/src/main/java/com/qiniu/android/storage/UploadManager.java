@@ -35,19 +35,23 @@ public class UploadManager {
 
     /**
      * 构造函数
+     * 使用 {@link UploadManager#UploadManager(Configuration config) } 替换
      *
      * @param recorder 文件上传进度记录，可实现断点续传
      */
+    @Deprecated
     public UploadManager(Recorder recorder) {
         this(recorder, null);
     }
 
     /**
      * 构造函数
+     * 使用 {@link UploadManager#UploadManager(Configuration config) } 替换
      *
      * @param recorder 文件上传进度记录，可实现断点续传
      * @param keyGen   上传文件上传进度对应记录缓存的 key 生成器
      */
+    @Deprecated
     public UploadManager(Recorder recorder, KeyGenerator keyGen) {
         this(new Configuration.Builder().recorder(recorder, keyGen).build());
     }
@@ -55,7 +59,9 @@ public class UploadManager {
     /**
      * 构造函数
      * 默认为串行
+     * 使用 {@link UploadManager#UploadManager(Configuration config) } 替换
      */
+    @Deprecated
     public UploadManager() {
         this(new Configuration.Builder().build());
     }

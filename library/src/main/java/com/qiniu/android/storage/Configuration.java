@@ -21,6 +21,10 @@ public final class Configuration {
      * 分片上传版本 V2
      */
     public static int RESUME_UPLOAD_VERSION_V2 = 1;
+    /**
+     * 未配置分片上传版本，使用默认配置
+     */
+    public static int RESUME_UPLOAD_VERSION_NONE = -1;
 
     /**
      * 上传区域
@@ -210,7 +214,7 @@ public final class Configuration {
         private boolean allowBackupHost = true;
         private UrlConverter urlConverter = null;
         private boolean useConcurrentResumeUpload = false;
-        private int resumeUploadVersion = RESUME_UPLOAD_VERSION_V1;
+        private int resumeUploadVersion = RESUME_UPLOAD_VERSION_NONE;
         private int concurrentTaskCount = 3;
 
         /**
@@ -434,10 +438,29 @@ public final class Configuration {
 
         /**
          * 生成 Configuration
+         * 使用 {@link Builder#buildV2()} 替换
          *
          * @return Configuration
          */
+        @Deprecated
         public Configuration build() {
+            if (this.resumeUploadVersion == RESUME_UPLOAD_VERSION_NONE)  {
+                this.resumeUploadVersion = RESUME_UPLOAD_VERSION_V1;
+            }
+            return new Configuration(this);
+        }
+
+        /**
+         * 生成 Configuration
+         * 默认配置中分片上传使用分片V2，如果是私/专有云场景，请注意确认服务端是否支持分片V2
+         * 分片V2上传速度会更快更高效
+         *
+         * @return Configuration
+         */
+        public Configuration buildV2() {
+            if (this.resumeUploadVersion == RESUME_UPLOAD_VERSION_NONE)  {
+                this.resumeUploadVersion = RESUME_UPLOAD_VERSION_V2;
+            }
             return new Configuration(this);
         }
     }
