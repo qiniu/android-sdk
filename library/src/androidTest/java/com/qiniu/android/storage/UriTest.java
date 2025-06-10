@@ -15,8 +15,6 @@ import com.qiniu.android.utils.ContextGetter;
 import com.qiniu.android.utils.Etag;
 import com.qiniu.android.utils.LogUtil;
 
-import junit.framework.Assert;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -104,7 +102,7 @@ public class UriTest extends BaseTest {
         key += isConcurrent ? "serial_" : "concurrent_";
         key += fileName;
         final UploadCompleteInfo completeInfo = new UploadCompleteInfo();
-        uploadManager.put(uri, null, key, TestConfig.token_na0, new UpCompletionHandler() {
+        uploadManager.put(uri, null, key, TestConfig.BUCKET_NA0, new UpCompletionHandler() {
             @Override
             public void complete(String key, ResponseInfo info, JSONObject response) {
                 completeInfo.key = key;

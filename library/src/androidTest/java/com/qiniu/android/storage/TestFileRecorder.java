@@ -83,7 +83,7 @@ public class TestFileRecorder extends BaseTest {
             }
         });
 
-        uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+        uploadManager.put(tempFile, expectKey, TestConfig.COMMON_TOKEN, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                 LogUtil.i("Cancel:" + k + rinfo);
                 key = k;
@@ -120,7 +120,7 @@ public class TestFileRecorder extends BaseTest {
         }, null);
 
 
-        uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+        uploadManager.put(tempFile, expectKey, TestConfig.COMMON_TOKEN, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                 LogUtil.i("Continue" + k + rinfo);
                 key = k;

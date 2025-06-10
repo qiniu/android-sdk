@@ -16,18 +16,18 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
- * Created by long on 2016/9/30.
+ * @author Created by long on 2016/9/30.
  */
 @RunWith(AndroidJUnit4.class)
 public class AutoZoneTest extends BaseTest {
-    private String ak = TestConfig.ak;
+    private String ak = TestConfig.AK;
     private String bkt = "javasdk";
 
     @Test
     public void testClearAutoZoneCache() {
         final WaitCondition waitCondition = new WaitCondition();
         AutoZone zone = new AutoZone();
-        UpToken token = UpToken.parse(TestConfig.commonToken);
+        UpToken token = UpToken.parse(TestConfig.COMMON_TOKEN);
 
         zone.preQuery(token, new Zone.QueryHandler() {
             @Override
@@ -110,7 +110,7 @@ public class AutoZoneTest extends BaseTest {
         autoZone.setUcServer(ucServer);
         assertTrue(autoZone.getUcServerList().get(0).equals(ucServer));
 
-        UpToken token = UpToken.parse(TestConfig.commonToken);
+        UpToken token = UpToken.parse(TestConfig.COMMON_TOKEN);
 
         autoZone.preQuery(token, new Zone.QueryHandler() {
             @Override
@@ -168,7 +168,7 @@ public class AutoZoneTest extends BaseTest {
 
     private void zoneRequest(final CompleteHandlder completeHandlder){
         final AutoZone zone = new AutoZone();
-        final UpToken token = UpToken.parse(TestConfig.commonToken);
+        final UpToken token = UpToken.parse(TestConfig.COMMON_TOKEN);
 
         zone.preQuery(token, new Zone.QueryHandler() {
             @Override
@@ -190,7 +190,7 @@ public class AutoZoneTest extends BaseTest {
     @Test
     public void testAutoZone() {
         final AutoZone zone = new AutoZone();
-        final UpToken token = UpToken.parse(TestConfig.commonToken);
+        final UpToken token = UpToken.parse(TestConfig.COMMON_TOKEN);
 
         final TestParam param = new TestParam();
 
@@ -226,7 +226,7 @@ public class AutoZoneTest extends BaseTest {
     public void testSetUcHosts02() {
         final AutoZone zone = new AutoZone();
         zone.setUcServers(new String[]{Config.preQueryHost02});
-        final UpToken token = UpToken.parse(TestConfig.commonToken);
+        final UpToken token = UpToken.parse(TestConfig.COMMON_TOKEN);
 
         final TestParam param = new TestParam();
 

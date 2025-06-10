@@ -21,7 +21,7 @@ int code = versionNameToCode(version)
 
 android {
     namespace 'com.qiniu.android'
-    compileSdk 36
+    compileSdk 33
 
     defaultConfig {
         minSdkVersion 14

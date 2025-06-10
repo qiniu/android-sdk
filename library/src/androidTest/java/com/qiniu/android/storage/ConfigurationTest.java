@@ -8,6 +8,11 @@ import com.qiniu.android.BaseTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+/**
+ * Configuration 配置测试
+ *
+ * @author yangsen
+ */
 @RunWith(AndroidJUnit4.class)
 public class ConfigurationTest extends BaseTest {
 

@@ -12,8 +12,6 @@ import com.qiniu.android.storage.UpToken;
 import com.qiniu.android.storage.UploadOptions;
 import com.qiniu.android.utils.LogUtil;
 
-import junit.framework.Assert;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -28,7 +26,7 @@ public class RequestTransactionTest extends BaseTest {
     @Test
     public void testUCQuery(){
 
-        UpToken token = UpToken.parse(TestConfig.token_z0);
+        UpToken token = UpToken.parse(TestConfig.TOKEN_Z0);
 
         ArrayList<String> hosts = new ArrayList<String>();
         hosts.add("uc.qbox.me");
@@ -52,7 +50,7 @@ public class RequestTransactionTest extends BaseTest {
 
         final WaitCondition waitCondition = new WaitCondition();
 
-        UpToken token = UpToken.parse(TestConfig.token_z0);
+        UpToken token = UpToken.parse(TestConfig.TOKEN_Z0);
 
         ArrayList<String> hosts = new ArrayList<String>();
         hosts.add("upload.qiniup.com");
@@ -143,7 +141,7 @@ public class RequestTransactionTest extends BaseTest {
     }
 
     private void makeBlock(RequestTransaction.RequestCompleteHandler completeHandler){
-        UpToken token = UpToken.parse(TestConfig.token_z0);
+        UpToken token = UpToken.parse(TestConfig.TOKEN_Z0);
 
         ArrayList<String> hosts = new ArrayList<String>();
         hosts.add("upload.qiniup.com");
@@ -159,7 +157,7 @@ public class RequestTransactionTest extends BaseTest {
     }
 
     private void uploadChunk(String ct, RequestTransaction.RequestCompleteHandler completeHandler){
-        UpToken token = UpToken.parse(TestConfig.token_z0);
+        UpToken token = UpToken.parse(TestConfig.TOKEN_Z0);
 
         ArrayList<String> hosts = new ArrayList<String>();
         hosts.add("upload.qiniup.com");
@@ -175,7 +173,7 @@ public class RequestTransactionTest extends BaseTest {
     }
 
     private void makeFile(String[] blockContexts, RequestTransaction.RequestCompleteHandler completeHandler){
-        UpToken token = UpToken.parse(TestConfig.token_z0);
+        UpToken token = UpToken.parse(TestConfig.TOKEN_Z0);
 
         ArrayList<String> hosts = new ArrayList<String>();
         hosts.add("upload.qiniup.com");

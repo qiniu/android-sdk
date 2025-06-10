@@ -437,7 +437,7 @@ public final class Configuration {
         }
 
         /**
-         * 生成 Configuration
+         * 构造 Configuration：
          * 使用 {@link Builder#buildV2()} 替换
          *
          * @return Configuration
@@ -451,8 +451,8 @@ public final class Configuration {
         }
 
         /**
-         * 生成 Configuration
-         * 默认配置中分片上传使用分片V2，如果是私/专有云场景，请注意确认服务端是否支持分片V2
+         * 构造 Configuration：
+         * 默认配置中分片上传使用分片V2，如果是私/专有云场景，请注意确认服务端是否支持分片V2；
          * 分片V2上传速度会更快更高效
          *
          * @return Configuration

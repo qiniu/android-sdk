@@ -70,7 +70,7 @@ public class UplogTest extends BaseTest {
 
         item.setReport("http1.1", ReportItem.RequestKeyHttpVersion);
 
-        UploadInfoReporter.getInstance().report(item, TestConfig.commonToken);
+        UploadInfoReporter.getInstance().report(item, TestConfig.COMMON_TOKEN);
 
 //        wait(new WaitConditional() {
 //            @Override

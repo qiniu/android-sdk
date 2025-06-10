@@ -10,8 +10,6 @@ import com.qiniu.android.common.Zone;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.Etag;
 
-import junit.framework.Assert;
-
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,11 +34,11 @@ public class SyncFormUploadTest extends BaseTest {
     @Test
     public void testHello() {
         final String expectKey = "你好-testHello;\"\r\n\r\n\r\n";
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<String, String>(1);
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
         byte[] b = "hello".getBytes();
-        info = uploadManager.syncPut(b, expectKey, TestConfig.commonToken, opt);
+        info = uploadManager.syncPut(b, expectKey, TestConfig.COMMON_TOKEN, opt);
         resp = info.response;
 
         assertTrue(info.toString(), info.isOK());
@@ -55,11 +53,11 @@ public class SyncFormUploadTest extends BaseTest {
     @Test
     public void test0Data(){
         final String expectKey = "你好-test0Data;\"\r\n\r\n\r\n";
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<String, String>(1);
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
 
-        info = uploadManager.syncPut("".getBytes(), expectKey, TestConfig.commonToken, opt);
+        info = uploadManager.syncPut("".getBytes(), expectKey, TestConfig.COMMON_TOKEN, opt);
         resp = info.response;
 
         assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
@@ -69,10 +67,10 @@ public class SyncFormUploadTest extends BaseTest {
     @Test
     public void testNoKey() {
         final String expectKey = null;
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<String, String>(1);
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        info = uploadManager.syncPut("hello".getBytes(), expectKey, TestConfig.commonToken, opt);
+        info = uploadManager.syncPut("hello".getBytes(), expectKey, TestConfig.COMMON_TOKEN, opt);
 
         resp = info.response;
         key = resp.optString("key");
@@ -129,10 +127,10 @@ public class SyncFormUploadTest extends BaseTest {
     public void testFile() throws Throwable {
         final String expectKey = "世/界-testFile";
         final File f = TempFile.createFile(5*1024);
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<String, String>(1);
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        info = uploadManager.syncPut(f, expectKey, TestConfig.commonToken, opt);
+        info = uploadManager.syncPut(f, expectKey, TestConfig.COMMON_TOKEN, opt);
 
         resp = info.response;
         key = resp.optString("key");
@@ -152,10 +150,10 @@ public class SyncFormUploadTest extends BaseTest {
     public void test0File() throws Throwable {
         final String expectKey = "世/界-test0File";
         final File f = TempFile.createFile(0);
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<String, String>(1);
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
-        info = uploadManager.syncPut(f, expectKey, TestConfig.commonToken, opt);
+        info = uploadManager.syncPut(f, expectKey, TestConfig.COMMON_TOKEN, opt);
 
         resp = info.response;
         assertEquals(f.toString(), 0, f.length());
@@ -168,10 +166,10 @@ public class SyncFormUploadTest extends BaseTest {
 
     @Test
     public void test0byte() {
-        info = uploadManager.syncPut(new byte[0], null, TestConfig.commonToken, null);
+        info = uploadManager.syncPut(new byte[0], null, TestConfig.COMMON_TOKEN, null);
         assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
 
-        info = uploadManager.syncPut("", null, TestConfig.commonToken, null);
+        info = uploadManager.syncPut("", null, TestConfig.COMMON_TOKEN, null);
         assertEquals(info.toString(), ResponseInfo.ZeroSizeFile, info.statusCode);
     }
 
@@ -179,7 +177,7 @@ public class SyncFormUploadTest extends BaseTest {
     @Test
     public void testHttps() {
         final String expectKey = "你好-testHttps;\"\r\n\r\n\r\n";
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, String> params = new HashMap<String, String>(1);
         params.put("x:foo", "fooval");
         final UploadOptions opt = new UploadOptions(params, null, true, null, null);
         String[] s = new String[]{"up-na0.qbox.me"};
@@ -189,7 +187,7 @@ public class SyncFormUploadTest extends BaseTest {
                 .useHttps(true)
                 .build();
         UploadManager uploadManager2 = new UploadManager(c);
-        info = uploadManager2.syncPut("hello".getBytes(), expectKey, TestConfig.commonToken, opt);
+        info = uploadManager2.syncPut("hello".getBytes(), expectKey, TestConfig.COMMON_TOKEN, opt);
 
         resp = info.response;
         key = resp.optString("key");

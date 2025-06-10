@@ -39,103 +39,112 @@ def getRepositoryPassword() {
     return hasProperty('NEXUS_PASSWORD') ? NEXUS_PASSWORD : ""
 }
 
-task androidJavadocs(type: Javadoc, dependsOn: 'assembleRelease') {
-    failOnError = false
-    options.encoding = "UTF-8"
-    options.charSet = 'UTF-8'
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    android.libraryVariants.all { variant ->
-        if (variant.name == 'release') {
-            owner.classpath += variant.javaCompile.classpath
+afterEvaluate {
+    tasks.register('androidJavadocs', Javadoc) {
+        dependsOn 'assembleRelease'
+        failOnError = false
+        options.encoding = "UTF-8"
+        options.charSet = 'UTF-8'
+        if (project.hasProperty('android')) {
+            classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+            def mainSrcDirs = android.sourceSets.main.java.srcDirs
+            if (mainSrcDirs && mainSrcDirs.size() > 0) {
+                source = mainSrcDirs
+            } else {
+                logger.warn("No Java source dirs found for Javadoc generation.")
+                source = files() // 空文件集，避免报错
+            }
+            android.libraryVariants.all { variant ->
+                if (variant.name == 'release') {
+                    if (variant.hasProperty('javaCompileProvider')) {
+                        owner.classpath += variant.javaCompileProvider.get().classpath
+                    }
+                }
+            }
+        } else {
+            logger.warn("Android plugin not applied, skipping Javadoc source configuration.")
+            source = files()
+        }
+        exclude '**/R.html', '**/R.*.html', '**/index.html'
+    }
+
+    tasks.register('androidJavadocsJar', Jar) {
+        dependsOn tasks.named('androidJavadocs')
+        archiveClassifier.set('javadoc')
+        from tasks.named('androidJavadocs').get().destinationDir
+    }
+
+    tasks.register('androidSourcesJar', Jar) {
+        archiveClassifier.set('sources')
+        if (project.hasProperty('android')) {
+            from android.sourceSets.main.java.srcDirs
         }
     }
-    source = android.sourceSets.main.java.srcDirs
-    exclude '**/R.html', '**/R.*.html', '**/index.html'
-}
 
-task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
-    archiveClassifier.set('javadoc')
-    from androidJavadocs.destinationDir
-}
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                groupId = GROUP
+                artifactId = POM_ARTIFACT_ID
+                version = VERSION_NAME
 
-task androidSourcesJar(type: Jar) {
-    archiveClassifier.set('sources')
-    from android.sourceSets.main.java.srcDirs
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            groupId = GROUP
-            artifactId = POM_ARTIFACT_ID
-            version = VERSION_NAME
-
-            artifacts {
-                artifact(androidSourcesJar)
-                artifact(androidJavadocsJar)
+                artifact(tasks.named('androidSourcesJar'))
+                artifact(tasks.named('androidJavadocsJar'))
                 artifact("$buildDir/outputs/aar/${project.name}-release.aar")
+
+                pom {
+                    name = POM_NAME
+                    description = POM_DESCRIPTION
+                    url = POM_URL
+                    inceptionYear = POM_INCEPTION_YEAR
+
+                    licenses {
+                        license {
+                            name = POM_LICENCE_NAME
+                            url = POM_LICENCE_URL
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = POM_DEVELOPER_ID
+                            name = POM_DEVELOPER_NAME
+                            email = POM_EMAIL
+                        }
+                    }
+
+                    scm {
+                        connection= POM_SCM_CONNECTION
+                        developerConnection=POM_SCM_DEV_CONNECTION
+                        url=POM_SCM_URL
+                    }
+
+                    withXml {
+                        def dependencies = asNode().appendNode("dependencies")
+                        configurations.getByName("releaseCompileClasspath").resolvedConfiguration.firstLevelModuleDependencies.forEach {
+                            def dependency = dependencies.appendNode("dependency")
+                            dependency.appendNode("groupId", it.moduleGroup)
+                            dependency.appendNode("artifactId", it.moduleName)
+                            dependency.appendNode("version", it.moduleVersion)
+                        }
+                    }
+                }
             }
-
-
-            pom {
+        }
+        repositories {
+            maven {
                 name = POM_NAME
-                description = POM_DESCRIPTION
-                url = POM_URL
-                inceptionYear = POM_INCEPTION_YEAR
-
-                licenses {
-                    license {
-                        name = POM_LICENCE_NAME
-                        url = POM_LICENCE_URL
-                    }
-                }
-
-                developers {
-                    developer {
-                        id = POM_DEVELOPER_ID
-                        name = POM_DEVELOPER_NAME
-                        email = POM_EMAIL
-                    }
-                }
-
-                scm {
-                    connection= POM_SCM_CONNECTION
-                    developerConnection=POM_SCM_DEV_CONNECTION
-                    url=POM_SCM_URL
-                }
-
-                withXml {
-                    def dependencies = asNode().appendNode("dependencies")
-
-                    configurations
-                            .getByName("releaseCompileClasspath")
-                            .resolvedConfiguration
-                            .firstLevelModuleDependencies.forEach {
-                        def dependency = dependencies.appendNode("dependency")
-                        dependency.appendNode("groupId", it.moduleGroup)
-                        dependency.appendNode("artifactId", it.moduleName)
-                        dependency.appendNode("version", it.moduleVersion)
-                    }
+                url = isReleaseBuild() ? getReleaseRepositoryUrl() : getSnapshotRepositoryUrl()
+                credentials {
+                    username = getRepositoryUsername()
+                    password = getRepositoryPassword()
                 }
             }
         }
     }
 
-    repositories {
-        maven {
-            name = POM_NAME
-            url = getReleaseRepositoryUrl()
-            credentials {
-                username = getRepositoryUsername()
-                password = getRepositoryPassword()
-            }
-        }
+    signing {
+        required { isReleaseBuild() }
+        sign publishing.publications
     }
-
-}
-
-            
-signing {
-    required { isReleaseBuild()}
-    sign publishing.publications
 }

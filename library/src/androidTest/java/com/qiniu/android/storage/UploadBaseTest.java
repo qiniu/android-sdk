@@ -3,8 +3,6 @@ package com.qiniu.android.storage;
 import android.net.Uri;
 import android.util.Log;
 
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
 import com.qiniu.android.BaseTest;
 import com.qiniu.android.TestConfig;
 import com.qiniu.android.http.ResponseInfo;
@@ -13,7 +11,6 @@ import com.qiniu.android.utils.LogUtil;
 
 import org.json.JSONObject;
 import org.junit.Before;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -79,7 +76,7 @@ public class UploadBaseTest extends BaseTest {
                                              Configuration configuration,
                                              UploadOptions options) {
 
-        uploadFileAndAssertResult(statusCode, file, TestConfig.token_na0, key, configuration, options);
+        uploadFileAndAssertResult(statusCode, file, TestConfig.BUCKET_NA0, key, configuration, options);
     }
 
     protected void uploadFileAndAssertResult(int statusCode,
@@ -88,7 +85,7 @@ public class UploadBaseTest extends BaseTest {
                                              Configuration configuration,
                                              UploadOptions options) {
 
-        uploadFileAndAssertResult(statusCode, file, TestConfig.token_na0, key, configuration, options);
+        uploadFileAndAssertResult(statusCode, file, TestConfig.BUCKET_NA0, key, configuration, options);
     }
 
     protected void uploadFileAndAssertResult(int statusCode,
@@ -193,7 +190,7 @@ public class UploadBaseTest extends BaseTest {
                           UploadOptions options,
                           UpCompletionHandler completionHandler) {
 
-        upload(file, TestConfig.token_na0, key, configuration, options, completionHandler);
+        upload(file, TestConfig.BUCKET_NA0, key, configuration, options, completionHandler);
     }
 
     protected void upload(UploadInfo file,

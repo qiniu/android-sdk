@@ -22,7 +22,7 @@ public class TokenTest {
     @Test
     public void testRight() {
 
-        UpToken t = UpToken.parse(TestConfig.commonToken);
+        UpToken t = UpToken.parse(TestConfig.COMMON_TOKEN);
 
         assertTrue("uptoken is invalid", !UpToken.isInvalid(t));
         assertTrue("token isValidForDuration error", t.isValidForDuration(5*60));
