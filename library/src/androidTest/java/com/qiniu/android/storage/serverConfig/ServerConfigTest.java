@@ -17,7 +17,7 @@ public class ServerConfigTest extends BaseTest {
     public void testMonitor() {
         ServerConfigMonitor.removeConfigCache();
         ServerConfigMonitor.startMonitor();
-        ServerConfigMonitor.setToken(TestConfig.token_na0);
+        ServerConfigMonitor.setToken(TestConfig.BUCKET_NA0);
 
         wait(new WaitConditional() {
             @Override

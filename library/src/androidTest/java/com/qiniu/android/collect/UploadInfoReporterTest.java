@@ -85,7 +85,7 @@ public class UploadInfoReporterTest extends BaseTest {
 
     private void report(ReportItem item){
         UploadInfoReporter reporter = UploadInfoReporter.getInstance();
-        reporter.report(item, TestConfig.token_z0);
+        reporter.report(item, TestConfig.TOKEN_Z0);
     }
 
     private static void showContent(File recordFile) {

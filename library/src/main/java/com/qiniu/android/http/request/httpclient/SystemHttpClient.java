@@ -141,6 +141,7 @@ public class SystemHttpClient extends IRequestClient {
         if (server != null) {
             currentServer = server;
             metrics.setRemoteAddress(server.getIp());
+            metrics.setSyncDnsSource(server.getSource());
         }
         metrics.setRequest(request);
         currentRequest = request;

@@ -52,7 +52,7 @@ public class ClientTest extends BaseTest {
         postArgs.params = new StringMap();
         postArgs.params.put("x:foo", "foo");
 
-        UpToken token = UpToken.parse(TestConfig.commonToken);
+        UpToken token = UpToken.parse(TestConfig.COMMON_TOKEN);
 
         Client client = new Client(null, 90, 90, null, null);
         ResponseInfo responseInfo = client.syncMultipartPost("https://up.qiniup.com", postArgs, token);
@@ -70,7 +70,7 @@ public class ClientTest extends BaseTest {
         postArgs.mimeType = "text/plain";
         postArgs.params = new StringMap();
 
-        UpToken token = UpToken.parse(TestConfig.commonToken);
+        UpToken token = UpToken.parse(TestConfig.COMMON_TOKEN);
 
         Client client = new Client(null, 90, 90, null, null);
         client.asyncMultipartPost("https://up.qiniu.com", postArgs, token, null, new CompletionHandler() {

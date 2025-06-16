@@ -1,4 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="JavadocGenerationManager">
     <option name="OUTPUT_DIRECTORY" value="$USER_HOME$/AndroidUploadDocumnet" />
     <option name="OTHER_OPTIONS" value="-doctitle Qiniu Upload Andorid Library" />

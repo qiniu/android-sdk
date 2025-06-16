@@ -67,7 +67,7 @@ public class DnsApiTest extends BaseTest {
         FixedZone fixedZone = new FixedZone(new String[]{host});
 
         final DnsPrefetcher dnsPrefetcher = DnsPrefetcher.getInstance();
-        dnsPrefetcher.checkAndPrefetchDnsIfNeed(null, fixedZone, UpToken.parse(TestConfig.token_z0));
+        dnsPrefetcher.checkAndPrefetchDnsIfNeed(null, fixedZone, UpToken.parse(TestConfig.TOKEN_Z0));
 
         wait(new WaitConditional() {
             @Override
@@ -95,7 +95,7 @@ public class DnsApiTest extends BaseTest {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    boolean isSuccess = DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(null, zone, UpToken.parse(TestConfig.token_z0));
+                    boolean isSuccess = DnsPrefetchTransaction.addDnsCheckAndPrefetchTransaction(null, zone, UpToken.parse(TestConfig.TOKEN_Z0));
                     synchronized (this){
                         if (isSuccess){
                             param.successCount += 1;

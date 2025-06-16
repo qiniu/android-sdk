@@ -20,12 +20,11 @@ String version = versionName()
 int code = versionNameToCode(version)
 
 android {
-    compileSdkVersion 33
-//    buildToolsVersion '29.0.3'
+    namespace 'com.qiniu.android'
+    compileSdk 33
+
     defaultConfig {
-        //applicationId "com.qiniu.android"
         minSdkVersion 14
-        targetSdkVersion 33
         versionCode code
         versionName version
 
@@ -67,8 +66,8 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     androidTestImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 
 //    androidTestImplementation "androidx.test:runner:1.4.0"
 //    androidTestImplementation "androidx.test:core:1.4.0"
@@ -81,7 +80,7 @@ dependencies {
 
 task releaseJar(type: Jar, dependsOn: 'build') {
     //指定生成的jar名
-    baseName('qiniu-android-sdk-' + version)
+    archiveBaseName = ('qiniu-android-sdk-' + version + '.jar')
     //从哪里打包class文件
 //    from('build/intermediates/classes/release/com/qiniu/android/dns/')
     //打包到jar后的目录结构

@@ -12,8 +12,6 @@ import com.qiniu.android.common.ZonesInfo;
 import com.qiniu.android.http.ResponseInfo;
 import com.qiniu.android.utils.LogUtil;
 
-import junit.framework.Assert;
-
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -123,7 +121,7 @@ public class CancelTest extends BaseTest {
             }
         });
 
-        uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+        uploadManager.put(tempFile, expectKey, TestConfig.COMMON_TOKEN, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                 temp.expectKey = expectKey;
                 temp.key = k;
@@ -150,7 +148,7 @@ public class CancelTest extends BaseTest {
                 LogUtil.i(pos + ": progress " + percent);
             }
         }, null);
-        uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+        uploadManager.put(tempFile, expectKey, TestConfig.COMMON_TOKEN, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                 temp.expectKey = expectKey;
                 temp.key = k;
@@ -211,7 +209,7 @@ public class CancelTest extends BaseTest {
             }
         });
 
-        uploadManager.put(tempDate, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+        uploadManager.put(tempDate, expectKey, TestConfig.COMMON_TOKEN, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                 temp.expectKey = expectKey;
                 temp.key = k;
@@ -287,7 +285,7 @@ public class CancelTest extends BaseTest {
         Configuration config = new Configuration.Builder().recorder(fr).zone(zone).build();
 
         UploadManager uploadManager = new UploadManager(config);
-        uploadManager.put(tempFile, expectKey, TestConfig.commonToken, new UpCompletionHandler() {
+        uploadManager.put(tempFile, expectKey, TestConfig.COMMON_TOKEN, new UpCompletionHandler() {
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
                 temp.expectKey = expectKey;
                 temp.key = k;

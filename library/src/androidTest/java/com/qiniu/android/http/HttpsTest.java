@@ -45,7 +45,7 @@ public class HttpsTest extends BaseTest {
 
         info = null;
         httpManager.asyncPost("https://up-na0.qiniup.com", "hello".getBytes(), null,
-                UpToken.parse(TestConfig.commonToken), "hello".getBytes().length, null, new CompletionHandler() {
+                UpToken.parse(TestConfig.COMMON_TOKEN), "hello".getBytes().length, null, new CompletionHandler() {
                     @Override
                     public void complete(ResponseInfo rinfo, JSONObject response) {
                         LogUtil.d(rinfo.toString());
