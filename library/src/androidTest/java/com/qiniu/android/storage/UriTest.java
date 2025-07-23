@@ -102,7 +102,7 @@ public class UriTest extends BaseTest {
         key += isConcurrent ? "serial_" : "concurrent_";
         key += fileName;
         final UploadCompleteInfo completeInfo = new UploadCompleteInfo();
-        uploadManager.put(uri, null, key, TestConfig.BUCKET_NA0, new UpCompletionHandler() {
+        uploadManager.put(uri, null, key, TestConfig.COMMON_TOKEN, new UpCompletionHandler() {
             @Override
             public void complete(String key, ResponseInfo info, JSONObject response) {
                 completeInfo.key = key;

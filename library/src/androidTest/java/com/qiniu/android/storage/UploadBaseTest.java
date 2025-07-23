@@ -76,7 +76,7 @@ public class UploadBaseTest extends BaseTest {
                                              Configuration configuration,
                                              UploadOptions options) {
 
-        uploadFileAndAssertResult(statusCode, file, TestConfig.BUCKET_NA0, key, configuration, options);
+        uploadFileAndAssertResult(statusCode, file, TestConfig.COMMON_TOKEN, key, configuration, options);
     }
 
     protected void uploadFileAndAssertResult(int statusCode,
@@ -85,7 +85,7 @@ public class UploadBaseTest extends BaseTest {
                                              Configuration configuration,
                                              UploadOptions options) {
 
-        uploadFileAndAssertResult(statusCode, file, TestConfig.BUCKET_NA0, key, configuration, options);
+        uploadFileAndAssertResult(statusCode, file, TestConfig.COMMON_TOKEN, key, configuration, options);
     }
 
     protected void uploadFileAndAssertResult(int statusCode,
@@ -190,7 +190,7 @@ public class UploadBaseTest extends BaseTest {
                           UploadOptions options,
                           UpCompletionHandler completionHandler) {
 
-        upload(file, TestConfig.BUCKET_NA0, key, configuration, options, completionHandler);
+        upload(file, TestConfig.COMMON_TOKEN, key, configuration, options, completionHandler);
     }
 
     protected void upload(UploadInfo file,
