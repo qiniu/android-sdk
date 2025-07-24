@@ -168,7 +168,7 @@ public class RetryTest extends BaseTest {
                 LogUtil.i(("progress:" + percent));
             }
         }, null);
-        uploadManager.put(f, expectKey, TestConfig.BUCKET_NA0, new UpCompletionHandler() {
+        uploadManager.put(f, expectKey, TestConfig.COMMON_TOKEN, new UpCompletionHandler() {
 
             public void complete(String k, ResponseInfo rinfo, JSONObject response) {
 

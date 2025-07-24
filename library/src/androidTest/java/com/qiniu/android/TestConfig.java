@@ -70,5 +70,5 @@ public final class TestConfig {
     /**
      * 测试通用的token
      */
-    public static final String COMMON_TOKEN = BUCKET_NA0;
+    public static final String COMMON_TOKEN = TOKEN_NA0;
 }

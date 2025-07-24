@@ -579,8 +579,8 @@ public class SystemHttpClient extends IRequestClient {
 
     private static JSONObject buildJsonResp(byte[] body) throws Exception {
         String str = new String(body, Constants.UTF_8);
-        // 允许 空 字符串
-        if (StringUtils.isNullOrEmpty(str)) {
+        // 允许 空 和 null 字符串
+        if (StringUtils.isNullOrEmpty(str) || str.equalsIgnoreCase("null")) {
             return new JSONObject();
         }
         return new JSONObject(str);
