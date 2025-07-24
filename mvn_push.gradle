@@ -21,14 +21,19 @@ def isReleaseBuild() {
     return VERSION_NAME.contains("SNAPSHOT") == false
 }
 
+def getRepositoryUrl() {
+    return hasProperty('REPOSITORY_URL') ? RELEASE_REPOSITORY_URL
+            : "https://ossrh-staging-api.central.sonatype.com"
+}
+
 def getReleaseRepositoryUrl() {
     return hasProperty('RELEASE_REPOSITORY_URL') ? RELEASE_REPOSITORY_URL
-            : "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            : "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
 }
 
 def getSnapshotRepositoryUrl() {
     return hasProperty('SNAPSHOT_REPOSITORY_URL') ? SNAPSHOT_REPOSITORY_URL
-            : "https://oss.sonatype.org/content/repositories/snapshots/"
+            : "https://ossrh-staging-api.central.sonatype.com/content/repositories/snapshots/"
 }
 
 def getRepositoryUsername() {
@@ -146,5 +151,27 @@ afterEvaluate {
     signing {
         required { isReleaseBuild() }
         sign publishing.publications
+    }
+}
+
+tasks.named('publish') {
+    finalizedBy tasks.named('postRelease')
+}
+
+tasks.register('postRelease') {
+    doLast {
+        def username = getRepositoryUsername()
+        def password = getRepositoryPassword()
+        def url = getRepositoryUrl() + "/manual/upload/defaultRepository/com.qiniu"
+        // 发送 POST 请求，使发布文件能在 central sonatype 中显示
+        def connection = new URL(url).openConnection() as HttpURLConnection
+        connection.setRequestMethod("POST")
+        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+        connection.setRequestProperty('Authorization', 'Basic ' + "${username}:${password}".bytes.encodeBase64().toString())
+        connection.doOutput = false
+
+        // 读取响应
+        def response = connection.inputStream.text
+        println "POST 响应: ${response}"
     }
 }
