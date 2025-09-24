@@ -62,7 +62,7 @@ dependencies {
 
     // for javax.annotation.Nullable use in custom MultipartBody and Headers implements.
 //    implementation 'com.google.code.findbugs:jsr305:3.0.2'
-    implementation 'org.conscrypt:conscrypt-android:2.2.1'
+    implementation 'org.conscrypt:conscrypt-android:2.5.3'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
 
     androidTestImplementation 'junit:junit:4.13.2'
