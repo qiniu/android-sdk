@@ -39,3 +39,6 @@ java_pid*
 .idea/caches/
 library/library.iml
 .idea/*
+
+# Claude Code
+.claude/

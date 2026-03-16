@@ -71,6 +71,7 @@ public class TransactionManagerTest extends BaseTest {
         });
 
         TransactionManager manager = TransactionManager.getInstance();
+        manager.start();
 
         int transactionCountBefore = manager.transactionList.size();
         long actionCountBefore = manager.actionCount;

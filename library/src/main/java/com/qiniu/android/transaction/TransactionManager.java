@@ -86,7 +86,6 @@ public class TransactionManager {
             return;
         }
         transactionList.add(transaction);
-        createTimer();
     }
 
     /**
@@ -126,6 +125,21 @@ public class TransactionManager {
     }
 
 
+    /**
+     * 启动事务调度定时器
+     */
+    public void start() {
+        createTimer();
+    }
+
+    /**
+     * 停止事务调度定时器
+     */
+    public void stop() {
+        invalidateTimer();
+    }
+
+
     private void handleAllTransaction() {
         for (Transaction transaction : transactionList) {
             handleTransaction(transaction);
@@ -153,9 +167,11 @@ public class TransactionManager {
         }, 0, 1000);
     }
 
-    private void invalidateTimer() {
-        timer.cancel();
-        timer = null;
+    private synchronized void invalidateTimer() {
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
     }
 
     private void timerAction() {

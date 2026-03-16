@@ -14,6 +14,7 @@ import com.qiniu.android.http.metrics.UploadSingleRequestMetrics;
 import com.qiniu.android.http.metrics.UploadTaskMetrics;
 import com.qiniu.android.storage.serverConfig.ServerConfig;
 import com.qiniu.android.storage.serverConfig.ServerConfigMonitor;
+import com.qiniu.android.transaction.TransactionManager;
 import com.qiniu.android.utils.AsyncRun;
 import com.qiniu.android.utils.ContextGetter;
 import com.qiniu.android.utils.Utils;
@@ -73,6 +74,7 @@ public class UploadManager {
      */
     public UploadManager(Configuration config) {
         this.config = config != null ? config : new Configuration.Builder().build();
+        TransactionManager.getInstance().start();
         DnsPrefetchTransaction.addDnsLocalLoadTransaction();
         DnsPrefetchTransaction.setDnsCheckWhetherCachedValidTransactionAction();
         ServerConfigMonitor.startMonitor();
