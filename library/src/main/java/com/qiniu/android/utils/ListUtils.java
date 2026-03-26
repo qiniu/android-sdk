@@ -7,6 +7,9 @@ import java.util.List;
  */
 public class ListUtils {
 
+    private ListUtils() {
+    }
+
     /**
      * 判断 List 是否为空
      *

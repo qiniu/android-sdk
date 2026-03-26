@@ -7,6 +7,9 @@ import java.util.Map;
  */
 public class MapUtils {
 
+    private MapUtils() {
+    }
+
     /**
      * 判断 Map 是否为空
      *

@@ -1,4 +1,8 @@
 #Changelog
+## 8.10.0（2026-03-17）
+* 调整
+  * 解耦 TransactionManager 定时器生命周期
+
 ## 8.9.2（2025-09-24）
 * 优化
   * 处理 conscrypt-android 16KB 对齐
